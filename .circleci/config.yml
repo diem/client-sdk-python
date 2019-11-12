@@ -1,0 +1,18 @@
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: circleci/rust:stretch
+    steps:
+      - checkout
+      - run:
+          name: Setup
+          command: |
+            sudo sh -c 'echo "deb http://deb.debian.org/debian stretch-backports main" > /etc/apt/sources.list.d/backports.list'
+            sudo apt-get update
+            sudo apt-get -t stretch-backports install cmake
+      - run:
+          name: Build everything
+          command: |
+            ./build.sh

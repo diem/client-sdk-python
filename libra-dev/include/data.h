@@ -1,3 +1,10 @@
+#ifndef LIBRA_DEV_H
+#define LIBRA_DEV_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -15,3 +22,13 @@ struct CDevAccountResource {
     struct CEventHandle sent_events;
     struct CEventHandle received_events;
 };
+
+struct CDevAccountResource account_resource_from_lcs(const uint8_t *buf, size_t len);
+void account_resource_free(struct CDevAccountResource *point);
+
+
+#ifdef __cplusplus
+};
+#endif
+
+#endif // LIBRA_DEV_H

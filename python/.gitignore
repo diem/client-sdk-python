@@ -1,5 +1,7 @@
 *.pyc
 *.so
+pylibra.c
+build/
 /*.egg-info
 /_skbuild
 /.eggs

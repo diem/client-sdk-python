@@ -520,6 +520,7 @@ dependencies = [
 name = "libra-dev"
 version = "0.1.0"
 dependencies = [
+ "libra-canonical-serialization 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
 ]

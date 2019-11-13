@@ -117,3 +117,34 @@ pub unsafe extern "C" fn account_resource_from_lcs(
         received_events,
     };
 }
+
+/// Generate an AccountBlob and verify we can parse it
+#[test]
+fn test_get_account_resource() {
+    use std::{collections::BTreeMap, convert::TryInto};
+    use libra_types::account_config::account_resource_path;
+    use libra_types::account_config::AccountResource;
+
+    // Figure out how to use Libra code to generate AccountStateBlob directly, not involving btreemap directly
+    let mut map: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::new();
+    let ar = AccountResource::new(
+        987654321,
+        123456789,
+        ByteArray::new(vec![1,2,3,4]),
+        true,
+        false,
+        EventHandle::default(),
+        EventHandle::default(),
+    );
+    // Fill in data
+    map.insert(account_resource_path(), lcs::to_bytes(&ar ).expect("Must success"));
+
+    let account_state_blob = lcs::to_bytes(&map).expect("LCS serialization failed");
+
+    let result = unsafe {
+        account_resource_from_lcs(account_state_blob.as_ptr(), account_state_blob.len())
+    };
+
+    assert_eq!(result.balance, ar.balance());
+    assert_eq!(result.sequence, ar.sequence_number());
+}

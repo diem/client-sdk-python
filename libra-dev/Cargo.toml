@@ -10,5 +10,8 @@ edition = "2018"
 libra-types = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
 
+[dev-dependencies]
+lcs = { git  = "https://github.com/libra/libra.git", branch = "testnet", package = "libra-canonical-serialization" }
+
 [lib]
 crate-type = ["staticlib"]

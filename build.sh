@@ -3,6 +3,7 @@ set -euo pipefail
 
 # Build libra-dev first
 cd libra-dev
+cargo test
 cargo build
 cd ..
 

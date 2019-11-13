@@ -1,9 +1,11 @@
 *.pyc
+*.pyd
+*.c
 *.so
-pylibra.c
-build/
-/*.egg-info
+/build
+**/*.egg-info
 /_skbuild
+/.pytest_cache
 /.eggs
 /dist
 /venv

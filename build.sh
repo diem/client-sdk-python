@@ -10,7 +10,6 @@ cd ..
 # Then build rust client
 cd rust
 cargo build
-cargo test
 cd ..
 
 # C Stuff
@@ -21,5 +20,6 @@ cmake ..
 make VERBOSE=1
 
 # Test!
+cd rust && ./test.sh && cd ..
 ./c/c-client
 ./cpp/cpp-client

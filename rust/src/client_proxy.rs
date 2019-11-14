@@ -468,7 +468,7 @@ impl ClientProxy {
         let dependencies_file = self.handle_dependencies(tmp_source_path.display(), is_module)?;
 
         let mut args = format!(
-            "run -p compiler -- {} -a {}{}",
+            "{} -a {}{}",
             tmp_source_path.display(),
             address,
             if is_module { " -m" } else { "" },
@@ -477,7 +477,7 @@ impl ClientProxy {
             args.push_str(&format!(" --deps={}", file.as_ref().display()));
         }
 
-        let status = Command::new("cargo")
+        let status = Command::new("./target/debug/compiler")
             .args(args.split(' '))
             .spawn()?
             .wait()?;
@@ -497,11 +497,11 @@ impl ClientProxy {
         source_path: Display,
         is_module: bool,
     ) -> Result<Option<TempPath>> {
-        let mut args = format!("run -p compiler -- -l {}", source_path);
+        let mut args = format!("-l {}", source_path);
         if is_module {
             args.push_str(" -m");
         }
-        let child = Command::new("cargo")
+        let child = Command::new("./target/debug/compiler")
             .args(args.split(' '))
             .stdout(Stdio::piped())
             .spawn()?;

@@ -44,15 +44,18 @@ crash-handler = { git  = "https://github.com/libra/libra.git", branch = "testnet
 failure = { package = "libra-failure-ext", git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-logger =  { git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-metrics = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
-libra-tools = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-tools = { git = "https://github.com/libra/libra.git", branch = "testnet" }
 
 [build-dependencies]
 bindgen = "0.51.1"
 
 [dev-dependencies]
 proptest = "0.9.2"
+libra-swarm = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-node = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+generate-keypair = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+compiler = { git = "https://github.com/libra/libra.git", branch = "testnet" }
 
 [features]
-# FIXEME
-default = ["libra-crypto/cloneable-private-keys"]
+default = []
 fuzzing = ["proptest", "libra-crypto/fuzzing", "fixme-libra-types/fuzzing"]

@@ -3,11 +3,17 @@ set -euo pipefail
 
 # Build libra-dev first
 cd libra-dev
-cargo test
 cargo build
+cargo test
 cd ..
 
-# Then build everything else
+# Then build rust client
+cd rust
+cargo build
+cargo test
+cd ..
+
+# C Stuff
 rm -rf build
 mkdir build
 cd build

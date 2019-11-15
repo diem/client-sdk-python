@@ -44,7 +44,7 @@ fn bindgen_test_layout_CEventHandle() {
 pub struct CDevAccountResource {
     pub balance: u64,
     pub sequence: u64,
-    pub authentication_key: *mut u8,
+    pub authentication_key: [u8; 32usize],
     pub delegated_key_rotation_capability: bool,
     pub delegated_withdrawal_capability: bool,
     pub sent_events: CEventHandle,
@@ -54,7 +54,7 @@ pub struct CDevAccountResource {
 fn bindgen_test_layout_CDevAccountResource() {
     assert_eq!(
         ::std::mem::size_of::<CDevAccountResource>(),
-        112usize,
+        136usize,
         concat!("Size of: ", stringify!(CDevAccountResource))
     );
     assert_eq!(
@@ -99,7 +99,7 @@ fn bindgen_test_layout_CDevAccountResource() {
             &(*(::std::ptr::null::<CDevAccountResource>())).delegated_key_rotation_capability
                 as *const _ as usize
         },
-        24usize,
+        48usize,
         concat!(
             "Offset of field: ",
             stringify!(CDevAccountResource),
@@ -112,7 +112,7 @@ fn bindgen_test_layout_CDevAccountResource() {
             &(*(::std::ptr::null::<CDevAccountResource>())).delegated_withdrawal_capability
                 as *const _ as usize
         },
-        25usize,
+        49usize,
         concat!(
             "Offset of field: ",
             stringify!(CDevAccountResource),
@@ -122,7 +122,7 @@ fn bindgen_test_layout_CDevAccountResource() {
     );
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<CDevAccountResource>())).sent_events as *const _ as usize },
-        32usize,
+        56usize,
         concat!(
             "Offset of field: ",
             stringify!(CDevAccountResource),
@@ -134,7 +134,7 @@ fn bindgen_test_layout_CDevAccountResource() {
         unsafe {
             &(*(::std::ptr::null::<CDevAccountResource>())).received_events as *const _ as usize
         },
-        72usize,
+        96usize,
         concat!(
             "Offset of field: ",
             stringify!(CDevAccountResource),

@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -16,7 +17,7 @@ struct CEventHandle {
 struct CDevAccountResource {
     uint64_t balance;
     uint64_t sequence;
-    uint8_t* authentication_key;
+    uint8_t authentication_key[32];
     bool delegated_key_rotation_capability;
     bool delegated_withdrawal_capability;
     struct CEventHandle sent_events;

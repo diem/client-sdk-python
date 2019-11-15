@@ -1,0 +1,61 @@
+[package]
+name = "client"
+version = "0.1.0"
+authors = ["Libra Association <opensource@libra.org>"]
+description = "Libra client"
+repository = "https://github.com/libra/libra"
+homepage = "https://libra.org"
+license = "Apache-2.0"
+publish = false
+edition = "2018"
+
+[dependencies]
+
+chrono = "0.4.7"
+futures = "0.1.28"
+grpcio = { version = "=0.5.0-alpha.4", default-features = false, features = ["prost-codec"] }
+hex = "0.3.2"
+itertools = "0.8.0"
+proptest = { version = "0.9.2", optional = true }
+rustyline = "5.0.3"
+rust_decimal = "1.0.2"
+num-traits = "0.2"
+reqwest = { version = "0.9.19", default-features = false }
+serde = { version = "1.0.96", features = ["derive"] }
+serde_json = "1.0.40"
+structopt = "0.3.2"
+
+# Libra C API, that is all we should need!
+libra-dev = { path="../libra-dev" }
+
+# All Libra dependencies, The goal is to remove this section down to zero!
+# S0: Core types
+fixme-libra-types = {  package = "libra-types", git  = "https://github.com/libra/libra.git", branch = "testnet" }
+fixme-transaction-builder = { package="transaction-builder", git  = "https://github.com/libra/libra.git", branch = "testnet" }
+fixme-lcs = { package = "libra-canonical-serialization", git  = "https://github.com/libra/libra.git", branch = "testnet" }
+# S1: Crypto
+libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-wallet = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+# S2: Transport
+admission-control-proto = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-config = { package="libra-config", git  = "https://github.com/libra/libra.git", branch = "testnet" }
+# Miscs
+crash-handler = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+failure = { package = "libra-failure-ext", git  = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-logger =  { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-metrics = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-tools = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+
+[build-dependencies]
+bindgen = "0.51.1"
+
+[dev-dependencies]
+proptest = "0.9.2"
+libra-swarm = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+libra-node = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+generate-keypair = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+compiler = { git = "https://github.com/libra/libra.git", branch = "testnet" }
+
+[features]
+default = []
+fuzzing = ["proptest", "libra-crypto/fuzzing", "fixme-libra-types/fuzzing"]

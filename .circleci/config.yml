@@ -1,9 +1,14 @@
-version: 2.0
+version: 2.1
+
+executors:
+  build-executor:
+    docker:
+      - image: circleci/rust:stretch
+    resource_class: 2xlarge
 
 jobs:
   build:
-    docker:
-      - image: circleci/rust:stretch
+    executor: build-executor
     steps:
       - checkout
       - run:
@@ -11,13 +16,18 @@ jobs:
           command: |
             sudo sh -c 'echo "deb http://deb.debian.org/debian stretch-backports main" > /etc/apt/sources.list.d/backports.list'
             sudo apt-get update
-            sudo apt-get -t stretch-backports install cmake python3-dev python3-venv clang llvm
+            sudo apt-get -t stretch-backports install cmake python3-dev python3-venv clang llvm libjemalloc-dev
       - run:
           name: Build everything
           command: |
             ./build.sh
       - run:
-          name: Build Python stuff
+          name: Test Rust Client
+          command: |
+            cd rust
+            ./test.sh
+      - run:
+          name: Test Python stuff
           command: |
             cd python
             ./test.sh

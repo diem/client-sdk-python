@@ -25,8 +25,8 @@ serde = { version = "1.0.96", features = ["derive"] }
 serde_json = "1.0.40"
 structopt = "0.3.2"
 
-# Libra C API, that is all we should need!
-libra-dev = { path="../libra-dev" }
+# TODO: this actually doesn't work, havn't figure out an way to link against an staticlib dependency yet.
+# libra-dev = { path="../libra-dev" }
 
 # All Libra dependencies, The goal is to remove this section down to zero!
 # S0: Core types
@@ -59,3 +59,7 @@ compiler = { git = "https://github.com/libra/libra.git", branch = "testnet" }
 [features]
 default = []
 fuzzing = ["proptest", "libra-crypto/fuzzing", "fixme-libra-types/fuzzing"]
+
+# Override depenedency to use local client implementation.
+[patch."https://github.com/libra/libra.git"]
+client = { path = "./" }

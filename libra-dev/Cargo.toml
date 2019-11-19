@@ -14,4 +14,10 @@ libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "testnet"
 lcs = { git  = "https://github.com/libra/libra.git", branch = "testnet", package = "libra-canonical-serialization" }
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["cdylib"]
+
+[profile.dev]
+lto = true
+
+[profile.release]
+lto = true

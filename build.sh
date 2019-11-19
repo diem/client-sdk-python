@@ -11,15 +11,3 @@ cd ..
 cd rust
 cargo build
 cd ..
-
-# C Stuff
-rm -rf build
-mkdir build
-cd build
-cmake ..
-make VERBOSE=1
-
-# Test!
-cd rust && ./test.sh && cd ..
-./c/c-client
-./cpp/cpp-client

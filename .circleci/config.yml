@@ -3,7 +3,7 @@ version: 2.1
 executors:
   build-executor:
     docker:
-      - image: circleci/rust:stretch
+      - image: circleci/rust:buster
     resource_class: 2xlarge
 
 jobs:
@@ -14,20 +14,47 @@ jobs:
       - run:
           name: Setup
           command: |
-            sudo sh -c 'echo "deb http://deb.debian.org/debian stretch-backports main" > /etc/apt/sources.list.d/backports.list'
-            sudo apt-get update
-            sudo apt-get -t stretch-backports install cmake python3-dev python3-venv clang llvm libjemalloc-dev
+            sudo apt-get update && sudo apt-get upgrade -y
+            sudo apt-get install cmake python3-dev python3-venv clang llvm libjemalloc-dev librocksdb-dev
       - run:
-          name: Build everything
+          name: Build libra-dev
           command: |
             ./build.sh
       - run:
+          name: Install libra-dev
+          command: |
+            sudo cp libra-dev/target/debug/liblibra_dev.so /usr/lib
+      - run:
+          name: Test C++ client
+          background: true
+          when: always
+          shell: /bin/sh
+          command: |
+            cd cpp
+            ./build.sh && ./test.sh
+            touch test-done
+      - run:
           name: Test Rust Client
+          background: true
+          when: always
+          shell: /bin/sh
           command: |
             cd rust
             ./test.sh
+            touch test-done
       - run:
           name: Test Python stuff
+          background: true
+          when: always
+          shell: /bin/sh
           command: |
             cd python
             ./test.sh
+            touch test-done
+      - run:
+          name: Wait for everything
+          when: always
+          command: |
+            while [ ! -f cpp/test-done ]; do sleep 1; done
+            while [ ! -f rust/test-done ]; do sleep 1; done
+            while [ ! -f python/test-done ]; do sleep 1; done

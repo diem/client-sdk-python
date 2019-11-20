@@ -9,9 +9,12 @@ edition = "2018"
 [dependencies]
 libra-types = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
+transaction-builder = {git = "https://github.com/libra/libra.git", branch = "testnet" }
+lcs = { git  = "https://github.com/libra/libra.git", branch = "testnet", package = "libra-canonical-serialization" }
+libc = "0.2.65"
 
 [dev-dependencies]
-lcs = { git  = "https://github.com/libra/libra.git", branch = "testnet", package = "libra-canonical-serialization" }
+rand = "0.6.5"
 
 [lib]
 crate-type = ["cdylib"]

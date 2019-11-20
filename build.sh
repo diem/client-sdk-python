@@ -2,7 +2,11 @@
 set -euo pipefail
 
 # Create C to Rust bindings
-#bindgen libra-dev/include/data.h --whitelist-type=CEventHandle --whitelist-type=CDevAccountResource -o libra-dev/src/data.rs
+#bindgen libra-dev/include/data.h \
+#  --whitelist-type=CEventHandle --whitelist-type=CDevAccountResource \
+#  --whitelist-type=CDevP2PTransferTransactionArgument --whitelist-type=CDevTransactionPayload --whitelist-type=CDevRawTransaction --whitelist-type=CDevSignedTransaction \
+#  --whitelist-type=TransactionType \
+#  -o libra-dev/src/data.rs
 
 # Build libra-dev first
 cd libra-dev

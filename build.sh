@@ -7,6 +7,8 @@ set -euo pipefail
 # Build libra-dev first
 cd libra-dev
 cargo build
+cargo clippy -- -A clippy::missing-safety-doc -D warnings
+cargo fmt --all -- --check
 cargo test
 cd ..
 

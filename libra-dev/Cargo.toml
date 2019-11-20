@@ -19,8 +19,10 @@ rand = "0.6.5"
 [lib]
 crate-type = ["cdylib"]
 
+# FFI libray can only support panic = "abort"
 [profile.dev]
-lto = true
+panic = 'abort'
 
 [profile.release]
+panic = 'abort'
 lto = true

@@ -8,4 +8,5 @@ mod data;
 
 pub mod account;
 pub mod account_resource;
+pub mod event;
 pub mod transaction;

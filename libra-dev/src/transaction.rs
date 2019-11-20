@@ -461,7 +461,7 @@ fn test_libra_raw_transaction_bytes_from() {
     };
 }
 
-/// Generate an Signed Transaction and deserialize
+/// Generate a Signed Transaction and deserialize
 #[test]
 fn test_libra_signed_transaction_deserialize() {
     let keypair = compat::generate_keypair(None);

@@ -8,8 +8,11 @@ use libra_types::{
 use std::slice;
 
 #[no_mangle]
-pub extern "C" fn account_resource_from_lcs(buf: *const u8, len: usize) -> CDevAccountResource {
-    let buf: &[u8] = unsafe { slice::from_raw_parts(buf, len) };
+pub unsafe extern "C" fn account_resource_from_lcs(
+    buf: *const u8,
+    len: usize,
+) -> CDevAccountResource {
+    let buf: &[u8] = slice::from_raw_parts(buf, len);
 
     let account_state_blob = AccountStateBlob::from(buf.to_vec());
     let account_resource =

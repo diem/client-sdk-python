@@ -1,11 +1,18 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
+use crate::data::{
+    CDevP2PTransferTransactionArgument, CDevRawTransaction, CDevSignedTransaction,
+    CDevTransactionPayload, TransactionType_PeerToPeer,
+};
 use lcs::to_bytes;
 use libra_crypto::{ed25519::*, test_utils::KeyPair};
+use libra_types::transaction::SignedTransaction;
 use libra_types::{
     account_address::{AccountAddress, ADDRESS_LENGTH},
-    transaction::{helpers::TransactionSigner, RawTransaction, TransactionPayload},
+    transaction::{
+        helpers::TransactionSigner, RawTransaction, TransactionArgument, TransactionPayload,
+    },
 };
 use std::{convert::TryFrom, slice, time::Duration};
 use transaction_builder::encode_transfer_script;
@@ -18,7 +25,7 @@ pub extern "C" fn libra_signed_transaction_build(
     num_coins: u64,
     max_gas_amount: u64,
     gas_unit_price: u64,
-    expiration_time_millis: u64,
+    expiration_time_secs: u64,
     private_key_bytes: *const u8,
     buf: *mut *mut u8,
     len: *mut usize,
@@ -27,7 +34,7 @@ pub extern "C" fn libra_signed_transaction_build(
     let sender_address = AccountAddress::try_from(sender_buf).unwrap();
     let receiver_buf = unsafe { slice::from_raw_parts(receiver, ADDRESS_LENGTH) };
     let receiver_address = AccountAddress::try_from(receiver_buf).unwrap();
-    let expiration_time = Duration::from_millis(expiration_time_millis);
+    let expiration_time = Duration::from_secs(expiration_time_secs);
 
     let program = encode_transfer_script(&receiver_address, num_coins);
     let payload = TransactionPayload::Script(program);
@@ -68,6 +75,66 @@ pub unsafe extern "C" fn libra_signed_transaction_free(buf: *mut *mut u8) {
     }
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn libra_signed_transaction_deserialize(
+    buf: *const u8,
+    len: usize,
+) -> CDevSignedTransaction {
+    let buffer: &[u8] = slice::from_raw_parts(buf, len);
+
+    let signed_txn: SignedTransaction =
+        lcs::from_bytes(&buffer).expect("Could not deserialize signed txn");
+    let mut sender = [0u8; ADDRESS_LENGTH];
+    sender.copy_from_slice(signed_txn.sender().as_ref());
+    let sequence_number = signed_txn.sequence_number();
+    let payload = signed_txn.payload();
+    let max_gas_amount = signed_txn.max_gas_amount();
+    let gas_unit_price = signed_txn.gas_unit_price();
+    let expiration_time_secs = signed_txn.expiration_time().as_secs();
+    let public_key = signed_txn.public_key();
+    let signature = signed_txn.signature();
+
+    let mut cdev_txn_payload = None;
+
+    if let TransactionPayload::Script(script) = payload {
+        let args = script.args();
+        let mut value = None;
+        let mut address = None;
+        args.iter().for_each(|txn_arg| match txn_arg {
+            TransactionArgument::U64(val) => {
+                value = Some(*val);
+            }
+            TransactionArgument::Address(addr) => {
+                let mut addr_buffer = [0u8; ADDRESS_LENGTH];
+                addr_buffer.copy_from_slice(addr.as_ref());
+                address = Some(addr_buffer);
+            }
+            _ => {}
+        });
+        cdev_txn_payload = Some(CDevTransactionPayload {
+            txn_type: TransactionType_PeerToPeer,
+            args: CDevP2PTransferTransactionArgument {
+                value: value.expect("Could not extract transaction amount from payload"),
+                address: address.expect("Could not extract receiver address from payload"),
+            },
+        });
+    }
+
+    let raw_txn = CDevRawTransaction {
+        sender,
+        sequence_number,
+        payload: cdev_txn_payload.expect("Could not get transaction payload"),
+        max_gas_amount,
+        gas_unit_price,
+        expiration_time_secs,
+    };
+    CDevSignedTransaction {
+        raw_txn,
+        public_key: public_key.to_bytes(),
+        signature: signature.to_bytes(),
+    }
+}
+
 /// Generate an Signed Transaction and deserialize
 #[test]
 fn test_lcs_signed_transaction() {
@@ -90,7 +157,7 @@ fn test_lcs_signed_transaction() {
     let amount = 100000000;
     let gas_unit_price = 123;
     let max_gas_amount = 1000;
-    let expiration_time_millis = 0;
+    let expiration_time_secs = 0;
 
     let mut buf: u8 = 0;
     let mut buf_ptr: *mut u8 = &mut buf;
@@ -104,7 +171,7 @@ fn test_lcs_signed_transaction() {
             amount,
             max_gas_amount,
             gas_unit_price,
-            expiration_time_millis,
+            expiration_time_secs,
             private_key_bytes.as_ptr(),
             &mut buf_ptr,
             &mut len,
@@ -126,4 +193,60 @@ fn test_lcs_signed_transaction() {
     assert!(deserialized_signed_txn.check_signature().is_ok());
 
     unsafe { libra_signed_transaction_free(&mut buf_ptr) };
+}
+
+/// Generate an Signed Transaction and deserialize
+#[test]
+fn test_libra_signed_transaction_deserialize() {
+    let keypair = compat::generate_keypair(None);
+    let sender = AccountAddress::random();
+    let receiver = AccountAddress::random();
+    let sequence_number = 1;
+    let amount = 10000000;
+    let max_gas_amount = 10;
+    let gas_unit_price = 1;
+    let expiration_time_secs = 5;
+    let public_key = keypair.1;
+    let signature = Ed25519Signature::try_from(&[1u8; 64][..]).unwrap();
+
+    let program = encode_transfer_script(&receiver, amount);
+    let signed_txn = SignedTransaction::new(
+        RawTransaction::new_script(
+            sender,
+            sequence_number,
+            program,
+            max_gas_amount,
+            gas_unit_price,
+            Duration::from_secs(expiration_time_secs),
+        ),
+        public_key.clone(),
+        signature.clone(),
+    );
+    let proto_txn: libra_types::proto::types::SignedTransaction = signed_txn.clone().into();
+
+    let result = unsafe {
+        libra_signed_transaction_deserialize(
+            proto_txn.txn_bytes.as_ptr(),
+            proto_txn.txn_bytes.len(),
+        )
+    };
+    let payload = signed_txn.payload();
+    if let TransactionPayload::Script(_script) = payload {
+        assert_eq!(TransactionType_PeerToPeer, result.raw_txn.payload.txn_type);
+        assert_eq!(
+            receiver,
+            AccountAddress::new(result.raw_txn.payload.args.address)
+        );
+        assert_eq!(amount, result.raw_txn.payload.args.value);
+    }
+    assert_eq!(sender, AccountAddress::new(result.raw_txn.sender));
+    assert_eq!(sequence_number, result.raw_txn.sequence_number);
+    assert_eq!(max_gas_amount, result.raw_txn.max_gas_amount);
+    assert_eq!(gas_unit_price, result.raw_txn.gas_unit_price);
+    assert_eq!(public_key.to_bytes(), result.public_key);
+    assert_eq!(
+        signature,
+        Ed25519Signature::try_from(result.signature.as_ref()).unwrap()
+    );
+    assert_eq!(expiration_time_secs, result.raw_txn.expiration_time_secs);
 }

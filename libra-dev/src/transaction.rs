@@ -11,7 +11,7 @@ use std::{convert::TryFrom, slice, time::Duration};
 use transaction_builder::encode_transfer_script;
 
 #[no_mangle]
-pub extern "C" fn libra_signed_transaction_build(
+pub unsafe extern "C" fn libra_signed_transaction_build(
     sender: *const u8,
     receiver: *const u8,
     sequence: u64,
@@ -23,9 +23,9 @@ pub extern "C" fn libra_signed_transaction_build(
     buf: *mut *mut u8,
     len: *mut usize,
 ) {
-    let sender_buf = unsafe { slice::from_raw_parts(sender, ADDRESS_LENGTH) };
+    let sender_buf = slice::from_raw_parts(sender, ADDRESS_LENGTH);
     let sender_address = AccountAddress::try_from(sender_buf).unwrap();
-    let receiver_buf = unsafe { slice::from_raw_parts(receiver, ADDRESS_LENGTH) };
+    let receiver_buf = slice::from_raw_parts(receiver, ADDRESS_LENGTH);
     let receiver_address = AccountAddress::try_from(receiver_buf).unwrap();
     let expiration_time = Duration::from_millis(expiration_time_millis);
 
@@ -41,7 +41,7 @@ pub extern "C" fn libra_signed_transaction_build(
     );
 
     let private_key_buf: &[u8] =
-        unsafe { slice::from_raw_parts(private_key_bytes, ED25519_PRIVATE_KEY_LENGTH) };
+        slice::from_raw_parts(private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
     let private_key =
         Ed25519PrivateKey::try_from(private_key_buf).expect("Unable to deserialize Private Key");
     let key_pair = KeyPair::from(private_key);
@@ -52,13 +52,11 @@ pub extern "C" fn libra_signed_transaction_build(
         .expect("Unable to sign transaction");
 
     let signed_txn_bytes = to_bytes(&signed_txn).expect("Unable to serialize SignedTransaction");
-    unsafe {
-        let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
-        txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
+    let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
+    txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
-        *buf = txn_buf;
-        *len = signed_txn_bytes.len();
-    }
+    *buf = txn_buf;
+    *len = signed_txn_bytes.len();
 }
 
 #[no_mangle]

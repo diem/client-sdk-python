@@ -8,8 +8,11 @@ use libra_types::{
 use std::slice;
 
 #[no_mangle]
-pub extern "C" fn account_resource_from_lcs(buf: *const u8, len: usize) -> CDevAccountResource {
-    let buf: &[u8] = unsafe { slice::from_raw_parts(buf, len) };
+pub unsafe extern "C" fn account_resource_from_lcs(
+    buf: *const u8,
+    len: usize,
+) -> CDevAccountResource {
+    let buf: &[u8] = slice::from_raw_parts(buf, len);
 
     let account_state_blob = AccountStateBlob::from(buf.to_vec());
     let account_resource =
@@ -34,7 +37,7 @@ pub extern "C" fn account_resource_from_lcs(buf: *const u8, len: usize) -> CDevA
         key: received_key_copy,
     };
 
-    let result = CDevAccountResource {
+    CDevAccountResource {
         balance: account_resource.balance(),
         sequence: account_resource.sequence_number(),
         delegated_key_rotation_capability: account_resource.delegated_key_rotation_capability(),
@@ -42,65 +45,68 @@ pub extern "C" fn account_resource_from_lcs(buf: *const u8, len: usize) -> CDevA
         sent_events,
         received_events,
         authentication_key,
-    };
-
-    return result;
+    }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-/// Generate an AccountBlob and verify we can parse it
-#[test]
-fn test_get_account_resource() {
-    use libra_crypto::ed25519::compat;
-    use libra_types::{
-        account_address::AccountAddress, account_config::account_resource_path,
-        account_config::AccountResource, byte_array::ByteArray, event::EventHandle,
-    };
-    use std::collections::BTreeMap;
+    /// Generate an AccountBlob and verify we can parse it
+    #[test]
+    fn test_get_account_resource() {
+        use libra_crypto::ed25519::compat;
+        use libra_types::{
+            account_address::AccountAddress, account_config::account_resource_path,
+            account_config::AccountResource, byte_array::ByteArray, event::EventHandle,
+        };
+        use std::collections::BTreeMap;
 
-    let keypair = compat::generate_keypair(None);
+        let keypair = compat::generate_keypair(None);
 
-    // Figure out how to use Libra code to generate AccountStateBlob directly, not involving btreemap directly
-    let mut map: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::new();
-    let ar = AccountResource::new(
-        987654321,
-        123456789,
-        ByteArray::new(AccountAddress::from_public_key(&keypair.1).to_vec()),
-        true,
-        false,
-        EventHandle::default(),
-        EventHandle::default(),
-    );
+        // Figure out how to use Libra code to generate AccountStateBlob directly, not involving btreemap directly
+        let mut map: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::new();
+        let ar = AccountResource::new(
+            987654321,
+            123456789,
+            ByteArray::new(AccountAddress::from_public_key(&keypair.1).to_vec()),
+            true,
+            false,
+            EventHandle::default(),
+            EventHandle::default(),
+        );
 
-    // Fill in data
-    map.insert(
-        account_resource_path(),
-        lcs::to_bytes(&ar).expect("Must success"),
-    );
+        // Fill in data
+        map.insert(
+            account_resource_path(),
+            lcs::to_bytes(&ar).expect("Must success"),
+        );
 
-    let account_state_blob = lcs::to_bytes(&map).expect("LCS serialization failed");
+        let account_state_blob = lcs::to_bytes(&map).expect("LCS serialization failed");
 
-    let result =
-        unsafe { account_resource_from_lcs(account_state_blob.as_ptr(), account_state_blob.len()) };
+        let result = unsafe {
+            account_resource_from_lcs(account_state_blob.as_ptr(), account_state_blob.len())
+        };
 
-    assert_eq!(result.balance, ar.balance());
-    assert_eq!(result.sequence, ar.sequence_number());
-    assert_eq!(
-        result.authentication_key,
-        ar.authentication_key().as_bytes()
-    );
-    assert_eq!(
-        result.delegated_key_rotation_capability,
-        ar.delegated_key_rotation_capability()
-    );
-    assert_eq!(
-        result.delegated_withdrawal_capability,
-        ar.delegated_withdrawal_capability()
-    );
-    assert_eq!(result.sent_events.count, ar.sent_events().count());
-    assert_eq!(result.sent_events.key, ar.sent_events().key().as_bytes());
-    assert_eq!(result.received_events.count, ar.received_events().count());
-    assert_eq!(
-        result.received_events.key,
-        ar.received_events().key().as_bytes()
-    );
+        assert_eq!(result.balance, ar.balance());
+        assert_eq!(result.sequence, ar.sequence_number());
+        assert_eq!(
+            result.authentication_key,
+            ar.authentication_key().as_bytes()
+        );
+        assert_eq!(
+            result.delegated_key_rotation_capability,
+            ar.delegated_key_rotation_capability()
+        );
+        assert_eq!(
+            result.delegated_withdrawal_capability,
+            ar.delegated_withdrawal_capability()
+        );
+        assert_eq!(result.sent_events.count, ar.sent_events().count());
+        assert_eq!(result.sent_events.key, ar.sent_events().key().as_bytes());
+        assert_eq!(result.received_events.count, ar.received_events().count());
+        assert_eq!(
+            result.received_events.key,
+            ar.received_events().key().as_bytes()
+        );
+    }
 }

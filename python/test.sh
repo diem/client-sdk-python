@@ -8,4 +8,4 @@ set -euo pipefail
 ./venv/bin/pip3 install --upgrade pytest
 
 mkdir -p ../tests-results/python
-./venv/bin/python3 setup.py pytest --addopts="--junitxml=../tests-results/python/result.xml $@"
+./venv/bin/python3 setup.py pytest --addopts=" $@"

@@ -2,14 +2,14 @@
 
 from pylibra cimport capi
 
-cdef class EventHandle(object):
+cdef class EventHandle:
     cdef capi.CEventHandle _c_eh
 
     @staticmethod
-    cdef create(capi.CEventHandle c_event_handle):
-        r = EventHandle()
-        r._c_eh = c_event_handle
-        return r
+    cdef create(capi.CEventHandle c_eh):
+        res = EventHandle()
+        res._c_eh = c_eh
+        return res
 
     @property
     def count(self):
@@ -20,17 +20,19 @@ cdef class EventHandle(object):
         return <bytes> self._c_eh.key[:32]
 
 
-cdef class AccountResource(object):
+cdef class AccountResource:
     cdef capi.CDevAccountResource _c_ar
     cdef EventHandle _sent_events
     cdef EventHandle _received_events
 
-    def __cinit__(self, lcs_bytes):
-        """Create AccountResource from AccountStateBlob."""
+    @staticmethod
+    def create(lcs_bytes):
         _c_ar = capi.account_resource_from_lcs(lcs_bytes, len(lcs_bytes))
-        self._c_ar = _c_ar
-        self._sent_events = EventHandle.create(_c_ar.sent_events)
-        self._received_events = EventHandle.create(_c_ar.received_events)
+        res = AccountResource()
+        res._c_ar = _c_ar
+        res._sent_events = EventHandle.create(_c_ar.sent_events)
+        res._received_events = EventHandle.create(_c_ar.received_events)
+        return res
 
     @property
     def balance(self):

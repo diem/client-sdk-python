@@ -2,5 +2,6 @@
 
 from pylibra cimport capi
 
-def account_resource_from_lcs(a, b):
-    return capi.account_resource_from_lcs(a, b)
+
+def account_resource_from_lcs(blob: bytes):
+    return capi.account_resource_from_lcs(blob, len(blob))

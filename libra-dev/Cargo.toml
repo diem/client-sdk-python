@@ -7,10 +7,10 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libra-types = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
-libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
-transaction-builder = {git = "https://github.com/libra/libra.git", branch = "testnet" }
-lcs = { git  = "https://github.com/libra/libra.git", branch = "testnet", package = "libra-canonical-serialization" }
+libra-types = { git  = "https://github.com/libra/libra.git", branch = "master" }
+libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "master" }
+transaction-builder = {git = "https://github.com/libra/libra.git", branch = "master" }
+lcs = { git  = "https://github.com/libra/libra.git", branch = "master", package = "libra-canonical-serialization" }
 libc = "0.2.65"
 
 [dev-dependencies]

@@ -56,8 +56,11 @@ mod tests {
     fn test_get_account_resource() {
         use libra_crypto::ed25519::compat;
         use libra_types::{
-            account_address::AccountAddress, account_config::account_resource_path,
-            account_config::AccountResource, byte_array::ByteArray, event::EventHandle,
+            account_address::AccountAddress,
+            account_config::account_resource_path,
+            account_config::AccountResource,
+            byte_array::ByteArray,
+            event::{EventHandle, EventKey},
         };
         use std::collections::BTreeMap;
 
@@ -73,6 +76,7 @@ mod tests {
             false,
             EventHandle::default(),
             EventHandle::default(),
+            0,
         );
 
         // Fill in data
@@ -102,11 +106,14 @@ mod tests {
             ar.delegated_withdrawal_capability()
         );
         assert_eq!(result.sent_events.count, ar.sent_events().count());
-        assert_eq!(result.sent_events.key, ar.sent_events().key().as_bytes());
+        assert_eq!(
+            EventKey::new(result.sent_events.key),
+            *(ar.sent_events().key())
+        );
         assert_eq!(result.received_events.count, ar.received_events().count());
         assert_eq!(
-            result.received_events.key,
-            ar.received_events().key().as_bytes()
+            EventKey::new(result.received_events.key),
+            *(ar.received_events().key()),
         );
     }
 }

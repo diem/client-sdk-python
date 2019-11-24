@@ -12,7 +12,7 @@ extern "C" {
 
 struct CEventHandle {
     uint64_t count;
-    uint8_t key[32];
+    uint8_t key[40];
 };
 
 struct CDevAccountResource {

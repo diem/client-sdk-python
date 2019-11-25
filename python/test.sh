@@ -1,10 +1,11 @@
-#!/bin/bash -xv
+#!/bin/bash
+
+. ./venv/bin/activate
+
 set -euo pipefail
 
-python3 -m venv ./venv
+# seems to be circleCI specific
+./venv/bin/pip3 install --upgrade pytest
 
-./venv/bin/pip3 install --upgrade pip
-./venv/bin/pip3 install --upgrade pytest cython
-
-./venv/bin/python3 setup.py develop
-./venv/bin/python3 setup.py pytest
+mkdir -p ../tests-results/python
+./venv/bin/python3 setup.py pytest --addopts=" $@"

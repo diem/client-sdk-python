@@ -52,7 +52,7 @@ jobs:
           shell: /bin/sh
           command: |
             cd python
-            ./test.sh
+            ./build.sh && ./test.sh
             touch test-done
       - run:
           name: Wait for everything

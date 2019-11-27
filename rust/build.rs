@@ -1,3 +1,4 @@
+use bindgen::EnumVariation;
 use std::env;
 use std::path::PathBuf;
 
@@ -16,6 +17,12 @@ fn main() {
         // bindings for.
         .header("../libra-dev/include/data.h")
         // Finish the builder and generate the bindings.
+        .array_pointers_in_arguments(true)
+        .derive_default(true)
+        .derive_eq(true)
+        .default_enum_style(EnumVariation::Rust {
+            non_exhaustive: false,
+        })
         .generate()
         // Unwrap the Result and panic on failure.
         .expect("Unable to generate bindings");

@@ -3,7 +3,7 @@
 
 use crate::data::{
     CDevP2PTransferTransactionArgument, CDevRawTransaction, CDevSignedTransaction,
-    CDevTransactionPayload, TransactionType_PeerToPeer,
+    CDevTransactionPayload, TransactionType,
 };
 use lcs::to_bytes;
 use libra_crypto::{ed25519::*, test_utils::KeyPair};
@@ -110,7 +110,7 @@ pub unsafe extern "C" fn libra_signed_transaction_deserialize(
             _ => {}
         });
         cdev_txn_payload = Some(CDevTransactionPayload {
-            txn_type: TransactionType_PeerToPeer,
+            txn_type: TransactionType::PeerToPeer,
             args: CDevP2PTransferTransactionArgument {
                 value: value.expect("Could not extract transaction amount from payload"),
                 address: address.expect("Could not extract receiver address from payload"),
@@ -230,7 +230,7 @@ fn test_libra_signed_transaction_deserialize() {
     };
     let payload = signed_txn.payload();
     if let TransactionPayload::Script(_script) = payload {
-        assert_eq!(TransactionType_PeerToPeer, result.raw_txn.payload.txn_type);
+        assert_eq!(TransactionType::PeerToPeer, result.raw_txn.payload.txn_type);
         assert_eq!(
             receiver,
             AccountAddress::new(result.raw_txn.payload.args.address)

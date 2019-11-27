@@ -10,10 +10,6 @@ use admission_control_proto::{
     AdmissionControlStatus, SubmitTransactionResponse,
 };
 use failure::prelude::*;
-use futures::Future;
-use grpcio::{CallOption, ChannelBuilder, EnvBuilder};
-use libra_crypto::ed25519::*;
-use libra_logger::prelude::*;
 use fixme_libra_types::{
     access_path::AccessPath,
     account_address::AccountAddress,
@@ -26,6 +22,10 @@ use fixme_libra_types::{
     transaction::{Transaction, Version},
     vm_error::StatusCode,
 };
+use futures::Future;
+use grpcio::{CallOption, ChannelBuilder, EnvBuilder};
+use libra_crypto::ed25519::*;
+use libra_logger::prelude::*;
 use std::convert::TryFrom;
 use std::sync::Arc;
 
@@ -185,13 +185,14 @@ impl GRPCClient {
 
     /// Get the latest account sequence number for the account specified.
     pub fn get_sequence_number(&self, address: AccountAddress) -> Result<u64> {
-        use crate::bindings::account_resource_from_lcs;
+        use crate::bindings::*;
 
         let blob = self.get_account_blob(address)?.0.expect("Can't read blob");
-        let account_resource = unsafe {
+        let mut account_resource = LibraAccountResource::default();
+        assert_eq!(LibraStatus::OK, unsafe {
             let buf = blob.as_ref().to_vec();
-            account_resource_from_lcs(buf.as_ptr(), buf.len())
-        };
+            libra_LibraAccountResource_from(buf.as_ptr(), buf.len(), &mut account_resource)
+        });
 
         Ok(account_resource.sequence)
     }

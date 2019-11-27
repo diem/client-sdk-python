@@ -1,51 +1,68 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
-use crate::data::{CDevAccountResource, CEventHandle};
+use crate::data::{LibraAccountResource, LibraEventHandle, LibraStatus};
 use libra_types::{
     account_config::get_account_resource_or_default, account_state_blob::AccountStateBlob,
     event::EVENT_KEY_LENGTH,
 };
 use std::slice;
 
+pub fn libra_LibraAccountResource_from_safe(
+    blob: AccountStateBlob,
+) -> Result<LibraAccountResource, LibraStatus> {
+    match get_account_resource_or_default(&Some(blob)) {
+        Ok(account_resource) => {
+            let mut authentication_key = [0u8; 32];
+            authentication_key.copy_from_slice(account_resource.authentication_key().as_bytes());
+
+            let mut sent_key_copy = [0u8; EVENT_KEY_LENGTH];
+            sent_key_copy.copy_from_slice(account_resource.sent_events().key().as_bytes());
+
+            let sent_events = LibraEventHandle {
+                count: account_resource.sent_events().count(),
+                key: sent_key_copy,
+            };
+
+            let mut received_key_copy = [0u8; EVENT_KEY_LENGTH];
+            received_key_copy.copy_from_slice(account_resource.received_events().key().as_bytes());
+
+            let received_events = LibraEventHandle {
+                count: account_resource.received_events().count(),
+                key: received_key_copy,
+            };
+
+            Ok(LibraAccountResource {
+                balance: account_resource.balance(),
+                sequence: account_resource.sequence_number(),
+                delegated_key_rotation_capability: account_resource
+                    .delegated_key_rotation_capability(),
+                delegated_withdrawal_capability: account_resource.delegated_withdrawal_capability(),
+                sent_events,
+                received_events,
+                authentication_key,
+            })
+        }
+        _ => Err(LibraStatus::InvalidArgument),
+    }
+}
+
 #[no_mangle]
-pub unsafe extern "C" fn account_resource_from_lcs(
+pub unsafe extern "C" fn libra_LibraAccountResource_from(
     buf: *const u8,
     len: usize,
-) -> CDevAccountResource {
-    let buf: &[u8] = slice::from_raw_parts(buf, len);
-
-    let account_state_blob = AccountStateBlob::from(buf.to_vec());
-    let account_resource =
-        get_account_resource_or_default(&Some(account_state_blob)).expect("fixme!");
-
-    let mut authentication_key = [0u8; 32];
-    authentication_key.copy_from_slice(account_resource.authentication_key().as_bytes());
-
-    let mut sent_key_copy = [0u8; EVENT_KEY_LENGTH];
-    sent_key_copy.copy_from_slice(account_resource.sent_events().key().as_bytes());
-
-    let sent_events = CEventHandle {
-        count: account_resource.sent_events().count(),
-        key: sent_key_copy,
-    };
-
-    let mut received_key_copy = [0u8; EVENT_KEY_LENGTH];
-    received_key_copy.copy_from_slice(account_resource.received_events().key().as_bytes());
-
-    let received_events = CEventHandle {
-        count: account_resource.received_events().count(),
-        key: received_key_copy,
-    };
-
-    CDevAccountResource {
-        balance: account_resource.balance(),
-        sequence: account_resource.sequence_number(),
-        delegated_key_rotation_capability: account_resource.delegated_key_rotation_capability(),
-        delegated_withdrawal_capability: account_resource.delegated_withdrawal_capability(),
-        sent_events,
-        received_events,
-        authentication_key,
+    out: *mut LibraAccountResource,
+) -> LibraStatus {
+    if buf.is_null() {
+        return LibraStatus::InvalidArgument;
     }
+    let buf: &[u8] = slice::from_raw_parts(buf, len);
+    let account_state_blob = AccountStateBlob::from(buf.to_vec());
+
+    match libra_LibraAccountResource_from_safe(account_state_blob) {
+        Ok(res) => *out = res,
+        Err(err) => return err,
+    }
+    LibraStatus::OK
 }
 #[cfg(test)]
 mod tests {
@@ -53,7 +70,7 @@ mod tests {
 
     /// Generate an AccountBlob and verify we can parse it
     #[test]
-    fn test_get_account_resource() {
+    fn test_get_accountresource() {
         use libra_crypto::ed25519::compat;
         use libra_types::{
             account_address::AccountAddress, account_config::account_resource_path,
@@ -83,9 +100,14 @@ mod tests {
 
         let account_state_blob = lcs::to_bytes(&map).expect("LCS serialization failed");
 
-        let result = unsafe {
-            account_resource_from_lcs(account_state_blob.as_ptr(), account_state_blob.len())
-        };
+        let mut result = LibraAccountResource::default();
+        assert_eq!(LibraStatus::OK, unsafe {
+            libra_LibraAccountResource_from(
+                account_state_blob.as_ptr(),
+                account_state_blob.len(),
+                &mut result,
+            )
+        });
 
         assert_eq!(result.balance, ar.balance());
         assert_eq!(result.sequence, ar.sequence_number());

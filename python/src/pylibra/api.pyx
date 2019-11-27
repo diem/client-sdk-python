@@ -3,5 +3,6 @@
 from pylibra cimport capi
 
 
-def account_resource_from_lcs(blob: bytes):
-    return capi.account_resource_from_lcs(blob, len(blob))
+def libra_LibraAccountRsource_from(blob: bytes) -> (capi.LibraStatus, capi.LibraAccountResource):
+    cdef capi.LibraAccountResource result
+    return (capi.libra_LibraAccountResource_from(blob, len(blob), &result), result)

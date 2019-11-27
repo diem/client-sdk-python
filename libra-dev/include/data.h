@@ -10,19 +10,27 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 
-struct CEventHandle {
+enum LibraStatus {
+    OK = 0,
+
+    InvalidArgument = -1,
+
+    InternalError = -255,
+};
+
+struct LibraEventHandle {
     uint64_t count;
     uint8_t key[32];
 };
 
-struct CDevAccountResource {
+struct LibraAccountResource {
     uint64_t balance;
     uint64_t sequence;
     uint8_t authentication_key[32];
     bool delegated_key_rotation_capability;
     bool delegated_withdrawal_capability;
-    struct CEventHandle sent_events;
-    struct CEventHandle received_events;
+    struct LibraEventHandle sent_events;
+    struct LibraEventHandle received_events;
 };
 
 struct CDevP2PTransferTransactionArgument {
@@ -54,8 +62,17 @@ struct CDevSignedTransaction {
     uint8_t signature[64];
 };
 
-struct CDevAccountResource account_resource_from_lcs(const uint8_t *buf, size_t len);
-void account_resource_free(struct CDevAccountResource *point);
+/*!
+ * Decode LibraAccountResource from bytes in AccountStateBlob.
+ *
+ * @param[in] buf contains encoded bytes of AccountStateBlob
+ * @param[in] len is the length of the signed transaction memory buffer.
+ * @param[out] caller allocated LibraAccountResource to write into.
+ *
+ * @returns status code, one of LibraAPIStatus
+*/
+enum LibraStatus libra_LibraAccountResource_from(const uint8_t *buf, size_t len, struct LibraAccountResource *out);
+
 /*!
  * To get the serialized transaction in a memory safe manner, the client needs to pass in a pointer to a pointer to the allocated memory in rust
  * and call free on the memory address with `libra_signed_transaction_free`.

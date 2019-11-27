@@ -3,10 +3,10 @@
 from pylibra cimport capi
 
 cdef class EventHandle:
-    cdef capi.CEventHandle _c_eh
+    cdef capi.LibraEventHandle _c_eh
 
     @staticmethod
-    cdef create(capi.CEventHandle c_eh):
+    cdef create(capi.LibraEventHandle c_eh):
         res = EventHandle()
         res._c_eh = c_eh
         return res
@@ -21,13 +21,16 @@ cdef class EventHandle:
 
 
 cdef class AccountResource:
-    cdef capi.CDevAccountResource _c_ar
+    cdef capi.LibraAccountResource _c_ar
     cdef EventHandle _sent_events
     cdef EventHandle _received_events
 
     @staticmethod
     def create(lcs_bytes):
-        _c_ar = capi.account_resource_from_lcs(lcs_bytes, len(lcs_bytes))
+        cdef capi.LibraAccountResource _c_ar
+        if capi.libra_LibraAccountResource_from(lcs_bytes, len(lcs_bytes), &_c_ar) != capi.LibraStatus.OK:
+            raise ValueError("Decode failure")
+
         res = AccountResource()
         res._c_ar = _c_ar
         res._sent_events = EventHandle.create(_c_ar.sent_events)

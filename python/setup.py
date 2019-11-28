@@ -60,9 +60,9 @@ exts = [
 
 
 setup(
-    name="pylibra",
-    version="1.0.0",
-    description="Python interface for the libra-dev library function",
+    name="libra-client-dev",
+    version="0.1.2019112701",
+    description="Official Python binding for libra-client-dev C API",
     install_requires=["grpcio"],
     tests_require=["pytest", "pytest-runner"],
     setup_requires=[

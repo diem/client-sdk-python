@@ -28,8 +28,10 @@ cdef class AccountResource:
     @staticmethod
     def create(lcs_bytes):
         cdef capi.LibraAccountResource _c_ar
-        if capi.libra_LibraAccountResource_from(lcs_bytes, len(lcs_bytes), &_c_ar) != capi.LibraStatus.OK:
-            raise ValueError("Decode failure")
+
+        success = capi.libra_LibraAccountResource_from(lcs_bytes, len(lcs_bytes), &_c_ar)
+        if success != capi.LibraStatus.OK:
+            raise ValueError("Decode failure: error {}", success)
 
         res = AccountResource()
         res._c_ar = _c_ar

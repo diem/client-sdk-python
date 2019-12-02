@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::data::{
-    LibraP2PTransferTransactionArgument, LibraRawTransaction, LibraSignedTransaction,
+    LibraP2PTransferTransactionArgument, LibraRawTransaction, LibraSignedTransaction, LibraStatus,
     LibraTransactionPayload, TransactionType,
 };
 use lcs::to_bytes;
@@ -29,11 +29,23 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     private_key_bytes: *const u8,
     ptr_buf: *mut *mut u8,
     ptr_len: *mut usize,
-) {
+) -> LibraStatus {
     let sender_buf = slice::from_raw_parts(sender, ADDRESS_LENGTH);
-    let sender_address = AccountAddress::try_from(sender_buf).unwrap();
+    let sender_address = match AccountAddress::try_from(sender_buf) {
+        Ok(result) => result,
+        Err(_e) => {
+            return LibraStatus::InvalidArgument;
+        }
+    };
+
     let receiver_buf = slice::from_raw_parts(receiver, ADDRESS_LENGTH);
-    let receiver_address = AccountAddress::try_from(receiver_buf).unwrap();
+    let receiver_address = match AccountAddress::try_from(receiver_buf) {
+        Ok(result) => result,
+        Err(_e) => {
+            return LibraStatus::InvalidArgument;
+        }
+    };
+
     let expiration_time = Duration::from_secs(expiration_time_secs);
 
     let program = encode_transfer_script(&receiver_address, num_coins);
@@ -49,21 +61,35 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
 
     let private_key_buf: &[u8] =
         slice::from_raw_parts(private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
-    let private_key =
-        Ed25519PrivateKey::try_from(private_key_buf).expect("Unable to deserialize Private Key");
+    let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
+        Ok(result) => result,
+        Err(_e) => {
+            return LibraStatus::InvalidArgument;
+        }
+    };
+
     let key_pair = KeyPair::from(private_key);
     let signer: Box<&dyn TransactionSigner> = Box::new(&key_pair);
+    let signed_txn = match signer.sign_txn(raw_txn) {
+        Ok(result) => result,
+        Err(_e) => {
+            return LibraStatus::InvalidArgument;
+        }
+    };
 
-    let signed_txn = signer
-        .sign_txn(raw_txn)
-        .expect("Unable to sign transaction");
-
-    let signed_txn_bytes = to_bytes(&signed_txn).expect("Unable to serialize SignedTransaction");
+    let signed_txn_bytes = match to_bytes(&signed_txn) {
+        Ok(result) => result,
+        Err(_e) => {
+            return LibraStatus::InternalError;
+        }
+    };
     let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
     txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
     *ptr_buf = txn_buf;
     *ptr_len = signed_txn_bytes.len();
+
+    LibraStatus::OK
 }
 
 #[no_mangle]
@@ -77,11 +103,19 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_free(buf: *const u8) {
 pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     buf: *const u8,
     len: usize,
-) -> LibraSignedTransaction {
+    out: *mut LibraSignedTransaction,
+) -> LibraStatus {
+    if buf.is_null() {
+        return LibraStatus::InvalidArgument;
+    }
     let buffer: &[u8] = slice::from_raw_parts(buf, len);
+    let signed_txn: SignedTransaction = match lcs::from_bytes(&buffer) {
+        Ok(result) => result,
+        Err(_e) => {
+            return LibraStatus::InvalidArgument;
+        }
+    };
 
-    let signed_txn: SignedTransaction =
-        lcs::from_bytes(&buffer).expect("Could not deserialize signed txn");
     let mut sender = [0u8; ADDRESS_LENGTH];
     sender.copy_from_slice(signed_txn.sender().as_ref());
     let sequence_number = signed_txn.sequence_number();
@@ -109,28 +143,39 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
             }
             _ => {}
         });
-        txn_payload = Some(LibraTransactionPayload {
-            txn_type: TransactionType::PeerToPeer,
-            args: LibraP2PTransferTransactionArgument {
-                value: value.expect("Could not extract transaction amount from payload"),
-                address: address.expect("Could not extract receiver address from payload"),
-            },
-        });
+        if let (Some(val), Some(add)) = (value, address) {
+            txn_payload = Some(LibraTransactionPayload {
+                txn_type: TransactionType::PeerToPeer,
+                args: LibraP2PTransferTransactionArgument {
+                    value: val,
+                    address: add,
+                },
+            });
+        };
     }
+
+    let payload = match txn_payload {
+        Some(val) => val,
+        None => {
+            return LibraStatus::InvalidArgument;
+        }
+    };
 
     let raw_txn = LibraRawTransaction {
         sender,
         sequence_number,
-        payload: txn_payload.expect("Could not get transaction payload"),
+        payload,
         max_gas_amount,
         gas_unit_price,
         expiration_time_secs,
     };
-    LibraSignedTransaction {
+    *out = LibraSignedTransaction {
         raw_txn,
         public_key: public_key.to_bytes(),
         signature: signature.to_bytes(),
-    }
+    };
+
+    LibraStatus::OK
 }
 
 /// Generate an Signed Transaction and deserialize
@@ -161,7 +206,7 @@ fn test_lcs_signed_transaction() {
     let mut buf_ptr: *mut u8 = &mut buf;
     let mut len: usize = 0;
 
-    unsafe {
+    let result = unsafe {
         libra_SignedTransactionBytes_from(
             sender_address.as_ref().as_ptr(),
             receiver_address.as_ref().as_ptr(),
@@ -175,6 +220,8 @@ fn test_lcs_signed_transaction() {
             &mut len,
         )
     };
+
+    assert_eq!(result, LibraStatus::OK);
 
     let signed_txn_bytes_buf: &[u8] = unsafe { slice::from_raw_parts(buf_ptr, len) };
     let deserialized_signed_txn: SignedTransaction =
@@ -222,26 +269,48 @@ fn test_libra_signed_transaction_deserialize() {
     );
     let proto_txn: libra_types::proto::types::SignedTransaction = signed_txn.clone().into();
 
+    let mut libra_signed_txn = LibraSignedTransaction::default();
     let result = unsafe {
-        libra_LibraSignedTransaction_from(proto_txn.txn_bytes.as_ptr(), proto_txn.txn_bytes.len())
+        libra_LibraSignedTransaction_from(
+            proto_txn.txn_bytes.as_ptr(),
+            proto_txn.txn_bytes.len() - 1, // pass in wrong length so that SignedTransaction cannot deserialize
+            &mut libra_signed_txn,
+        )
     };
+    assert_eq!(result, LibraStatus::InvalidArgument);
+
+    let result = unsafe {
+        libra_LibraSignedTransaction_from(
+            proto_txn.txn_bytes.as_ptr(),
+            proto_txn.txn_bytes.len(),
+            &mut libra_signed_txn,
+        )
+    };
+    assert_eq!(result, LibraStatus::OK);
+
     let payload = signed_txn.payload();
     if let TransactionPayload::Script(_script) = payload {
-        assert_eq!(TransactionType::PeerToPeer, result.raw_txn.payload.txn_type);
+        assert_eq!(
+            TransactionType::PeerToPeer,
+            libra_signed_txn.raw_txn.payload.txn_type
+        );
         assert_eq!(
             receiver,
-            AccountAddress::new(result.raw_txn.payload.args.address)
+            AccountAddress::new(libra_signed_txn.raw_txn.payload.args.address)
         );
-        assert_eq!(amount, result.raw_txn.payload.args.value);
+        assert_eq!(amount, libra_signed_txn.raw_txn.payload.args.value);
     }
-    assert_eq!(sender, AccountAddress::new(result.raw_txn.sender));
-    assert_eq!(sequence_number, result.raw_txn.sequence_number);
-    assert_eq!(max_gas_amount, result.raw_txn.max_gas_amount);
-    assert_eq!(gas_unit_price, result.raw_txn.gas_unit_price);
-    assert_eq!(public_key.to_bytes(), result.public_key);
+    assert_eq!(sender, AccountAddress::new(libra_signed_txn.raw_txn.sender));
+    assert_eq!(sequence_number, libra_signed_txn.raw_txn.sequence_number);
+    assert_eq!(max_gas_amount, libra_signed_txn.raw_txn.max_gas_amount);
+    assert_eq!(gas_unit_price, libra_signed_txn.raw_txn.gas_unit_price);
+    assert_eq!(public_key.to_bytes(), libra_signed_txn.public_key);
     assert_eq!(
         signature,
-        Ed25519Signature::try_from(result.signature.as_ref()).unwrap()
+        Ed25519Signature::try_from(libra_signed_txn.signature.as_ref()).unwrap()
     );
-    assert_eq!(expiration_time_secs, result.raw_txn.expiration_time_secs);
+    assert_eq!(
+        expiration_time_secs,
+        libra_signed_txn.raw_txn.expiration_time_secs
+    );
 }

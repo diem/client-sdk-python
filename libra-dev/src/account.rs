@@ -1,7 +1,10 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::data::{LibraAccountKey, LibraStatus};
+use crate::{
+    data::{LibraAccountKey, LibraStatus},
+    error::*,
+};
 use libra_crypto::ed25519::*;
 use libra_types::account_address::{AccountAddress, ADDRESS_LENGTH};
 use std::{convert::TryFrom, slice};
@@ -16,7 +19,8 @@ pub unsafe extern "C" fn libra_LibraAccount_from(
 
     let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
         Ok(result) => result,
-        Err(_e) => {
+        Err(e) => {
+            update_last_error(e.to_string());
             return LibraStatus::InvalidArgument;
         }
     };

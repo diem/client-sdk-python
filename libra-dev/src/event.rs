@@ -1,7 +1,10 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::data::{LibraEvent, LibraEventType, LibraPaymentEvent, LibraStatus};
+use crate::{
+    data::{LibraEvent, LibraEventType, LibraPaymentEvent, LibraStatus},
+    error::update_last_error,
+};
 use libra_types::{
     account_address::ADDRESS_LENGTH, account_config::ReceivedPaymentEvent,
     account_config::SentPaymentEvent, contract_event::ContractEvent, event::EventKey,
@@ -35,7 +38,8 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
 
     let type_tag: TypeTag = match lcs::from_bytes(buffer_type_tag) {
         Ok(result) => result,
-        Err(_e) => {
+        Err(e) => {
+            update_last_error(e.to_string());
             return LibraStatus::InvalidArgument;
         }
     };
@@ -46,7 +50,10 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
     if let TypeTag::Struct(struct_tag) = type_tag.clone() {
         let module_tmp = match CString::new(struct_tag.module.into_string()) {
             Ok(res) => res,
-            _ => return LibraStatus::InvalidArgument,
+            Err(e) => {
+                update_last_error(e.to_string());
+                return LibraStatus::InvalidArgument;
+            }
         };
         let module_bytes = module_tmp.as_bytes_with_nul();
         let module_len = module_bytes.len();
@@ -89,7 +96,7 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
                 metadata_len,
             });
         }
-        _ => {}
+        Err(e) => update_last_error(e.to_string()),
     };
 
     match ReceivedPaymentEvent::try_from(&account_event) {
@@ -115,7 +122,7 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
                 metadata_len,
             });
         }
-        _ => {}
+        Err(e) => update_last_error(e.to_string()),
     };
 
     let result = Box::new(LibraEvent {

@@ -163,6 +163,19 @@ enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], st
 enum LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, struct LibraEvent **out);
 void libra_LibraEvent_free(struct LibraEvent *out);
 
+/*!
+ * This function returns the string message of the most recent error in Rust.
+ * If the allocated buffer is too short, it will return -1.
+ * If the buffer is void, it will return -1.
+ * On success, buffer will be filled with the string message of the last error.
+ *
+ * @param[out] caller allocated string buffer to write the error message to
+ * @param[in] length of the buffer
+ * @param[out] length of the returned error message
+ * @returns int value indicating success or failure
+*/
+int32_t libra_strerror(char *buffer, int32_t* length);
+
 #ifdef __cplusplus
 };
 #endif

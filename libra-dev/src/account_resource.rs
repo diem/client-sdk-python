@@ -1,6 +1,9 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
-use crate::data::{LibraAccountResource, LibraEventHandle, LibraStatus};
+use crate::{
+    data::{LibraAccountResource, LibraEventHandle, LibraStatus},
+    error::*,
+};
 use libra_types::{
     account_config::AccountResource, account_state_blob::AccountStateBlob, event::EVENT_KEY_LENGTH,
 };
@@ -42,7 +45,10 @@ pub fn libra_LibraAccountResource_from_safe(
                 authentication_key,
             })
         }
-        _ => Err(LibraStatus::InvalidArgument),
+        Err(e) => {
+            update_last_error(e.to_string());
+            Err(LibraStatus::InvalidArgument)
+        }
     }
 }
 

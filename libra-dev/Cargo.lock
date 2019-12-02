@@ -618,6 +618,7 @@ dependencies = [
 name = "libra-dev"
 version = "0.1.0"
 dependencies = [
+ "anyhow 1.0.26 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.66 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-canonical-serialization 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",

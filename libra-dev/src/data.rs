@@ -153,48 +153,48 @@ fn bindgen_test_layout_LibraAccountResource() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
-pub struct CDevP2PTransferTransactionArgument {
+#[derive(Debug, Copy, Clone)]
+pub struct LibraP2PTransferTransactionArgument {
     pub value: u64,
     pub address: [u8; 32usize],
 }
 #[test]
-fn bindgen_test_layout_CDevP2PTransferTransactionArgument() {
+fn bindgen_test_layout_LibraP2PTransferTransactionArgument() {
     assert_eq!(
-        ::std::mem::size_of::<CDevP2PTransferTransactionArgument>(),
+        ::std::mem::size_of::<LibraP2PTransferTransactionArgument>(),
         40usize,
-        concat!("Size of: ", stringify!(CDevP2PTransferTransactionArgument))
+        concat!("Size of: ", stringify!(LibraP2PTransferTransactionArgument))
     );
     assert_eq!(
-        ::std::mem::align_of::<CDevP2PTransferTransactionArgument>(),
+        ::std::mem::align_of::<LibraP2PTransferTransactionArgument>(),
         8usize,
         concat!(
             "Alignment of ",
-            stringify!(CDevP2PTransferTransactionArgument)
+            stringify!(LibraP2PTransferTransactionArgument)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevP2PTransferTransactionArgument>())).value as *const _
+            &(*(::std::ptr::null::<LibraP2PTransferTransactionArgument>())).value as *const _
                 as usize
         },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevP2PTransferTransactionArgument),
+            stringify!(LibraP2PTransferTransactionArgument),
             "::",
             stringify!(value)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevP2PTransferTransactionArgument>())).address as *const _
+            &(*(::std::ptr::null::<LibraP2PTransferTransactionArgument>())).address as *const _
                 as usize
         },
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevP2PTransferTransactionArgument),
+            stringify!(LibraP2PTransferTransactionArgument),
             "::",
             stringify!(address)
         )
@@ -206,39 +206,41 @@ pub enum TransactionType {
     PeerToPeer = 0,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct CDevTransactionPayload {
+#[derive(Debug, Copy, Clone)]
+pub struct LibraTransactionPayload {
     pub txn_type: TransactionType,
-    pub args: CDevP2PTransferTransactionArgument,
+    pub args: LibraP2PTransferTransactionArgument,
 }
 #[test]
-fn bindgen_test_layout_CDevTransactionPayload() {
+fn bindgen_test_layout_LibraTransactionPayload() {
     assert_eq!(
-        ::std::mem::size_of::<CDevTransactionPayload>(),
+        ::std::mem::size_of::<LibraTransactionPayload>(),
         48usize,
-        concat!("Size of: ", stringify!(CDevTransactionPayload))
+        concat!("Size of: ", stringify!(LibraTransactionPayload))
     );
     assert_eq!(
-        ::std::mem::align_of::<CDevTransactionPayload>(),
+        ::std::mem::align_of::<LibraTransactionPayload>(),
         8usize,
-        concat!("Alignment of ", stringify!(CDevTransactionPayload))
+        concat!("Alignment of ", stringify!(LibraTransactionPayload))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<CDevTransactionPayload>())).txn_type as *const _ as usize },
+        unsafe {
+            &(*(::std::ptr::null::<LibraTransactionPayload>())).txn_type as *const _ as usize
+        },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevTransactionPayload),
+            stringify!(LibraTransactionPayload),
             "::",
             stringify!(txn_type)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<CDevTransactionPayload>())).args as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<LibraTransactionPayload>())).args as *const _ as usize },
         8usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevTransactionPayload),
+            stringify!(LibraTransactionPayload),
             "::",
             stringify!(args)
         )
@@ -250,91 +252,92 @@ impl Default for CDevTransactionPayload {
     }
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub struct CDevRawTransaction {
+#[derive(Debug, Copy, Clone)]
+pub struct LibraRawTransaction {
     pub sender: [u8; 32usize],
     pub sequence_number: u64,
-    pub payload: CDevTransactionPayload,
+    pub payload: LibraTransactionPayload,
     pub max_gas_amount: u64,
     pub gas_unit_price: u64,
     pub expiration_time_secs: u64,
 }
 #[test]
-fn bindgen_test_layout_CDevRawTransaction() {
+fn bindgen_test_layout_LibraRawTransaction() {
     assert_eq!(
-        ::std::mem::size_of::<CDevRawTransaction>(),
+        ::std::mem::size_of::<LibraRawTransaction>(),
         112usize,
-        concat!("Size of: ", stringify!(CDevRawTransaction))
+        concat!("Size of: ", stringify!(LibraRawTransaction))
     );
     assert_eq!(
-        ::std::mem::align_of::<CDevRawTransaction>(),
+        ::std::mem::align_of::<LibraRawTransaction>(),
         8usize,
-        concat!("Alignment of ", stringify!(CDevRawTransaction))
+        concat!("Alignment of ", stringify!(LibraRawTransaction))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<CDevRawTransaction>())).sender as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<LibraRawTransaction>())).sender as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevRawTransaction),
+            stringify!(LibraRawTransaction),
             "::",
             stringify!(sender)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevRawTransaction>())).sequence_number as *const _ as usize
+            &(*(::std::ptr::null::<LibraRawTransaction>())).sequence_number as *const _ as usize
         },
         32usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevRawTransaction),
+            stringify!(LibraRawTransaction),
             "::",
             stringify!(sequence_number)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<CDevRawTransaction>())).payload as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<LibraRawTransaction>())).payload as *const _ as usize },
         40usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevRawTransaction),
+            stringify!(LibraRawTransaction),
             "::",
             stringify!(payload)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevRawTransaction>())).max_gas_amount as *const _ as usize
+            &(*(::std::ptr::null::<LibraRawTransaction>())).max_gas_amount as *const _ as usize
         },
         88usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevRawTransaction),
+            stringify!(LibraRawTransaction),
             "::",
             stringify!(max_gas_amount)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevRawTransaction>())).gas_unit_price as *const _ as usize
+            &(*(::std::ptr::null::<LibraRawTransaction>())).gas_unit_price as *const _ as usize
         },
         96usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevRawTransaction),
+            stringify!(LibraRawTransaction),
             "::",
             stringify!(gas_unit_price)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevRawTransaction>())).expiration_time_secs as *const _ as usize
+            &(*(::std::ptr::null::<LibraRawTransaction>())).expiration_time_secs as *const _
+                as usize
         },
         104usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevRawTransaction),
+            stringify!(LibraRawTransaction),
             "::",
             stringify!(expiration_time_secs)
         )
@@ -347,51 +350,53 @@ impl Default for CDevRawTransaction {
 }
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct CDevSignedTransaction {
-    pub raw_txn: CDevRawTransaction,
+pub struct LibraSignedTransaction {
+    pub raw_txn: LibraRawTransaction,
     pub public_key: [u8; 32usize],
     pub signature: [u8; 64usize],
 }
 #[test]
-fn bindgen_test_layout_CDevSignedTransaction() {
+fn bindgen_test_layout_LibraSignedTransaction() {
     assert_eq!(
-        ::std::mem::size_of::<CDevSignedTransaction>(),
+        ::std::mem::size_of::<LibraSignedTransaction>(),
         208usize,
-        concat!("Size of: ", stringify!(CDevSignedTransaction))
+        concat!("Size of: ", stringify!(LibraSignedTransaction))
     );
     assert_eq!(
-        ::std::mem::align_of::<CDevSignedTransaction>(),
+        ::std::mem::align_of::<LibraSignedTransaction>(),
         8usize,
-        concat!("Alignment of ", stringify!(CDevSignedTransaction))
+        concat!("Alignment of ", stringify!(LibraSignedTransaction))
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<CDevSignedTransaction>())).raw_txn as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<LibraSignedTransaction>())).raw_txn as *const _ as usize },
         0usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevSignedTransaction),
+            stringify!(LibraSignedTransaction),
             "::",
             stringify!(raw_txn)
         )
     );
     assert_eq!(
         unsafe {
-            &(*(::std::ptr::null::<CDevSignedTransaction>())).public_key as *const _ as usize
+            &(*(::std::ptr::null::<LibraSignedTransaction>())).public_key as *const _ as usize
         },
         112usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevSignedTransaction),
+            stringify!(LibraSignedTransaction),
             "::",
             stringify!(public_key)
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<CDevSignedTransaction>())).signature as *const _ as usize },
+        unsafe {
+            &(*(::std::ptr::null::<LibraSignedTransaction>())).signature as *const _ as usize
+        },
         144usize,
         concat!(
             "Offset of field: ",
-            stringify!(CDevSignedTransaction),
+            stringify!(LibraSignedTransaction),
             "::",
             stringify!(signature)
         )

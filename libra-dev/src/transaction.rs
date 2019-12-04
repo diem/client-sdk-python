@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use crate::data::{
-    CDevP2PTransferTransactionArgument, CDevRawTransaction, CDevSignedTransaction,
-    CDevTransactionPayload, TransactionType,
+    LibraP2PTransferTransactionArgument, LibraRawTransaction, LibraSignedTransaction,
+    LibraTransactionPayload, TransactionType,
 };
 use lcs::to_bytes;
 use libra_crypto::{ed25519::*, test_utils::KeyPair};
@@ -18,7 +18,7 @@ use std::{convert::TryFrom, slice, time::Duration};
 use transaction_builder::encode_transfer_script;
 
 #[no_mangle]
-pub unsafe extern "C" fn libra_signed_transaction_build(
+pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     sender: *const u8,
     receiver: *const u8,
     sequence: u64,
@@ -27,8 +27,8 @@ pub unsafe extern "C" fn libra_signed_transaction_build(
     gas_unit_price: u64,
     expiration_time_secs: u64,
     private_key_bytes: *const u8,
-    buf: *mut *mut u8,
-    len: *mut usize,
+    ptr_buf: *mut *mut u8,
+    ptr_len: *mut usize,
 ) {
     let sender_buf = slice::from_raw_parts(sender, ADDRESS_LENGTH);
     let sender_address = AccountAddress::try_from(sender_buf).unwrap();
@@ -62,22 +62,22 @@ pub unsafe extern "C" fn libra_signed_transaction_build(
     let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
     txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
-    *buf = txn_buf;
-    *len = signed_txn_bytes.len();
+    *ptr_buf = txn_buf;
+    *ptr_len = signed_txn_bytes.len();
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn libra_signed_transaction_free(buf: *mut *mut u8) {
+pub unsafe extern "C" fn libra_SignedTransactionBytes_free(buf: *const u8) {
     if !buf.is_null() {
-        libc::free(*buf as *mut libc::c_void);
+        libc::free(buf as *mut libc::c_void);
     }
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn libra_signed_transaction_deserialize(
+pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     buf: *const u8,
     len: usize,
-) -> CDevSignedTransaction {
+) -> LibraSignedTransaction {
     let buffer: &[u8] = slice::from_raw_parts(buf, len);
 
     let signed_txn: SignedTransaction =
@@ -92,7 +92,7 @@ pub unsafe extern "C" fn libra_signed_transaction_deserialize(
     let public_key = signed_txn.public_key();
     let signature = signed_txn.signature();
 
-    let mut cdev_txn_payload = None;
+    let mut txn_payload = None;
 
     if let TransactionPayload::Script(script) = payload {
         let args = script.args();
@@ -109,24 +109,24 @@ pub unsafe extern "C" fn libra_signed_transaction_deserialize(
             }
             _ => {}
         });
-        cdev_txn_payload = Some(CDevTransactionPayload {
+        txn_payload = Some(LibraTransactionPayload {
             txn_type: TransactionType::PeerToPeer,
-            args: CDevP2PTransferTransactionArgument {
+            args: LibraP2PTransferTransactionArgument {
                 value: value.expect("Could not extract transaction amount from payload"),
                 address: address.expect("Could not extract receiver address from payload"),
             },
         });
     }
 
-    let raw_txn = CDevRawTransaction {
+    let raw_txn = LibraRawTransaction {
         sender,
         sequence_number,
-        payload: cdev_txn_payload.expect("Could not get transaction payload"),
+        payload: txn_payload.expect("Could not get transaction payload"),
         max_gas_amount,
         gas_unit_price,
         expiration_time_secs,
     };
-    CDevSignedTransaction {
+    LibraSignedTransaction {
         raw_txn,
         public_key: public_key.to_bytes(),
         signature: signature.to_bytes(),
@@ -162,7 +162,7 @@ fn test_lcs_signed_transaction() {
     let mut len: usize = 0;
 
     unsafe {
-        libra_signed_transaction_build(
+        libra_SignedTransactionBytes_from(
             sender_address.as_ref().as_ptr(),
             receiver_address.as_ref().as_ptr(),
             sequence,
@@ -190,7 +190,7 @@ fn test_lcs_signed_transaction() {
     assert_eq!(deserialized_signed_txn.public_key(), public_key);
     assert!(deserialized_signed_txn.check_signature().is_ok());
 
-    unsafe { libra_signed_transaction_free(&mut buf_ptr) };
+    unsafe { libra_SignedTransactionBytes_free(buf_ptr) };
 }
 
 /// Generate an Signed Transaction and deserialize
@@ -223,10 +223,7 @@ fn test_libra_signed_transaction_deserialize() {
     let proto_txn: libra_types::proto::types::SignedTransaction = signed_txn.clone().into();
 
     let result = unsafe {
-        libra_signed_transaction_deserialize(
-            proto_txn.txn_bytes.as_ptr(),
-            proto_txn.txn_bytes.len(),
-        )
+        libra_LibraSignedTransaction_from(proto_txn.txn_bytes.as_ptr(), proto_txn.txn_bytes.len())
     };
     let payload = signed_txn.payload();
     if let TransactionPayload::Script(_script) = payload {

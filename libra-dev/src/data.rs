@@ -153,7 +153,7 @@ fn bindgen_test_layout_LibraAccountResource() {
     );
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
 pub struct LibraP2PTransferTransactionArgument {
     pub value: u64,
     pub address: [u8; 32usize],
@@ -206,7 +206,7 @@ pub enum TransactionType {
     PeerToPeer = 0,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct LibraTransactionPayload {
     pub txn_type: TransactionType,
     pub args: LibraP2PTransferTransactionArgument,
@@ -246,13 +246,13 @@ fn bindgen_test_layout_LibraTransactionPayload() {
         )
     );
 }
-impl Default for CDevTransactionPayload {
+impl Default for LibraTransactionPayload {
     fn default() -> Self {
         unsafe { ::std::mem::zeroed() }
     }
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct LibraRawTransaction {
     pub sender: [u8; 32usize],
     pub sequence_number: u64,
@@ -343,7 +343,7 @@ fn bindgen_test_layout_LibraRawTransaction() {
         )
     );
 }
-impl Default for CDevRawTransaction {
+impl Default for LibraRawTransaction {
     fn default() -> Self {
         unsafe { ::std::mem::zeroed() }
     }
@@ -402,7 +402,7 @@ fn bindgen_test_layout_LibraSignedTransaction() {
         )
     );
 }
-impl Default for CDevSignedTransaction {
+impl Default for LibraSignedTransaction {
     fn default() -> Self {
         unsafe { ::std::mem::zeroed() }
     }

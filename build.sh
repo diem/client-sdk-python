@@ -3,7 +3,9 @@ set -euo pipefail
 
 # Create C to Rust bindings
 bindgen libra-dev/include/data.h \
-  --whitelist-type=CEventHandle --whitelist-type=CDevAccountResource \
+  --with-derive-default --with-derive-eq --use-array-pointers-in-arguments --default-enum-style=rust \
+  --whitelist-type=LibraStatus \
+  --whitelist-type=LibraEventHandle --whitelist-type=LibraAccountResource \
   --whitelist-type=LibraP2PTransferTransactionArgument --whitelist-type=LibraTransactionPayload --whitelist-type=LibraRawTransaction --whitelist-type=LibraSignedTransaction \
   --whitelist-type=TransactionType \
   -o libra-dev/src/data.rs

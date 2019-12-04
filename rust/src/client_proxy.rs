@@ -4,16 +4,12 @@
 use crate::{commands::*, grpc_client::GRPCClient, AccountData, AccountStatus};
 use admission_control_proto::proto::admission_control::SubmitTransactionRequest;
 use failure::prelude::*;
-use libra_config::{config::PersistableConfig, trusted_peers::ConsensusPeersConfig};
-use libra_crypto::{ed25519::*, test_utils::KeyPair};
-use libra_logger::prelude::*;
-use libra_tools::tempdir::TempPath;
 use fixme_libra_types::{
     access_path::AccessPath,
     account_address::{AccountAddress, ADDRESS_LENGTH},
     account_config::{
-        association_address, core_code_address,
-        ACCOUNT_RECEIVED_EVENT_PATH, ACCOUNT_SENT_EVENT_PATH,
+        association_address, core_code_address, ACCOUNT_RECEIVED_EVENT_PATH,
+        ACCOUNT_SENT_EVENT_PATH,
     },
     account_state_blob::{AccountStateBlob, AccountStateWithProof},
     contract_event::{ContractEvent, EventWithProof},
@@ -23,6 +19,10 @@ use fixme_libra_types::{
         TransactionArgument, TransactionPayload, Version,
     },
 };
+use libra_config::{config::PersistableConfig, trusted_peers::ConsensusPeersConfig};
+use libra_crypto::{ed25519::*, test_utils::KeyPair};
+use libra_logger::prelude::*;
+use libra_tools::tempdir::TempPath;
 use libra_wallet::{io_utils, wallet_library::WalletLibrary};
 use num_traits::{
     cast::{FromPrimitive, ToPrimitive},
@@ -251,9 +251,7 @@ impl ClientProxy {
             "Invalid number of arguments for getting sequence number"
         );
         let address = self.get_account_address_from_parameter(space_delim_strings[1])?;
-        let sequence_number = self
-            .get_account_resource_and_update(address)?
-            .sequence;
+        let sequence_number = self.get_account_resource_and_update(address)?.sequence;
 
         let reset_sequence_number = if space_delim_strings.len() == 3 {
             parse_bool(space_delim_strings[2]).map_err(|error| {
@@ -340,7 +338,8 @@ impl ClientProxy {
                 format_err!("Unable to find sender account: {}", sender_account_ref_id)
             })?;
 
-            let program = fixme_transaction_builder::encode_transfer_script(&receiver_address, num_coins);
+            let program =
+                fixme_transaction_builder::encode_transfer_script(&receiver_address, num_coins);
             let req = self.create_submit_transaction_req(
                 TransactionPayload::Script(program),
                 sender,
@@ -378,7 +377,8 @@ impl ClientProxy {
         gas_unit_price: Option<u64>,
         max_gas_amount: Option<u64>,
     ) -> Result<RawTransaction> {
-        let program = fixme_transaction_builder::encode_transfer_script(&receiver_address, num_coins);
+        let program =
+            fixme_transaction_builder::encode_transfer_script(&receiver_address, num_coins);
 
         Ok(create_unsigned_txn(
             TransactionPayload::Script(program),
@@ -821,12 +821,17 @@ impl ClientProxy {
     fn get_account_resource_and_update(
         &mut self,
         address: AccountAddress,
-    ) -> Result<crate::bindings::CDevAccountResource> {
+    ) -> Result<crate::bindings::LibraAccountResource> {
         let account_state = self.get_account_state_and_update(address)?;
 
-        unsafe {
-            let buf = account_state.0.expect("Don't have!").as_ref().to_vec();
-            Ok(crate::bindings::account_resource_from_lcs(buf.as_ptr(), buf.len()))
+        let buf = account_state.0.expect("Don't have!").as_ref().to_vec();
+        let mut result = crate::bindings::LibraAccountResource::default();
+
+        match unsafe {
+            crate::bindings::libra_LibraAccountResource_from(buf.as_ptr(), buf.len(), &mut result)
+        } {
+            crate::bindings::LibraStatus::OK => Ok(result),
+            err => Err(failure::err_msg(format!("error {:?}", err))),
         }
     }
 
@@ -843,10 +848,21 @@ impl ClientProxy {
             match client.get_account_blob(address) {
                 Ok(resp) => match resp.0 {
                     Some(account_state_blob) => (
-                        unsafe {
+                        ({
                             let buf = account_state_blob.as_ref().to_vec();
-                            crate::bindings::account_resource_from_lcs(buf.as_ptr(), buf.len())
-                        }.sequence,
+                            let mut result = crate::bindings::LibraAccountResource::default();
+                            match unsafe {
+                                crate::bindings::libra_LibraAccountResource_from(
+                                    buf.as_ptr(),
+                                    buf.len(),
+                                    &mut result,
+                                )
+                            } {
+                                crate::bindings::LibraStatus::OK => Ok(result),
+                                err => Err(failure::err_msg(format!("error {:?}", err))),
+                            }
+                        })?
+                        .sequence,
                         AccountStatus::Persisted,
                     ),
                     None => (0, AccountStatus::Local),

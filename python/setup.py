@@ -60,7 +60,7 @@ exts = [
 
 
 setup(
-    name="libra-client-dev",
+    name="calibra-pylibra",
     version="0.1.2019112701",
     description="Official Python binding for libra-client-dev C API",
     install_requires=["grpcio"],

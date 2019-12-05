@@ -3,6 +3,7 @@
 *.c
 *.so
 /build
+/dist
 **/*.egg-info
 /_skbuild
 /.pytest_cache

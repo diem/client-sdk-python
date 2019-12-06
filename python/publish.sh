@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-rm dist/*
+rm dist/* || true
 ./venv/bin/python3 setup.py sdist
 ./venv/bin/pip install --upgrade twine
 

@@ -69,3 +69,4 @@ cdef class AccountResource:
     @property
     def received_events(self):
         return self._received_events
+

@@ -17,7 +17,7 @@ libc = "0.2.65"
 rand = "0.6.5"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["staticlib", "cdylib"]
 
 # FFI libray can only support panic = "abort"
 [profile.dev]

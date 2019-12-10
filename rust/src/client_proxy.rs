@@ -3,7 +3,7 @@
 
 use crate::{commands::*, grpc_client::GRPCClient, AccountData, AccountStatus};
 use admission_control_proto::proto::admission_control::SubmitTransactionRequest;
-use failure::prelude::*;
+use anyhow::{bail, ensure, format_err, Error, Result};
 use fixme_libra_types::{
     access_path::AccessPath,
     account_address::{AccountAddress, ADDRESS_LENGTH},
@@ -19,7 +19,7 @@ use fixme_libra_types::{
         TransactionArgument, TransactionPayload, Version,
     },
 };
-use libra_config::{config::PersistableConfig, trusted_peers::ConsensusPeersConfig};
+use libra_config::config::{ConsensusPeersConfig, PersistableConfig};
 use libra_crypto::{ed25519::*, test_utils::KeyPair};
 use libra_logger::prelude::*;
 use libra_tools::tempdir::TempPath;
@@ -99,6 +99,7 @@ pub struct ClientProxy {
     sync_on_wallet_recovery: bool,
     /// temp files (alive for duration of program)
     temp_files: Vec<PathBuf>,
+    // invariant self.address_to_ref_id.values().iter().all(|i| i < self.accounts.len())
 }
 
 impl ClientProxy {
@@ -113,7 +114,7 @@ impl ClientProxy {
         mnemonic_file: Option<String>,
     ) -> Result<Self> {
         let validator_verifier = Arc::new(
-            ConsensusPeersConfig::load_config(validator_set_file).get_validator_verifier(),
+            ConsensusPeersConfig::load_config(validator_set_file)?.get_validator_verifier(),
         );
         ensure!(
             !validator_verifier.is_empty(),
@@ -674,26 +675,25 @@ impl ClientProxy {
     /// Get account address from parameter. If the parameter is string of address, try to convert
     /// it to address, otherwise, try to convert to u64 and looking at TestClient::accounts.
     pub fn get_account_address_from_parameter(&self, para: &str) -> Result<AccountAddress> {
-        match is_address(para) {
-            true => ClientProxy::address_from_strings(para),
-            false => {
-                let account_ref_id = para.parse::<usize>().map_err(|error| {
-                    format_parse_data_error(
-                        "account_reference_id/account_address",
-                        InputType::Usize,
-                        para,
-                        error,
-                    )
-                })?;
-                let account_data = self.accounts.get(account_ref_id).ok_or_else(|| {
-                    format_err!(
-                        "Unable to find account by account reference id: {}, to see all existing \
-                         accounts, run: 'account list'",
-                        account_ref_id
-                    )
-                })?;
-                Ok(account_data.address)
-            }
+        if is_address(para) {
+            ClientProxy::address_from_strings(para)
+        } else {
+            let account_ref_id = para.parse::<usize>().map_err(|error| {
+                format_parse_data_error(
+                    "account_reference_id/account_address",
+                    InputType::Usize,
+                    para,
+                    error,
+                )
+            })?;
+            let account_data = self.accounts.get(account_ref_id).ok_or_else(|| {
+                format_err!(
+                    "Unable to find account by account reference id: {}, to see all existing \
+                     accounts, run: 'account list'",
+                    account_ref_id
+                )
+            })?;
+            Ok(account_data.address)
         }
     }
 
@@ -808,8 +808,9 @@ impl ClientProxy {
                 .address_to_ref_id
                 .get(&address)
                 .expect("Should have the key");
+            // assumption follows from invariant
             let mut account_data: &mut AccountData =
-                self.accounts.get_mut(*account_ref_id).unwrap_or_else(|| panic!("Local cache not consistent, reference id {} not available in local accounts", account_ref_id));
+                self.accounts.get_mut(*account_ref_id).unwrap_or_else(|| unreachable!("Local cache not consistent, reference id {} not available in local accounts", account_ref_id));
             if account_state.0.is_some() {
                 account_data.status = AccountStatus::Persisted;
             }
@@ -824,14 +825,23 @@ impl ClientProxy {
     ) -> Result<crate::bindings::LibraAccountResource> {
         let account_state = self.get_account_state_and_update(address)?;
 
-        let buf = account_state.0.expect("Don't have!").as_ref().to_vec();
-        let mut result = crate::bindings::LibraAccountResource::default();
+        match account_state.0 {
+            Some(state) => {
+                let buf = state.as_ref().to_vec();
+                let mut result = crate::bindings::LibraAccountResource::default();
 
-        match unsafe {
-            crate::bindings::libra_LibraAccountResource_from(buf.as_ptr(), buf.len(), &mut result)
-        } {
-            crate::bindings::LibraStatus::OK => Ok(result),
-            err => Err(failure::err_msg(format!("error {:?}", err))),
+                match unsafe {
+                    crate::bindings::libra_LibraAccountResource_from(
+                        buf.as_ptr(),
+                        buf.len(),
+                        &mut result,
+                    )
+                } {
+                    crate::bindings::LibraStatus::OK => Ok(result),
+                    err => Err(format_err!("error {:?}", err)),
+                }
+            }
+            None => Ok(crate::bindings::LibraAccountResource::default()),
         }
     }
 
@@ -859,7 +869,7 @@ impl ClientProxy {
                                 )
                             } {
                                 crate::bindings::LibraStatus::OK => Ok(result),
-                                err => Err(failure::err_msg(format!("error {:?}", err))),
+                                err => Err(format_err!("error {:?}", err)),
                             }
                         })?
                         .sequence,
@@ -1052,20 +1062,19 @@ impl ClientProxy {
     }
 
     fn mut_account_from_parameter(&mut self, para: &str) -> Result<&mut AccountData> {
-        let account_ref_id = match is_address(para) {
-            true => {
-                let account_address = ClientProxy::address_from_strings(para)?;
-                *self
-                    .address_to_ref_id
-                    .get(&account_address)
-                    .ok_or_else(|| {
-                        format_err!(
-                            "Unable to find local account by address: {:?}",
-                            account_address
-                        )
-                    })?
-            }
-            false => para.parse::<usize>()?,
+        let account_ref_id = if is_address(para) {
+            let account_address = ClientProxy::address_from_strings(para)?;
+            *self
+                .address_to_ref_id
+                .get(&account_address)
+                .ok_or_else(|| {
+                    format_err!(
+                        "Unable to find local account by address: {:?}",
+                        account_address
+                    )
+                })?
+        } else {
+            para.parse::<usize>()?
         };
         let account_data = self
             .accounts
@@ -1115,7 +1124,7 @@ impl fmt::Display for AccountEntry {
 #[cfg(test)]
 mod tests {
     use crate::client_proxy::{parse_bool, AddressAndIndex, ClientProxy};
-    use libra_config::{config::PersistableConfig, trusted_peers::ConfigHelpers};
+    use libra_config::config::{ConsensusConfig, PersistableConfig};
     use libra_tools::tempdir::TempPath;
     use libra_wallet::io_utils;
     use proptest::prelude::*;
@@ -1125,10 +1134,13 @@ mod tests {
         accounts.reserve(count);
         let file = TempPath::new();
         let mnemonic_path = file.path().to_str().unwrap().to_string();
+
+        let consensus_config = ConsensusConfig::default();
         let consensus_peer_file = TempPath::new();
         let consensus_peers_path = consensus_peer_file.path();
-        let (_, consensus_peers_config, _) = ConfigHelpers::gen_validator_nodes(1, None);
-        consensus_peers_config.save_config(&consensus_peers_path);
+        consensus_config
+            .consensus_peers
+            .save_config(consensus_peers_path);
         let val_set_file = consensus_peers_path.to_str().unwrap().to_string();
 
         // We don't need to specify host/port since the client won't be used to connect, only to

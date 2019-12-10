@@ -8,16 +8,16 @@ pub enum LibraStatus {
     InternalError = -255,
 }
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone)]
 pub struct LibraEventHandle {
     pub count: u64,
-    pub key: [u8; 32usize],
+    pub key: [u8; 40usize],
 }
 #[test]
 fn bindgen_test_layout_LibraEventHandle() {
     assert_eq!(
         ::std::mem::size_of::<LibraEventHandle>(),
-        40usize,
+        48usize,
         concat!("Size of: ", stringify!(LibraEventHandle))
     );
     assert_eq!(
@@ -46,8 +46,13 @@ fn bindgen_test_layout_LibraEventHandle() {
         )
     );
 }
+impl Default for LibraEventHandle {
+    fn default() -> Self {
+        unsafe { ::std::mem::zeroed() }
+    }
+}
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone)]
 pub struct LibraAccountResource {
     pub balance: u64,
     pub sequence: u64,
@@ -61,7 +66,7 @@ pub struct LibraAccountResource {
 fn bindgen_test_layout_LibraAccountResource() {
     assert_eq!(
         ::std::mem::size_of::<LibraAccountResource>(),
-        136usize,
+        152usize,
         concat!("Size of: ", stringify!(LibraAccountResource))
     );
     assert_eq!(
@@ -143,7 +148,7 @@ fn bindgen_test_layout_LibraAccountResource() {
         unsafe {
             &(*(::std::ptr::null::<LibraAccountResource>())).received_events as *const _ as usize
         },
-        96usize,
+        104usize,
         concat!(
             "Offset of field: ",
             stringify!(LibraAccountResource),
@@ -151,6 +156,11 @@ fn bindgen_test_layout_LibraAccountResource() {
             stringify!(received_events)
         )
     );
+}
+impl Default for LibraAccountResource {
+    fn default() -> Self {
+        unsafe { ::std::mem::zeroed() }
+    }
 }
 #[repr(C)]
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]

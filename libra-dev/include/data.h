@@ -10,6 +10,8 @@ extern "C" {
 #include <stdbool.h>
 #include <stddef.h>
 
+const char* LIBRA_VERSION = "3160002c771bbf325d71759a0192ae567d586f22";
+
 enum LibraStatus {
     OK = 0,
     InvalidArgument = -1,
@@ -18,7 +20,7 @@ enum LibraStatus {
 
 struct LibraEventHandle {
     uint64_t count;
-    uint8_t key[32];
+    uint8_t key[40];
 };
 
 struct LibraAccountResource {

@@ -90,6 +90,7 @@ mod tests {
             false,
             EventHandle::default(),
             EventHandle::default(),
+            0,
         );
 
         // Fill in data
@@ -124,11 +125,24 @@ mod tests {
             ar.delegated_withdrawal_capability()
         );
         assert_eq!(result.sent_events.count, ar.sent_events().count());
-        assert_eq!(result.sent_events.key, ar.sent_events().key().as_bytes());
-        assert_eq!(result.received_events.count, ar.received_events().count());
+        // Array comparision only work to 32
         assert_eq!(
-            result.received_events.key,
-            ar.received_events().key().as_bytes()
+            result.sent_events.key[..32],
+            ar.sent_events().key().as_bytes()[..32]
+        );
+        assert_eq!(
+            result.sent_events.key[32..],
+            ar.sent_events().key().as_bytes()[32..]
+        );
+        assert_eq!(result.received_events.count, ar.received_events().count());
+        // Array comparision only work to 32
+        assert_eq!(
+            result.received_events.key[..32],
+            ar.received_events().key().as_bytes()[..32]
+        );
+        assert_eq!(
+            result.received_events.key[32..],
+            ar.received_events().key().as_bytes()[32..]
         );
     }
 }

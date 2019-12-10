@@ -41,9 +41,9 @@ def test_send_trasncation():
 
 
 def test_mint():
-    RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
+    RECEIVER_ADDRESS = "11" * 32
 
     f = FaucetUtils()
     seq = f.mint(RECEIVER_ADDRESS, 1.5)
 
-    assert 0 == seq
+    assert 0 != seq

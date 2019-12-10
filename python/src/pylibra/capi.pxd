@@ -12,7 +12,7 @@ cdef extern from "data.h":
 
     struct LibraEventHandle:
         uint64_t count
-        uint8_t[32] key
+        uint8_t[40] key
 
     struct LibraAccountResource:
         uint64_t balance

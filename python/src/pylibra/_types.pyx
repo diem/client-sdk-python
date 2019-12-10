@@ -20,7 +20,7 @@ cdef class EventHandle:
 
     @property
     def key(self):
-        return <bytes> self._c_eh.key[:32]
+        return <bytes> self._c_eh.key[:40]
 
 
 cdef class AccountResource:

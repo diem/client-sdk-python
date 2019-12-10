@@ -10,7 +10,7 @@ publish = false
 edition = "2018"
 
 [dependencies]
-
+anyhow = "1.0"
 chrono = "0.4.7"
 futures = "0.1.28"
 grpcio = { version = "=0.5.0-alpha.4", default-features = false, features = ["prost-codec"] }
@@ -41,7 +41,6 @@ admission-control-proto = { git  = "https://github.com/libra/libra.git", branch 
 libra-config = { package="libra-config", git  = "https://github.com/libra/libra.git", branch = "testnet" }
 # Miscs
 crash-handler = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
-failure = { package = "libra-failure-ext", git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-logger =  { git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-metrics = { git  = "https://github.com/libra/libra.git", branch = "testnet" }
 libra-tools = { git = "https://github.com/libra/libra.git", branch = "testnet" }

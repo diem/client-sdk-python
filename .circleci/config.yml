@@ -31,20 +31,16 @@ jobs:
           shell: /bin/sh
           command: |
             cd cpp
-            ./build.sh
-            ./test.sh
-            touch test-done
+            ./build.sh && ./test.sh
       - run:
           name: Test Rust Client
           shell: /bin/sh
           command: |
             cd rust
             ./test.sh
-            touch test-done
       - run:
           name: Test Python stuff
           shell: /bin/sh
           command: |
             cd python
             ./build.sh && ./test.sh
-            touch test-done

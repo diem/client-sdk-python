@@ -1,5 +1,4 @@
-from pylibra import LibraNetwork
-from pylibra import TransactionUtils, SubmitTransactionError
+from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError
 
 
 # TODO setup our own account with mint, so we can test non-zero cases
@@ -39,3 +38,12 @@ def test_send_trasncation():
             e.message == "VM Status, major code 7, sub code 0, message: 'sender address: "
             "0fce042fb21f424ee71e2a1b00a07f55b3421a3a4d6de31aafe5cc740fd64922'."
         )
+
+
+def test_mint():
+    RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
+
+    f = FaucetUtils()
+    seq = f.mint(RECEIVER_ADDRESS, 1.5)
+
+    assert 0 == seq

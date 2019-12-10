@@ -293,6 +293,7 @@ fn test_lcs_signed_transaction() {
     use libra_crypto::test_utils::TEST_SEED;
     use libra_types::transaction::{SignedTransaction, TransactionArgument};
     use rand::{rngs::StdRng, SeedableRng};
+    use std::ptr;
 
     // generate key pair
     let mut rng = StdRng::from_seed(TEST_SEED);
@@ -310,9 +311,9 @@ fn test_lcs_signed_transaction() {
     let max_gas_amount = 1000;
     let expiration_time_secs = 0;
 
-    let mut buf: u8 = 0;
-    let mut buf_ptr: *mut u8 = &mut buf;
-    let mut len: usize = 0;
+    let mut buf: *mut u8 = ptr::null_mut();
+    let buf_ptr = &mut buf;
+    let mut len = 0;
 
     let result = unsafe {
         libra_SignedTransactionBytes_from(
@@ -324,16 +325,40 @@ fn test_lcs_signed_transaction() {
             gas_unit_price,
             expiration_time_secs,
             private_key_bytes.as_ptr(),
-            &mut buf_ptr,
+            buf_ptr,
             &mut len,
         )
     };
 
     assert_eq!(result, LibraStatus::OK);
 
-    let signed_txn_bytes_buf: &[u8] = unsafe { slice::from_raw_parts(buf_ptr, len) };
+    let signed_txn_bytes_buf: &[u8] = unsafe { slice::from_raw_parts(*buf_ptr, len) };
     let deserialized_signed_txn: SignedTransaction =
         from_bytes(signed_txn_bytes_buf).expect("LCS deserialization failed");
+
+    let mut buf2: *mut u8 = ptr::null_mut();
+    let buf_ptr2 = &mut buf2;
+    let mut len2 = 0;
+
+    let result2 = unsafe {
+        libra_SignedTransactionBytes_from(
+            sender_address.as_ref().as_ptr(),
+            receiver_address.as_ref().as_ptr(),
+            sequence,
+            amount,
+            max_gas_amount,
+            gas_unit_price,
+            expiration_time_secs,
+            private_key_bytes.as_ptr(),
+            buf_ptr2,
+            &mut len2,
+        )
+    };
+
+    assert_eq!(result2, LibraStatus::OK);
+
+    let signed_txn_bytes_buf2: &[u8] = unsafe { slice::from_raw_parts(*buf_ptr2, len2) };
+    assert_eq!(signed_txn_bytes_buf2, signed_txn_bytes_buf);
 
     if let TransactionPayload::Script(program) = deserialized_signed_txn.payload() {
         if let TransactionArgument::U64(val) = program.args()[1] {
@@ -346,7 +371,10 @@ fn test_lcs_signed_transaction() {
     assert_eq!(deserialized_signed_txn.public_key(), public_key);
     assert!(deserialized_signed_txn.check_signature().is_ok());
 
-    unsafe { libra_free_bytes_buffer(buf_ptr) };
+    unsafe {
+        libra_free_bytes_buffer(*buf_ptr);
+        libra_free_bytes_buffer(*buf_ptr2);
+    }
 }
 
 /// Generate an Signed Transaction and deserialize

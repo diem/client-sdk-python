@@ -14,29 +14,33 @@ use libra_types::{
         helpers::TransactionSigner, RawTransaction, TransactionArgument, TransactionPayload,
     },
 };
+
 use std::{convert::TryFrom, slice, time::Duration};
 use transaction_builder::encode_transfer_script;
 
 #[no_mangle]
 pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
-    sender: *const u8,
+    sender_private_key_bytes: *const u8,
     receiver: *const u8,
     sequence: u64,
     num_coins: u64,
     max_gas_amount: u64,
     gas_unit_price: u64,
     expiration_time_secs: u64,
-    private_key_bytes: *const u8,
     ptr_buf: *mut *mut u8,
     ptr_len: *mut usize,
 ) -> LibraStatus {
-    let sender_buf = slice::from_raw_parts(sender, ADDRESS_LENGTH);
-    let sender_address = match AccountAddress::try_from(sender_buf) {
+    let private_key_buf: &[u8] =
+        slice::from_raw_parts(sender_private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
+    let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
         Ok(result) => result,
         Err(_e) => {
             return LibraStatus::InvalidArgument;
         }
     };
+
+    let public_key: Ed25519PublicKey = (&private_key).into();
+    let sender_address = AccountAddress::from_public_key(&public_key);
 
     let receiver_buf = slice::from_raw_parts(receiver, ADDRESS_LENGTH);
     let receiver_address = match AccountAddress::try_from(receiver_buf) {
@@ -59,17 +63,8 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
         expiration_time,
     );
 
-    let private_key_buf: &[u8] =
-        slice::from_raw_parts(private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
-    let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
-        Ok(result) => result,
-        Err(_e) => {
-            return LibraStatus::InvalidArgument;
-        }
-    };
-
-    let key_pair = KeyPair::from(private_key);
-    let signer: Box<&dyn TransactionSigner> = Box::new(&key_pair);
+    let keypair = KeyPair::from(private_key);
+    let signer: Box<&dyn TransactionSigner> = Box::new(&keypair);
     let signed_txn = match signer.sign_txn(raw_txn) {
         Ok(result) => result,
         Err(_e) => {
@@ -310,28 +305,27 @@ fn test_lcs_signed_transaction() {
     let max_gas_amount = 1000;
     let expiration_time_secs = 0;
 
-    let mut buf: u8 = 0;
-    let mut buf_ptr: *mut u8 = &mut buf;
+    let mut buf: *mut u8 = std::ptr::null_mut();
+    let mut buf_ptr = &mut buf;
     let mut len: usize = 0;
 
     let result = unsafe {
         libra_SignedTransactionBytes_from(
-            sender_address.as_ref().as_ptr(),
+            private_key_bytes.as_ptr(),
             receiver_address.as_ref().as_ptr(),
             sequence,
             amount,
             max_gas_amount,
             gas_unit_price,
             expiration_time_secs,
-            private_key_bytes.as_ptr(),
-            &mut buf_ptr,
+            buf_ptr,
             &mut len,
         )
     };
 
     assert_eq!(result, LibraStatus::OK);
 
-    let signed_txn_bytes_buf: &[u8] = unsafe { slice::from_raw_parts(buf_ptr, len) };
+    let signed_txn_bytes_buf: &[u8] = unsafe { slice::from_raw_parts(buf, len) };
     let deserialized_signed_txn: SignedTransaction =
         from_bytes(signed_txn_bytes_buf).expect("LCS deserialization failed");
 
@@ -346,7 +340,37 @@ fn test_lcs_signed_transaction() {
     assert_eq!(deserialized_signed_txn.public_key(), public_key);
     assert!(deserialized_signed_txn.check_signature().is_ok());
 
-    unsafe { libra_free_bytes_buffer(buf_ptr) };
+    // Test signature is stable
+    let mut buf2: *mut u8 = std::ptr::null_mut();
+    let mut buf_ptr2 = &mut buf2;
+    let mut len2: usize = 0;
+    let result2 = unsafe {
+        libra_SignedTransactionBytes_from(
+            private_key_bytes.as_ptr(),
+            receiver_address.as_ref().as_ptr(),
+            sequence,
+            amount,
+            max_gas_amount,
+            gas_unit_price,
+            expiration_time_secs,
+            buf_ptr2,
+            &mut len2,
+        )
+    };
+
+    assert_eq!(result2, LibraStatus::OK);
+    assert_ne!(buf, buf2);
+    assert_eq!(len, len2);
+
+    unsafe {
+        let data2 = slice::from_raw_parts(buf2, len2);
+        assert_eq!(signed_txn_bytes_buf, data2);
+    }
+
+    unsafe {
+        libra_free_bytes_buffer(buf);
+        libra_free_bytes_buffer(buf2);
+    };
 }
 
 /// Generate an Signed Transaction and deserialize

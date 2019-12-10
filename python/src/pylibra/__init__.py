@@ -1,9 +1,17 @@
-from .transport import *
+from ._transport import *
 from .api import *
 from ._types import *
 
 __all__ = [
-    "LibraNetwork",  # Main helper object
+    # Main helper object
+    "LibraNetwork",
+    "TransactionUtils",
+    # Exceptions,
+    "LibraNetwork",
+    "ClientError",
+    "SubmitTransactionError",
+    # Data Classes
     "AccountResource",
-    "EventHandle",  # Data Classes
+    "EventHandle",
+    "BytesWrapper",
 ]

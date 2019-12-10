@@ -7,4 +7,4 @@ cd src
 tar zxvf ../libra-dev.tar.gz
 cd ..
 
-cargo build --release --manifest-path ./src/Cargo.toml --target-dir ./target
+cargo build --locked --release --manifest-path ./src/Cargo.toml --target-dir ./target

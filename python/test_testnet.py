@@ -1,4 +1,5 @@
 from pylibra import LibraNetwork
+from pylibra import TransactionUtils, SubmitTransactionError
 
 
 # TODO setup our own account with mint, so we can test non-zero cases
@@ -14,3 +15,27 @@ def test_account_state_block_from_testnet():
     assert not account.delegated_key_rotation_capability
     assert not account.delegated_withdrawal_capability
     assert account.sent_events.count == 0
+
+
+def test_send_trasncation():
+    RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
+    PRIVATE_KEY = bytes.fromhex("22" * 32)
+
+    api = LibraNetwork()
+
+    tx = TransactionUtils.createSignedP2PTransaction(
+        PRIVATE_KEY,
+        RECEIVER_ADDRESS,
+        # sequence
+        255,
+        # 1 libra
+        1_000_000,
+    )
+
+    try:
+        api.sendTransaction(tx.bytes)
+    except SubmitTransactionError as e:
+        assert (
+            e.message == "VM Status, major code 7, sub code 0, message: 'sender address: "
+            "0fce042fb21f424ee71e2a1b00a07f55b3421a3a4d6de31aafe5cc740fd64922'."
+        )

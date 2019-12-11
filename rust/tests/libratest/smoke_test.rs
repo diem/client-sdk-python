@@ -93,7 +93,7 @@ impl TestEnvironment {
     }
 
     fn get_ac_client(&self, port: u16) -> ClientProxy {
-        let config = NodeConfig::load(&self.validator_swarm.config.configs[0]).unwrap();
+        let config = NodeConfig::load(&self.validator_swarm.config.config_files[0]).unwrap();
         let validator_set_file = self
             .validator_swarm
             .dir
@@ -197,8 +197,7 @@ fn test_execute_custom_module_and_script() {
     let recipient_address = client_proxy.create_next_account(false).unwrap().address;
     client_proxy.mint_coins(&["mintb", "1", "1"], true).unwrap();
 
-    let module_path =
-        utils::workspace_root().join("tests/libratest/dev_modules/module.mvir");
+    let module_path = utils::workspace_root().join("tests/libratest/dev_modules/module.mvir");
     let unwrapped_module_path = module_path.to_str().unwrap();
     let module_params = &["compile", "0", unwrapped_module_path, "module"];
     let module_compiled_path = client_proxy.compile_program(module_params).unwrap();
@@ -207,8 +206,7 @@ fn test_execute_custom_module_and_script() {
         .publish_module(&["publish", "0", &module_compiled_path[..]])
         .unwrap();
 
-    let script_path =
-        utils::workspace_root().join("tests/libratest/dev_modules/script.mvir");
+    let script_path = utils::workspace_root().join("tests/libratest/dev_modules/script.mvir");
     let unwrapped_script_path = script_path.to_str().unwrap();
     let script_params = &["execute", "0", unwrapped_script_path, "script"];
     let script_compiled_path = client_proxy.compile_program(script_params).unwrap();
@@ -238,6 +236,19 @@ fn test_execute_custom_module_and_script() {
 fn smoke_test_single_node() {
     let (_swarm, mut client_proxy) = setup_swarm_and_client_proxy(1, 0);
     test_smoke_script(client_proxy);
+}
+
+#[test]
+fn smoke_test_single_node_block_metadata() {
+    let (_swarm, mut client_proxy) = setup_swarm_and_client_proxy(1, 0);
+    // just need an address to get the latest version
+    let address = AccountAddress::from_hex_literal("0xA550C18").unwrap();
+    // sleep 1s to commit some blocks
+    thread::sleep(time::Duration::from_secs(1));
+    let (_state, version) = client_proxy
+        .get_latest_account_state(&["q", &address.to_string()])
+        .unwrap();
+    assert!(version > 0, "BlockMetadata txn not persisted");
 }
 
 #[test]
@@ -349,13 +360,13 @@ fn test_startup_sync_state() {
     let node_config = NodeConfig::load(
         env.validator_swarm
             .config
-            .configs
+            .config_files
             .get(peer_to_stop)
             .unwrap(),
     )
     .unwrap();
     // TODO Remove hardcoded path to state db
-    let state_db_path = node_config.get_storage_dir().join("libradb");
+    let state_db_path = node_config.storage.dir().join("libradb");
     // Verify that state_db_path exists and
     // we are not deleting a non-existent directory
     assert!(state_db_path.as_path().exists());

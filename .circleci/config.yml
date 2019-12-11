@@ -28,30 +28,17 @@ jobs:
             sudo cp libra-dev/target/debug/liblibra_dev.so /usr/lib
       - run:
           name: Test C++ client
-          background: true
-          when: always
           shell: /bin/sh
           command: |
             cd cpp
-            ./build.sh
-            ./test.sh
-            touch test-done
+            ./build.sh && ./test.sh
       - run:
           name: Test Rust Client
-          background: true
-          when: always
           shell: /bin/sh
           command: |
             cd rust
             ./test.sh
             touch test-done
-      - run:
-          name: Wait for everything
-          when: always
-          command: |
-            while [ ! -f cpp/test-done ]; do sleep 1; done
-            while [ ! -f rust/test-done ]; do sleep 1; done
-
   build-python:
     executor: build-executor
     steps:

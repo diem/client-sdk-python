@@ -38,7 +38,6 @@ jobs:
           command: |
             cd rust
             ./test.sh
-            touch test-done
   build-python:
     executor: build-executor
     steps:

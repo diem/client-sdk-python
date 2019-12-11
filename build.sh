@@ -12,7 +12,7 @@ bindgen libra-dev/include/data.h \
 
 # Build libra-dev first
 cd libra-dev
-cargo build
+cargo build --locked
 cargo clippy -- -A clippy::missing-safety-doc -D warnings
 cargo fmt --all -- --check
 cargo test

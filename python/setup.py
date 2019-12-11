@@ -140,13 +140,13 @@ exts = [
 
 setup(
     name="calibra-pylibra",
-    version="0.1.2019120901",
+    version="0.1.2019121003",
     description="Official Python binding for libra-client-dev C API",
     python_requires="~=3.7",
     packages=find_packages("src"),
     include_package_data=False,  # see MANIFEST.in
     zip_safe=True,
-    install_requires=["grpcio", "protobuf"],
+    install_requires=["grpcio", "protobuf", "requests"],
     tests_require=["pytest", "pytest-runner", "pylama", "black"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.

@@ -23,7 +23,7 @@ types/src/proto/validator_set.proto
 types/src/proto/vm_errors.proto
 "
 
-rm -f *.proto || true
+rm -f *.proto *_pb2.py *_grpc.py || true
 
 for FILE in ${FILES}; do
   curl -q -o "$(basename "${FILE}")" "https://raw.githubusercontent.com/libra/libra/${BRANCH}/${FILE}"

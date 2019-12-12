@@ -2,8 +2,6 @@ import sys
 import platform
 
 from setuptools import setup, Extension, Command, find_packages
-from setuptools.command.build_py import build_py
-from setuptools.command.develop import develop
 
 
 class VendorCommand(Command):
@@ -24,6 +22,7 @@ class VendorCommand(Command):
         subprocess.call("./update.sh", cwd="./lib")
         # Run download.sh to download all proto files
         subprocess.call("./download.sh", cwd="./src/pylibra/grpc")
+        self.run_command("build_proto")
 
 
 class BuildProtoCommand(Command):
@@ -64,18 +63,6 @@ class BuildLibraCommand(Command):
         import subprocess
 
         subprocess.call("./build.sh", cwd="lib")
-
-
-class DevelopCommand(develop):
-    def run(self):
-        self.run_command("build_proto")
-        develop.run(self)
-
-
-class BuildPyCommand(build_py):
-    def run(self):
-        self.run_command("build_proto")
-        build_py.run(self)
 
 
 # This is an wrapper to lazy-load setuptools's build_ext, in order to get cython detection working.
@@ -140,9 +127,9 @@ exts = [
 
 setup(
     name="calibra-pylibra",
-    version="0.1.2019121003",
+    version="0.1.2019121201",
     description="Official Python binding for libra-client-dev C API",
-    python_requires="~=3.7",
+    python_requires=">=3.5",  # same as grpcio-tools
     packages=find_packages("src"),
     include_package_data=False,  # see MANIFEST.in
     zip_safe=True,
@@ -162,7 +149,5 @@ setup(
         "build_proto": BuildProtoCommand,
         "build_libra": BuildLibraCommand,
         "build_ext": BuildExtCommand,
-        "build_py": BuildPyCommand,
-        "develop": DevelopCommand,
     },
 )

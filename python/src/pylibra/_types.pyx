@@ -1,5 +1,8 @@
 #cython: language_level=3
 
+from libc.stdint cimport *
+from libc.stddef cimport *
+
 from pylibra cimport capi
 
 cdef class EventHandle:
@@ -17,7 +20,7 @@ cdef class EventHandle:
 
     @property
     def key(self):
-        return <bytes> self._c_eh.key[:32]
+        return <bytes> self._c_eh.key[:40]
 
 
 cdef class AccountResource:
@@ -69,3 +72,60 @@ cdef class AccountResource:
     @property
     def received_events(self):
         return self._received_events
+
+
+cdef class TransactionUtils:
+    @staticmethod
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver, sender_sequence: long, num_coins_libra: long, max_gas_amount=140000, gas_unit_price = 0, expiration_time_secs=5 * 60) -> BytesWrapper:
+        cdef uint8_t* buf_ptr
+        cdef size_t buf_len
+
+        buf_ptr = NULL
+        buf_len = 0
+
+        assert len(sender_private_key) == 32
+        assert len(receiver) == 32
+        assert sender_sequence >= 0
+        assert num_coins_libra > 0
+
+        status = capi.libra_SignedTransactionBytes_from(
+             <bytes> sender_private_key[:32],
+             <bytes> receiver[:32],
+             sender_sequence,
+             num_coins_libra,
+             max_gas_amount,
+             gas_unit_price,
+             expiration_time_secs,
+             &buf_ptr, &buf_len)
+
+        if status != capi.LibraStatus.OK:
+            raise ValueError("libra_SignedTransactionBytes_from failed: %d", status)
+
+        return BytesWrapper.create(buf_ptr, buf_len)
+
+
+cdef class BytesWrapper:
+    cdef uint8_t* _c_buf_ptr
+    cdef size_t _c_buf_len
+
+    @staticmethod
+    cdef create(uint8_t* buf_ptr, size_t buf_len):
+        assert buf_ptr != NULL
+        assert buf_len > 0
+
+        cdef BytesWrapper res = BytesWrapper.__new__(BytesWrapper)
+        res._c_buf_ptr = buf_ptr
+        res._c_buf_len = buf_len
+        return res
+
+    def __dealloc__(self):
+        capi.libra_free_bytes_buffer(self._c_buf_ptr)
+
+    @property
+    def bytes(self):
+        return <bytes> self._c_buf_ptr[:self._c_buf_len]
+
+
+    @property
+    def hex(self):
+        return bytes.hex(self.bytes)

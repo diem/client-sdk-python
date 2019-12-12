@@ -81,7 +81,7 @@ enum LibraStatus libra_LibraAccountResource_from(const uint8_t *buf, size_t len,
  * @param[out] buf is the pointer that will be filled with the memory address of the transaction allocated in rust. User takes ownership of pointer returned by *buf, which needs to be freed using libra_signed_transcation_free
  * @param[out] len is the length of the signed transaction memory buffer.
 */
-enum LibraStatus libra_SignedTransactionBytes_from(const uint8_t sender[32], const uint8_t receiver[32], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, const uint8_t* private_key_bytes, uint8_t** ptr_buf, size_t* ptr_len);
+enum LibraStatus libra_SignedTransactionBytes_from(const uint8_t sender_private_key[32], const uint8_t receiver[32], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, uint8_t** ptr_buf, size_t* ptr_len);
 
 /*!
  * Function to free the allocation memory in rust for bytes

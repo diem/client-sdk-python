@@ -1,5 +1,7 @@
-recursive-include src *.py *.pyx *.pxd *.sh
-recursive-include lib *.sh *.tar.gz
+recursive-include src *.py *.pyx *.pxd
+recursive-include lib *.a *.h
 
-recursive-exclude src *.proto
-global-exclude *.a *.so *.dylib
+recursive-exclude src *.proto *.sh
+recursive-exclude lib src *.sh
+
+global-exclude *.so

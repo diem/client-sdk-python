@@ -13,7 +13,7 @@ bindgen libra-dev/include/data.h \
 # Build libra-dev first
 cd libra-dev
 cargo build
-cargo clippy -- -A clippy::missing-safety-doc -D warnings
+#cargo clippy -- -A clippy::missing-safety-doc -D warnings   // Disabled due to clippy type mismatch between libra/libra and this repo. Will add it back once we merge back in tree
 cargo fmt --all -- --check
 cargo test
 cd ..

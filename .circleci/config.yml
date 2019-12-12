@@ -6,11 +6,34 @@ executors:
       - image: circleci/rust:buster
     resource_class: 2xlarge
 
-jobs:
-  build:
-    executor: build-executor
+commands:
+  set-nightly-cargo-config:
     steps:
-      - checkout
+      - run:
+          name: checkout nightly
+          command: |
+            git clone https://github.com/libra/libra.git
+            CWD=`pwd`
+            mkdir .cargo
+            echo 'paths = [' >> .cargo/config
+            echo "\"${CWD}/libra/types\"," >> .cargo/config
+            echo "\"${CWD}/libra/crypto/crypto\"," >> .cargo/config
+            echo "\"${CWD}/libra/language/transaction-builder\"," >> .cargo/config
+            echo "\"${CWD}/libra/common/lcs\"," >> .cargo/config
+            echo "\"${CWD}/libra/client/libra_wallet\"," >> .cargo/config
+            echo "\"${CWD}/libra/admission_control/admission-control-proto\"," >> .cargo/config
+            echo "\"${CWD}/libra/config\"," >> .cargo/config
+            echo "\"${CWD}/libra/common/crash-handler\"," >> .cargo/config
+            echo "\"${CWD}/libra/common/logger\"," >> .cargo/config
+            echo "\"${CWD}/libra/common/metrics\"," >> .cargo/config
+            echo "\"${CWD}/libra/common/tools\"," >> .cargo/config
+            echo "\"${CWD}/libra/libra-swarm\"," >> .cargo/config
+            echo "\"${CWD}/libra/libra-node\"," >> .cargo/config
+            echo "\"${CWD}/libra/config/generate-keypair\"," >> .cargo/config
+            echo "\"${CWD}/libra/language/compiler\"," >> .cargo/config
+            echo ']' >> .cargo/config
+  build:
+    steps:
       - run:
           name: Setup
           command: |
@@ -39,9 +62,7 @@ jobs:
             cd rust
             ./test.sh
   build-python:
-    executor: build-executor
     steps:
-      - checkout
       - run:
           name: Setup
           command: |
@@ -55,9 +76,50 @@ jobs:
             ./build.sh
             ./test.sh
 
+jobs:
+  build-testnet:
+    executor: build-executor
+    steps:
+      - checkout
+      - build
+  build-master:
+    executor: build-executor
+    steps:
+      - checkout
+      - set-nightly-cargo-config
+      - build
+  build-python-testnet:
+    executor: build-executor
+    steps:
+      - checkout
+      - build-python
+  build-python-master:
+    executor: build-executor
+    steps:
+      - checkout
+      - set-nightly-cargo-config
+      - build-python
+
 workflows:
   version: 2
   build:
     jobs:
-      - "build"
-      - "build-python"
+      - build-testnet
+      - build-python-testnet
+  commit-workflow:
+    jobs:
+      - build-testnet
+      - build-python-testnet
+      - build-master
+      - build-python-master
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 7 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build-master
+      - build-python-master

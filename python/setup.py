@@ -70,9 +70,9 @@ exts = [
 
 
 setup(
-    name="calibra-pylibra",
-    version="0.1.2019121203",
-    description="Official Python binding for libra-client-dev C API",
+    name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
+    version="0.1.2019121301",
+    description="",
     python_requires=">=3.5",  # same as grpcio
     packages=find_packages("src"),
     include_package_data=False,  # see MANIFEST.in

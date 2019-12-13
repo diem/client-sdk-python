@@ -6,11 +6,20 @@ executors:
       - image: circleci/rust:buster
     resource_class: 2xlarge
 
-jobs:
-  build:
-    executor: build-executor
+commands:
+  set-cargo-master:
     steps:
-      - checkout
+      - run:
+          name: checkout nightly
+          command: |
+            cd rust
+            sed -i 's/testnet/master/g' Cargo.toml
+            cargo update
+            cd ../libra-dev
+            sed -i 's/testnet/master/g' Cargo.toml
+            cargo update
+  build:
+    steps:
       - run:
           name: Setup
           command: |
@@ -39,9 +48,7 @@ jobs:
             cd rust
             ./test.sh
   build-python:
-    executor: build-executor
     steps:
-      - checkout
       - run:
           name: Setup
           command: |
@@ -55,9 +62,44 @@ jobs:
             ./build.sh
             ./test.sh
 
+jobs:
+  build-testnet:
+    executor: build-executor
+    steps:
+      - checkout
+      - build
+  build-master:
+    executor: build-executor
+    steps:
+      - checkout
+      - set-cargo-master
+      - build
+  build-python-testnet:
+    executor: build-executor
+    steps:
+      - checkout
+      - build-python
+  build-python-master:
+    executor: build-executor
+    steps:
+      - checkout
+      - set-cargo-master
+      - build-python
+
 workflows:
   version: 2
   build:
     jobs:
-      - "build"
-      - "build-python"
+      - build-testnet
+      - build-python-testnet
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 7 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build-master
+      - build-python-master

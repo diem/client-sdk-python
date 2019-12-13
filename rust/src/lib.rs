@@ -11,6 +11,7 @@
 
 pub use fixme_libra_types::{
     account_address::AccountAddress,
+    account_config::association_address,
     transaction::{RawTransaction, TransactionArgument, TransactionPayload},
 };
 pub use libra_crypto::{ed25519::*, test_utils::KeyPair, traits::ValidKeyStringExt};

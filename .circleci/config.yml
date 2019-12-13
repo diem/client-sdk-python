@@ -7,31 +7,17 @@ executors:
     resource_class: 2xlarge
 
 commands:
-  set-nightly-cargo-config:
+  set-cargo-master:
     steps:
       - run:
           name: checkout nightly
           command: |
-            git clone https://github.com/libra/libra.git
-            CWD=`pwd`
-            mkdir .cargo
-            echo 'paths = [' >> .cargo/config
-            echo "\"${CWD}/libra/types\"," >> .cargo/config
-            echo "\"${CWD}/libra/crypto/crypto\"," >> .cargo/config
-            echo "\"${CWD}/libra/language/transaction-builder\"," >> .cargo/config
-            echo "\"${CWD}/libra/common/lcs\"," >> .cargo/config
-            echo "\"${CWD}/libra/client/libra_wallet\"," >> .cargo/config
-            echo "\"${CWD}/libra/admission_control/admission-control-proto\"," >> .cargo/config
-            echo "\"${CWD}/libra/config\"," >> .cargo/config
-            echo "\"${CWD}/libra/common/crash-handler\"," >> .cargo/config
-            echo "\"${CWD}/libra/common/logger\"," >> .cargo/config
-            echo "\"${CWD}/libra/common/metrics\"," >> .cargo/config
-            echo "\"${CWD}/libra/common/tools\"," >> .cargo/config
-            echo "\"${CWD}/libra/libra-swarm\"," >> .cargo/config
-            echo "\"${CWD}/libra/libra-node\"," >> .cargo/config
-            echo "\"${CWD}/libra/config/generate-keypair\"," >> .cargo/config
-            echo "\"${CWD}/libra/language/compiler\"," >> .cargo/config
-            echo ']' >> .cargo/config
+            cd rust
+            sed -i 's/testnet/master/g' Cargo.toml
+            cargo update
+            cd ../libra-dev
+            sed -i 's/testnet/master/g' Cargo.toml
+            cargo update
   build:
     steps:
       - run:
@@ -86,7 +72,7 @@ jobs:
     executor: build-executor
     steps:
       - checkout
-      - set-nightly-cargo-config
+      - set-cargo-master
       - build
   build-python-testnet:
     executor: build-executor
@@ -97,7 +83,7 @@ jobs:
     executor: build-executor
     steps:
       - checkout
-      - set-nightly-cargo-config
+      - set-cargo-master
       - build-python
 
 workflows:
@@ -106,12 +92,6 @@ workflows:
     jobs:
       - build-testnet
       - build-python-testnet
-  commit-workflow:
-    jobs:
-      - build-testnet
-      - build-python-testnet
-      - build-master
-      - build-python-master
   nightly:
     triggers:
       - schedule:

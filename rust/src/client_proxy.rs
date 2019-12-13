@@ -23,6 +23,7 @@ use libra_config::config::{ConsensusPeersConfig, PersistableConfig};
 use libra_crypto::{ed25519::*, test_utils::KeyPair};
 use libra_logger::prelude::*;
 use libra_tools::tempdir::TempPath;
+use fixme_libra_types::crypto_proxies::EpochInfo;
 use libra_wallet::{io_utils, wallet_library::WalletLibrary};
 use num_traits::{
     cast::{FromPrimitive, ToPrimitive},
@@ -39,7 +40,6 @@ use std::{
     path::{Display, Path, PathBuf},
     process::{Command, Stdio},
     str::{self, FromStr},
-    sync::Arc,
     thread, time,
 };
 
@@ -113,14 +113,13 @@ impl ClientProxy {
         faucet_server: Option<String>,
         mnemonic_file: Option<String>,
     ) -> Result<Self> {
-        let validator_verifier = Arc::new(
-            ConsensusPeersConfig::load_config(validator_set_file)?.get_validator_verifier(),
-        );
+        let verifier =
+            ConsensusPeersConfig::load_config(validator_set_file)?.get_validator_verifier();
         ensure!(
-            !validator_verifier.is_empty(),
+            !verifier.is_empty(),
             "Not able to load any validators from trusted peers config!"
         );
-        let client = GRPCClient::new(host, ac_port, validator_verifier)?;
+        let client = GRPCClient::new(host, ac_port, EpochInfo { epoch: 1, verifier })?;
 
         let accounts = vec![];
 
@@ -290,8 +289,41 @@ impl ClientProxy {
         let num_coins = Self::convert_to_micro_libras(space_delim_strings[2])?;
 
         match self.faucet_account {
-            Some(_) => self.mint_coins_with_local_faucet_account(&receiver, num_coins, is_blocking),
+            Some(_) => self.association_transaction_with_local_faucet_account(
+                fixme_transaction_builder::encode_mint_script(&receiver, num_coins),
+                is_blocking,
+            ),
             None => self.mint_coins_with_faucet_service(&receiver, num_coins, is_blocking),
+        }
+    }
+
+    /// Remove a existing validator.
+    pub fn remove_validator(
+        &mut self,
+        account_address: AccountAddress,
+        is_blocking: bool,
+    ) -> Result<()> {
+        match self.faucet_account {
+            Some(_) => self.association_transaction_with_local_faucet_account(
+                fixme_transaction_builder::encode_remove_validator_script(&account_address),
+                is_blocking,
+            ),
+            None => unimplemented!(),
+        }
+    }
+
+    /// Add a new validator.
+    pub fn add_validator(
+        &mut self,
+        account_address: AccountAddress,
+        is_blocking: bool,
+    ) -> Result<()> {
+        match self.faucet_account {
+            Some(_) => self.association_transaction_with_local_faucet_account(
+                fixme_transaction_builder::encode_add_validator_script(&account_address),
+                is_blocking,
+            ),
+            None => unimplemented!(),
         }
     }
 
@@ -303,19 +335,26 @@ impl ClientProxy {
             stdout().flush().unwrap();
             max_iterations -= 1;
 
-            if let Ok(Some((_, Some(events)))) =
-                self.client
-                    .get_txn_by_acc_seq(account, sequence_number - 1, true)
+            match self
+                .client
+                .get_txn_by_acc_seq(account, sequence_number - 1, true)
             {
-                println!("transaction is stored!");
-                if events.is_empty() {
-                    println!("no events emitted");
+                Ok(Some((_, Some(events)))) => {
+                    println!("transaction is stored!");
+                    if events.is_empty() {
+                        println!("no events emitted");
+                    }
+                    break;
                 }
-                break;
-            } else if max_iterations == 0 {
-                panic!("wait_for_transaction timeout");
-            } else {
-                print!(".");
+                Ok(_) if max_iterations == 0 => {
+                    panic!("wait_for_transaction timeout");
+                }
+                Err(e) => {
+                    println!("Response with error: {:?}", e);
+                }
+                _ => {
+                    print!(".");
+                }
             }
             thread::sleep(time::Duration::from_millis(10));
         }
@@ -949,21 +988,19 @@ impl ClientProxy {
         Ok(account)
     }
 
-    fn mint_coins_with_local_faucet_account(
+    fn association_transaction_with_local_faucet_account(
         &mut self,
-        receiver: &AccountAddress,
-        num_coins: u64,
+        program: Script,
         is_blocking: bool,
     ) -> Result<()> {
         ensure!(self.faucet_account.is_some(), "No faucet account loaded");
         let sender = self.faucet_account.as_ref().unwrap();
         let sender_address = sender.address;
-        let program = fixme_transaction_builder::encode_mint_script(&receiver, num_coins);
         let req = self.create_submit_transaction_req(
             TransactionPayload::Script(program),
             sender,
-            None, /* max_gas_amount */
-            None, /* gas_unit_price */
+            None,
+            None,
         )?;
         let mut sender_mut = self.faucet_account.as_mut().unwrap();
         let resp = self.client.submit_transaction(Some(&mut sender_mut), &req);
@@ -1140,7 +1177,8 @@ mod tests {
         let consensus_peers_path = consensus_peer_file.path();
         consensus_config
             .consensus_peers
-            .save_config(consensus_peers_path);
+            .save_config(consensus_peers_path)
+            .expect("Unable to save consensus_peers.config");
         let val_set_file = consensus_peers_path.to_str().unwrap().to_string();
 
         // We don't need to specify host/port since the client won't be used to connect, only to

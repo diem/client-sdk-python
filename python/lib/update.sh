@@ -12,10 +12,10 @@ cargo install cross || true
 
 # build linux release
 cd src
-cross build --target x86_64-unknown-linux-musl --locked --release
+cross build --target x86_64-unknown-linux-gnu --locked --release
 cd ..
 
-cp src/target/x86_64-unknown-linux-musl/release/liblibra_dev.a liblibra_dev-linux-x86_64.a
+cp src/target/x86_64-unknown-linux-gnu/release/liblibra_dev.a liblibra_dev-linux-x86_64.a
 
 # build dawrin release
 cd src

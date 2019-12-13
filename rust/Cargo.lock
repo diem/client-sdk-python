@@ -3,7 +3,7 @@
 [[package]]
 name = "accumulator"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -19,7 +19,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "admission-control-proto"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -36,7 +36,7 @@ dependencies = [
 [[package]]
 name = "admission-control-service"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "admission-control-proto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -283,7 +283,7 @@ dependencies = [
 [[package]]
 name = "bounded-executor"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-semaphore 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -313,7 +313,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "bytecode-source-map"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytecode-verifier 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -330,7 +330,7 @@ dependencies = [
 [[package]]
 name = "bytecode-verifier"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -415,7 +415,7 @@ dependencies = [
 [[package]]
 name = "channel"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -551,7 +551,7 @@ dependencies = [
 [[package]]
 name = "compiler"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytecode-source-map 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -567,7 +567,7 @@ dependencies = [
 [[package]]
 name = "config-builder"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "generate-keypair 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -587,7 +587,7 @@ dependencies = [
 [[package]]
 name = "consensus"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -616,7 +616,6 @@ dependencies = [
  "prometheus 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp-serde 0.13.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "rusty-fork 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "safety-rules 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "schemadb 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -634,7 +633,7 @@ dependencies = [
 [[package]]
 name = "consensus-types"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "executor 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -647,7 +646,6 @@ dependencies = [
  "mirai-annotations 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "network 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp-serde 0.13.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -685,7 +683,7 @@ dependencies = [
 [[package]]
 name = "crash-handler"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "backtrace 0.3.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-logger 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -842,7 +840,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "debug-interface"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -993,7 +991,7 @@ dependencies = [
 [[package]]
 name = "executable-helpers"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "crash-handler 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-config 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -1006,7 +1004,7 @@ dependencies = [
 [[package]]
 name = "executor"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "backoff 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1026,6 +1024,7 @@ dependencies = [
  "scratchpad 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "storage-client 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
+ "storage-proto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "vm-runtime 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
 ]
 
@@ -1175,7 +1174,7 @@ dependencies = [
 [[package]]
 name = "futures-semaphore"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio-sync 0.2.0-alpha.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1229,7 +1228,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "generate-keypair"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-canonical-serialization 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -1285,7 +1284,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "grpc-helpers"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1489,7 +1488,7 @@ dependencies = [
 [[package]]
 name = "ir-to-bytecode"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytecode-source-map 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -1505,7 +1504,7 @@ dependencies = [
 [[package]]
 name = "ir-to-bytecode-syntax"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "codespan 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1531,7 +1530,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "jellyfish-merkle"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bincode 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1621,7 +1620,7 @@ dependencies = [
 [[package]]
 name = "libra-canonical-serialization"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1630,13 +1629,15 @@ dependencies = [
 [[package]]
 name = "libra-config"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "get_if_addrs 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "hex 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-canonical-serialization 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
+ "libra-crypto-derive 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-tools 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "mirai-annotations 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1650,7 +1651,7 @@ dependencies = [
 [[package]]
 name = "libra-crypto"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1681,7 +1682,7 @@ dependencies = [
 [[package]]
 name = "libra-crypto-derive"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "proc-macro2 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1691,7 +1692,7 @@ dependencies = [
 [[package]]
 name = "libra-logger"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "backtrace 0.3.40 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1711,7 +1712,7 @@ dependencies = [
 [[package]]
 name = "libra-mempool"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bounded-executor 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -1743,7 +1744,7 @@ dependencies = [
 [[package]]
 name = "libra-mempool-shared-proto"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1754,7 +1755,7 @@ dependencies = [
 [[package]]
 name = "libra-metrics"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1769,7 +1770,7 @@ dependencies = [
 [[package]]
 name = "libra-nibble"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1777,7 +1778,7 @@ dependencies = [
 [[package]]
 name = "libra-node"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "admission-control-proto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "admission-control-service 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -1810,7 +1811,7 @@ dependencies = [
 [[package]]
 name = "libra-proptest-helpers"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "crossbeam 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "proptest 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1820,7 +1821,7 @@ dependencies = [
 [[package]]
 name = "libra-prost-ext"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "bytes 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1829,7 +1830,7 @@ dependencies = [
 [[package]]
 name = "libra-state-view"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -1838,7 +1839,7 @@ dependencies = [
 [[package]]
 name = "libra-swarm"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "client 0.1.0",
@@ -1858,7 +1859,7 @@ dependencies = [
 [[package]]
 name = "libra-tools"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "hex 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1867,7 +1868,7 @@ dependencies = [
 [[package]]
 name = "libra-types"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bech32 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1890,6 +1891,7 @@ dependencies = [
  "prost-build 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "radix_trie 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ref-cast 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror 1.0.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "tiny-keccak 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1898,7 +1900,7 @@ dependencies = [
 [[package]]
 name = "libra-wallet"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1919,7 +1921,7 @@ dependencies = [
 [[package]]
 name = "libradb"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "accumulator 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1937,9 +1939,9 @@ dependencies = [
  "libra-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "num-derive 0.2.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "prometheus 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "rusty-fork 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "schemadb 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "storage-proto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -2070,7 +2072,7 @@ dependencies = [
 [[package]]
 name = "memsocket"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "bytes 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2181,7 +2183,7 @@ dependencies = [
 [[package]]
 name = "netcore"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "bytes 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2196,7 +2198,7 @@ dependencies = [
 [[package]]
 name = "network"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "admission-control-proto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2257,7 +2259,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "noise"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -2986,6 +2988,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "ref-cast"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "ref-cast-impl 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "proc-macro2 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "quote 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "syn 1.0.11 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "regex"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3071,25 +3091,6 @@ dependencies = [
  "untrusted 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "web-sys 0.3.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "rmp"
-version = "0.8.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "num-traits 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "rmp-serde"
-version = "0.13.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "rmp 0.8.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -3183,8 +3184,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "safety-rules"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
+ "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "consensus-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-config 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -3204,7 +3206,7 @@ dependencies = [
 [[package]]
 name = "schemadb"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3220,7 +3222,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "scratchpad"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "itertools 0.8.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -3468,13 +3470,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "state-synchronizer"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "executor 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "grpcio 0.5.0-alpha.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libra-canonical-serialization 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-config 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-logger 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -3483,6 +3486,7 @@ dependencies = [
  "network 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "prometheus 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "storage-client 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "tokio 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "vm-runtime 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -3491,7 +3495,7 @@ dependencies = [
 [[package]]
 name = "stdlib"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "bytecode-source-map 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "bytecode-verifier 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
@@ -3503,7 +3507,7 @@ dependencies = [
 [[package]]
 name = "storage-client"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3520,7 +3524,7 @@ dependencies = [
 [[package]]
 name = "storage-proto"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3535,11 +3539,12 @@ dependencies = [
 [[package]]
 name = "storage-service"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "debug-interface 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "executable-helpers 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
+ "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "grpc-helpers 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "grpcio 0.5.0-alpha.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3982,7 +3987,7 @@ dependencies = [
 [[package]]
 name = "transaction-builder"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "ir-to-bytecode 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4134,7 +4139,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "vm"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "byteorder 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4144,13 +4149,14 @@ dependencies = [
  "libra-crypto 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "libra-types 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "mirai-annotations 1.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ref-cast 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "vm-cache-map"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "chashmap 2.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "typed-arena 1.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4159,7 +4165,7 @@ dependencies = [
 [[package]]
 name = "vm-genesis"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4180,7 +4186,7 @@ dependencies = [
 [[package]]
 name = "vm-runtime"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "bytecode-verifier 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)",
  "hex 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4204,7 +4210,7 @@ dependencies = [
 [[package]]
 name = "vm-runtime-types"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "bit-vec 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4219,7 +4225,7 @@ dependencies = [
 [[package]]
 name = "vm-validator"
 version = "0.1.0"
-source = "git+https://github.com/libra/libra.git?branch=testnet#01538332bba5df5fa3aadf2c1058bc6d23a393d8"
+source = "git+https://github.com/libra/libra.git?branch=testnet#503af53ac02705116430cf3e0ae844a28f4b524d"
 dependencies = [
  "anyhow 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.29 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4791,6 +4797,8 @@ dependencies = [
 "checksum redox_syscall 0.1.56 (registry+https://github.com/rust-lang/crates.io-index)" = "2439c63f3f6139d1b57529d16bc3b8bb855230c8efcc5d3a896c8bea7c3b1e84"
 "checksum redox_termios 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7e891cfe48e9100a70a3b6eb652fef28920c117d366339687bd5576160db0f76"
 "checksum redox_users 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4ecedbca3bf205f8d8f5c2b44d83cd0690e39ee84b951ed649e9f1841132b66d"
+"checksum ref-cast 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "077f197a31bfe7e4169145f9eca08d32705c6c6126c139c26793acdf163ac3ef"
+"checksum ref-cast-impl 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c36eb52b69b87c9e3a07387f476c88fd0dba9a1713b38e56617ed66b45392c1f"
 "checksum regex 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)" = "dc220bd33bdce8f093101afe22a037b8eb0e5af33592e6a9caafff0d4cb81cbd"
 "checksum regex-syntax 0.6.12 (registry+https://github.com/rust-lang/crates.io-index)" = "11a7e20d1cce64ef2fed88b66d347f88bd9babb82845b2b858f3edbf59a4f716"
 "checksum remove_dir_all 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)" = "4a83fa3702a688b9359eccba92d153ac33fd2e8462f9e0e3fdf155239ea7792e"
@@ -4798,8 +4806,6 @@ dependencies = [
 "checksum rental-impl 0.5.5 (registry+https://github.com/rust-lang/crates.io-index)" = "475e68978dc5b743f2f40d8e0a8fdc83f1c5e78cbf4b8fa5e74e73beebc340de"
 "checksum reqwest 0.9.24 (registry+https://github.com/rust-lang/crates.io-index)" = "f88643aea3c1343c804950d7bf983bd2067f5ab59db6d613a08e05572f2714ab"
 "checksum ring 0.16.9 (registry+https://github.com/rust-lang/crates.io-index)" = "6747f8da1f2b1fabbee1aaa4eb8a11abf9adef0bf58a41cee45db5d59cecdfac"
-"checksum rmp 0.8.8 (registry+https://github.com/rust-lang/crates.io-index)" = "0f594cb7ff8f1c5a7907f6be91f15795c8301e0d5718eb007fb5832723dd716e"
-"checksum rmp-serde 0.13.7 (registry+https://github.com/rust-lang/crates.io-index)" = "011e1d58446e9fa3af7cdc1fb91295b10621d3ac4cb3a85cc86385ee9ca50cd3"
 "checksum rocksdb 0.3.0 (git+https://github.com/pingcap/rust-rocksdb.git?rev=3cd18c44d160a3cdba586d6502d51b7cc67efc59)" = "<none>"
 "checksum rust-argon2 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4ca4eaef519b494d1f2848fc602d18816fed808a981aedf4f1f00ceb7c9d32cf"
 "checksum rust_decimal 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "f7a28ded8f10361cefb69a8d8e1d195acf59344150534c165c401d6611cf013d"

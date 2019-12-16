@@ -64,6 +64,7 @@ pub unsafe extern "C" fn libra_LibraAccountResource_from(
     }
     LibraStatus::OK
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;

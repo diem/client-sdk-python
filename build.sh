@@ -8,12 +8,13 @@ bindgen libra-dev/include/data.h \
   --whitelist-type=LibraEventHandle --whitelist-type=LibraAccountResource \
   --whitelist-type=LibraP2PTransferTransactionArgument --whitelist-type=LibraTransactionPayload --whitelist-type=LibraRawTransaction --whitelist-type=LibraSignedTransaction \
   --whitelist-type=TransactionType \
+  --whitelist-type=LibraAccountKey \
   -o libra-dev/src/data.rs
 
 # Build libra-dev first
 cd libra-dev
 cargo build --locked
-cargo clippy -- -A clippy::missing-safety-doc -D warnings
+#cargo clippy -- -A clippy::missing-safety-doc -D warnings   // Disabled due to clippy type mismatch between libra/libra and this repo. Will add it back once we merge back in tree
 cargo fmt --all -- --check
 cargo test
 cd ..

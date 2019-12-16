@@ -505,7 +505,7 @@ dependencies = [
  "proptest 0.9.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.9.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "rust_decimal 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustyline 5.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustyline 5.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.103 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.44 (registry+https://github.com/rust-lang/crates.io-index)",
  "structopt 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3157,9 +3157,10 @@ dependencies = [
 
 [[package]]
 name = "rustyline"
-version = "5.0.4"
+version = "5.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
+ "cfg-if 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.66 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4813,7 +4814,7 @@ dependencies = [
 "checksum rustc-hash 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "7540fc8b0c49f096ee9c961cda096467dce8084bec6bdca2fc83895fd9b28cb8"
 "checksum rustc_version 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "138e3e0acb6c9fb258b19b67cb8abd63c00679d2851805ea151465464fe9030a"
 "checksum rusty-fork 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "3dd93264e10c577503e926bd1430193eeb5d21b059148910082245309b424fae"
-"checksum rustyline 5.0.4 (registry+https://github.com/rust-lang/crates.io-index)" = "e9d8eb9912bc492db051324d36f5cea56984fc2afeaa5c6fa84e0b0e3cde550f"
+"checksum rustyline 5.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "3ae156e2a68be20a3ae95574089b65c188d86291cd5421cc647222b8d1864ffb"
 "checksum ryu 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "bfa8506c1de11c9c4e4c38863ccbe02a305c8188e85a05a784c9e11e1c3910c8"
 "checksum safemem 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "ef703b7cb59335eae2eb93ceb664c0eb7ea6bf567079d843e09420219668e072"
 "checksum safety-rules 0.1.0 (git+https://github.com/libra/libra.git?branch=testnet)" = "<none>"

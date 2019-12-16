@@ -281,7 +281,7 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     LibraStatus::OK
 }
 
-/// Generate an Signed Transaction and deserialize
+/// Generate a Signed Transaction and deserialize
 #[test]
 fn test_lcs_signed_transaction() {
     use lcs::from_bytes;
@@ -306,7 +306,7 @@ fn test_lcs_signed_transaction() {
     let expiration_time_secs = 0;
 
     let mut buf: *mut u8 = std::ptr::null_mut();
-    let mut buf_ptr = &mut buf;
+    let buf_ptr = &mut buf;
     let mut len: usize = 0;
 
     let result = unsafe {
@@ -342,7 +342,7 @@ fn test_lcs_signed_transaction() {
 
     // Test signature is stable
     let mut buf2: *mut u8 = std::ptr::null_mut();
-    let mut buf_ptr2 = &mut buf2;
+    let buf_ptr2 = &mut buf2;
     let mut len2: usize = 0;
     let result2 = unsafe {
         libra_SignedTransactionBytes_from(
@@ -373,7 +373,7 @@ fn test_lcs_signed_transaction() {
     };
 }
 
-/// Generate an Signed Transaction and deserialize
+/// Generate a Raw Transaction, sign it, then deserialize
 #[test]
 fn test_libra_raw_transaction_bytes_from() {
     use lcs::from_bytes;

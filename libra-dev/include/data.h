@@ -62,6 +62,12 @@ struct LibraSignedTransaction {
     uint8_t signature[64];
 };
 
+struct LibraAccountKey {
+    uint8_t address[32];
+    uint8_t private_key[32];
+    uint8_t public_key[32];
+};
+
 /*!
  * Decode LibraAccountResource from bytes in AccountStateBlob.
  *
@@ -118,6 +124,8 @@ enum LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[32], const 
  * @param[out] len_result is the length of the signed transaction memory buffer.
 */
 enum LibraStatus libra_RawTransaction_sign(const uint8_t *buf_raw_txn, size_t len_raw_txn, const uint8_t *buf_public_key, size_t len_public_key, const uint8_t *buf_signature, size_t len_signature, uint8_t** buf_result, size_t* len_result);
+
+enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], struct LibraAccount *out);
 
 #ifdef __cplusplus
 };

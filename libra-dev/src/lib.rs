@@ -6,5 +6,6 @@
 #![allow(non_snake_case)]
 mod data;
 
+pub mod account;
 pub mod account_resource;
 pub mod transaction;

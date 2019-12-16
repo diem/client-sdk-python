@@ -8,6 +8,7 @@ bindgen libra-dev/include/data.h \
   --whitelist-type=LibraEventHandle --whitelist-type=LibraAccountResource \
   --whitelist-type=LibraP2PTransferTransactionArgument --whitelist-type=LibraTransactionPayload --whitelist-type=LibraRawTransaction --whitelist-type=LibraSignedTransaction \
   --whitelist-type=TransactionType \
+  --whitelist-type=LibraAccountKey \
   -o libra-dev/src/data.rs
 
 # Build libra-dev first

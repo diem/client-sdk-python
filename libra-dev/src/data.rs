@@ -417,3 +417,53 @@ impl Default for LibraSignedTransaction {
         unsafe { ::std::mem::zeroed() }
     }
 }
+#[repr(C)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq)]
+pub struct LibraAccountKey {
+    pub address: [u8; 32usize],
+    pub private_key: [u8; 32usize],
+    pub public_key: [u8; 32usize],
+}
+#[test]
+fn bindgen_test_layout_LibraAccountKey() {
+    assert_eq!(
+        ::std::mem::size_of::<LibraAccountKey>(),
+        96usize,
+        concat!("Size of: ", stringify!(LibraAccountKey))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<LibraAccountKey>(),
+        1usize,
+        concat!("Alignment of ", stringify!(LibraAccountKey))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraAccountKey>())).address as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraAccountKey),
+            "::",
+            stringify!(address)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraAccountKey>())).private_key as *const _ as usize },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraAccountKey),
+            "::",
+            stringify!(private_key)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraAccountKey>())).public_key as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraAccountKey),
+            "::",
+            stringify!(public_key)
+        )
+    );
+}

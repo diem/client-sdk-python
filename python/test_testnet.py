@@ -33,7 +33,7 @@ def test_send_trasncation():
     )
 
     try:
-        api.sendTransaction(tx.bytes)
+        api.sendTransaction(tx.byte)
     except SubmitTransactionError as e:
         assert (
             e.message == "VM Status, major code 7, sub code 0, message: 'sender address: "

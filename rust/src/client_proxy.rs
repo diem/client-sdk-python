@@ -1,9 +1,19 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::{commands::*, grpc_client::GRPCClient, AccountData, AccountStatus};
+use crate::{
+    bindings::{
+        libra_LibraAccountResource_from, libra_RawTransactionBytes_from, libra_free_bytes_buffer,
+        LibraAccountResource,
+    },
+    commands::*,
+    grpc_client::GRPCClient,
+    AccountData, AccountStatus,
+};
 use admission_control_proto::proto::admission_control::SubmitTransactionRequest;
 use anyhow::{bail, ensure, format_err, Error, Result};
+use chrono::Utc;
+use fixme_lcs::from_bytes;
 use fixme_libra_types::crypto_proxies::EpochInfo;
 use fixme_libra_types::{
     access_path::AccessPath,
@@ -39,6 +49,7 @@ use std::{
     io::{stdout, Write},
     path::{Display, Path, PathBuf},
     process::{Command, Stdio},
+    slice,
     str::{self, FromStr},
     thread, time,
 };
@@ -861,26 +872,22 @@ impl ClientProxy {
     fn get_account_resource_and_update(
         &mut self,
         address: AccountAddress,
-    ) -> Result<crate::bindings::LibraAccountResource> {
+    ) -> Result<LibraAccountResource> {
         let account_state = self.get_account_state_and_update(address)?;
 
         match account_state.0 {
             Some(state) => {
                 let buf = state.as_ref().to_vec();
-                let mut result = crate::bindings::LibraAccountResource::default();
+                let mut result = LibraAccountResource::default();
 
                 match unsafe {
-                    crate::bindings::libra_LibraAccountResource_from(
-                        buf.as_ptr(),
-                        buf.len(),
-                        &mut result,
-                    )
+                    libra_LibraAccountResource_from(buf.as_ptr(), buf.len(), &mut result)
                 } {
                     crate::bindings::LibraStatus::OK => Ok(result),
                     err => Err(format_err!("error {:?}", err)),
                 }
             }
-            None => Ok(crate::bindings::LibraAccountResource::default()),
+            None => Ok(LibraAccountResource::default()),
         }
     }
 
@@ -901,7 +908,7 @@ impl ClientProxy {
                             let buf = account_state_blob.as_ref().to_vec();
                             let mut result = crate::bindings::LibraAccountResource::default();
                             match unsafe {
-                                crate::bindings::libra_LibraAccountResource_from(
+                                libra_LibraAccountResource_from(
                                     buf.as_ptr(),
                                     buf.len(),
                                     &mut result,
@@ -1083,6 +1090,57 @@ impl ClientProxy {
             Some(key_pair) => Box::new(key_pair),
             None => Box::new(&self.wallet),
         };
+
+        if let TransactionPayload::Script(script) = program.clone() {
+            let mut num_coins = None;
+            let mut receiver = None;
+            let args = script.args();
+            args.iter().for_each(|txn_arg| match txn_arg {
+                TransactionArgument::U64(val) => {
+                    num_coins = Some(*val);
+                }
+                TransactionArgument::Address(addr) => {
+                    let mut addr_buffer = [0u8; ADDRESS_LENGTH];
+                    addr_buffer.copy_from_slice(addr.as_ref());
+                    receiver = Some(addr_buffer);
+                }
+                _ => {}
+            });
+
+            if let (Some(num_coins), Some(receiver)) = (num_coins, receiver) {
+                let mut sender = [0u8; 32];
+                sender.copy_from_slice(sender_account.address.as_ref());
+                let mut buf: *mut u8 = std::ptr::null_mut();
+                let buf_ptr = &mut buf;
+                let mut len: usize = 0;
+
+                unsafe {
+                    libra_RawTransactionBytes_from(
+                        &sender,
+                        &receiver,
+                        sender_account.sequence_number,
+                        num_coins,
+                        max_gas_amount.unwrap_or(MAX_GAS_AMOUNT),
+                        gas_unit_price.unwrap_or(GAS_UNIT_PRICE),
+                        (Utc::now().timestamp() + TX_EXPIRATION) as u64,
+                        buf_ptr,
+                        &mut len,
+                    );
+                }
+
+                let raw_txn_buffer: &[u8] = unsafe { slice::from_raw_parts(buf, len) };
+                let raw_txn: RawTransaction = from_bytes(&raw_txn_buffer)?;
+                let signed_txn = signer.sign_txn(raw_txn).unwrap();
+                let mut req = SubmitTransactionRequest::default();
+                req.transaction = Some(signed_txn.into());
+
+                unsafe {
+                    libra_free_bytes_buffer(buf);
+                }
+                return Ok(req);
+            }
+        }
+
         let transaction = create_user_txn(
             *signer,
             program,

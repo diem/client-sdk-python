@@ -125,7 +125,7 @@ enum LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[32], const 
 */
 enum LibraStatus libra_RawTransaction_sign(const uint8_t *buf_raw_txn, size_t len_raw_txn, const uint8_t *buf_public_key, size_t len_public_key, const uint8_t *buf_signature, size_t len_signature, uint8_t** buf_result, size_t* len_result);
 
-enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], struct LibraAccount *out);
+enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], struct LibraAccountKey *out);
 
 #ifdef __cplusplus
 };

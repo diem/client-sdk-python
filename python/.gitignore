@@ -8,5 +8,4 @@
 /_skbuild
 /.pytest_cache
 /.eggs
-/dist
 /venv

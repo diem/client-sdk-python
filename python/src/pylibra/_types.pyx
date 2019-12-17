@@ -128,4 +128,4 @@ cdef class BytesWrapper:
 
     @property
     def hex(self):
-        return bytes.hex(self.bytes)
+        return bytes.hex(self.byte)

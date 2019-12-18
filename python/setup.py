@@ -2,8 +2,6 @@ import sys
 import platform
 
 from setuptools import setup, Extension, Command, find_packages
-from setuptools.command.build_py import build_py
-from setuptools.command.develop import develop
 
 
 class VendorCommand(Command):
@@ -21,98 +19,31 @@ class VendorCommand(Command):
         import subprocess
 
         # Run update.sh to update vendored libra-dev files.
-        subprocess.call("./update.sh", cwd="./lib")
+        subprocess.run(["./update.sh"], cwd="./lib", shell=True, check=True)
         # Run download.sh to download all proto files
-        subprocess.call("./download.sh", cwd="./src/pylibra/grpc")
+        subprocess.run(["./download.sh"], cwd="./src/pylibra/grpc", shell=True, check=True)
 
-
-class BuildProtoCommand(Command):
-    """Custom build command."""
-
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        # TODO: change to pure python
         # Generate proto files
         from grpc_tools import command
 
         command.build_package_protos("./src/pylibra/grpc", strict_mode=True)
         # Run fix.sh to fix up geneated protos python bindings by adding . to import line
-        import subprocess
-
-        subprocess.call("./fix.sh", cwd="./src/pylibra/grpc")
-
-
-class BuildLibraCommand(Command):
-    """Custom build command."""
-
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import subprocess
-
-        subprocess.call("./build.sh", cwd="lib")
-
-
-class DevelopCommand(develop):
-    def run(self):
-        self.run_command("build_proto")
-        develop.run(self)
-
-
-class BuildPyCommand(build_py):
-    def run(self):
-        self.run_command("build_proto")
-        build_py.run(self)
-
-
-# This is an wrapper to lazy-load setuptools's build_ext, in order to get cython detection working.
-class BuildExtCommand(object):
-    _build_ext = None
-
-    def __init__(self, *args, **kwargs):
-        from setuptools.command.build_ext import build_ext
-
-        BuildExtCommand._build_ext = build_ext(*args, **kwargs)
-
-    def __getattr__(self, *args, **kwargs):
-        if BuildExtCommand._build_ext:
-            return BuildExtCommand._build_ext.__getattribute__(*args, **kwargs)
-
-    def __setattr__(self, *args, **kwargs):
-        if BuildExtCommand._build_ext:
-            BuildExtCommand._build_ext.__setattr__(*args, **kwargs)
-
-    def run(self):
-        self.run_command("build_libra")
-        BuildExtCommand._build_ext.__dict__.update(self.__dict__)
-        BuildExtCommand._build_ext.run()
+        subprocess.run(["./fix.sh"], cwd="./src/pylibra/grpc", shell=True, check=True)
 
 
 # Require pytest-runner only when running tests
 pytest_runner = ["pytest-runner"] if any(arg in sys.argv for arg in ("pytest", "test")) else []
 
-LIBRA_INCLUDE_DIR = "lib/src/include"
+LIBRA_INCLUDE_DIR = "lib"
 LIBRA_HEADER = "%s/%s" % (LIBRA_INCLUDE_DIR, "data.h")
-LIBRA_LIB_DIR = "lib/target/release"
-LIBRA_LIB_FILE = "%s/%s" % (LIBRA_LIB_DIR, "liblibra_dev.a")
+LIBRA_LIB_DIR = "lib"
 
 extra_link_args = []
 if platform.system() == "Darwin":
+    LIBRA_LIB_FILE = "%s/%s-%s.a" % (LIBRA_LIB_DIR, "liblibra_dev", "darwin-%s" % platform.machine())
     extra_link_args.extend(["-framework", "Security"])
 elif platform.system() == "Linux":
+    LIBRA_LIB_FILE = "%s/%s-%s.a" % (LIBRA_LIB_DIR, "liblibra_dev", "linux-%s" % platform.machine())
     extra_link_args.append("-ldl")
     extra_link_args.append("-lm")
     extra_link_args.append("-pthread")
@@ -139,10 +70,10 @@ exts = [
 
 
 setup(
-    name="calibra-pylibra",
-    version="0.1.2019121003",
-    description="Official Python binding for libra-client-dev C API",
-    python_requires="~=3.7",
+    name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
+    version="0.1.2019121701",
+    description="",
+    python_requires=">=3.5",  # same as grpcio
     packages=find_packages("src"),
     include_package_data=False,  # see MANIFEST.in
     zip_safe=True,
@@ -157,12 +88,5 @@ setup(
     + pytest_runner,
     package_dir={"": "src/"},
     ext_modules=exts,
-    cmdclass={
-        "vendor": VendorCommand,
-        "build_proto": BuildProtoCommand,
-        "build_libra": BuildLibraCommand,
-        "build_ext": BuildExtCommand,
-        "build_py": BuildPyCommand,
-        "develop": DevelopCommand,
-    },
+    cmdclass={"vendor": VendorCommand},
 )

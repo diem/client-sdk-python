@@ -122,10 +122,10 @@ cdef class BytesWrapper:
         capi.libra_free_bytes_buffer(self._c_buf_ptr)
 
     @property
-    def bytes(self):
+    def byte(self):
         return <bytes> self._c_buf_ptr[:self._c_buf_len]
 
 
     @property
     def hex(self):
-        return bytes.hex(self.bytes)
+        return bytes.hex(self.byte)

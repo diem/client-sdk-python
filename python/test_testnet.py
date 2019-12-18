@@ -13,6 +13,7 @@ def test_account_state_block_from_testnet():
     assert account.authentication_key == bytes.fromhex(addr_hex)
     assert not account.delegated_key_rotation_capability
     assert not account.delegated_withdrawal_capability
+    # https://github.com/libra/libra/issues/2047
     # assert account.sent_events.count == 0
 
 
@@ -32,7 +33,7 @@ def test_send_trasncation():
     )
 
     try:
-        api.sendTransaction(tx.bytes)
+        api.sendTransaction(tx.byte)
     except SubmitTransactionError as e:
         assert (
             e.message == "VM Status, major code 7, sub code 0, message: 'sender address: "

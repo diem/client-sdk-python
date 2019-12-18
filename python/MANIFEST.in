@@ -1,7 +1,7 @@
-include pyproject.toml
+recursive-include src *.py *.pyx *.pxd
+recursive-include lib *.a *.h
 
-recursive-include src *.py *.pyx *.pxd *.proto *.sh
-recursive-include lib *.sh *.tar.gz
+recursive-exclude src *.proto *.sh
+recursive-exclude lib src *.sh
 
-recursive-exclude src *_pb2.py *_pb2_grpc.py
-global-exclude *.a
+global-exclude *.so

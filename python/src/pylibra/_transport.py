@@ -54,7 +54,7 @@ class LibraNetwork:
 
         with self._get_channel() as channel:
             stub = AdmissionControlStub(channel)
-            response: SubmitTransactionResponse = stub.SubmitTransaction(request)
+            response = stub.SubmitTransaction(request)
             ex = None
             print(response)
             if response.HasField("vm_status"):
@@ -63,7 +63,9 @@ class LibraNetwork:
                     % (response.vm_status.major_status, response.vm_status.sub_status, response.vm_status.message,)
                 )
             elif response.HasField("ac_status"):
-                if response.ac_status.code != AdmissionControlStatusCode.Accepted:
+                if not response.validator_id:
+                    ex = SubmitTransactionError("Not validator_id present, txn not accepted!")
+                elif response.ac_status.code != AdmissionControlStatusCode.Accepted:
                     ex = SubmitTransactionError(
                         "AC Error, code: %d, msg: %s" % (response.ac_status.code, response.ac_status.message)
                     )

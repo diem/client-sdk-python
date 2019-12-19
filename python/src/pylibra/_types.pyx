@@ -91,7 +91,7 @@ cdef class AccountResource:
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver, sender_sequence: long, num_coins_libra: long, max_gas_amount=140000, gas_unit_price = 0, expiration_time_secs=5 * 60) -> BytesWrapper:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, sender_sequence: int, num_coins_libra: int, max_gas_amount=140000, gas_unit_price = 0, expiration_time_secs=5 * 60) -> BytesWrapper:
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
 
@@ -144,3 +144,28 @@ cdef class BytesWrapper:
     @property
     def hex(self):
         return bytes.hex(self.byte)
+
+
+class AccountKey:
+    def __init__(self, private_key_bytes):
+        if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
+            raise ValueError("Invalid private key.")
+        cdef capi.LibraAccountKey _c_ak
+        success = capi.libra_LibraAccount_from(private_key_bytes, &_c_ak)
+        if success != capi.LibraStatus.OK:
+            raise ValueError("Decode error: invalid private key.")
+        self._addr = <bytes> _c_ak.address[:32]
+        self._privkey = <bytes> _c_ak.private_key[:32]
+        self._pubkey = <bytes> _c_ak.public_key[:32]
+
+    @property
+    def address(self):
+        return self._addr
+
+    @property
+    def public_key(self):
+        return self._pubkey
+
+    @property
+    def private_key(self):
+        return self._privkey

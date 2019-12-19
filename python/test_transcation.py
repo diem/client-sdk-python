@@ -19,5 +19,4 @@ def test_sign_transcation():
         1_000_000,
     )
 
-    # TODO: changes everytime
     assert SIGNED_TXN_BYTES_HEX == tx.hex

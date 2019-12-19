@@ -14,6 +14,7 @@ __all__ = [
     "SubmitTransactionError",
     # Data Classes
     "AccountResource",
+    "AccountKey",
     "EventHandle",
     "BytesWrapper",
 ]

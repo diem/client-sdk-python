@@ -1,3 +1,4 @@
+import pytest
 from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError
 
 
@@ -30,9 +31,25 @@ def test_non_existing_account():
     assert account.sequence == 0
 
 
-def test_send_trasncation():
+def test_send_transaction_success():
     RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
-    PRIVATE_KEY = bytes.fromhex("22" * 32)
+    PRIVATE_KEY = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
+    api = LibraNetwork()
+
+    tx = TransactionUtils.createSignedP2PTransaction(
+        PRIVATE_KEY,
+        RECEIVER_ADDRESS,
+        # sequence
+        100,
+        # 1 libra
+        1_234_567,
+    )
+    api.sendTransaction(tx.byte)
+
+
+def test_send_transaction_fail():
+    RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
+    PRIVATE_KEY = bytes.fromhex("ff" * 32)
 
     api = LibraNetwork()
 
@@ -45,13 +62,13 @@ def test_send_trasncation():
         1_000_000,
     )
 
-    try:
+    with pytest.raises(SubmitTransactionError) as excinfo:
         api.sendTransaction(tx.byte)
-    except SubmitTransactionError as e:
-        assert (
-            e.message == "VM Status, major code 7, sub code 0, message: 'sender address: "
-            "0fce042fb21f424ee71e2a1b00a07f55b3421a3a4d6de31aafe5cc740fd64922'."
-        )
+    assert (
+        # not enough money
+        excinfo.value.message == "VM Status, major code 7, sub code 0, message: 'sender address: "
+        "45aacd9ed90a5a8e211502ac3fa898a3819f23b2e4c98dfff47e76274a708451'."
+    )
 
 
 def test_mint():

@@ -467,3 +467,124 @@ fn bindgen_test_layout_LibraAccountKey() {
         )
     );
 }
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum LibraEventType {
+    SentPaymentEvent = 1,
+    ReceivedPaymentEvent = 2,
+    UndefinedEvent = -1,
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct LibraPaymentEvent {
+    pub sender_address: [u8; 32usize],
+    pub receiver_address: [u8; 32usize],
+    pub amount: u64,
+    pub module: [u8; 255usize],
+}
+#[test]
+fn bindgen_test_layout_LibraPaymentEvent() {
+    assert_eq!(
+        ::std::mem::size_of::<LibraPaymentEvent>(),
+        328usize,
+        concat!("Size of: ", stringify!(LibraPaymentEvent))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<LibraPaymentEvent>(),
+        8usize,
+        concat!("Alignment of ", stringify!(LibraPaymentEvent))
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<LibraPaymentEvent>())).sender_address as *const _ as usize
+        },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraPaymentEvent),
+            "::",
+            stringify!(sender_address)
+        )
+    );
+    assert_eq!(
+        unsafe {
+            &(*(::std::ptr::null::<LibraPaymentEvent>())).receiver_address as *const _ as usize
+        },
+        32usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraPaymentEvent),
+            "::",
+            stringify!(receiver_address)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraPaymentEvent>())).amount as *const _ as usize },
+        64usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraPaymentEvent),
+            "::",
+            stringify!(amount)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraPaymentEvent>())).module as *const _ as usize },
+        72usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraPaymentEvent),
+            "::",
+            stringify!(module)
+        )
+    );
+}
+impl Default for LibraPaymentEvent {
+    fn default() -> Self {
+        unsafe { ::std::mem::zeroed() }
+    }
+}
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct LibraEvent {
+    pub event_type: LibraEventType,
+    pub payment_event: LibraPaymentEvent,
+}
+#[test]
+fn bindgen_test_layout_LibraEvent() {
+    assert_eq!(
+        ::std::mem::size_of::<LibraEvent>(),
+        336usize,
+        concat!("Size of: ", stringify!(LibraEvent))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<LibraEvent>(),
+        8usize,
+        concat!("Alignment of ", stringify!(LibraEvent))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraEvent>())).event_type as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraEvent),
+            "::",
+            stringify!(event_type)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraEvent>())).payment_event as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraEvent),
+            "::",
+            stringify!(payment_event)
+        )
+    );
+}
+impl Default for LibraEvent {
+    fn default() -> Self {
+        unsafe { ::std::mem::zeroed() }
+    }
+}

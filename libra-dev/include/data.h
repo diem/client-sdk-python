@@ -68,6 +68,24 @@ struct LibraAccountKey {
     uint8_t public_key[32];
 };
 
+enum LibraEventType {
+    SentPaymentEvent = 1,
+    ReceivedPaymentEvent = 2,
+    UndefinedEvent = -1,
+};
+
+struct LibraPaymentEvent {
+    uint8_t sender_address[32];
+    uint8_t receiver_address[32];
+    uint64_t amount;
+    uint8_t module[255];
+};
+
+struct LibraEvent {
+    enum LibraEventType event_type;
+    struct LibraPaymentEvent payment_event;
+};
+
 /*!
  * Decode LibraAccountResource from bytes in AccountStateBlob.
  *
@@ -126,6 +144,14 @@ enum LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[32], const 
 enum LibraStatus libra_RawTransaction_sign(const uint8_t *buf_raw_txn, size_t len_raw_txn, const uint8_t *buf_public_key, size_t len_public_key, const uint8_t *buf_signature, size_t len_signature, uint8_t** buf_result, size_t* len_result);
 
 enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], struct LibraAccountKey *out);
+
+/*!
+ * This function takes in an event key, event data and event type tag in bytes, and return LibraEvent.
+ * To get the event in a memory safe manner, the client needs to call free on the output with `libra_event_free`.
+ * @param[out] caller allocated LibraEvent to write into.
+ * @returns status code, one of LibraStatus
+*/
+enum LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, struct LibraEvent *out);
 
 #ifdef __cplusplus
 };

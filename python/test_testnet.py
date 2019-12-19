@@ -17,6 +17,19 @@ def test_account_state_block_from_testnet():
     # assert account.sent_events.count == 0
 
 
+def test_non_existing_account():
+    # just use an highly improbable address for now
+    addr_hex = "ff" * 32
+    addr_bytes = bytes.fromhex(addr_hex)
+
+    api = LibraNetwork()
+    account = api.getAccount(addr_hex)
+    assert account.address == addr_bytes
+    assert account.authentication_key == addr_bytes
+    assert account.balance == 0
+    assert account.sequence == 0
+
+
 def test_send_trasncation():
     RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
     PRIVATE_KEY = bytes.fromhex("22" * 32)

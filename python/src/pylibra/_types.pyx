@@ -2,6 +2,7 @@
 
 from libc.stdint cimport *
 from libc.stddef cimport *
+from libc.string cimport memset
 
 from pylibra cimport capi
 
@@ -27,20 +28,34 @@ cdef class AccountResource:
     cdef capi.LibraAccountResource _c_ar
     cdef EventHandle _sent_events
     cdef EventHandle _received_events
+    cdef bytes _address
 
     @staticmethod
-    def create(lcs_bytes):
+    def create(addr_bytes, lcs_bytes):
         cdef capi.LibraAccountResource _c_ar
 
-        success = capi.libra_LibraAccountResource_from(lcs_bytes, len(lcs_bytes), &_c_ar)
-        if success != capi.LibraStatus.OK:
-            raise ValueError("Decode failure: error {}", success)
+        if not isinstance(addr_bytes, bytes) or len(addr_bytes) != 32:
+            raise ValueError("Invalid account address")
+
+        if len(lcs_bytes):
+            success = capi.libra_LibraAccountResource_from(lcs_bytes, len(lcs_bytes), &_c_ar)
+            if success != capi.LibraStatus.OK:
+                raise ValueError("AccountResource Decode failure: error {}", success)
+        else:
+            memset(&_c_ar, 0, sizeof(_c_ar))
+            _c_ar.authentication_key = addr_bytes[:32]
 
         res = AccountResource()
+        res._address = addr_bytes
         res._c_ar = _c_ar
         res._sent_events = EventHandle.create(_c_ar.sent_events)
         res._received_events = EventHandle.create(_c_ar.received_events)
         return res
+
+    @property
+    def address(self):
+        """Account address in bytes"""
+        return self._address
 
     @property
     def balance(self):
@@ -54,7 +69,7 @@ cdef class AccountResource:
 
     @property
     def authentication_key(self):
-        """Account authentication key"""
+        """Account authentication key, could be different than account address"""
         return <bytes> self._c_ar.authentication_key[:32]
 
     @property

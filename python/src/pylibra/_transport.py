@@ -33,8 +33,10 @@ class LibraNetwork:
 
     def getAccount(self, address_hex):
         """Get AccountResource for given address."""
+        address_bytes = bytes.fromhex(address_hex)
+
         as_request = GetAccountStateRequest()
-        as_request.address = bytes.fromhex(address_hex)
+        as_request.address = address_bytes
 
         request = UpdateToLatestLedgerRequest()
         request.requested_items.append(RequestItem(get_account_state_request=as_request))
@@ -44,8 +46,7 @@ class LibraNetwork:
             response = stub.UpdateToLatestLedger(request)
             # TODO: care about version and proof!
             blob = response.response_items[0].get_account_state_response.account_state_with_proof.blob.blob
-
-        return AccountResource.create(blob)
+            return AccountResource.create(address_bytes, blob)
 
     def sendTransaction(self, signed_transaction_bytes: bytes):
         request = SubmitTransactionRequest()

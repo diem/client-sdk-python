@@ -5,6 +5,7 @@ from libc.stddef cimport *
 from libc.string cimport memset
 
 from pylibra cimport capi
+import time
 
 cdef class EventHandle:
     cdef capi.LibraEventHandle _c_eh
@@ -91,7 +92,7 @@ cdef class AccountResource:
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, sender_sequence: int, num_coins_libra: int, max_gas_amount=140000, gas_unit_price = 0, expiration_time_secs=5 * 60) -> BytesWrapper:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount=140000, gas_unit_price = 0) -> BytesWrapper:
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
 
@@ -101,16 +102,16 @@ cdef class TransactionUtils:
         assert len(sender_private_key) == 32
         assert len(receiver) == 32
         assert sender_sequence >= 0
-        assert num_coins_libra > 0
+        assert num_coins_microlibra > 0
 
         status = capi.libra_SignedTransactionBytes_from(
              <bytes> sender_private_key[:32],
              <bytes> receiver[:32],
              sender_sequence,
-             num_coins_libra,
+             num_coins_microlibra,
              max_gas_amount,
              gas_unit_price,
-             expiration_time_secs,
+             expiration_time,
              &buf_ptr, &buf_len)
 
         if status != capi.LibraStatus.OK:

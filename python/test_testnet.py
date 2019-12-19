@@ -1,5 +1,6 @@
 import pytest
-from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError
+import time
+from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError, AccountKey
 
 
 # TODO setup our own account with mint, so we can test non-zero cases
@@ -31,22 +32,6 @@ def test_non_existing_account():
     assert account.sequence == 0
 
 
-def test_send_transaction_success():
-    RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
-    PRIVATE_KEY = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
-    api = LibraNetwork()
-
-    tx = TransactionUtils.createSignedP2PTransaction(
-        PRIVATE_KEY,
-        RECEIVER_ADDRESS,
-        # sequence
-        100,
-        # 1 libra
-        1_234_567,
-    )
-    api.sendTransaction(tx.byte)
-
-
 def test_send_transaction_fail():
     RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
     PRIVATE_KEY = bytes.fromhex("ff" * 32)
@@ -60,6 +45,7 @@ def test_send_transaction_fail():
         255,
         # 1 libra
         1_000_000,
+        expiration_time=0,
     )
 
     with pytest.raises(SubmitTransactionError) as excinfo:
@@ -78,3 +64,45 @@ def test_mint():
     seq = f.mint(RECEIVER_ADDRESS, 1.5)
 
     assert 0 != seq
+
+
+def _wait_for_account_seq(addr_hex, seq):
+    api = LibraNetwork()
+    while True:
+        ar = api.getAccount(addr_hex)
+        if ar.sequence >= seq:
+            return ar
+        time.sleep(0.1)
+
+
+@pytest.mark.timeout(10)
+def test_send_transaction_success():
+    receiver_address = "00" * 32
+
+    private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
+    addr_bytes = AccountKey(private_key).address
+
+    api = LibraNetwork()
+
+    f = FaucetUtils()
+    seq = f.mint(receiver_address, 1)
+    _ = _wait_for_account_seq("000000000000000000000000000000000000000000000000000000000a550c18", seq)
+
+    ar = api.getAccount(bytes.hex(addr_bytes))
+    balance = ar.balance
+    seq = ar.sequence
+
+    tx = TransactionUtils.createSignedP2PTransaction(
+        private_key,
+        bytes.fromhex(receiver_address),
+        # sequence
+        seq,
+        # 1 libra
+        1_000_000,
+        expiration_time=time.time() + 5 * 60,
+    )
+    api.sendTransaction(tx.byte)
+    ar = _wait_for_account_seq(bytes.hex(addr_bytes), seq + 1)
+
+    assert ar.sequence == seq + 1
+    assert ar.balance == balance - 1_000_000

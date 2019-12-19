@@ -78,7 +78,7 @@ setup(
     include_package_data=False,  # see MANIFEST.in
     zip_safe=True,
     install_requires=["grpcio", "protobuf", "requests"],
-    tests_require=["pytest", "pytest-runner", "pylama", "black"],
+    tests_require=["pytest", "pytest-timeout", "pytest-runner", "pylama", "black"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.
         "setuptools>=18.0",

@@ -1,7 +1,7 @@
 import grpc
 
 from .grpc.admission_control_pb2_grpc import AdmissionControlStub
-from .grpc.admission_control_pb2 import AdmissionControlStatusCode, SubmitTransactionRequest, SubmitTransactionResponse
+from .grpc.admission_control_pb2 import AdmissionControlStatusCode, SubmitTransactionRequest
 from .grpc.get_with_proof_pb2 import UpdateToLatestLedgerRequest
 from .grpc.get_with_proof_pb2 import RequestItem
 from .grpc.get_with_proof_pb2 import GetAccountStateRequest
@@ -56,16 +56,13 @@ class LibraNetwork:
             stub = AdmissionControlStub(channel)
             response = stub.SubmitTransaction(request)
             ex = None
-            print(response)
             if response.HasField("vm_status"):
                 ex = SubmitTransactionError(
                     "VM Status, major code %d, sub code %d, message: '%s'."
                     % (response.vm_status.major_status, response.vm_status.sub_status, response.vm_status.message,)
                 )
             elif response.HasField("ac_status"):
-                if not response.validator_id:
-                    ex = SubmitTransactionError("Not validator_id present, txn not accepted!")
-                elif response.ac_status.code != AdmissionControlStatusCode.Accepted:
+                if response.ac_status.code != AdmissionControlStatusCode.Accepted:
                     ex = SubmitTransactionError(
                         "AC Error, code: %d, msg: %s" % (response.ac_status.code, response.ac_status.message)
                     )

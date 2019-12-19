@@ -102,6 +102,7 @@ enum LibraStatus libra_LibraAccountResource_from(const uint8_t *buf, size_t len,
  *
  * To get the serialized transaction in a memory safe manner, the client needs to pass in a pointer to a pointer to the allocated memory in rust
  * and call free on the memory address with `libra_free_bytes_buffer`.
+ * @param[in] expiration_time_secs is the time this TX remain valid, the format is unix timestamp.
  * @param[out] buf is the pointer that will be filled with the memory address of the transaction allocated in rust. User takes ownership of pointer returned by *buf, which needs to be freed using libra_signed_transcation_free
  * @param[out] len is the length of the signed transaction memory buffer.
 */

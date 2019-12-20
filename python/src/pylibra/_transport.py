@@ -95,7 +95,9 @@ class LibraNetwork:
             res = []
             for tx in txs:
                 try:
-                    t = TransactionUtils.parse(tx.transaction)
+                    # Proto buffer message here contains a 4 byte prefix
+                    tx_blob = tx.transaction[4:]
+                    t = TransactionUtils.parse(tx_blob)
                     res.append(t)
                 except ValueError:
                     # TODO: Unsupported TXN type
@@ -122,6 +124,8 @@ class LibraNetwork:
                 0
             ].get_account_transaction_by_sequence_number_response.transaction_with_proof.transaction.transaction
             try:
+                # Proto buffer message here contains a 4 byte prefix
+                tx_blob = tx_blob[4:]
                 return TransactionUtils.parse(tx_blob)
             except ValueError:
                 # TODO: Unsupported TXN type

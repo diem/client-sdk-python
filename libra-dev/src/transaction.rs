@@ -211,8 +211,8 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     if buf.is_null() {
         return LibraStatus::InvalidArgument;
     }
-    let buffer: &[u8] = slice::from_raw_parts(buf, len);
-    let signed_txn: SignedTransaction = match lcs::from_bytes(&buffer) {
+    let buffer = slice::from_raw_parts(buf, len);
+    let signed_txn: SignedTransaction = match lcs::from_bytes(buffer) {
         Ok(result) => result,
         Err(_e) => {
             return LibraStatus::InvalidArgument;

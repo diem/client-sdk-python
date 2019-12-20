@@ -4,6 +4,8 @@ import pytest
 import time
 from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError, AccountKey, AccountResource
 
+ASSOC_ADDRESS: str = "000000000000000000000000000000000000000000000000000000000a550c18"
+
 
 # TODO setup our own account with mint, so we can test non-zero cases
 @pytest.mark.xfail
@@ -84,8 +86,6 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
 @pytest.mark.timeout(30)
 @pytest.mark.xfail
 def test_send_transaction_success() -> None:
-    assoc_address = "000000000000000000000000000000000000000000000000000000000a550c18"
-
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
     addr_bytes = AccountKey(private_key).address
     addr_hex = bytes.hex(addr_bytes)
@@ -94,7 +94,7 @@ def test_send_transaction_success() -> None:
 
     f = FaucetUtils()
     seq = f.mint(addr_hex, 1)
-    _ = _wait_for_account_seq(assoc_address, seq)
+    _ = _wait_for_account_seq(ASSOC_ADDRESS, seq)
 
     ar = api.getAccount(addr_hex)
     balance = ar.balance
@@ -102,7 +102,7 @@ def test_send_transaction_success() -> None:
 
     tx = TransactionUtils.createSignedP2PTransaction(
         private_key,
-        bytes.fromhex(assoc_address),
+        bytes.fromhex(ASSOC_ADDRESS),
         # sequence
         seq,
         # 1 libra
@@ -120,15 +120,13 @@ def test_send_transaction_success() -> None:
 def test_transaction_by_range() -> None:
     api = LibraNetwork()
     txs = api.transactions_by_range(0, 1)
-    # genesis txns are WriteSet, and we don't support it, so we always get an empty list back.
-    assert txs == []
+    assert len(txs) == 1
+    assert txs[0].sender == bytes.fromhex(ASSOC_ADDRESS)
 
 
 @pytest.mark.xfail
 def test_transaction_by_acc_seq() -> None:
-    assoc_address = "000000000000000000000000000000000000000000000000000000000a550c18"
-
     api = LibraNetwork()
-    tx = api.transaction_by_acc_seq(assoc_address, 1)
-    # mint transaction are not yet supported
-    assert tx is None
+    tx = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1)
+    assert tx
+    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)

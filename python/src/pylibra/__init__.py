@@ -1,4 +1,5 @@
-from .api import *
+# pyre-strict
+
 from ._mint import *
 from ._types import *
 from ._transport import *
@@ -14,6 +15,9 @@ __all__ = [
     "SubmitTransactionError",
     # Data Classes
     "AccountResource",
+    "AccountKey",
     "EventHandle",
     "BytesWrapper",
+    "SignedTransaction",
+    "Transaction",
 ]

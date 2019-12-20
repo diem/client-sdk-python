@@ -40,6 +40,7 @@ struct LibraP2PTransferTransactionArgument {
 
 enum TransactionType {
     PeerToPeer = 0,
+    Unknown = -1,
 };
 
 struct LibraTransactionPayload {
@@ -68,6 +69,24 @@ struct LibraAccountKey {
     uint8_t public_key[32];
 };
 
+enum LibraEventType {
+    SentPaymentEvent = 1,
+    ReceivedPaymentEvent = 2,
+    UndefinedEvent = -1,
+};
+
+struct LibraPaymentEvent {
+    uint8_t sender_address[32];
+    uint8_t receiver_address[32];
+    uint64_t amount;
+    uint8_t module[255];
+};
+
+struct LibraEvent {
+    enum LibraEventType event_type;
+    struct LibraPaymentEvent payment_event;
+};
+
 /*!
  * Decode LibraAccountResource from bytes in AccountStateBlob.
  *
@@ -84,6 +103,7 @@ enum LibraStatus libra_LibraAccountResource_from(const uint8_t *buf, size_t len,
  *
  * To get the serialized transaction in a memory safe manner, the client needs to pass in a pointer to a pointer to the allocated memory in rust
  * and call free on the memory address with `libra_free_bytes_buffer`.
+ * @param[in] expiration_time_secs is the time this TX remain valid, the format is unix timestamp.
  * @param[out] buf is the pointer that will be filled with the memory address of the transaction allocated in rust. User takes ownership of pointer returned by *buf, which needs to be freed using libra_signed_transcation_free
  * @param[out] len is the length of the signed transaction memory buffer.
 */
@@ -126,6 +146,14 @@ enum LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[32], const 
 enum LibraStatus libra_RawTransaction_sign(const uint8_t *buf_raw_txn, size_t len_raw_txn, const uint8_t *buf_public_key, size_t len_public_key, const uint8_t *buf_signature, size_t len_signature, uint8_t** buf_result, size_t* len_result);
 
 enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], struct LibraAccountKey *out);
+
+/*!
+ * This function takes in an event key, event data and event type tag in bytes, and return LibraEvent.
+ * To get the event in a memory safe manner, the client needs to call free on the output with `libra_event_free`.
+ * @param[out] caller allocated LibraEvent to write into.
+ * @returns status code, one of LibraStatus
+*/
+enum LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, struct LibraEvent *out);
 
 #ifdef __cplusplus
 };

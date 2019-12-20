@@ -1,4 +1,4 @@
-recursive-include src *.py *.pyx *.pxd
+recursive-include src *.py *.pyi *.pyx *.pxd
 recursive-include lib *.a *.h
 
 recursive-exclude src *.proto *.sh

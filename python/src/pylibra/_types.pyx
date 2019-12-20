@@ -110,10 +110,11 @@ cdef class TransactionUtils:
         buf_ptr = NULL
         buf_len = 0
 
-        assert len(sender_private_key) == 32
-        assert len(receiver) == 32
-        assert sender_sequence >= 0
-        assert num_coins_microlibra > 0
+        if not (len(sender_private_key) == 32
+                and len(receiver) == 32
+                and sender_sequence >= 0
+                and num_coins_microlibra > 0):
+            raise ValueError("Invalid argument!")
 
         status = capi.libra_SignedTransactionBytes_from(
              <bytes> sender_private_key[:32],
@@ -129,6 +130,18 @@ cdef class TransactionUtils:
             raise ValueError("libra_SignedTransactionBytes_from failed: %d", status)
 
         return BytesWrapper.create(buf_ptr, buf_len)
+
+    @staticmethod
+    def parse(lcs_bytes: bytes) -> SignedTransaction:
+        """Create SignedTranscation from bytes."""
+        cdef SignedTransaction res = SignedTransaction.__new__(SignedTransaction)
+
+        success = capi.libra_LibraSignedTransaction_from(lcs_bytes, len(lcs_bytes), &res._c_signed_txn)
+        if success != capi.LibraStatus.OK:
+            raise ValueError("SignedTranscation Decode error.")
+        res._c_txn = res._c_signed_txn.raw_txn
+        return res
+
 
 
 cdef class BytesWrapper:
@@ -191,3 +204,53 @@ class AccountKey:
     def private_key(self) -> bytes:
         """private_key"""
         return self._privkey
+
+
+cdef class Transaction:
+    cdef capi.LibraRawTransaction _c_txn
+
+    @property
+    def sender(self) -> bytes:
+        return <bytes> self._c_txn.sender[:32]
+
+    @property
+    def sequence(self) -> int:
+        return self._c_txn.sequence_number
+
+    @property
+    def max_gas_amount(self) -> int:
+        return self._c_txn.max_gas_amount
+
+    @property
+    def gas_unit_price(self) -> int:
+        return self._c_txn.gas_unit_price
+
+    @property
+    def expiration_time(self) -> int:
+        return self._c_txn.expiration_time_secs
+
+    @property
+    def is_p2p(self) -> bool:
+        return self._c_txn.payload.txn_type == capi.TransactionType.PeerToPeer
+
+    @property
+    def receiver(self) -> bytes:
+        assert self.is_p2p
+        return <bytes> self._c_txn.payload.args.address[:32]
+
+    @property
+    def amount(self) -> int:
+        assert self.is_p2p
+        return self._c_txn.payload.args.value
+
+
+cdef class SignedTransaction(Transaction):
+    cdef capi.LibraSignedTransaction _c_signed_txn
+
+    @property
+    def public_key(self) -> bytes:
+        return <bytes> self._c_signed_txn.public_key[:32]
+
+    @property
+    def signature(self) -> bytes:
+        return <bytes> self._c_signed_txn.signature[:64]

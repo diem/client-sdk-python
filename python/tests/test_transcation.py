@@ -1,9 +1,11 @@
 # pyre-strict
-from pylibra import TransactionUtils
+import pytest
+from pylibra import TransactionUtils, AccountKey
 
-ADDRESS: bytes = bytes.fromhex("fe3e61c509e00e49c018f140c302da2e66be04937a41db1d3ee116cac9646d0f")
 RECEIVER_ADDRESS: bytes = bytes.fromhex("00" * 32)
 PRIVATE_KEY: bytes = bytes.fromhex("11" * 32)
+PUBLIC_KEY: bytes = AccountKey(PRIVATE_KEY).public_key
+ADDRESS: bytes = AccountKey(PRIVATE_KEY).address
 
 SIGNED_TXN_BYTES_HEX: str = (
     "a07ffc5e1799c00f3ac9fa7bbf1db75a25aaf4d0ac1e104f3f16a5445cd9c571ff"
@@ -21,8 +23,13 @@ SIGNED_TXN_BYTES_HEX: str = (
     "96b749393f942d84e759a7434c0b3506"
 )
 
+SIGNATURE_BYTES: bytes = bytes.fromhex(
+    "75d64bdccccf1dc3000220307d07d7feafc5b01db4ffe2c9fb3870e59cf3bde4"
+    "4d3902a48e7e873b06f095674f9ac3f496b749393f942d84e759a7434c0b3506"
+)
 
-def test_sign_transcation() -> None:
+
+def test_sign_transaction() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         PRIVATE_KEY,
         RECEIVER_ADDRESS,
@@ -34,3 +41,36 @@ def test_sign_transcation() -> None:
     )
 
     assert SIGNED_TXN_BYTES_HEX == tx.hex
+
+
+def test_sign_transaction_fail() -> None:
+    with pytest.raises(ValueError):
+        _ = TransactionUtils.createSignedP2PTransaction(
+            bytes.fromhex("deadbeef"),
+            RECEIVER_ADDRESS,
+            # sequence
+            255,
+            # micro libra
+            987_654_321,
+            expiration_time=123_456_789,
+        )
+
+
+def test_parse_transaction_fail() -> None:
+    with pytest.raises(ValueError):
+        TransactionUtils.parse(bytes.fromhex("deadbeef"))
+
+
+def test_parse_transaction() -> None:
+    tx = TransactionUtils.parse(bytes.fromhex(SIGNED_TXN_BYTES_HEX))
+    assert tx.is_p2p
+    assert tx.sender == ADDRESS
+    assert tx.receiver == RECEIVER_ADDRESS
+    assert tx.amount == 987_654_321
+    assert tx.expiration_time == 123_456_789
+    assert tx.gas_unit_price == 0
+    assert tx.max_gas_amount == 140000
+    assert tx.sequence == 255
+
+    assert tx.public_key == PUBLIC_KEY
+    assert tx.signature == SIGNATURE_BYTES

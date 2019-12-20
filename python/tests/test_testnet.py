@@ -80,7 +80,7 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
         ar = api.getAccount(addr_hex)
         if ar.sequence >= seq:
             return ar
-        time.sleep(0.1)
+        time.sleep(1)
 
 
 @pytest.mark.timeout(30)
@@ -122,6 +122,7 @@ def test_transaction_by_range() -> None:
     txs = api.transactions_by_range(0, 1)
     assert len(txs) == 1
     assert txs[0].sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert txs[0].version == 0
 
 
 @pytest.mark.xfail
@@ -130,3 +131,4 @@ def test_transaction_by_acc_seq() -> None:
     tx = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1)
     assert tx
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert tx.version != 0

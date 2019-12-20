@@ -58,11 +58,12 @@ def test_sign_transaction_fail() -> None:
 
 def test_parse_transaction_fail() -> None:
     with pytest.raises(ValueError):
-        TransactionUtils.parse(bytes.fromhex("deadbeef"))
+        TransactionUtils.parse(0, bytes.fromhex("deadbeef"))
 
 
 def test_parse_transaction() -> None:
-    tx = TransactionUtils.parse(bytes.fromhex(SIGNED_TXN_BYTES_HEX))
+    tx = TransactionUtils.parse(0, bytes.fromhex(SIGNED_TXN_BYTES_HEX))
+    assert tx.version == 0
     assert tx.is_p2p
     assert tx.sender == ADDRESS
     assert tx.receiver == RECEIVER_ADDRESS

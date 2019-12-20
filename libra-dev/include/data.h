@@ -15,6 +15,7 @@ const char* LIBRA_VERSION = "3160002c771bbf325d71759a0192ae567d586f22";
 enum LibraStatus {
     OK = 0,
     InvalidArgument = -1,
+    Unsupported = -2,
     InternalError = -255,
 };
 

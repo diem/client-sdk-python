@@ -5,6 +5,7 @@
 pub enum LibraStatus {
     OK = 0,
     InvalidArgument = -1,
+    Unsupported = -2,
     InternalError = -255,
 }
 #[repr(C)]

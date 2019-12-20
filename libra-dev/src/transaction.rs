@@ -255,6 +255,8 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
                 },
             });
         };
+    } else {
+        return LibraStatus::Unsupported;
     }
 
     let raw_txn = match txn_payload {
@@ -266,17 +268,25 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
             gas_unit_price,
             expiration_time_secs,
         },
-        None => LibraRawTransaction {
-            sender,
-            sequence_number,
-            payload: LibraTransactionPayload {
-                txn_type: TransactionType::Unknown,
-                args: LibraP2PTransferTransactionArgument::default(),
-            },
-            max_gas_amount,
-            gas_unit_price,
-            expiration_time_secs,
-        },
+        None => {
+            let raw_txn_other = LibraRawTransaction {
+                sender,
+                sequence_number,
+                payload: LibraTransactionPayload {
+                    txn_type: TransactionType::Unknown,
+                    args: LibraP2PTransferTransactionArgument::default(),
+                },
+                max_gas_amount,
+                gas_unit_price,
+                expiration_time_secs,
+            };
+            *out = LibraSignedTransaction {
+                raw_txn: raw_txn_other,
+                public_key: public_key.to_bytes(),
+                signature: signature.to_bytes(),
+            };
+            return LibraStatus::Unsupported;
+        }
     };
 
     *out = LibraSignedTransaction {

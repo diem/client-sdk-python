@@ -1,10 +1,12 @@
+# pyre-strict
+
 import pytest
 import time
-from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError, AccountKey
+from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError, AccountKey, AccountResource
 
 
 # TODO setup our own account with mint, so we can test non-zero cases
-def test_account_state_block_from_testnet():
+def test_account_state_block_from_testnet() -> None:
     # TODO: use another address generated in the genesis process.
     addr_hex = "00" * 32
 
@@ -19,7 +21,7 @@ def test_account_state_block_from_testnet():
     # assert account.sent_events.count == 0
 
 
-def test_non_existing_account():
+def test_non_existing_account() -> None:
     # just use an highly improbable address for now
     addr_hex = "ff" * 32
     addr_bytes = bytes.fromhex(addr_hex)
@@ -32,7 +34,7 @@ def test_non_existing_account():
     assert account.sequence == 0
 
 
-def test_send_transaction_fail():
+def test_send_transaction_fail() -> None:
     RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
     PRIVATE_KEY = bytes.fromhex("ff" * 32)
 
@@ -57,7 +59,7 @@ def test_send_transaction_fail():
     )
 
 
-def test_mint():
+def test_mint() -> None:
     RECEIVER_ADDRESS = "11" * 32
 
     f = FaucetUtils()
@@ -66,7 +68,7 @@ def test_mint():
     assert 0 != seq
 
 
-def _wait_for_account_seq(addr_hex, seq):
+def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
     api = LibraNetwork()
     while True:
         ar = api.getAccount(addr_hex)
@@ -76,7 +78,7 @@ def _wait_for_account_seq(addr_hex, seq):
 
 
 @pytest.mark.timeout(10)
-def test_send_transaction_success():
+def test_send_transaction_success() -> None:
     receiver_address = "00" * 32
 
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
@@ -99,7 +101,7 @@ def test_send_transaction_success():
         seq,
         # 1 libra
         1_000_000,
-        expiration_time=time.time() + 5 * 60,
+        expiration_time=int(time.time()) + 5 * 60,
     )
     api.sendTransaction(tx.byte)
     ar = _wait_for_account_seq(bytes.hex(addr_bytes), seq + 1)

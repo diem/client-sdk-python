@@ -1,15 +1,17 @@
+# pyre-strict
+
 import pytest
 from pylibra import AccountResource
 
-TEST_ADDR_BYTES = bytes.fromhex("deadbeef" * 8)
+TEST_ADDR_BYTES: bytes = bytes.fromhex("deadbeef" * 8)
 
 
-def test_account_state_blob_invalid():
+def test_account_state_blob_invalid() -> None:
     with pytest.raises(ValueError):
         AccountResource.create(TEST_ADDR_BYTES, b"deadbeef")
 
 
-def test_account_state_blob_empty():
+def test_account_state_blob_empty() -> None:
     ar = AccountResource.create(TEST_ADDR_BYTES, b"")
     assert ar.address == TEST_ADDR_BYTES
     assert ar.balance == 0

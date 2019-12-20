@@ -1,10 +1,11 @@
+# pyre-strict
 from pylibra import TransactionUtils
 
-ADDRESS = bytes.fromhex("fe3e61c509e00e49c018f140c302da2e66be04937a41db1d3ee116cac9646d0f")
-RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
-PRIVATE_KEY = bytes.fromhex("11" * 32)
+ADDRESS: bytes = bytes.fromhex("fe3e61c509e00e49c018f140c302da2e66be04937a41db1d3ee116cac9646d0f")
+RECEIVER_ADDRESS: bytes = bytes.fromhex("00" * 32)
+PRIVATE_KEY: bytes = bytes.fromhex("11" * 32)
 
-SIGNED_TXN_BYTES_HEX = (
+SIGNED_TXN_BYTES_HEX: str = (
     "a07ffc5e1799c00f3ac9fa7bbf1db75a25aaf4d0ac1e104f3f16a5445cd9c571ff"
     "0000000000000002000000b80000004c49425241564d0a010007014a0000000400"
     "0000034e000000060000000d54000000060000000e5a0000000600000005600000"
@@ -21,7 +22,7 @@ SIGNED_TXN_BYTES_HEX = (
 )
 
 
-def test_sign_transcation():
+def test_sign_transcation() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         PRIVATE_KEY,
         RECEIVER_ADDRESS,

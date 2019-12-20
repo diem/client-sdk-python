@@ -8,31 +8,37 @@ from pylibra cimport capi
 import time
 
 cdef class EventHandle:
+    """EventHandle"""
     cdef capi.LibraEventHandle _c_eh
 
     @staticmethod
     cdef create(capi.LibraEventHandle c_eh):
+        """Create new EventHandle, do not call."""
         res = EventHandle()
         res._c_eh = c_eh
         return res
 
     @property
     def count(self):
+        """event count"""
         return self._c_eh.count
 
     @property
     def key(self):
+        """event key"""
         return <bytes> self._c_eh.key[:40]
 
 
 cdef class AccountResource:
+    """AccountResource"""
     cdef capi.LibraAccountResource _c_ar
     cdef EventHandle _sent_events
     cdef EventHandle _received_events
     cdef bytes _address
 
     @staticmethod
-    def create(addr_bytes, lcs_bytes):
+    def create(addr_bytes, lcs_bytes: bytes):
+        """Create AccountResource for addr_bytes with lcs_bytes."""
         cdef capi.LibraAccountResource _c_ar
 
         if not isinstance(addr_bytes, bytes) or len(addr_bytes) != 32:
@@ -75,24 +81,29 @@ cdef class AccountResource:
 
     @property
     def delegated_key_rotation_capability(self):
+        """delegated_key_rotation_capability"""
         return self._c_ar.delegated_key_rotation_capability
 
     @property
     def delegated_withdrawal_capability(self):
+        """delegated_withdrawal_capability"""
         return self._c_ar.delegated_withdrawal_capability
 
     @property
     def sent_events(self):
+        """sent_events"""
         return self._sent_events
 
     @property
     def received_events(self):
+        """received_events"""
         return self._received_events
 
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount=140000, gas_unit_price = 0) -> BytesWrapper:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int =140000, gas_unit_price:int = 0) -> BytesWrapper:
+        """createSignedP2PTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
 
@@ -121,11 +132,13 @@ cdef class TransactionUtils:
 
 
 cdef class BytesWrapper:
+    """BytesWrapper"""
     cdef uint8_t* _c_buf_ptr
     cdef size_t _c_buf_len
 
     @staticmethod
     cdef create(uint8_t* buf_ptr, size_t buf_len):
+        """create"""
         assert buf_ptr != NULL
         assert buf_len > 0
 
@@ -135,20 +148,25 @@ cdef class BytesWrapper:
         return res
 
     def __dealloc__(self):
+        """__dealloc__"""
         capi.libra_free_bytes_buffer(self._c_buf_ptr)
 
     @property
     def byte(self):
+        """as bytes"""
         return <bytes> self._c_buf_ptr[:self._c_buf_len]
 
 
     @property
     def hex(self):
+        """as hex string"""
         return bytes.hex(self.byte)
 
 
 class AccountKey:
-    def __init__(self, private_key_bytes):
+    """AccountKey"""
+    def __init__(self, private_key_bytes: bytes):
+        """create AccountKey from private_key_bytes"""
         if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
             raise ValueError("Invalid private key.")
         cdef capi.LibraAccountKey _c_ak
@@ -160,13 +178,16 @@ class AccountKey:
         self._pubkey = <bytes> _c_ak.public_key[:32]
 
     @property
-    def address(self):
+    def address(self) -> bytes:
+        """address"""
         return self._addr
 
     @property
-    def public_key(self):
+    def public_key(self) -> bytes:
+        """public_key"""
         return self._pubkey
 
     @property
-    def private_key(self):
+    def private_key(self) -> bytes:
+        """private_key"""
         return self._privkey

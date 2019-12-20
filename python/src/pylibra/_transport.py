@@ -96,7 +96,8 @@ class LibraNetwork:
             for tx in txs:
                 try:
                     t = TransactionUtils.parse(tx.transaction)
-                except ValueError as e:
+                    res.append(t)
+                except ValueError:
                     # TODO: Unsupported TXN type
                     continue
 
@@ -122,7 +123,7 @@ class LibraNetwork:
             ].get_account_transaction_by_sequence_number_response.transaction_with_proof.transaction.transaction
             try:
                 return TransactionUtils.parse(tx_blob)
-            except ValueError as e:
+            except ValueError:
                 # TODO: Unsupported TXN type
                 pass
 

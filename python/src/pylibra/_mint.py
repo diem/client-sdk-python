@@ -16,10 +16,10 @@ class FaucetUtils:
     def __init__(self, server: str = TESTNET_FAUCET) -> None:
         self._baseurl: str = "http://" + server
 
-    def mint(self, address_hex: str, libra_amnount: float) -> int:
+    def mint(self, address_hex: str, libra_amount: float) -> int:
         """Request fauce to send libra to destination address."""
         try:
-            r = requests.post(self._baseurl, params={"amount": int(libra_amnount * 1_000_000), "address": address_hex})
+            r = requests.post(self._baseurl, params={"amount": int(libra_amount * 1_000_000), "address": address_hex})
             r.raise_for_status()
             if r.text:
                 return int(r.text)

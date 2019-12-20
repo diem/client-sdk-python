@@ -81,7 +81,7 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
         time.sleep(0.1)
 
 
-@pytest.mark.timeout(10)
+@pytest.mark.timeout(30)
 @pytest.mark.xfail
 def test_send_transaction_success() -> None:
     assoc_address = "000000000000000000000000000000000000000000000000000000000a550c18"

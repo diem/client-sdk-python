@@ -132,7 +132,7 @@ cdef class TransactionUtils:
         return BytesWrapper.create(buf_ptr, buf_len)
 
     @staticmethod
-    def parse(lcs_bytes: bytes) -> SignedTransaction:
+    def parse(version: int, lcs_bytes: bytes) -> SignedTransaction:
         """Create SignedTranscation from bytes."""
         cdef SignedTransaction res = SignedTransaction.__new__(SignedTransaction)
 
@@ -140,6 +140,7 @@ cdef class TransactionUtils:
         if success != capi.LibraStatus.OK:
             raise ValueError("SignedTranscation fail to decode, error: %s." % success)
         res._c_txn = res._c_signed_txn.raw_txn
+        res._version = version
         return res
 
 
@@ -246,6 +247,7 @@ cdef class Transaction:
 
 cdef class SignedTransaction(Transaction):
     cdef capi.LibraSignedTransaction _c_signed_txn
+    cdef int _version
 
     @property
     def public_key(self) -> bytes:
@@ -254,3 +256,7 @@ cdef class SignedTransaction(Transaction):
     @property
     def signature(self) -> bytes:
         return <bytes> self._c_signed_txn.signature[:64]
+
+    @property
+    def version(self) -> int:
+        return self._version

@@ -91,15 +91,23 @@ class LibraNetwork:
         with self._get_channel() as channel:
             stub = AdmissionControlStub(channel)
             response = stub.UpdateToLatestLedger(request)
-            txs = response.response_items[0].get_transactions_response.txn_list_with_proof.transactions
+            txs = response.response_items[0].get_transactions_response.txn_list_with_proof
+            if not len(txs.transactions):
+                return []
+
             res = []
-            for tx in txs:
+            version = txs.first_transaction_version.value
+            for tx in txs.transactions:
                 try:
-                    t = TransactionUtils.parse(tx.transaction)
+                    # Proto buffer message here contains a 4 byte prefix
+                    tx_blob = tx.transaction[4:]
+                    t = TransactionUtils.parse(version, tx_blob)
                     res.append(t)
                 except ValueError:
                     # TODO: Unsupported TXN type
                     continue
+                finally:
+                    version += 1
 
             return res
 
@@ -118,11 +126,13 @@ class LibraNetwork:
         with self._get_channel() as channel:
             stub = AdmissionControlStub(channel)
             response = stub.UpdateToLatestLedger(request)
-            tx_blob = response.response_items[
-                0
-            ].get_account_transaction_by_sequence_number_response.transaction_with_proof.transaction.transaction
+            tx = response.response_items[0].get_account_transaction_by_sequence_number_response.transaction_with_proof
+            version = tx.version
+            tx_blob = tx.transaction.transaction
             try:
-                return TransactionUtils.parse(tx_blob)
+                # Proto buffer message here contains a 4 byte prefix
+                tx_blob = tx_blob[4:]
+                return TransactionUtils.parse(version, tx_blob)
             except ValueError:
                 # TODO: Unsupported TXN type
                 pass

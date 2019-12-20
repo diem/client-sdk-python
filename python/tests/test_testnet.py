@@ -6,6 +6,7 @@ from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransacti
 
 
 # TODO setup our own account with mint, so we can test non-zero cases
+@pytest.mark.xfail
 def test_account_state_block_from_testnet() -> None:
     # TODO: use another address generated in the genesis process.
     addr_hex = "00" * 32
@@ -21,6 +22,7 @@ def test_account_state_block_from_testnet() -> None:
     # assert account.sent_events.count == 0
 
 
+@pytest.mark.xfail
 def test_non_existing_account() -> None:
     # just use an highly improbable address for now
     addr_hex = "ff" * 32
@@ -34,6 +36,7 @@ def test_non_existing_account() -> None:
     assert account.sequence == 0
 
 
+@pytest.mark.xfail
 def test_send_transaction_fail() -> None:
     RECEIVER_ADDRESS = bytes.fromhex("00" * 32)
     PRIVATE_KEY = bytes.fromhex("ff" * 32)
@@ -59,6 +62,7 @@ def test_send_transaction_fail() -> None:
     )
 
 
+@pytest.mark.xfail
 def test_mint() -> None:
     RECEIVER_ADDRESS = "11" * 32
 
@@ -78,6 +82,7 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
 
 
 @pytest.mark.timeout(10)
+@pytest.mark.xfail
 def test_send_transaction_success() -> None:
     receiver_address = "00" * 32
 

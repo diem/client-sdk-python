@@ -1,14 +1,16 @@
 # pyre-strict
 
 import grpc
+import typing
 
 from .grpc.admission_control_pb2_grpc import AdmissionControlStub
 from .grpc.admission_control_pb2 import Accepted, SubmitTransactionRequest
 from .grpc.get_with_proof_pb2 import UpdateToLatestLedgerRequest
 from .grpc.get_with_proof_pb2 import RequestItem
 from .grpc.get_with_proof_pb2 import GetAccountStateRequest
+from .grpc.get_with_proof_pb2 import GetTransactionsRequest, GetAccountTransactionBySequenceNumberRequest
 
-from ._types import AccountResource
+from ._types import AccountResource, SignedTransaction, TransactionUtils
 
 
 class ClientError(Exception):
@@ -73,3 +75,55 @@ class LibraNetwork:
 
             if ex:
                 raise ex
+
+    def transactions_by_range(
+        self, start_version: int, limit: int, include_events: bool = False
+    ) -> typing.List[SignedTransaction]:
+        request = UpdateToLatestLedgerRequest()
+
+        tx_req = GetTransactionsRequest()
+        tx_req.start_version = start_version
+        tx_req.limit = limit
+        tx_req.fetch_events = include_events
+
+        request.requested_items.append(RequestItem(get_transactions_request=tx_req))
+
+        with self._get_channel() as channel:
+            stub = AdmissionControlStub(channel)
+            response = stub.UpdateToLatestLedger(request)
+            txs = response.response_items[0].get_transactions_response.txn_list_with_proof.transactions
+            res = []
+            for tx in txs:
+                try:
+                    t = TransactionUtils.parse(tx.transaction)
+                except ValueError as e:
+                    # TODO: Unsupported TXN type
+                    continue
+
+            return res
+
+    def transaction_by_acc_seq(
+        self, addr_hex: str, seq: int, include_events: bool = False
+    ) -> typing.Optional[SignedTransaction]:
+        request = UpdateToLatestLedgerRequest()
+
+        tx_req = GetAccountTransactionBySequenceNumberRequest()
+        tx_req.account = bytes.fromhex(addr_hex)
+        tx_req.sequence_number = seq
+        tx_req.fetch_events = include_events
+
+        request.requested_items.append(RequestItem(get_account_transaction_by_sequence_number_request=tx_req))
+
+        with self._get_channel() as channel:
+            stub = AdmissionControlStub(channel)
+            response = stub.UpdateToLatestLedger(request)
+            tx_blob = response.response_items[
+                0
+            ].get_account_transaction_by_sequence_number_response.transaction_with_proof.transaction.transaction
+            try:
+                return TransactionUtils.parse(tx_blob)
+            except ValueError as e:
+                # TODO: Unsupported TXN type
+                pass
+
+            return None

@@ -18,4 +18,6 @@ __all__ = [
     "AccountKey",
     "EventHandle",
     "BytesWrapper",
+    "SignedTransaction",
+    "Transaction",
 ]

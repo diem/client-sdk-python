@@ -138,7 +138,7 @@ cdef class TransactionUtils:
 
         success = capi.libra_LibraSignedTransaction_from(lcs_bytes, len(lcs_bytes), &res._c_signed_txn)
         if success != capi.LibraStatus.OK:
-            raise ValueError("SignedTranscation Decode error.")
+            raise ValueError("SignedTranscation fail to decode, error: %s." % success)
         res._c_txn = res._c_signed_txn.raw_txn
         return res
 

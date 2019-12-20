@@ -84,24 +84,25 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
 @pytest.mark.timeout(10)
 @pytest.mark.xfail
 def test_send_transaction_success() -> None:
-    receiver_address = "00" * 32
+    assoc_address = "000000000000000000000000000000000000000000000000000000000a550c18"
 
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
     addr_bytes = AccountKey(private_key).address
+    addr_hex = bytes.hex(addr_bytes)
 
     api = LibraNetwork()
 
     f = FaucetUtils()
-    seq = f.mint(receiver_address, 1)
-    _ = _wait_for_account_seq("000000000000000000000000000000000000000000000000000000000a550c18", seq)
+    seq = f.mint(addr_hex, 1)
+    _ = _wait_for_account_seq(assoc_address, seq)
 
-    ar = api.getAccount(bytes.hex(addr_bytes))
+    ar = api.getAccount(addr_hex)
     balance = ar.balance
     seq = ar.sequence
 
     tx = TransactionUtils.createSignedP2PTransaction(
         private_key,
-        bytes.fromhex(receiver_address),
+        bytes.fromhex(assoc_address),
         # sequence
         seq,
         # 1 libra
@@ -109,7 +110,25 @@ def test_send_transaction_success() -> None:
         expiration_time=int(time.time()) + 5 * 60,
     )
     api.sendTransaction(tx.byte)
-    ar = _wait_for_account_seq(bytes.hex(addr_bytes), seq + 1)
+    ar = _wait_for_account_seq(addr_hex, seq + 1)
 
     assert ar.sequence == seq + 1
     assert ar.balance == balance - 1_000_000
+
+
+@pytest.mark.xfail
+def test_transaction_by_range() -> None:
+    api = LibraNetwork()
+    txs = api.transactions_by_range(0, 1)
+    # genesis txns are WriteSet, and we don't support it, so we always get an empty list back.
+    assert txs == []
+
+
+@pytest.mark.xfail
+def test_transaction_by_acc_seq() -> None:
+    assoc_address = "000000000000000000000000000000000000000000000000000000000a550c18"
+
+    api = LibraNetwork()
+    tx = api.transaction_by_acc_seq(assoc_address, 1)
+    # mint transaction are not yet supported
+    assert tx is None

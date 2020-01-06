@@ -101,5 +101,7 @@ workflows:
               only:
                 - master
     jobs:
+      - build-testnet
+      - build-python-testnet
       - build-master
       - build-python-master

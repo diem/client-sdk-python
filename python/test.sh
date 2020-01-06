@@ -11,7 +11,7 @@ set -euo pipefail
 
 ./venv/bin/python3 setup.py develop
 
-./venv/bin/python3 setup.py pytest --addopts="--pylama . $@"
+./venv/bin/python3 setup.py pytest --addopts="--runxfail --pylama . $@"
 ./venv/bin/black --check .
 ./venv/bin/pyre check
 

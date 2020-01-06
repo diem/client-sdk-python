@@ -30,6 +30,7 @@ cdef extern from "data.h":
 
     enum TransactionType:
         PeerToPeer = 0
+        Mint = 1
 
     struct LibraTransactionPayload:
         TransactionType txn_type

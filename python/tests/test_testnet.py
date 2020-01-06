@@ -2,9 +2,65 @@
 
 import pytest
 import time
-from pylibra import LibraNetwork, FaucetUtils, TransactionUtils, SubmitTransactionError, AccountKey, AccountResource
+from pylibra import (
+    LibraNetwork,
+    FaucetUtils,
+    TransactionUtils,
+    SubmitTransactionError,
+    AccountKey,
+    AccountResource,
+    FaucetError,
+)
+from functools import wraps
+import typing
 
 ASSOC_ADDRESS: str = "000000000000000000000000000000000000000000000000000000000a550c18"
+
+RT = typing.TypeVar("RT")
+T = typing.Callable[..., typing.Optional[RT]]
+
+
+def retry(
+    exceptions: typing.Type[Exception],
+    tries: int = 4,
+    delay: int = 3,
+    backoff: int = 2,
+    logger: typing.Optional[typing.Callable] = None,
+) -> typing.Callable[[T], T]:
+    """
+    Retry calling the decorated function using an exponential backoff.
+
+    Args:
+        exceptions: The exception to check. may be a tuple of
+            exceptions to check.
+        tries: Number of times to try (not retry) before giving up.
+        delay: Initial delay between retries in seconds.
+        backoff: Backoff multiplier (e.g. value of 2 will double the delay
+            each retry).
+        logger: Logger to use. If None, print.
+    """
+
+    def deco_retry(f: T) -> T:
+        @wraps(f)
+        def f_retry(*args, **kwargs):  # pyre-ignore
+            mtries, mdelay = tries, delay
+            while mtries > 1:
+                try:
+                    return f(*args, **kwargs)
+                except exceptions as e:
+                    msg = "{}, Retrying in {} seconds...".format(e, mdelay)
+                    if logger:
+                        logger.warning(msg)
+                    else:
+                        print(msg)
+                    time.sleep(mdelay)
+                    mtries -= 1
+                    mdelay *= backoff
+            return f(*args, **kwargs)
+
+        return f_retry  # true decorator
+
+    return deco_retry
 
 
 # TODO setup our own account with mint, so we can test non-zero cases
@@ -64,14 +120,18 @@ def test_send_transaction_fail() -> None:
     )
 
 
+@pytest.mark.timeout(30)
 @pytest.mark.xfail
 def test_mint() -> None:
     RECEIVER_ADDRESS = "11" * 32
 
-    f = FaucetUtils()
-    seq = f.mint(RECEIVER_ADDRESS, 1.5)
+    @retry(FaucetError, delay=1)
+    def _mint() -> None:
+        f = FaucetUtils()
+        seq = f.mint(RECEIVER_ADDRESS, 1.5)
+        assert 0 != seq
 
-    assert 0 != seq
+    _mint()
 
 
 def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
@@ -92,9 +152,13 @@ def test_send_transaction_success() -> None:
 
     api = LibraNetwork()
 
-    f = FaucetUtils()
-    seq = f.mint(addr_hex, 1)
-    _ = _wait_for_account_seq(ASSOC_ADDRESS, seq)
+    @retry(FaucetError, delay=1)
+    def _mint_and_wait() -> None:
+        f = FaucetUtils()
+        seq = f.mint(addr_hex, 1)
+        _ = _wait_for_account_seq(ASSOC_ADDRESS, seq)
+
+    _mint_and_wait()
 
     ar = api.getAccount(addr_hex)
     balance = ar.balance

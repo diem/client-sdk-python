@@ -40,6 +40,7 @@ struct LibraP2PTransferTransactionArgument {
 
 enum TransactionType {
     PeerToPeer = 0,
+    Mint = 1,
     Unknown = -1,
 };
 

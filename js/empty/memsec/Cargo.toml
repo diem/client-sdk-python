@@ -1,0 +1,9 @@
+[package]
+name = "memsec"
+version = "0.5.7"
+authors = ["Yucong Sun <fallentree@fb.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

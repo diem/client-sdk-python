@@ -18,6 +18,18 @@ use libra_types::{
 use std::{convert::TryFrom, slice, time::Duration};
 use transaction_builder::{encode_transfer_script, get_transaction_name};
 
+#[cfg(target_arch = "wasm32")]
+unsafe fn _malloc(len: usize) -> *mut u8 {
+    let mut a = vec![0 as u8];
+    a.reserve(len);
+    return a.as_mut_ptr();
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+unsafe fn _malloc(len: usize) -> *mut u8 {
+    libc::malloc(len).cast()
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     sender_private_key_bytes: *const u8,
@@ -78,7 +90,7 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
             return LibraStatus::InternalError;
         }
     };
-    let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
+    let txn_buf: (*mut u8) = _malloc(signed_txn_bytes.len()).cast();
     txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
     *ptr_buf = txn_buf;
@@ -90,7 +102,8 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
 #[no_mangle]
 pub unsafe extern "C" fn libra_free_bytes_buffer(buf: *const u8) {
     if !buf.is_null() {
-        libc::free(buf as *mut libc::c_void);
+        #[cfg(not(target_arch = "wasm32"))]
+        libc::free(buf as *mut core::ffi::c_void);
     }
 }
 
@@ -141,7 +154,7 @@ pub unsafe extern "C" fn libra_RawTransactionBytes_from(
         }
     };
 
-    let txn_buf: (*mut u8) = libc::malloc(raw_txn_bytes.len()).cast();
+    let txn_buf: (*mut u8) = _malloc(raw_txn_bytes.len()).cast();
     txn_buf.copy_from(raw_txn_bytes.as_ptr(), raw_txn_bytes.len());
 
     *buf = txn_buf;
@@ -193,7 +206,7 @@ pub unsafe extern "C" fn libra_RawTransaction_sign(
         }
     };
 
-    let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
+    let txn_buf: (*mut u8) = _malloc(signed_txn_bytes.len());
     txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
     *buf_result = txn_buf;

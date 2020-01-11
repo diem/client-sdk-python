@@ -1,0 +1,9 @@
+[package]
+name = "clear_on_drop"
+version = "0.2.3"
+authors = ["Yucong Sun <fallentree@fb.com>"]
+edition = "2015"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

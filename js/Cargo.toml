@@ -1,0 +1,24 @@
+[package]
+name = "js"
+version = "0.1.0"
+authors = ["Yucong Sun <fallentree@fb.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libra-dev = { path = "../libra-dev" }
+wasm-bindgen = "0.2"
+hex = "0.4.0"
+serde_json = "1.0"
+serde = "1.0"
+
+[patch.crates-io]
+errno = { path = "./empty/errno"}
+get_if_addrs = {path = "./empty/get_if_addrs"}
+memsec = {path = "./empty/memsec"}
+clear_on_drop = {path="./empty/clear_on_drop"}
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+

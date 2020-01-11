@@ -35,6 +35,28 @@ pub unsafe extern "C" fn libra_LibraAccount_from(
     LibraStatus::OK
 }
 
+pub extern "C" fn LibraAccount_from(
+    private_key_buf: &[u8],
+) -> Result<LibraAccountKey, LibraStatus> {
+    let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
+        Ok(result) => result,
+        Err(_e) => {
+            return Err(LibraStatus::InvalidArgument);
+        }
+    };
+    let public_key: Ed25519PublicKey = (&private_key).into();
+    let address = AccountAddress::from_public_key(&public_key);
+
+    let mut address_bytes = [0u8; ADDRESS_LENGTH];
+    address_bytes.copy_from_slice(address.as_ref());
+
+    Ok(LibraAccountKey {
+        address: address_bytes,
+        private_key: private_key.to_bytes(),
+        public_key: public_key.to_bytes(),
+    })
+}
+
 /// Generate a private key, then get LibraAccount
 #[test]
 fn test_libra_account_from() {

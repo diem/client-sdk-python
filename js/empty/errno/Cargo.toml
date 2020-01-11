@@ -1,0 +1,5 @@
+[package]
+name = "errno"
+version = "0.2.4"
+authors = ["Yucong Sun <fallentree@fb.com>"]
+edition = "2018"

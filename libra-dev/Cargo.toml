@@ -12,12 +12,13 @@ libra-crypto = { git  = "https://github.com/libra/libra.git", branch = "testnet"
 transaction-builder = {git = "https://github.com/libra/libra.git", branch = "testnet" }
 lcs = { git  = "https://github.com/libra/libra.git", branch = "testnet", package = "libra-canonical-serialization" }
 libc = "0.2.65"
+serde = "1.0"
 
 [dev-dependencies]
 rand = "0.6.5"
 
 [lib]
-crate-type = ["staticlib", "cdylib"]
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 # FFI libray can only support panic = "abort"
 [profile.dev]

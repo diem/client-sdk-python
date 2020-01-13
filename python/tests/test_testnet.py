@@ -123,7 +123,7 @@ def test_send_transaction_fail() -> None:
 @pytest.mark.timeout(30)
 @pytest.mark.xfail
 def test_mint() -> None:
-    RECEIVER_ADDRESS = "11" * 32
+    RECEIVER_ADDRESS: str = "11" * 32
 
     @retry(FaucetError, delay=1)
     def _mint() -> None:
@@ -148,7 +148,7 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
 def test_send_transaction_success() -> None:
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
     addr_bytes = AccountKey(private_key).address
-    addr_hex = bytes.hex(addr_bytes)
+    addr_hex: str = bytes.hex(addr_bytes)
 
     api = LibraNetwork()
 

@@ -215,6 +215,7 @@ fn bindgen_test_layout_LibraP2PTransferTransactionArgument() {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum TransactionType {
     PeerToPeer = 0,
+    Mint = 1,
     Unknown = -1,
 }
 #[repr(C)]

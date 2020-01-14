@@ -16,7 +16,7 @@ use libra_types::{
 };
 
 use std::{convert::TryFrom, slice, time::Duration};
-use transaction_builder::encode_transfer_script;
+use transaction_builder::{encode_transfer_script, get_transaction_name};
 
 #[no_mangle]
 pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
@@ -232,31 +232,65 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     let mut txn_payload = None;
 
     if let TransactionPayload::Script(script) = payload {
-        let args = script.args();
-        let mut value = None;
-        let mut address = None;
-        args.iter().for_each(|txn_arg| match txn_arg {
-            TransactionArgument::U64(val) => {
-                value = Some(*val);
+        match get_transaction_name(script.code()).as_str() {
+            "peer_to_peer_transaction" => {
+                let args = script.args();
+                let mut value = None;
+                let mut address = None;
+                args.iter().for_each(|txn_arg| match txn_arg {
+                    TransactionArgument::U64(val) => {
+                        value = Some(*val);
+                    }
+                    TransactionArgument::Address(addr) => {
+                        let mut addr_buffer = [0u8; ADDRESS_LENGTH];
+                        addr_buffer.copy_from_slice(addr.as_ref());
+                        address = Some(addr_buffer);
+                    }
+                    _ => {}
+                });
+                if let (Some(val), Some(add)) = (value, address) {
+                    txn_payload = Some(LibraTransactionPayload {
+                        txn_type: TransactionType::PeerToPeer,
+                        args: LibraP2PTransferTransactionArgument {
+                            value: val,
+                            address: add,
+                        },
+                    });
+                } else {
+                    return LibraStatus::InternalError;
+                }
             }
-            TransactionArgument::Address(addr) => {
-                let mut addr_buffer = [0u8; ADDRESS_LENGTH];
-                addr_buffer.copy_from_slice(addr.as_ref());
-                address = Some(addr_buffer);
+            "mint_transaction" => {
+                let args = script.args();
+                let mut value = None;
+                let mut address = None;
+                args.iter().for_each(|txn_arg| match txn_arg {
+                    TransactionArgument::U64(val) => {
+                        value = Some(*val);
+                    }
+                    TransactionArgument::Address(addr) => {
+                        let mut addr_buffer = [0u8; ADDRESS_LENGTH];
+                        addr_buffer.copy_from_slice(addr.as_ref());
+                        address = Some(addr_buffer);
+                    }
+                    _ => {}
+                });
+                if let (Some(val), Some(add)) = (value, address) {
+                    txn_payload = Some(LibraTransactionPayload {
+                        txn_type: TransactionType::Mint,
+                        args: LibraP2PTransferTransactionArgument {
+                            value: val,
+                            address: add,
+                        },
+                    });
+                } else {
+                    return LibraStatus::InternalError;
+                }
             }
-            _ => {}
-        });
-        if let (Some(val), Some(add)) = (value, address) {
-            txn_payload = Some(LibraTransactionPayload {
-                txn_type: TransactionType::PeerToPeer,
-                args: LibraP2PTransferTransactionArgument {
-                    value: val,
-                    address: add,
-                },
-            });
-        };
-    } else {
-        return LibraStatus::Unsupported;
+            &_ => {
+                // support other transactions
+            }
+        }
     }
 
     let raw_txn = match txn_payload {
@@ -285,7 +319,7 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
                 public_key: public_key.to_bytes(),
                 signature: signature.to_bytes(),
             };
-            return LibraStatus::Unsupported;
+            return LibraStatus::OK;
         }
     };
 

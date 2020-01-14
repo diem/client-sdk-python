@@ -235,6 +235,10 @@ cdef class Transaction:
         return self._c_txn.payload.txn_type == capi.TransactionType.PeerToPeer
 
     @property
+    def is_mint(self) -> bool:
+        return self._c_txn.payload.txn_type == capi.TransactionType.Mint
+
+    @property
     def receiver(self) -> bytes:
         assert self.is_p2p
         return <bytes> self._c_txn.payload.args.address[:32]

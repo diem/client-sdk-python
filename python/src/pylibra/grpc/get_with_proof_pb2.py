@@ -27,7 +27,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='types',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x14get_with_proof.proto\x12\x05types\x1a\x11\x61\x63\x63\x65ss_path.proto\x1a\x18\x61\x63\x63ount_state_blob.proto\x1a\x0c\x65vents.proto\x1a\x11ledger_info.proto\x1a\x0bproof.proto\x1a\x11transaction.proto\x1a\x16validator_change.proto\"h\n\x1bUpdateToLatestLedgerRequest\x12\x1c\n\x14\x63lient_known_version\x18\x01 \x01(\x04\x12+\n\x0frequested_items\x18\x02 \x03(\x0b\x32\x12.types.RequestItem\"\xf7\x02\n\x0bRequestItem\x12\x42\n\x19get_account_state_request\x18\x01 \x01(\x0b\x32\x1d.types.GetAccountStateRequestH\x00\x12q\n2get_account_transaction_by_sequence_number_request\x18\x02 \x01(\x0b\x32\x33.types.GetAccountTransactionBySequenceNumberRequestH\x00\x12[\n\'get_events_by_event_access_path_request\x18\x03 \x01(\x0b\x32(.types.GetEventsByEventAccessPathRequestH\x00\x12\x41\n\x18get_transactions_request\x18\x04 \x01(\x0b\x32\x1d.types.GetTransactionsRequestH\x00\x42\x11\n\x0frequested_items\"\x98\x02\n\x1cUpdateToLatestLedgerResponse\x12+\n\x0eresponse_items\x18\x01 \x03(\x0b\x32\x13.types.ResponseItem\x12>\n\x15ledger_info_with_sigs\x18\x02 \x01(\x0b\x32\x1f.types.LedgerInfoWithSignatures\x12\x45\n\x17validator_change_events\x18\x03 \x01(\x0b\x32$.types.ValidatorChangeEventWithProof\x12\x44\n\x18ledger_consistency_proof\x18\x04 \x01(\x0b\x32\".types.AccumulatorConsistencyProof\"\xff\x02\n\x0cResponseItem\x12\x44\n\x1aget_account_state_response\x18\x03 \x01(\x0b\x32\x1e.types.GetAccountStateResponseH\x00\x12s\n3get_account_transaction_by_sequence_number_response\x18\x04 \x01(\x0b\x32\x34.types.GetAccountTransactionBySequenceNumberResponseH\x00\x12]\n(get_events_by_event_access_path_response\x18\x05 \x01(\x0b\x32).types.GetEventsByEventAccessPathResponseH\x00\x12\x43\n\x19get_transactions_response\x18\x06 \x01(\x0b\x32\x1e.types.GetTransactionsResponseH\x00\x42\x10\n\x0eresponse_items\")\n\x16GetAccountStateRequest\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\"Y\n\x17GetAccountStateResponse\x12>\n\x18\x61\x63\x63ount_state_with_proof\x18\x01 \x01(\x0b\x32\x1c.types.AccountStateWithProof\"n\n,GetAccountTransactionBySequenceNumberRequest\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x0c\x12\x17\n\x0fsequence_number\x18\x02 \x01(\x04\x12\x14\n\x0c\x66\x65tch_events\x18\x03 \x01(\x08\"\xb4\x01\n-GetAccountTransactionBySequenceNumberResponse\x12;\n\x16transaction_with_proof\x18\x02 \x01(\x0b\x32\x1b.types.TransactionWithProof\x12\x46\n proof_of_current_sequence_number\x18\x03 \x01(\x0b\x32\x1c.types.AccountStateWithProof\"\x8a\x01\n!GetEventsByEventAccessPathRequest\x12&\n\x0b\x61\x63\x63\x65ss_path\x18\x01 \x01(\x0b\x32\x11.types.AccessPath\x12\x1b\n\x13start_event_seq_num\x18\x02 \x01(\x04\x12\x11\n\tascending\x18\x03 \x01(\x08\x12\r\n\x05limit\x18\x04 \x01(\x04\"\x93\x01\n\"GetEventsByEventAccessPathResponse\x12\x30\n\x11\x65vents_with_proof\x18\x01 \x03(\x0b\x32\x15.types.EventWithProof\x12;\n\x15proof_of_latest_event\x18\x02 \x01(\x0b\x32\x1c.types.AccountStateWithProof\"T\n\x16GetTransactionsRequest\x12\x15\n\rstart_version\x18\x01 \x01(\x04\x12\r\n\x05limit\x18\x02 \x01(\x04\x12\x14\n\x0c\x66\x65tch_events\x18\x03 \x01(\x08\"W\n\x17GetTransactionsResponse\x12<\n\x13txn_list_with_proof\x18\x01 \x01(\x0b\x32\x1f.types.TransactionListWithProofb\x06proto3')
+  serialized_pb=_b('\n\x14get_with_proof.proto\x12\x05types\x1a\x11\x61\x63\x63\x65ss_path.proto\x1a\x18\x61\x63\x63ount_state_blob.proto\x1a\x0c\x65vents.proto\x1a\x11ledger_info.proto\x1a\x0bproof.proto\x1a\x11transaction.proto\x1a\x16validator_change.proto\"h\n\x1bUpdateToLatestLedgerRequest\x12\x1c\n\x14\x63lient_known_version\x18\x01 \x01(\x04\x12+\n\x0frequested_items\x18\x02 \x03(\x0b\x32\x12.types.RequestItem\"\xf7\x02\n\x0bRequestItem\x12\x42\n\x19get_account_state_request\x18\x01 \x01(\x0b\x32\x1d.types.GetAccountStateRequestH\x00\x12q\n2get_account_transaction_by_sequence_number_request\x18\x02 \x01(\x0b\x32\x33.types.GetAccountTransactionBySequenceNumberRequestH\x00\x12[\n\'get_events_by_event_access_path_request\x18\x03 \x01(\x0b\x32(.types.GetEventsByEventAccessPathRequestH\x00\x12\x41\n\x18get_transactions_request\x18\x04 \x01(\x0b\x32\x1d.types.GetTransactionsRequestH\x00\x42\x11\n\x0frequested_items\"\x8e\x02\n\x1cUpdateToLatestLedgerResponse\x12+\n\x0eresponse_items\x18\x01 \x03(\x0b\x32\x13.types.ResponseItem\x12>\n\x15ledger_info_with_sigs\x18\x02 \x01(\x0b\x32\x1f.types.LedgerInfoWithSignatures\x12;\n\x16validator_change_proof\x18\x03 \x01(\x0b\x32\x1b.types.ValidatorChangeProof\x12\x44\n\x18ledger_consistency_proof\x18\x04 \x01(\x0b\x32\".types.AccumulatorConsistencyProof\"\xff\x02\n\x0cResponseItem\x12\x44\n\x1aget_account_state_response\x18\x03 \x01(\x0b\x32\x1e.types.GetAccountStateResponseH\x00\x12s\n3get_account_transaction_by_sequence_number_response\x18\x04 \x01(\x0b\x32\x34.types.GetAccountTransactionBySequenceNumberResponseH\x00\x12]\n(get_events_by_event_access_path_response\x18\x05 \x01(\x0b\x32).types.GetEventsByEventAccessPathResponseH\x00\x12\x43\n\x19get_transactions_response\x18\x06 \x01(\x0b\x32\x1e.types.GetTransactionsResponseH\x00\x42\x10\n\x0eresponse_items\")\n\x16GetAccountStateRequest\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\x0c\"Y\n\x17GetAccountStateResponse\x12>\n\x18\x61\x63\x63ount_state_with_proof\x18\x01 \x01(\x0b\x32\x1c.types.AccountStateWithProof\"n\n,GetAccountTransactionBySequenceNumberRequest\x12\x0f\n\x07\x61\x63\x63ount\x18\x01 \x01(\x0c\x12\x17\n\x0fsequence_number\x18\x02 \x01(\x04\x12\x14\n\x0c\x66\x65tch_events\x18\x03 \x01(\x08\"\xb4\x01\n-GetAccountTransactionBySequenceNumberResponse\x12;\n\x16transaction_with_proof\x18\x02 \x01(\x0b\x32\x1b.types.TransactionWithProof\x12\x46\n proof_of_current_sequence_number\x18\x03 \x01(\x0b\x32\x1c.types.AccountStateWithProof\"\x8a\x01\n!GetEventsByEventAccessPathRequest\x12&\n\x0b\x61\x63\x63\x65ss_path\x18\x01 \x01(\x0b\x32\x11.types.AccessPath\x12\x1b\n\x13start_event_seq_num\x18\x02 \x01(\x04\x12\x11\n\tascending\x18\x03 \x01(\x08\x12\r\n\x05limit\x18\x04 \x01(\x04\"\x93\x01\n\"GetEventsByEventAccessPathResponse\x12\x30\n\x11\x65vents_with_proof\x18\x01 \x03(\x0b\x32\x15.types.EventWithProof\x12;\n\x15proof_of_latest_event\x18\x02 \x01(\x0b\x32\x1c.types.AccountStateWithProof\"T\n\x16GetTransactionsRequest\x12\x15\n\rstart_version\x18\x01 \x01(\x04\x12\r\n\x05limit\x18\x02 \x01(\x04\x12\x14\n\x0c\x66\x65tch_events\x18\x03 \x01(\x08\"W\n\x17GetTransactionsResponse\x12<\n\x13txn_list_with_proof\x18\x01 \x01(\x0b\x32\x1f.types.TransactionListWithProofb\x06proto3')
   ,
   dependencies=[access__path__pb2.DESCRIPTOR,account__state__blob__pb2.DESCRIPTOR,events__pb2.DESCRIPTOR,ledger__info__pb2.DESCRIPTOR,proof__pb2.DESCRIPTOR,transaction__pb2.DESCRIPTOR,validator__change__pb2.DESCRIPTOR,])
 
@@ -149,7 +149,7 @@ _UPDATETOLATESTLEDGERRESPONSE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='validator_change_events', full_name='types.UpdateToLatestLedgerResponse.validator_change_events', index=2,
+      name='validator_change_proof', full_name='types.UpdateToLatestLedgerResponse.validator_change_proof', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -175,7 +175,7 @@ _UPDATETOLATESTLEDGERRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=650,
-  serialized_end=930,
+  serialized_end=920,
 )
 
 
@@ -229,8 +229,8 @@ _RESPONSEITEM = _descriptor.Descriptor(
       name='response_items', full_name='types.ResponseItem.response_items',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=933,
-  serialized_end=1316,
+  serialized_start=923,
+  serialized_end=1306,
 )
 
 
@@ -260,8 +260,8 @@ _GETACCOUNTSTATEREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1318,
-  serialized_end=1359,
+  serialized_start=1308,
+  serialized_end=1349,
 )
 
 
@@ -291,8 +291,8 @@ _GETACCOUNTSTATERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1361,
-  serialized_end=1450,
+  serialized_start=1351,
+  serialized_end=1440,
 )
 
 
@@ -336,8 +336,8 @@ _GETACCOUNTTRANSACTIONBYSEQUENCENUMBERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1452,
-  serialized_end=1562,
+  serialized_start=1442,
+  serialized_end=1552,
 )
 
 
@@ -374,8 +374,8 @@ _GETACCOUNTTRANSACTIONBYSEQUENCENUMBERRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1565,
-  serialized_end=1745,
+  serialized_start=1555,
+  serialized_end=1735,
 )
 
 
@@ -426,8 +426,8 @@ _GETEVENTSBYEVENTACCESSPATHREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1748,
-  serialized_end=1886,
+  serialized_start=1738,
+  serialized_end=1876,
 )
 
 
@@ -464,8 +464,8 @@ _GETEVENTSBYEVENTACCESSPATHRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1889,
-  serialized_end=2036,
+  serialized_start=1879,
+  serialized_end=2026,
 )
 
 
@@ -509,8 +509,8 @@ _GETTRANSACTIONSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2038,
-  serialized_end=2122,
+  serialized_start=2028,
+  serialized_end=2112,
 )
 
 
@@ -540,8 +540,8 @@ _GETTRANSACTIONSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2124,
-  serialized_end=2211,
+  serialized_start=2114,
+  serialized_end=2201,
 )
 
 _UPDATETOLATESTLEDGERREQUEST.fields_by_name['requested_items'].message_type = _REQUESTITEM
@@ -563,7 +563,7 @@ _REQUESTITEM.oneofs_by_name['requested_items'].fields.append(
 _REQUESTITEM.fields_by_name['get_transactions_request'].containing_oneof = _REQUESTITEM.oneofs_by_name['requested_items']
 _UPDATETOLATESTLEDGERRESPONSE.fields_by_name['response_items'].message_type = _RESPONSEITEM
 _UPDATETOLATESTLEDGERRESPONSE.fields_by_name['ledger_info_with_sigs'].message_type = ledger__info__pb2._LEDGERINFOWITHSIGNATURES
-_UPDATETOLATESTLEDGERRESPONSE.fields_by_name['validator_change_events'].message_type = validator__change__pb2._VALIDATORCHANGEEVENTWITHPROOF
+_UPDATETOLATESTLEDGERRESPONSE.fields_by_name['validator_change_proof'].message_type = validator__change__pb2._VALIDATORCHANGEPROOF
 _UPDATETOLATESTLEDGERRESPONSE.fields_by_name['ledger_consistency_proof'].message_type = proof__pb2._ACCUMULATORCONSISTENCYPROOF
 _RESPONSEITEM.fields_by_name['get_account_state_response'].message_type = _GETACCOUNTSTATERESPONSE
 _RESPONSEITEM.fields_by_name['get_account_transaction_by_sequence_number_response'].message_type = _GETACCOUNTTRANSACTIONBYSEQUENCENUMBERRESPONSE

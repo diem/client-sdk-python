@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 use crate::data::{LibraAccountResource, LibraEventHandle, LibraStatus};
 use libra_types::{
-    account_config::get_account_resource_or_default, account_state_blob::AccountStateBlob,
-    event::EVENT_KEY_LENGTH,
+    account_config::AccountResource, account_state_blob::AccountStateBlob, event::EVENT_KEY_LENGTH,
 };
+use std::convert::TryFrom;
 use std::slice;
 
 pub fn libra_LibraAccountResource_from_safe(
     blob: AccountStateBlob,
 ) -> Result<LibraAccountResource, LibraStatus> {
-    match get_account_resource_or_default(&Some(blob)) {
+    match AccountResource::try_from(&blob) {
         Ok(account_resource) => {
             let mut authentication_key = [0u8; 32];
             authentication_key.copy_from_slice(account_resource.authentication_key().as_bytes());
@@ -76,6 +76,7 @@ mod tests {
         use libra_types::{
             account_address::AccountAddress, account_config::account_resource_path,
             account_config::AccountResource, byte_array::ByteArray, event::EventHandle,
+            event::EventKey,
         };
         use std::collections::BTreeMap;
 
@@ -83,14 +84,15 @@ mod tests {
 
         // Figure out how to use Libra code to generate AccountStateBlob directly, not involving btreemap directly
         let mut map: BTreeMap<Vec<u8>, Vec<u8>> = BTreeMap::new();
+        let addr = AccountAddress::from_public_key(&keypair.1);
         let ar = AccountResource::new(
             987654321,
             123456789,
-            ByteArray::new(AccountAddress::from_public_key(&keypair.1).to_vec()),
+            ByteArray::new(addr.to_vec()),
             true,
             false,
-            EventHandle::default(),
-            EventHandle::default(),
+            EventHandle::new(EventKey::new_from_address(&addr, 0), 777),
+            EventHandle::new(EventKey::new_from_address(&addr, 0), 888),
             0,
         );
 

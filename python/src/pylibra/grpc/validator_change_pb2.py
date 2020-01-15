@@ -13,7 +13,6 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from . import events_pb2 as events__pb2
 from . import ledger_info_pb2 as ledger__info__pb2
 
 
@@ -22,24 +21,31 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='types',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x16validator_change.proto\x12\x05types\x1a\x0c\x65vents.proto\x1a\x11ledger_info.proto\"_\n\x1dValidatorChangeEventWithProof\x12>\n\x15ledger_info_with_sigs\x18\x01 \x03(\x0b\x32\x1f.types.LedgerInfoWithSignaturesb\x06proto3')
+  serialized_pb=_b('\n\x16validator_change.proto\x12\x05types\x1a\x11ledger_info.proto\"d\n\x14ValidatorChangeProof\x12>\n\x15ledger_info_with_sigs\x18\x01 \x03(\x0b\x32\x1f.types.LedgerInfoWithSignatures\x12\x0c\n\x04more\x18\x02 \x01(\x08\x62\x06proto3')
   ,
-  dependencies=[events__pb2.DESCRIPTOR,ledger__info__pb2.DESCRIPTOR,])
+  dependencies=[ledger__info__pb2.DESCRIPTOR,])
 
 
 
 
-_VALIDATORCHANGEEVENTWITHPROOF = _descriptor.Descriptor(
-  name='ValidatorChangeEventWithProof',
-  full_name='types.ValidatorChangeEventWithProof',
+_VALIDATORCHANGEPROOF = _descriptor.Descriptor(
+  name='ValidatorChangeProof',
+  full_name='types.ValidatorChangeProof',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ledger_info_with_sigs', full_name='types.ValidatorChangeEventWithProof.ledger_info_with_sigs', index=0,
+      name='ledger_info_with_sigs', full_name='types.ValidatorChangeProof.ledger_info_with_sigs', index=0,
       number=1, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='more', full_name='types.ValidatorChangeProof.more', index=1,
+      number=2, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -55,20 +61,20 @@ _VALIDATORCHANGEEVENTWITHPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=66,
-  serialized_end=161,
+  serialized_start=52,
+  serialized_end=152,
 )
 
-_VALIDATORCHANGEEVENTWITHPROOF.fields_by_name['ledger_info_with_sigs'].message_type = ledger__info__pb2._LEDGERINFOWITHSIGNATURES
-DESCRIPTOR.message_types_by_name['ValidatorChangeEventWithProof'] = _VALIDATORCHANGEEVENTWITHPROOF
+_VALIDATORCHANGEPROOF.fields_by_name['ledger_info_with_sigs'].message_type = ledger__info__pb2._LEDGERINFOWITHSIGNATURES
+DESCRIPTOR.message_types_by_name['ValidatorChangeProof'] = _VALIDATORCHANGEPROOF
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-ValidatorChangeEventWithProof = _reflection.GeneratedProtocolMessageType('ValidatorChangeEventWithProof', (_message.Message,), {
-  'DESCRIPTOR' : _VALIDATORCHANGEEVENTWITHPROOF,
+ValidatorChangeProof = _reflection.GeneratedProtocolMessageType('ValidatorChangeProof', (_message.Message,), {
+  'DESCRIPTOR' : _VALIDATORCHANGEPROOF,
   '__module__' : 'validator_change_pb2'
-  # @@protoc_insertion_point(class_scope:types.ValidatorChangeEventWithProof)
+  # @@protoc_insertion_point(class_scope:types.ValidatorChangeProof)
   })
-_sym_db.RegisterMessage(ValidatorChangeEventWithProof)
+_sym_db.RegisterMessage(ValidatorChangeProof)
 
 
 # @@protoc_insertion_point(module_scope)

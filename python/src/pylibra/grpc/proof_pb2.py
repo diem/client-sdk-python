@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='types',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\x0bproof.proto\x12\x05types\x1a\x16transaction_info.proto\"$\n\x10\x41\x63\x63umulatorProof\x12\x10\n\x08siblings\x18\x01 \x03(\x0c\"3\n\x11SparseMerkleProof\x12\x0c\n\x04leaf\x18\x01 \x01(\x0c\x12\x10\n\x08siblings\x18\x02 \x03(\x0c\"/\n\x1b\x41\x63\x63umulatorConsistencyProof\x12\x10\n\x08subtrees\x18\x01 \x03(\x0c\"F\n\x15\x41\x63\x63umulatorRangeProof\x12\x15\n\rleft_siblings\x18\x01 \x03(\x0c\x12\x16\n\x0eright_siblings\x18\x02 \x03(\x0c\"\x8c\x01\n\x10TransactionProof\x12\x46\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\x0b\x32\x17.types.AccumulatorProof\x12\x30\n\x10transaction_info\x18\x02 \x01(\x0b\x32\x16.types.TransactionInfo\"\xd2\x01\n\x11\x41\x63\x63ountStateProof\x12\x46\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\x0b\x32\x17.types.AccumulatorProof\x12\x30\n\x10transaction_info\x18\x02 \x01(\x0b\x32\x16.types.TransactionInfo\x12\x43\n!transaction_info_to_account_proof\x18\x03 \x01(\x0b\x32\x18.types.SparseMerkleProof\"\xc8\x01\n\nEventProof\x12\x46\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\x0b\x32\x17.types.AccumulatorProof\x12\x30\n\x10transaction_info\x18\x02 \x01(\x0b\x32\x16.types.TransactionInfo\x12@\n\x1ftransaction_info_to_event_proof\x18\x03 \x01(\x0b\x32\x17.types.AccumulatorProof\"\x97\x01\n\x14TransactionListProof\x12L\n&ledger_info_to_transaction_infos_proof\x18\x01 \x01(\x0b\x32\x1c.types.AccumulatorRangeProof\x12\x31\n\x11transaction_infos\x18\x02 \x03(\x0b\x32\x16.types.TransactionInfob\x06proto3')
+  serialized_pb=_b('\n\x0bproof.proto\x12\x05types\x1a\x16transaction_info.proto\"$\n\x10\x41\x63\x63umulatorProof\x12\x10\n\x08siblings\x18\x01 \x03(\x0c\"3\n\x11SparseMerkleProof\x12\x0c\n\x04leaf\x18\x01 \x01(\x0c\x12\x10\n\x08siblings\x18\x02 \x03(\x0c\"/\n\x1b\x41\x63\x63umulatorConsistencyProof\x12\x10\n\x08subtrees\x18\x01 \x03(\x0c\"F\n\x15\x41\x63\x63umulatorRangeProof\x12\x15\n\rleft_siblings\x18\x01 \x03(\x0c\x12\x16\n\x0eright_siblings\x18\x02 \x03(\x0c\"0\n\x16SparseMerkleRangeProof\x12\x16\n\x0eright_siblings\x18\x01 \x03(\x0c\"\x8c\x01\n\x10TransactionProof\x12\x46\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\x0b\x32\x17.types.AccumulatorProof\x12\x30\n\x10transaction_info\x18\x02 \x01(\x0b\x32\x16.types.TransactionInfo\"\xd2\x01\n\x11\x41\x63\x63ountStateProof\x12\x46\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\x0b\x32\x17.types.AccumulatorProof\x12\x30\n\x10transaction_info\x18\x02 \x01(\x0b\x32\x16.types.TransactionInfo\x12\x43\n!transaction_info_to_account_proof\x18\x03 \x01(\x0b\x32\x18.types.SparseMerkleProof\"\xc8\x01\n\nEventProof\x12\x46\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\x0b\x32\x17.types.AccumulatorProof\x12\x30\n\x10transaction_info\x18\x02 \x01(\x0b\x32\x16.types.TransactionInfo\x12@\n\x1ftransaction_info_to_event_proof\x18\x03 \x01(\x0b\x32\x17.types.AccumulatorProof\"\x97\x01\n\x14TransactionListProof\x12L\n&ledger_info_to_transaction_infos_proof\x18\x01 \x01(\x0b\x32\x1c.types.AccumulatorRangeProof\x12\x31\n\x11transaction_infos\x18\x02 \x03(\x0b\x32\x16.types.TransactionInfob\x06proto3')
   ,
   dependencies=[transaction__info__pb2.DESCRIPTOR,])
 
@@ -166,6 +166,37 @@ _ACCUMULATORRANGEPROOF = _descriptor.Descriptor(
 )
 
 
+_SPARSEMERKLERANGEPROOF = _descriptor.Descriptor(
+  name='SparseMerkleRangeProof',
+  full_name='types.SparseMerkleRangeProof',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='right_siblings', full_name='types.SparseMerkleRangeProof.right_siblings', index=0,
+      number=1, type=12, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=258,
+  serialized_end=306,
+)
+
+
 _TRANSACTIONPROOF = _descriptor.Descriptor(
   name='TransactionProof',
   full_name='types.TransactionProof',
@@ -199,8 +230,8 @@ _TRANSACTIONPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=259,
-  serialized_end=399,
+  serialized_start=309,
+  serialized_end=449,
 )
 
 
@@ -244,8 +275,8 @@ _ACCOUNTSTATEPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=402,
-  serialized_end=612,
+  serialized_start=452,
+  serialized_end=662,
 )
 
 
@@ -289,8 +320,8 @@ _EVENTPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=615,
-  serialized_end=815,
+  serialized_start=665,
+  serialized_end=865,
 )
 
 
@@ -327,8 +358,8 @@ _TRANSACTIONLISTPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=818,
-  serialized_end=969,
+  serialized_start=868,
+  serialized_end=1019,
 )
 
 _TRANSACTIONPROOF.fields_by_name['ledger_info_to_transaction_info_proof'].message_type = _ACCUMULATORPROOF
@@ -345,6 +376,7 @@ DESCRIPTOR.message_types_by_name['AccumulatorProof'] = _ACCUMULATORPROOF
 DESCRIPTOR.message_types_by_name['SparseMerkleProof'] = _SPARSEMERKLEPROOF
 DESCRIPTOR.message_types_by_name['AccumulatorConsistencyProof'] = _ACCUMULATORCONSISTENCYPROOF
 DESCRIPTOR.message_types_by_name['AccumulatorRangeProof'] = _ACCUMULATORRANGEPROOF
+DESCRIPTOR.message_types_by_name['SparseMerkleRangeProof'] = _SPARSEMERKLERANGEPROOF
 DESCRIPTOR.message_types_by_name['TransactionProof'] = _TRANSACTIONPROOF
 DESCRIPTOR.message_types_by_name['AccountStateProof'] = _ACCOUNTSTATEPROOF
 DESCRIPTOR.message_types_by_name['EventProof'] = _EVENTPROOF
@@ -378,6 +410,13 @@ AccumulatorRangeProof = _reflection.GeneratedProtocolMessageType('AccumulatorRan
   # @@protoc_insertion_point(class_scope:types.AccumulatorRangeProof)
   })
 _sym_db.RegisterMessage(AccumulatorRangeProof)
+
+SparseMerkleRangeProof = _reflection.GeneratedProtocolMessageType('SparseMerkleRangeProof', (_message.Message,), {
+  'DESCRIPTOR' : _SPARSEMERKLERANGEPROOF,
+  '__module__' : 'proof_pb2'
+  # @@protoc_insertion_point(class_scope:types.SparseMerkleRangeProof)
+  })
+_sym_db.RegisterMessage(SparseMerkleRangeProof)
 
 TransactionProof = _reflection.GeneratedProtocolMessageType('TransactionProof', (_message.Message,), {
   'DESCRIPTOR' : _TRANSACTIONPROOF,

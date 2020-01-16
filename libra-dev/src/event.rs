@@ -3,9 +3,11 @@
 
 use crate::data::{LibraEvent, LibraEventType, LibraPaymentEvent, LibraStatus};
 use libra_types::{
-    account_address::ADDRESS_LENGTH, account_config::AccountEvent, event::EVENT_KEY_LENGTH,
-    language_storage::TypeTag,
+    account_address::ADDRESS_LENGTH, account_config::ReceivedPaymentEvent,
+    account_config::SentPaymentEvent, contract_event::ContractEvent, event::EventKey,
+    event::EVENT_KEY_LENGTH, language_storage::TypeTag,
 };
+use std::convert::TryFrom;
 use std::ffi::CString;
 use std::slice;
 
@@ -30,16 +32,6 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
     let mut key_address = [0u8; ADDRESS_LENGTH];
     key_address.copy_from_slice(event_address);
 
-    let account_event: AccountEvent = match AccountEvent::try_from(buffer_data) {
-        Ok(result) => result,
-        Err(_e) => {
-            return LibraStatus::InvalidArgument;
-        }
-    };
-
-    let mut receiver_account = [0u8; ADDRESS_LENGTH];
-    receiver_account.copy_from_slice(account_event.account().as_ref());
-
     let type_tag: TypeTag = match lcs::from_bytes(buffer_type_tag) {
         Ok(result) => result,
         Err(_e) => {
@@ -47,62 +39,69 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
         }
     };
 
-    let mut module = None;
-    let mut name = None;
-    if let TypeTag::Struct(struct_tag) = type_tag {
-        module = Some(struct_tag.module.into_string());
-        name = Some(struct_tag.name.into_string());
+    let mut module = [0u8; 255];
+    if let TypeTag::Struct(struct_tag) = type_tag.clone() {
+        let module_tmp = match CString::new(struct_tag.module.into_string()) {
+            Ok(res) => res,
+            _ => return LibraStatus::InvalidArgument,
+        };
+        let module_bytes = module_tmp.as_bytes_with_nul();
+        let module_len = module_bytes.len();
+        module[..module_len].copy_from_slice(module_bytes);
     };
 
-    let module = match module {
-        Some(result) => result,
-        None => {
-            return LibraStatus::InvalidArgument;
-        }
-    };
-    let module_tmp = match CString::new(module) {
-        Ok(result) => result,
-        Err(_e) => {
-            return LibraStatus::InvalidArgument;
-        }
-    };
+    let account_event = ContractEvent::new(EventKey::new(key), 0, type_tag, buffer_data.to_vec());
 
     let mut event_enum = None;
-    if let Some(event_type) = name {
-        match event_type.as_str() {
-            "SentPaymentEvent" => {
-                event_enum = Some(LibraEventType::SentPaymentEvent);
-            }
-            "ReceivedPaymentEvent" => {
-                event_enum = Some(LibraEventType::ReceivedPaymentEvent);
-            }
-            _ => {
-                event_enum = Some(LibraEventType::UndefinedEvent);
-            }
-        };
+    let mut event_data: Option<LibraPaymentEvent> = None;
+
+    match SentPaymentEvent::try_from(&account_event) {
+        Ok(res) => {
+            event_enum = Some(LibraEventType::SentPaymentEvent);
+            let mut addr = [0u8; ADDRESS_LENGTH];
+            addr.copy_from_slice(res.receiver().as_ref());
+            event_data = Some(LibraPaymentEvent {
+                sender_address: key_address,
+                receiver_address: addr,
+                amount: res.amount(),
+                module,
+            });
+        }
+        _ => {}
     };
-    let event_enum = match event_enum {
-        Some(result) => result,
+
+    match ReceivedPaymentEvent::try_from(&account_event) {
+        Ok(res) => {
+            event_enum = Some(LibraEventType::ReceivedPaymentEvent);
+            let mut addr = [0u8; ADDRESS_LENGTH];
+            addr.copy_from_slice(res.sender().as_ref());
+            event_data = Some(LibraPaymentEvent {
+                sender_address: addr,
+                receiver_address: key_address,
+                amount: res.amount(),
+                module,
+            });
+        }
+        _ => {}
+    };
+
+    match event_enum {
+        Some(_) => {}
         None => {
             return LibraStatus::InvalidArgument;
         }
     };
 
-    let module_bytes = module_tmp.as_bytes_with_nul();
-    let module_len = module_bytes.len();
-    let mut module = [0u8; 255];
-    module[..module_len].copy_from_slice(module_bytes);
-
-    let event_data = LibraPaymentEvent {
-        sender_address: key_address,
-        receiver_address: receiver_account,
-        amount: account_event.amount(),
-        module,
-    };
+    match event_data {
+        Some(_) => {}
+        None => {
+            return LibraStatus::InvalidArgument;
+        }
+    }
 
     *out = LibraEvent {
-        event_type: event_enum,
-        payment_event: event_data,
+        event_type: event_enum.unwrap(),
+        payment_event: event_data.unwrap(),
     };
 
     LibraStatus::OK
@@ -113,6 +112,7 @@ fn test_libra_LibraEvent_from() {
     use libra_crypto::ed25519::compat;
     use libra_types::{
         account_address::AccountAddress,
+        account_config::SentPaymentEvent,
         contract_event::ContractEvent,
         event::{EventHandle, EventKey},
         identifier::Identifier,
@@ -136,8 +136,9 @@ fn test_libra_LibraEvent_from() {
     });
     let amount = 50000000;
     let receiver_address = AccountAddress::random();
-    let event_data = AccountEvent::new(amount, receiver_address, vec![]);
+    let event_data = SentPaymentEvent::new(amount, receiver_address, vec![]);
     let event_data_bytes = lcs::to_bytes(&event_data).unwrap();
+
     let event = ContractEvent::new(*event_key, sequence_number, type_tag, event_data_bytes);
 
     let proto_txn = libra_types::proto::types::Event::from(event.clone());

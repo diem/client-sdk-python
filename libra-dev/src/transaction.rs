@@ -78,7 +78,7 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
             return LibraStatus::InternalError;
         }
     };
-    let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
+    let txn_buf: *mut u8 = libc::malloc(signed_txn_bytes.len()).cast();
     txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
     *ptr_buf = txn_buf;
@@ -141,7 +141,7 @@ pub unsafe extern "C" fn libra_RawTransactionBytes_from(
         }
     };
 
-    let txn_buf: (*mut u8) = libc::malloc(raw_txn_bytes.len()).cast();
+    let txn_buf: *mut u8 = libc::malloc(raw_txn_bytes.len()).cast();
     txn_buf.copy_from(raw_txn_bytes.as_ptr(), raw_txn_bytes.len());
 
     *buf = txn_buf;
@@ -193,7 +193,7 @@ pub unsafe extern "C" fn libra_RawTransaction_sign(
         }
     };
 
-    let txn_buf: (*mut u8) = libc::malloc(signed_txn_bytes.len()).cast();
+    let txn_buf: *mut u8 = libc::malloc(signed_txn_bytes.len()).cast();
     txn_buf.copy_from(signed_txn_bytes.as_ptr(), signed_txn_bytes.len());
 
     *buf_result = txn_buf;

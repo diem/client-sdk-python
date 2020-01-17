@@ -3,10 +3,7 @@
 
 use crate::AccountData;
 use admission_control_proto::{
-    proto::admission_control::{
-        AdmissionControlClient, SubmitTransactionRequest,
-        SubmitTransactionResponse as ProtoSubmitTransactionResponse,
-    },
+    proto::admission_control::SubmitTransactionRequest, proto::AdmissionControlClientBlocking,
     AdmissionControlStatus, SubmitTransactionResponse,
 };
 use anyhow::{bail, Result};
@@ -15,56 +12,73 @@ use fixme_libra_types::{
     account_address::AccountAddress,
     account_state_blob::{AccountStateBlob, AccountStateWithProof},
     contract_event::{ContractEvent, EventWithProof},
-    crypto_proxies::EpochInfo,
+    crypto_proxies::{EpochInfo, LedgerInfoWithSignatures},
     get_with_proof::{
         RequestItem, ResponseItem, UpdateToLatestLedgerRequest, UpdateToLatestLedgerResponse,
     },
     transaction::{Transaction, Version},
+    validator_change::VerifierType,
     vm_error::StatusCode,
+    waypoint::Waypoint,
 };
-use futures::Future;
-use grpcio::{CallOption, ChannelBuilder, EnvBuilder};
 use libra_logger::prelude::*;
 use std::convert::TryFrom;
 use std::sync::{Arc, Mutex};
 
 const MAX_GRPC_RETRY_COUNT: u64 = 1;
 
+struct TrustedState {
+    version: Version,
+    verifier: VerifierType,
+    latest_epoch_change_li: Option<LedgerInfoWithSignatures>,
+}
+
 /// Struct holding dependencies of client, known_version_and_epoch is updated when learning about
 /// new LedgerInfo
 pub struct GRPCClient {
-    client: AdmissionControlClient,
-    known_version_and_epoch: Arc<Mutex<(Version, EpochInfo)>>,
+    client: AdmissionControlClientBlocking,
+    state: Arc<Mutex<TrustedState>>,
 }
 
 impl GRPCClient {
     /// Construct a new Client instance.
-    pub fn new(host: &str, port: u16, initial_epoch_info: EpochInfo) -> Result<Self> {
-        let conn_addr = format!("{}:{}", host, port);
-
-        // Create a GRPC client
-        let env = Arc::new(EnvBuilder::new().name_prefix("grpc-client-").build());
-        let ch = ChannelBuilder::new(env).connect(&conn_addr);
-        let client = AdmissionControlClient::new(ch);
-
+    pub fn new(host: &str, port: u16, waypoint: Option<Waypoint>) -> Result<Self> {
+        let client = AdmissionControlClientBlocking::new(host, port);
+        // If waypoint is present, use it for initial verification, otherwise the initial
+        // verification is essentially empty.
+        let (initial_version, initial_verifier) = waypoint.map_or(
+            (0, VerifierType::TrustedVerifier(EpochInfo::empty())),
+            |w| (w.version(), VerifierType::Waypoint(w)),
+        );
+        let initial_state = TrustedState {
+            version: initial_version,
+            verifier: initial_verifier,
+            latest_epoch_change_li: None,
+        };
         Ok(GRPCClient {
             client,
-            known_version_and_epoch: Arc::new(Mutex::new((0, initial_epoch_info))),
+            state: Arc::new(Mutex::new(initial_state)),
         })
     }
 
     /// Submits a transaction and bumps the sequence number for the sender, pass in `None` for
     /// sender_account if sender's address is not managed by the client.
     pub fn submit_transaction(
-        &self,
+        &mut self,
         sender_account_opt: Option<&mut AccountData>,
         req: &SubmitTransactionRequest,
     ) -> Result<()> {
-        let mut resp = self.submit_transaction_opt(req);
+        let mut resp = self
+            .client
+            .submit_transaction(req.clone())
+            .map_err(Into::into);
 
         let mut try_cnt = 0_u64;
         while Self::need_to_retry(&mut try_cnt, &resp) {
-            resp = self.submit_transaction_opt(&req);
+            resp = self
+                .client
+                .submit_transaction(req.clone())
+                .map_err(Into::into);
         }
 
         let completed_resp = SubmitTransactionResponse::try_from(resp?)?;
@@ -104,54 +118,31 @@ impl GRPCClient {
         Ok(())
     }
 
-    /// Async version of submit_transaction
-    pub fn submit_transaction_async(
-        &self,
-        req: &SubmitTransactionRequest,
-    ) -> Result<(impl Future<Item = SubmitTransactionResponse, Error = anyhow::Error>)> {
-        let resp = self
-            .client
-            .submit_transaction_async_opt(&req, Self::get_default_grpc_call_option())?
-            .then(|proto_resp| {
-                let ret = SubmitTransactionResponse::try_from(proto_resp?)?;
-                Ok(ret)
-            });
-        Ok(resp)
-    }
-
-    fn submit_transaction_opt(
-        &self,
-        resp: &SubmitTransactionRequest,
-    ) -> Result<ProtoSubmitTransactionResponse> {
-        Ok(self
-            .client
-            .submit_transaction_opt(resp, Self::get_default_grpc_call_option())?)
-    }
-
-    fn get_with_proof_async(
-        &self,
+    fn get_with_proof(
+        &mut self,
         requested_items: Vec<RequestItem>,
-    ) -> Result<impl Future<Item = UpdateToLatestLedgerResponse, Error = anyhow::Error>> {
-        let known_version_and_epoch = Arc::clone(&self.known_version_and_epoch);
+    ) -> Result<UpdateToLatestLedgerResponse> {
+        let current_state = Arc::clone(&self.state);
         let req = UpdateToLatestLedgerRequest::new(
-            known_version_and_epoch.lock().unwrap().0,
-            requested_items.clone(),
+            current_state.lock().unwrap().version,
+            requested_items,
         );
         debug!("get_with_proof with request: {:?}", req);
         let proto_req = req.clone().into();
-        let ret = self
-            .client
-            .update_to_latest_ledger_async_opt(&proto_req, Self::get_default_grpc_call_option())?
-            .then(move |get_with_proof_resp| {
-                let resp = UpdateToLatestLedgerResponse::try_from(get_with_proof_resp?)?;
-                let mut wlock = known_version_and_epoch.lock().unwrap();
-                if let Some(new_epoch_info) = resp.verify(&wlock.1, &req)? {
-                    wlock.1 = new_epoch_info;
-                }
-                wlock.0 = resp.ledger_info_with_sigs.ledger_info().version();
-                Ok(resp)
-            });
-        Ok(ret)
+        let resp = self.client.update_to_latest_ledger(proto_req)?;
+        let resp = UpdateToLatestLedgerResponse::try_from(resp)?;
+        let mut state = current_state.lock().unwrap();
+        if let Some(new_epoch_info) = resp.verify(&state.verifier, &req)? {
+            info!("Trusted epoch change to :{}", new_epoch_info);
+            state.verifier = VerifierType::TrustedVerifier(new_epoch_info);
+            state.latest_epoch_change_li = resp
+                .validator_change_proof
+                .ledger_info_with_sigs
+                .last()
+                .cloned();
+        }
+        state.version = resp.ledger_info_with_sigs.ledger_info().version();
+        Ok(resp)
     }
 
     fn need_to_retry<T>(try_cnt: &mut u64, ret: &Result<T>) -> bool {
@@ -169,24 +160,25 @@ impl GRPCClient {
         }
         false
     }
+
     /// Sync version of get_with_proof
     pub(crate) fn get_with_proof_sync(
-        &self,
+        &mut self,
         requested_items: Vec<RequestItem>,
     ) -> Result<UpdateToLatestLedgerResponse> {
         let mut resp: Result<UpdateToLatestLedgerResponse> =
-            self.get_with_proof_async(requested_items.clone())?.wait();
+            self.get_with_proof(requested_items.clone());
         let mut try_cnt = 0_u64;
 
         while Self::need_to_retry(&mut try_cnt, &resp) {
-            resp = self.get_with_proof_async(requested_items.clone())?.wait();
+            resp = self.get_with_proof(requested_items.clone());
         }
 
         Ok(resp?)
     }
 
     /// Get the latest account sequence number for the account specified.
-    pub fn get_sequence_number(&self, address: AccountAddress) -> Result<u64> {
+    pub fn get_sequence_number(&mut self, address: AccountAddress) -> Result<u64> {
         use crate::bindings::*;
 
         let blob = self.get_account_blob(address)?.0.expect("Can't read blob");
@@ -201,7 +193,7 @@ impl GRPCClient {
 
     /// Get the latest account state blob from validator.
     pub(crate) fn get_account_blob(
-        &self,
+        &mut self,
         address: AccountAddress,
     ) -> Result<(Option<AccountStateBlob>, Version)> {
         let req_item = RequestItem::GetAccountState { address };
@@ -220,7 +212,7 @@ impl GRPCClient {
 
     /// Get transaction from validator by account and sequence number.
     pub fn get_txn_by_acc_seq(
-        &self,
+        &mut self,
         account: AccountAddress,
         sequence_number: u64,
         fetch_events: bool,
@@ -242,7 +234,7 @@ impl GRPCClient {
 
     /// Get transactions in range (start_version..start_version + limit - 1) from validator.
     pub fn get_txn_by_range(
-        &self,
+        &mut self,
         start_version: u64,
         limit: u64,
         fetch_events: bool,
@@ -273,7 +265,7 @@ impl GRPCClient {
     /// 1. No event is available. 2. Ascending and available event number < limit.
     /// 3. Descending and start_seq_num > latest account event sequence number.
     pub fn get_events_by_access_path(
-        &self,
+        &mut self,
         access_path: AccessPath,
         start_event_seq_num: u64,
         ascending: bool,
@@ -298,11 +290,5 @@ impl GRPCClient {
                 value_with_proof
             ),
         }
-    }
-
-    fn get_default_grpc_call_option() -> CallOption {
-        CallOption::default()
-            .wait_for_ready(true)
-            .timeout(std::time::Duration::from_millis(5000))
     }
 }

@@ -5,6 +5,7 @@
 
 use chrono::prelude::{SecondsFormat, Utc};
 use client::{client_proxy::ClientProxy, commands::*};
+use fixme_libra_types::waypoint::Waypoint;
 use libra_logger::set_default_global_logger;
 use rustyline::{config::CompletionType, error::ReadlineError, Config, Editor};
 use std::num::NonZeroU16;
@@ -51,6 +52,9 @@ struct Args {
     /// If set, client will sync with validator during wallet recovery.
     #[structopt(short = "r", long = "sync")]
     pub sync: bool,
+    /// If set, a client uses the waypoint parameter for its initial LedgerInfo verification.
+    #[structopt(name = "waypoint", short, long)]
+    pub waypoint: Option<Waypoint>,
     /// Verbose output.
     #[structopt(short = "v", long = "verbose")]
     pub verbose: bool,
@@ -68,11 +72,11 @@ fn main() -> std::io::Result<()> {
     let mut client_proxy = ClientProxy::new(
         &args.host,
         args.port.get(),
-        &args.validator_set_file,
         &faucet_account_file,
         args.sync,
         args.faucet_server,
         args.mnemonic_file,
+        args.waypoint,
     )
     .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, &format!("{}", e)[..]))?;
 

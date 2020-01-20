@@ -14,7 +14,7 @@ use admission_control_proto::proto::admission_control::SubmitTransactionRequest;
 use anyhow::{bail, ensure, format_err, Error, Result};
 use chrono::Utc;
 use fixme_lcs::from_bytes;
-use fixme_libra_types::crypto_proxies::EpochInfo;
+use fixme_libra_types::crypto_proxies::LedgerInfoWithSignatures;
 use fixme_libra_types::{
     access_path::AccessPath,
     account_address::{AccountAddress, ADDRESS_LENGTH},
@@ -29,8 +29,8 @@ use fixme_libra_types::{
         parse_as_transaction_argument, RawTransaction, Script, SignedTransaction, Transaction,
         TransactionArgument, TransactionPayload, Version,
     },
+    waypoint::Waypoint,
 };
-use libra_config::config::{ConsensusPeersConfig, PersistableConfig};
 use libra_crypto::{ed25519::*, test_utils::KeyPair};
 use libra_logger::prelude::*;
 use libra_tools::tempdir::TempPath;
@@ -118,19 +118,13 @@ impl ClientProxy {
     pub fn new(
         host: &str,
         ac_port: u16,
-        validator_set_file: &str,
         faucet_account_file: &str,
         sync_on_wallet_recovery: bool,
         faucet_server: Option<String>,
         mnemonic_file: Option<String>,
+        waypoint: Option<Waypoint>,
     ) -> Result<Self> {
-        let verifier =
-            ConsensusPeersConfig::load_config(validator_set_file)?.get_validator_verifier();
-        ensure!(
-            !verifier.is_empty(),
-            "Not able to load any validators from trusted peers config!"
-        );
-        let client = GRPCClient::new(host, ac_port, EpochInfo { epoch: 1, verifier })?;
+        let mut client = GRPCClient::new(host, ac_port, waypoint)?;
 
         let accounts = vec![];
 
@@ -141,7 +135,7 @@ impl ClientProxy {
             let faucet_account_keypair: KeyPair<Ed25519PrivateKey, Ed25519PublicKey> =
                 ClientProxy::load_faucet_account_file(faucet_account_file);
             let faucet_account_data = Self::get_account_data_from_address(
-                &client,
+                &mut client,
                 association_address(),
                 true,
                 Some(KeyPair::<Ed25519PrivateKey, _>::from(
@@ -153,7 +147,7 @@ impl ClientProxy {
         };
 
         let faucet_server = match faucet_server {
-            Some(server) => server.to_string(),
+            Some(server) => server,
             None => host.replace("ac", "faucet"),
         };
 
@@ -192,8 +186,12 @@ impl ClientProxy {
     pub fn create_next_account(&mut self, sync_with_validator: bool) -> Result<AddressAndIndex> {
         let (address, _) = self.wallet.new_address()?;
 
-        let account_data =
-            Self::get_account_data_from_address(&self.client, address, sync_with_validator, None)?;
+        let account_data = Self::get_account_data_from_address(
+            &mut self.client,
+            address,
+            sync_with_validator,
+            None,
+        )?;
 
         Ok(self.insert_account_data(account_data))
     }
@@ -519,7 +517,7 @@ impl ClientProxy {
         let dependencies_file = self.handle_dependencies(tmp_source_path.display(), is_module)?;
 
         let mut args = format!(
-            "{} -a {}{}",
+            "run -p compiler -- {} -a {}{}",
             tmp_source_path.display(),
             address,
             if is_module { " -m" } else { "" },
@@ -528,7 +526,7 @@ impl ClientProxy {
             args.push_str(&format!(" --deps={}", file.as_ref().display()));
         }
 
-        let status = Command::new("./target/debug/compiler")
+        let status = Command::new("cargo")
             .args(args.split(' '))
             .spawn()?
             .wait()?;
@@ -816,7 +814,7 @@ impl ClientProxy {
         let mut account_data = Vec::new();
         for address in wallet_addresses {
             account_data.push(Self::get_account_data_from_address(
-                &self.client,
+                &mut self.client,
                 address,
                 self.sync_on_wallet_recovery,
                 None,
@@ -842,9 +840,10 @@ impl ClientProxy {
     }
 
     /// Test gRPC client connection with validator.
-    pub fn test_validator_connection(&self) -> Result<()> {
-        self.client.get_with_proof_sync(vec![])?;
-        Ok(())
+    pub fn test_validator_connection(&mut self) -> Result<LedgerInfoWithSignatures> {
+        self.client
+            .get_with_proof_sync(vec![])
+            .map(|res| res.ledger_info_with_sigs)
     }
 
     /// Get account state from validator and update status of account if it is cached locally.
@@ -895,7 +894,7 @@ impl ClientProxy {
     /// Sync with validator for account sequence number in case it is already created on chain.
     /// This assumes we have a very low probability of mnemonic word conflict.
     fn get_account_data_from_address(
-        client: &GRPCClient,
+        client: &mut GRPCClient,
         address: AccountAddress,
         sync_with_validator: bool,
         key_pair: Option<KeyPair<Ed25519PrivateKey, Ed25519PublicKey>>,
@@ -1219,7 +1218,6 @@ impl fmt::Display for AccountEntry {
 #[cfg(test)]
 mod tests {
     use crate::client_proxy::{parse_bool, AddressAndIndex, ClientProxy};
-    use libra_config::config::{ConsensusConfig, PersistableConfig};
     use libra_tools::tempdir::TempPath;
     use libra_wallet::io_utils;
     use proptest::prelude::*;
@@ -1230,25 +1228,16 @@ mod tests {
         let file = TempPath::new();
         let mnemonic_path = file.path().to_str().unwrap().to_string();
 
-        let consensus_config = ConsensusConfig::default();
-        let consensus_peer_file = TempPath::new();
-        let consensus_peers_path = consensus_peer_file.path();
-        consensus_config
-            .consensus_peers
-            .save_config(consensus_peers_path)
-            .expect("Unable to save consensus_peers.config");
-        let val_set_file = consensus_peers_path.to_str().unwrap().to_string();
-
         // We don't need to specify host/port since the client won't be used to connect, only to
         // generate random accounts
         let mut client_proxy = ClientProxy::new(
             "", /* host */
             0,  /* port */
-            &val_set_file,
             &"",
             false,
             None,
             Some(mnemonic_path),
+            None,
         )
         .unwrap();
         for _ in 0..count {

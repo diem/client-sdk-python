@@ -477,18 +477,19 @@ pub enum LibraEventType {
     UndefinedEvent = -1,
 }
 #[repr(C)]
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct LibraPaymentEvent {
     pub sender_address: [u8; 32usize],
     pub receiver_address: [u8; 32usize],
     pub amount: u64,
-    pub module: [u8; 255usize],
+    pub metadata: *mut u8,
+    pub metadata_len: usize,
 }
 #[test]
 fn bindgen_test_layout_LibraPaymentEvent() {
     assert_eq!(
         ::std::mem::size_of::<LibraPaymentEvent>(),
-        328usize,
+        88usize,
         concat!("Size of: ", stringify!(LibraPaymentEvent))
     );
     assert_eq!(
@@ -531,13 +532,23 @@ fn bindgen_test_layout_LibraPaymentEvent() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<LibraPaymentEvent>())).module as *const _ as usize },
+        unsafe { &(*(::std::ptr::null::<LibraPaymentEvent>())).metadata as *const _ as usize },
         72usize,
         concat!(
             "Offset of field: ",
             stringify!(LibraPaymentEvent),
             "::",
-            stringify!(module)
+            stringify!(metadata)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraPaymentEvent>())).metadata_len as *const _ as usize },
+        80usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraPaymentEvent),
+            "::",
+            stringify!(metadata_len)
         )
     );
 }
@@ -550,13 +561,15 @@ impl Default for LibraPaymentEvent {
 #[derive(Copy, Clone)]
 pub struct LibraEvent {
     pub event_type: LibraEventType,
-    pub payment_event: LibraPaymentEvent,
+    pub module: [u8; 255usize],
+    pub name: [u8; 255usize],
+    pub payment_event_data: LibraPaymentEvent,
 }
 #[test]
 fn bindgen_test_layout_LibraEvent() {
     assert_eq!(
         ::std::mem::size_of::<LibraEvent>(),
-        336usize,
+        608usize,
         concat!("Size of: ", stringify!(LibraEvent))
     );
     assert_eq!(
@@ -575,13 +588,33 @@ fn bindgen_test_layout_LibraEvent() {
         )
     );
     assert_eq!(
-        unsafe { &(*(::std::ptr::null::<LibraEvent>())).payment_event as *const _ as usize },
-        8usize,
+        unsafe { &(*(::std::ptr::null::<LibraEvent>())).module as *const _ as usize },
+        4usize,
         concat!(
             "Offset of field: ",
             stringify!(LibraEvent),
             "::",
-            stringify!(payment_event)
+            stringify!(module)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraEvent>())).name as *const _ as usize },
+        259usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraEvent),
+            "::",
+            stringify!(name)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<LibraEvent>())).payment_event_data as *const _ as usize },
+        520usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(LibraEvent),
+            "::",
+            stringify!(payment_event_data)
         )
     );
 }

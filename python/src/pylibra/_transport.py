@@ -10,7 +10,7 @@ from .grpc.get_with_proof_pb2 import RequestItem
 from .grpc.get_with_proof_pb2 import GetAccountStateRequest
 from .grpc.get_with_proof_pb2 import GetTransactionsRequest, GetAccountTransactionBySequenceNumberRequest
 
-from ._types import AccountResource, SignedTransaction, TransactionUtils
+from ._types import AccountResource, SignedTransaction, TransactionUtils, Event, EventFactory
 
 
 class ClientError(Exception):
@@ -78,7 +78,7 @@ class LibraNetwork:
 
     def transactions_by_range(
         self, start_version: int, limit: int, include_events: bool = False
-    ) -> typing.List[SignedTransaction]:
+    ) -> typing.List[typing.Tuple[SignedTransaction, typing.List[Event]]]:
         request = UpdateToLatestLedgerRequest()
 
         tx_req = GetTransactionsRequest()
@@ -91,20 +91,37 @@ class LibraNetwork:
         with self._get_channel() as channel:
             stub = AdmissionControlStub(channel)
             response = stub.UpdateToLatestLedger(request)
-            txs = response.response_items[0].get_transactions_response.txn_list_with_proof
-            if not len(txs.transactions):
+            txn_list_with_proof = response.response_items[0].get_transactions_response.txn_list_with_proof
+
+            if not len(txn_list_with_proof.transactions):
                 return []
 
             res = []
-            version = txs.first_transaction_version.value
-            for tx in txs.transactions:
+            version = txn_list_with_proof.first_transaction_version.value
+
+            txs = txn_list_with_proof.transactions
+            event_lists = [x.events for x in txn_list_with_proof.events_for_versions.events_for_version] or [
+                [] for x in txs
+            ]
+
+            for tx, event_list in zip(txs, event_lists):
                 try:
                     # Proto buffer message here contains a 4 byte prefix
                     tx_blob = tx.transaction[4:]
                     t = TransactionUtils.parse(version, tx_blob)
-                    res.append(t)
+
+                    events = []
+                    for event in event_list:
+                        try:
+                            e = EventFactory.parse(event.key, event.sequence_number, event.event_data, event.type_tag)
+                            events.append(e)
+                        except ValueError:
+                            # TODO: Unsupported Event type
+                            continue
+                    res.append((t, events))
                 except ValueError:
                     # TODO: Unsupported TXN type
+                    res.append((None, events))
                     continue
                 finally:
                     version += 1
@@ -113,7 +130,7 @@ class LibraNetwork:
 
     def transaction_by_acc_seq(
         self, addr_hex: str, seq: int, include_events: bool = False
-    ) -> typing.Optional[SignedTransaction]:
+    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[Event]]:
         request = UpdateToLatestLedgerRequest()
 
         tx_req = GetAccountTransactionBySequenceNumberRequest()
@@ -127,14 +144,24 @@ class LibraNetwork:
             stub = AdmissionControlStub(channel)
             response = stub.UpdateToLatestLedger(request)
             tx = response.response_items[0].get_account_transaction_by_sequence_number_response.transaction_with_proof
+
+            res_events = []
+            for event in tx.events.events:
+                try:
+                    e = EventFactory.parse(event.key, event.sequence_number, event.event_data, event.type_tag)
+                    res_events.append(e)
+                except ValueError:
+                    # TODO: Unsupported Event type
+                    continue
+
             version = tx.version
             tx_blob = tx.transaction.transaction
             try:
                 # Proto buffer message here contains a 4 byte prefix
                 tx_blob = tx_blob[4:]
-                return TransactionUtils.parse(version, tx_blob)
+                return TransactionUtils.parse(version, tx_blob), res_events
             except ValueError:
                 # TODO: Unsupported TXN type
                 pass
 
-            return None
+            return None, res_events

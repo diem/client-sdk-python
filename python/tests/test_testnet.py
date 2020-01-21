@@ -10,6 +10,7 @@ from pylibra import (
     AccountKey,
     AccountResource,
     FaucetError,
+    PaymentEvent,
 )
 from functools import wraps
 import typing
@@ -183,16 +184,49 @@ def test_send_transaction_success() -> None:
 @pytest.mark.xfail
 def test_transaction_by_range() -> None:
     api = LibraNetwork()
-    txs = api.transactions_by_range(0, 1)
-    assert len(txs) == 1
-    assert txs[0].sender == bytes.fromhex(ASSOC_ADDRESS)
-    assert txs[0].version == 0
+    res = api.transactions_by_range(0, 1)
+    assert len(res) == 1
+    tx, _ = res[0]
+    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert tx.version == 0
+
+
+@pytest.mark.xfail
+def test_transaction_by_range_with_events() -> None:
+    api = LibraNetwork()
+    res = api.transactions_by_range(0, 1, True)
+    assert len(res) == 1
+    tx, events = res[0]
+    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert tx.version == 0
+    assert len(events) == 4
+    assert events[0].module == "LibraAccount"
+    assert type(events[0]) == PaymentEvent
+    assert events[0].is_sent is True
+    assert type(events[1]) == PaymentEvent
+    assert events[1].module == "LibraAccount"
+    assert events[1].is_received is True
+    assert events[2].module == "LibraSystem"
+    assert events[2].name == "ValidatorSetChangeEvent"
+    assert events[3].module == "LibraSystem"
+    assert events[3].name == "DiscoverySetChangeEvent"
 
 
 @pytest.mark.xfail
 def test_transaction_by_acc_seq() -> None:
     api = LibraNetwork()
-    tx = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1)
+    tx, _ = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1, include_events=True)
     assert tx
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version != 0
+
+
+@pytest.mark.xfail
+def test_transaction_by_acc_seq_with_events() -> None:
+    api = LibraNetwork()
+    tx, events = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1, include_events=True)
+    assert tx
+    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert tx.version != 0
+    assert len(events) == 2
+    assert events[0].module == "LibraAccount"

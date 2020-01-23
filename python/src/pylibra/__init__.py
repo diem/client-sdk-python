@@ -9,6 +9,7 @@ __all__ = [
     "LibraNetwork",
     "TransactionUtils",
     "FaucetUtils",
+    "EventFactory",
     # Exceptions,
     "LibraNetwork",
     "ClientError",
@@ -20,4 +21,6 @@ __all__ = [
     "BytesWrapper",
     "SignedTransaction",
     "Transaction",
+    "Event",
+    "PaymentEvent",
 ]

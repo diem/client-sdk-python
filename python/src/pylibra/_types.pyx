@@ -264,3 +264,71 @@ cdef class SignedTransaction(Transaction):
     @property
     def version(self) -> int:
         return self._version
+
+cdef class EventFactory:
+    @staticmethod
+    def parse(key: bytes, sequence_number: int, event_data: bytes, type_tag: bytes):
+        cdef capi.LibraEvent* _c_event
+        cdef Event res_event = Event.__new__(Event)
+        cdef PaymentEvent res_payment_event = PaymentEvent.__new__(PaymentEvent)
+
+        success = capi.libra_LibraEvent_from(key, len(key), event_data, len(event_data), type_tag, len(type_tag), &_c_event)
+        if success != capi.LibraStatus.OK:
+            raise ValueError("LibraEvent fail to decode, error: %s." % success)
+
+        if _c_event.event_type == capi.LibraEventType.UndefinedEvent:
+            res_event._c_event = _c_event
+            res_event._sequence_number =  sequence_number
+            return res_event
+        else:
+            res_payment_event._c_event = _c_event
+            res_payment_event._sequence_number =  sequence_number
+            if _c_event.event_type == capi.LibraEventType.SentPaymentEvent:
+                res_payment_event._is_sent = 1
+            else:
+                res_payment_event._is_sent = 0
+            return res_payment_event
+
+cdef class Event:
+    cdef capi.LibraEvent* _c_event
+    cdef int _sequence_number
+
+    def __dealloc__(self):
+        if self._c_event:
+            capi.libra_LibraEvent_free(self._c_event)
+
+    @property
+    def module(self) -> str:
+        return self._c_event.module.decode("utf-8", errors = 'replace')
+
+    @property
+    def name(self) -> str:
+        return self._c_event.name.decode("utf-8", errors = 'replace')
+
+
+cdef class PaymentEvent(Event):
+    cdef int _is_sent
+
+    @property
+    def is_sent(self) -> bool:
+        return self._is_sent == 1
+
+    @property
+    def is_received(self) -> bool:
+        return not self.is_sent
+
+    @property
+    def sender_address(self) -> bytes:
+        return <bytes> self._c_event.payment_event_data.sender_address[:32]
+
+    @property
+    def receiver_address(self) -> bytes:
+        return <bytes> self._c_event.payment_event_data.receiver_address[:32]
+
+    @property
+    def amount(self) -> int:
+        return self._c_event.payment_event_data.amount
+
+    @property
+    def metadata(self) -> bytes:
+        return <bytes> self._c_event.payment_event_data.metadata[:self._c_event.payment_event_data.metadata_len]

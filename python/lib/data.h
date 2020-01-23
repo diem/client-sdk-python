@@ -80,12 +80,18 @@ struct LibraPaymentEvent {
     uint8_t sender_address[32];
     uint8_t receiver_address[32];
     uint64_t amount;
-    uint8_t module[255];
+    uint8_t* metadata;
+    size_t metadata_len;
 };
 
 struct LibraEvent {
     enum LibraEventType event_type;
-    struct LibraPaymentEvent payment_event;
+    // TODO: address
+    uint8_t module[255];
+    uint8_t name[255];
+    // TODO: type_params
+    struct LibraPaymentEvent payment_event_data;
+    // TODO: other type of event_data
 };
 
 /*!
@@ -150,11 +156,12 @@ enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], st
 
 /*!
  * This function takes in an event key, event data and event type tag in bytes, and return LibraEvent.
- * To get the event in a memory safe manner, the client needs to call free on the output with `libra_event_free`.
+ * To get the event in a memory safe manner, the client needs to call free on the output with `libra_LibraEvent_free`.
  * @param[out] caller allocated LibraEvent to write into.
  * @returns status code, one of LibraStatus
 */
-enum LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, struct LibraEvent *out);
+enum LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, struct LibraEvent **out);
+void libra_LibraEvent_free(struct LibraEvent *out);
 
 #ifdef __cplusplus
 };

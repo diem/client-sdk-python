@@ -10,7 +10,7 @@ from .grpc.get_with_proof_pb2 import RequestItem
 from .grpc.get_with_proof_pb2 import GetAccountStateRequest
 from .grpc.get_with_proof_pb2 import GetTransactionsRequest, GetAccountTransactionBySequenceNumberRequest
 
-from ._types import AccountResource, SignedTransaction, TransactionUtils, Event, EventFactory
+from ._types import AccountResource, SignedTransaction, TransactionUtils, Event, EventFactory, PaymentEvent
 
 
 class ClientError(Exception):
@@ -78,7 +78,7 @@ class LibraNetwork:
 
     def transactions_by_range(
         self, start_version: int, limit: int, include_events: bool = False
-    ) -> typing.List[typing.Tuple[SignedTransaction, typing.List[Event]]]:
+    ) -> typing.List[typing.Tuple[SignedTransaction, typing.List[typing.Union[Event, PaymentEvent]]]]:
         request = UpdateToLatestLedgerRequest()
 
         tx_req = GetTransactionsRequest()
@@ -105,12 +105,12 @@ class LibraNetwork:
             ]
 
             for tx, event_list in zip(txs, event_lists):
+                events = []
                 try:
                     # Proto buffer message here contains a 4 byte prefix
                     tx_blob = tx.transaction[4:]
                     t = TransactionUtils.parse(version, tx_blob)
 
-                    events = []
                     for event in event_list:
                         try:
                             e = EventFactory.parse(event.key, event.sequence_number, event.event_data, event.type_tag)
@@ -130,7 +130,7 @@ class LibraNetwork:
 
     def transaction_by_acc_seq(
         self, addr_hex: str, seq: int, include_events: bool = False
-    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[Event]]:
+    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]]]:
         request = UpdateToLatestLedgerRequest()
 
         tx_req = GetAccountTransactionBySequenceNumberRequest()

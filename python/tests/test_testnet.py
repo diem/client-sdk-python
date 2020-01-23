@@ -201,11 +201,16 @@ def test_transaction_by_range_with_events() -> None:
     assert tx.version == 0
     assert len(events) == 4
     assert events[0].module == "LibraAccount"
+
     assert type(events[0]) == PaymentEvent
-    assert events[0].is_sent is True
+    e = typing.cast(PaymentEvent, events[0])
+    assert e.is_sent is True
+
     assert type(events[1]) == PaymentEvent
-    assert events[1].module == "LibraAccount"
-    assert events[1].is_received is True
+    e = typing.cast(PaymentEvent, events[1])
+    assert e.module == "LibraAccount"
+    assert e.is_received is True
+
     assert events[2].module == "LibraSystem"
     assert events[2].name == "ValidatorSetChangeEvent"
     assert events[3].module == "LibraSystem"

@@ -35,6 +35,22 @@ class LibraNetwork:
     def _get_channel(self) -> grpc.Channel:
         return grpc.insecure_channel(self._host + ":" + self._port)
 
+    def currentTimestampUsecs(self) -> int:
+        """Get latest block timestamp from the network."""
+        address_bytes = bytes.fromhex("00" * 32)  # query all 0 address
+
+        as_request = GetAccountStateRequest()
+        as_request.address = address_bytes
+
+        request = UpdateToLatestLedgerRequest()
+        request.requested_items.append(RequestItem(get_account_state_request=as_request))
+
+        with self._get_channel() as channel:
+            stub = AdmissionControlStub(channel)
+            response = stub.UpdateToLatestLedger(request)
+            # TODO: care about version and proof!
+            return response.ledger_info_with_sigs.ledger_info.timestamp_usecs
+
     def getAccount(self, address_hex: str) -> AccountResource:
         """Get AccountResource for given address."""
         address_bytes = bytes.fromhex(address_hex)

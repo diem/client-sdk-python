@@ -68,17 +68,14 @@ def retry(
 @pytest.mark.xfail
 def test_account_state_block_from_testnet() -> None:
     # TODO: use another address generated in the genesis process.
-    addr_hex = "00" * 32
-
     api = LibraNetwork()
-    account = api.getAccount(addr_hex)
-    # For all 0 address, these are the only attributes that will not change
-    assert account.sequence == 0
-    assert account.authentication_key == bytes.fromhex(addr_hex)
+    account = api.getAccount(ASSOC_ADDRESS)
+    # For assoc address, we can only know a few things
+    assert account.sequence > 0
+    assert account.balance > 0
+    assert account.authentication_key != bytes.fromhex(ASSOC_ADDRESS)
     assert not account.delegated_key_rotation_capability
     assert not account.delegated_withdrawal_capability
-    # https://github.com/libra/libra/issues/2047
-    # assert account.sent_events.count == 0
 
 
 @pytest.mark.xfail
@@ -235,3 +232,9 @@ def test_transaction_by_acc_seq_with_events() -> None:
     assert tx.version != 0
     assert len(events) == 2
     assert events[0].module == "LibraAccount"
+
+
+@pytest.mark.xfail
+def test_timestamp_from_testnet() -> None:
+    api = LibraNetwork()
+    assert api.currentTimestampUsecs() > 0

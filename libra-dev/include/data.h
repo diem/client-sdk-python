@@ -174,7 +174,9 @@ void libra_LibraEvent_free(struct LibraEvent *out);
  * @param[out] length of the returned error message
  * @returns int value indicating success or failure
 */
-int32_t libra_strerror(char *buffer, int32_t* length);
+//int32_t libra_strerror(char *buffer, int32_t* length);
+const char* libra_strerror();
+
 
 #ifdef __cplusplus
 };

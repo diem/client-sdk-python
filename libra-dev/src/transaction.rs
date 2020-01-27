@@ -530,7 +530,6 @@ fn test_libra_raw_transaction_bytes_from() {
 #[test]
 fn test_libra_signed_transaction_deserialize() {
     use std::ffi::CStr;
-    use std::os::raw::c_char;
 
     let keypair = compat::generate_keypair(None);
     let sender = AccountAddress::random();
@@ -569,14 +568,9 @@ fn test_libra_signed_transaction_deserialize() {
     assert_eq!(result, LibraStatus::InvalidArgument);
 
     unsafe {
-        let mut error_length = last_error_length();
-        let error_buf: *mut c_char = libc::malloc(error_length as usize).cast();
-        libra_strerror(error_buf, &mut error_length);
-        let error_msg: &CStr = CStr::from_ptr(error_buf);
-        assert_eq!(error_msg.to_str().unwrap(), "unexpected end of input");
-        if !error_buf.is_null() {
-            libc::free(error_buf as *mut libc::c_void);
-        }
+        let error_msg = libra_strerror();
+        let error_string: &CStr = CStr::from_ptr(error_msg);
+        assert_eq!(error_string.to_str().unwrap(), "unexpected end of input");
     };
 
     let result = unsafe {

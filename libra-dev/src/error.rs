@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use std::cell::RefCell;
+use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
-use std::ptr;
-use std::slice;
 
 thread_local! {
     static LAST_ERROR: RefCell<Option<String>> = RefCell::new(None);
@@ -31,32 +30,17 @@ pub extern "C" fn last_error_length() -> c_int {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn libra_strerror(buffer: *mut c_char, length: *mut c_int) -> c_int {
+pub unsafe extern "C" fn libra_strerror() -> *const c_char {
     let last_error = match take_last_error() {
         Some(err) => err,
-        None => return 0,
+        None => return std::ptr::null_mut(),
     };
-    let last_error_length = last_error_length();
 
-    if buffer.is_null() {
-        *length = last_error_length;
-        return -1;
-    }
+    let null_terminated = match CString::new(last_error.as_str()) {
+        Ok(res) => res,
+        _ => return std::ptr::null_mut(),
+    };
 
-    // if passed in buffer is not big enough, return the error length so client can pass in a
-    // bigger buffer
-    if last_error_length >= *length {
-        *length = last_error_length;
-        return -1;
-    }
-
-    let buffer = slice::from_raw_parts_mut(buffer as *mut u8, *length as usize);
-
-    ptr::copy_nonoverlapping(last_error.as_ptr(), buffer.as_mut_ptr(), last_error.len());
-
-    // Add a trailing null so people using the string as a `char *` don't
-    // accidentally read into garbage.
-    buffer[last_error.len()] = 0;
-
-    last_error.len() as c_int
+    let error = null_terminated.into_boxed_c_str();
+    (*Box::into_raw(error)).as_ptr()
 }

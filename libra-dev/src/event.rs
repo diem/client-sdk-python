@@ -3,7 +3,7 @@
 
 use crate::{
     data::{LibraEvent, LibraEventType, LibraPaymentEvent, LibraStatus},
-    error::update_last_error,
+    error::*,
 };
 use libra_types::{
     account_address::ADDRESS_LENGTH, account_config::ReceivedPaymentEvent,
@@ -25,6 +25,7 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
     len_type_tag: usize,
     out: *mut *mut LibraEvent,
 ) -> LibraStatus {
+    clear_error();
     let buffer_key: &[u8] = slice::from_raw_parts(buf_key, len_key);
     let buffer_data: &[u8] = slice::from_raw_parts(buf_data, len_data);
     let buffer_type_tag: &[u8] = slice::from_raw_parts(buf_type_tag, len_type_tag);
@@ -39,7 +40,7 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
     let type_tag: TypeTag = match lcs::from_bytes(buffer_type_tag) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Error deserializing type tag: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -51,7 +52,10 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
         let module_tmp = match CString::new(struct_tag.module.into_string()) {
             Ok(res) => res,
             Err(e) => {
-                update_last_error(e.to_string());
+                update_last_error(format!(
+                    "Error converting module too string: {}",
+                    e.to_string()
+                ));
                 return LibraStatus::InvalidArgument;
             }
         };
@@ -96,7 +100,10 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
                 metadata_len,
             });
         }
-        Err(e) => update_last_error(e.to_string()),
+        Err(e) => update_last_error(format!(
+            "Error deserializing SentPaymentEvent: {}",
+            e.to_string()
+        )),
     };
 
     match ReceivedPaymentEvent::try_from(&account_event) {
@@ -122,7 +129,10 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
                 metadata_len,
             });
         }
-        Err(e) => update_last_error(e.to_string()),
+        Err(e) => update_last_error(format!(
+            "Error deserializing ReceivedPaymentEvent: {}",
+            e.to_string()
+        )),
     };
 
     let result = Box::new(LibraEvent {

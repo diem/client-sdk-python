@@ -13,6 +13,7 @@ use std::slice;
 pub fn libra_LibraAccountResource_from_safe(
     blob: AccountStateBlob,
 ) -> Result<LibraAccountResource, LibraStatus> {
+    clear_error();
     match AccountResource::try_from(&blob) {
         Ok(account_resource) => {
             let mut authentication_key = [0u8; 32];
@@ -46,7 +47,10 @@ pub fn libra_LibraAccountResource_from_safe(
             })
         }
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!(
+                "Error deserializing account state blob: {}",
+                e.to_string()
+            ));
             Err(LibraStatus::InvalidArgument)
         }
     }
@@ -58,6 +62,7 @@ pub unsafe extern "C" fn libra_LibraAccountResource_from(
     len: usize,
     out: *mut LibraAccountResource,
 ) -> LibraStatus {
+    clear_error();
     if buf.is_null() {
         return LibraStatus::InvalidArgument;
     }

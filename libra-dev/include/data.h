@@ -165,18 +165,10 @@ void libra_LibraEvent_free(struct LibraEvent *out);
 
 /*!
  * This function returns the string message of the most recent error in Rust.
- * If the allocated buffer is too short, it will return -1.
- * If the buffer is void, it will return -1.
- * On success, buffer will be filled with the string message of the last error.
- *
- * @param[out] caller allocated string buffer to write the error message to
- * @param[in] length of the buffer
- * @param[out] length of the returned error message
- * @returns int value indicating success or failure
+ * Error will be in UTF8 string encoding and client does not need to free the string from their side.
+ * @returns error message string
 */
-//int32_t libra_strerror(char *buffer, int32_t* length);
 const char* libra_strerror();
-
 
 #ifdef __cplusplus
 };

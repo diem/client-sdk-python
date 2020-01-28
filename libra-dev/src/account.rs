@@ -14,13 +14,14 @@ pub unsafe extern "C" fn libra_LibraAccount_from(
     private_key_bytes: *const u8,
     out: *mut LibraAccountKey,
 ) -> LibraStatus {
+    clear_error();
     let private_key_buf: &[u8] =
         slice::from_raw_parts(private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
 
     let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid private key bytes: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };

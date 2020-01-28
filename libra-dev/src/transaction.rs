@@ -32,12 +32,13 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     ptr_buf: *mut *mut u8,
     ptr_len: *mut usize,
 ) -> LibraStatus {
+    clear_error();
     let private_key_buf: &[u8] =
         slice::from_raw_parts(sender_private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
     let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid private key bytes: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -49,7 +50,7 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     let receiver_address = match AccountAddress::try_from(receiver_buf) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid receiver address: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -72,7 +73,7 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     let signed_txn = match signer.sign_txn(raw_txn) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Error signing transaction: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -80,7 +81,10 @@ pub unsafe extern "C" fn libra_SignedTransactionBytes_from(
     let signed_txn_bytes = match to_bytes(&signed_txn) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!(
+                "Error serializing signed transaction: {}",
+                e.to_string()
+            ));
             return LibraStatus::InternalError;
         }
     };
@@ -112,11 +116,12 @@ pub unsafe extern "C" fn libra_RawTransactionBytes_from(
     buf: *mut *mut u8,
     len: *mut usize,
 ) -> LibraStatus {
+    clear_error();
     let sender_buf = slice::from_raw_parts(sender, ADDRESS_LENGTH);
     let sender_address = match AccountAddress::try_from(sender_buf) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid sender address: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -125,7 +130,7 @@ pub unsafe extern "C" fn libra_RawTransactionBytes_from(
     let receiver_address = match AccountAddress::try_from(receiver_buf) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid receiver address: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -145,7 +150,10 @@ pub unsafe extern "C" fn libra_RawTransactionBytes_from(
     let raw_txn_bytes = match to_bytes(&raw_txn) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!(
+                "Error serializing raw transaction: {}",
+                e.to_string()
+            ));
             return LibraStatus::InternalError;
         }
     };
@@ -170,11 +178,15 @@ pub unsafe extern "C" fn libra_RawTransaction_sign(
     buf_result: *mut *mut u8,
     len_result: *mut usize,
 ) -> LibraStatus {
+    clear_error();
     let raw_txn_bytes: &[u8] = slice::from_raw_parts(buf_raw_txn, len_raw_txn);
     let raw_txn: RawTransaction = match lcs::from_bytes(&raw_txn_bytes) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!(
+                "Error deserializing raw transaction, invalid raw_txn bytes or length: {}",
+                e.to_string()
+            ));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -183,7 +195,7 @@ pub unsafe extern "C" fn libra_RawTransaction_sign(
     let public_key = match Ed25519PublicKey::try_from(public_key_bytes) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid public key bytes: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -192,7 +204,7 @@ pub unsafe extern "C" fn libra_RawTransaction_sign(
     let signature = match Ed25519Signature::try_from(signature_bytes) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Invalid signature bytes: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -201,7 +213,10 @@ pub unsafe extern "C" fn libra_RawTransaction_sign(
     let signed_txn_bytes = match to_bytes(&signed_txn) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!(
+                "Error serializing signed transaction: {}",
+                e.to_string()
+            ));
             return LibraStatus::InternalError;
         }
     };
@@ -221,6 +236,7 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     len: usize,
     out: *mut LibraSignedTransaction,
 ) -> LibraStatus {
+    clear_error();
     if buf.is_null() {
         return LibraStatus::InvalidArgument;
     }
@@ -228,7 +244,7 @@ pub unsafe extern "C" fn libra_LibraSignedTransaction_from(
     let signed_txn: SignedTransaction = match lcs::from_bytes(buffer) {
         Ok(result) => result,
         Err(e) => {
-            update_last_error(e.to_string());
+            update_last_error(format!("Error deserializing signed transaction, invalid signed transaction bytes or length: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };
@@ -570,7 +586,7 @@ fn test_libra_signed_transaction_deserialize() {
     unsafe {
         let error_msg = libra_strerror();
         let error_string: &CStr = CStr::from_ptr(error_msg);
-        assert_eq!(error_string.to_str().unwrap(), "unexpected end of input");
+        assert_eq!(error_string.to_str().unwrap(), "Error deserializing signed transaction, invalid signed transaction bytes or length: unexpected end of input");
     };
 
     let result = unsafe {
@@ -582,6 +598,12 @@ fn test_libra_signed_transaction_deserialize() {
     };
 
     assert_eq!(result, LibraStatus::OK);
+
+    unsafe {
+        let error_msg = libra_strerror();
+        let error_string: &CStr = CStr::from_ptr(error_msg);
+        assert_eq!(error_string.to_str().unwrap(), "");
+    };
 
     let payload = signed_txn.payload();
     if let TransactionPayload::Script(_script) = payload {

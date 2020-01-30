@@ -163,6 +163,13 @@ enum LibraStatus libra_LibraAccount_from(const uint8_t private_key_bytes[32], st
 enum LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, struct LibraEvent **out);
 void libra_LibraEvent_free(struct LibraEvent *out);
 
+/*!
+ * This function returns the string message of the most recent error in Rust.
+ * Error will be in UTF8 string encoding and client does not need to free the string from their side.
+ * @returns error message string
+*/
+const char* libra_strerror();
+
 #ifdef __cplusplus
 };
 #endif

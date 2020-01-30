@@ -1,7 +1,10 @@
 // Copyright (c) The Libra Core Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::data::{LibraAccountKey, LibraStatus};
+use crate::{
+    data::{LibraAccountKey, LibraStatus},
+    error::*,
+};
 use libra_crypto::ed25519::*;
 use libra_types::account_address::{AccountAddress, ADDRESS_LENGTH};
 use std::{convert::TryFrom, slice};
@@ -11,12 +14,14 @@ pub unsafe extern "C" fn libra_LibraAccount_from(
     private_key_bytes: *const u8,
     out: *mut LibraAccountKey,
 ) -> LibraStatus {
+    clear_error();
     let private_key_buf: &[u8] =
         slice::from_raw_parts(private_key_bytes, ED25519_PRIVATE_KEY_LENGTH);
 
     let private_key = match Ed25519PrivateKey::try_from(private_key_buf) {
         Ok(result) => result,
-        Err(_e) => {
+        Err(e) => {
+            update_last_error(format!("Invalid private key bytes: {}", e.to_string()));
             return LibraStatus::InvalidArgument;
         }
     };

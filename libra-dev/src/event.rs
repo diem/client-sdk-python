@@ -11,6 +11,7 @@ use libra_types::{
     event::EVENT_KEY_LENGTH, language_storage::TypeTag,
 };
 use std::convert::TryFrom;
+use std::convert::TryInto;
 use std::ffi::CString;
 use std::ops::Deref;
 use std::slice;
@@ -97,7 +98,7 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
                 receiver_address: addr,
                 amount: res.amount(),
                 metadata: metadata_ptr,
-                metadata_len,
+                metadata_len: metadata_len.try_into().unwrap(),
             });
         }
         Err(e) => update_last_error(format!(
@@ -126,7 +127,7 @@ pub unsafe extern "C" fn libra_LibraEvent_from(
                 receiver_address: key_address,
                 amount: res.amount(),
                 metadata: metadata_ptr,
-                metadata_len,
+                metadata_len: metadata_len.try_into().unwrap(),
             });
         }
         Err(e) => update_last_error(format!(
@@ -154,7 +155,7 @@ pub unsafe extern "C" fn libra_LibraEvent_free(ptr: *mut LibraEvent) {
     let metadata = _to_drop.deref().payment_event_data.metadata;
     let metadata_len = _to_drop.deref().payment_event_data.metadata_len;
     if metadata != std::ptr::null_mut() {
-        let _to_drop = Box::from_raw(slice::from_raw_parts_mut(metadata, metadata_len));
+        let _to_drop = Box::from_raw(slice::from_raw_parts_mut(metadata, metadata_len as usize));
     }
 }
 

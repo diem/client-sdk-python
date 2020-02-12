@@ -42,12 +42,6 @@ commands:
           command: |
             cd cpp
             ./build.sh && ./test.sh
-      - run:
-          name: Test Rust Client
-          shell: /bin/sh
-          command: |
-            cd rust
-            ./test.sh
   build-python:
     steps:
       - run:

@@ -85,8 +85,8 @@ mod tests {
     fn test_get_accountresource() {
         use libra_crypto::ed25519::compat;
         use libra_types::{
-            account_address::AccountAddress, account_config::account_resource_path,
-            account_config::AccountResource, byte_array::ByteArray, event::EventHandle,
+            account_address::AccountAddress, account_config::AccountResource,
+            account_config::ACCOUNT_RESOURCE_PATH, byte_array::ByteArray, event::EventHandle,
             event::EventKey,
         };
         use std::collections::BTreeMap;
@@ -109,7 +109,7 @@ mod tests {
 
         // Fill in data
         map.insert(
-            account_resource_path(),
+            ACCOUNT_RESOURCE_PATH.clone(),
             lcs::to_bytes(&ar).expect("Must success"),
         );
 

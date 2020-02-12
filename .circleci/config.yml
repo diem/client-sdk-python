@@ -3,7 +3,7 @@ version: 2.1
 executors:
   build-executor:
     docker:
-      - image: circleci/rust:buster
+      - image: circleci/rust:1.40.0-buster
     resource_class: 2xlarge
 
 commands:
@@ -42,12 +42,6 @@ commands:
           command: |
             cd cpp
             ./build.sh && ./test.sh
-      - run:
-          name: Test Rust Client
-          shell: /bin/sh
-          command: |
-            cd rust
-            ./test.sh
   build-python:
     steps:
       - run:

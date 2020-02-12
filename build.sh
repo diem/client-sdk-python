@@ -19,8 +19,3 @@ cargo build --locked
 cargo fmt --all -- --check
 cargo test
 cd ..
-
-# Then build rust client
-cd rust
-cargo build
-cd ..

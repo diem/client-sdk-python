@@ -240,12 +240,12 @@ cdef class Transaction:
 
     @property
     def receiver(self) -> bytes:
-        assert self.is_p2p
+        assert self.is_p2p or self.is_mint
         return <bytes> self._c_txn.payload.args.address[:32]
 
     @property
     def amount(self) -> int:
-        assert self.is_p2p
+        assert self.is_p2p or self.is_mint
         return self._c_txn.payload.args.value
 
 

@@ -265,9 +265,18 @@ cdef class SignedTransaction(Transaction):
     def version(self) -> int:
         return self._version
 
+<<<<<<< HEAD
     @property 
     def gas(self) -> int:
         return self._gas_used    
+=======
+cdef class SignedTransactionWithGas(SignedTransaction):
+    cdef int _gas_used
+
+    @property 
+    def gas(self) -> int:
+        return self._gas_used
+>>>>>>> 63be5ae6fdb192e67e3df92bbfcab383d6805c15
 
 
 cdef class EventFactory:

@@ -10,14 +10,7 @@ from .grpc.get_with_proof_pb2 import RequestItem
 from .grpc.get_with_proof_pb2 import GetAccountStateRequest
 from .grpc.get_with_proof_pb2 import GetTransactionsRequest, GetAccountTransactionBySequenceNumberRequest
 
-from ._types import (
-    AccountResource,
-    SignedTransaction,
-    TransactionUtils,
-    Event,
-    EventFactory,
-    PaymentEvent
-)
+from ._types import AccountResource, SignedTransaction, TransactionUtils, Event, EventFactory, PaymentEvent
 
 
 class ClientError(Exception):
@@ -126,9 +119,7 @@ class LibraNetwork:
             event_lists = [x.events for x in txn_list_with_proof.events_for_versions.events_for_version] or [
                 [] for x in txs
             ]
-            gases = [x.gas_used for x in txn_list_with_proof.proof.transaction_infos] or [
-                [] for x in txs
-            ]
+            gases = [x.gas_used for x in txn_list_with_proof.proof.transaction_infos] or [[] for x in txs]
 
             for tx, event_list, gas_used in zip(txs, event_lists, gases):
                 events = []

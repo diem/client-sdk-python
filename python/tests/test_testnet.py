@@ -221,6 +221,7 @@ def test_transaction_by_acc_seq() -> None:
     assert tx
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version != 0
+    assert tx.gas == 0
 
 
 @pytest.mark.xfail
@@ -232,15 +233,7 @@ def test_transaction_by_acc_seq_with_events() -> None:
     assert tx.version != 0
     assert len(events) == 2
     assert events[0].module == "LibraAccount"
-
-
-@pytest.mark.xfail
-def test_transaction_by_acc_seq_with_gas() -> None:
-    api = LibraNetwork()
-    tx, _ = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1, include_events=True)
-    gas_used = tx.gas
-    assert tx
-    assert gas_used == 0
+    assert tx.gas == 0
 
 
 @pytest.mark.xfail

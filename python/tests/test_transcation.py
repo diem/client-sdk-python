@@ -73,9 +73,4 @@ def test_parse_transaction() -> None:
 
     assert tx.public_key == PUBLIC_KEY
     assert tx.signature.hex() == SIGNATURE_BYTES.hex()
-
-
-def test_parse_txn_w_gas() -> None:
-    tx = TransactionUtils.parse(0, bytes.fromhex(SIGNED_TXN_BYTES_HEX), GAS_USED)
-    assert tx
     assert tx.gas == GAS_USED

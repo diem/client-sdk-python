@@ -143,7 +143,16 @@ cdef class TransactionUtils:
         res._version = version
         return res
 
-
+    @staticmethod
+    def parse_txn_w_gas(version: int, lcs_bytes: bytes, gas: int) -> SignedTransactionWithGas:
+        """Create SignedTransactionWithGas from bytes and gas, populate signed_txn and raw_txn"""
+        cdef SignedTransaction signed_txn = TransactionUtils.parse(version, lcs_bytes)
+        cdef SignedTransactionWithGas tx_w_gas = SignedTransactionWithGas.__new__(SignedTransactionWithGas)
+        tx_w_gas._c_txn = signed_txn._c_txn
+        tx_w_gas._version = version
+        tx_w_gas._c_signed_txn = signed_txn._c_signed_txn
+        tx_w_gas._gas_used = gas
+        return tx_w_gas
 
 cdef class BytesWrapper:
     """BytesWrapper"""
@@ -248,7 +257,6 @@ cdef class Transaction:
         assert self.is_p2p
         return self._c_txn.payload.args.value
 
-
 cdef class SignedTransaction(Transaction):
     cdef capi.LibraSignedTransaction _c_signed_txn
     cdef int _version
@@ -264,6 +272,14 @@ cdef class SignedTransaction(Transaction):
     @property
     def version(self) -> int:
         return self._version
+
+cdef class SignedTransactionWithGas(SignedTransaction):
+    cdef int _gas_used
+
+    @property 
+    def gas(self) -> int:
+        return self._gas_used
+
 
 cdef class EventFactory:
     @staticmethod

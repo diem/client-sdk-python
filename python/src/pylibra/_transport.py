@@ -10,7 +10,15 @@ from .grpc.get_with_proof_pb2 import RequestItem
 from .grpc.get_with_proof_pb2 import GetAccountStateRequest
 from .grpc.get_with_proof_pb2 import GetTransactionsRequest, GetAccountTransactionBySequenceNumberRequest
 
-from ._types import AccountResource, SignedTransaction, TransactionUtils, Event, EventFactory, PaymentEvent
+from ._types import (
+    AccountResource,
+    SignedTransaction,
+    TransactionUtils,
+    Event,
+    EventFactory,
+    PaymentEvent,
+    SignedTransactionWithGas
+)
 
 
 class ClientError(Exception):
@@ -146,9 +154,9 @@ class LibraNetwork:
 
     def transaction_by_acc_seq(
         self, addr_hex: str, seq: int, include_events: bool = False
-    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]]]:
-        request = UpdateToLatestLedgerRequest()
+    ) -> typing.Tuple[typing.Optional[SignedTransactionWithGas], typing.List[typing.Union[Event, PaymentEvent]]]:
 
+        request = UpdateToLatestLedgerRequest()
         tx_req = GetAccountTransactionBySequenceNumberRequest()
         tx_req.account = bytes.fromhex(addr_hex)
         tx_req.sequence_number = seq
@@ -172,10 +180,12 @@ class LibraNetwork:
 
             version = tx.version
             tx_blob = tx.transaction.transaction
+            gas_used = tx.proof.transaction_info.gas_used
+
             try:
                 # Proto buffer message here contains a 4 byte prefix
                 tx_blob = tx_blob[4:]
-                return TransactionUtils.parse(version, tx_blob), res_events
+                return TransactionUtils.parse_txn_w_gas(version, tx_blob, gas_used), res_events
             except ValueError:
                 # TODO: Unsupported TXN type
                 pass

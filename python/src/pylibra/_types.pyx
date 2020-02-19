@@ -132,7 +132,7 @@ cdef class TransactionUtils:
         return BytesWrapper.create(buf_ptr, buf_len)
 
     @staticmethod
-    def parse(version: int, lcs_bytes: bytes) -> SignedTransaction:
+    def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction:
         """Create SignedTranscation from bytes."""
         cdef SignedTransaction res = SignedTransaction.__new__(SignedTransaction)
 
@@ -141,8 +141,8 @@ cdef class TransactionUtils:
             raise ValueError("SignedTranscation fail to decode, error: %s." % success)
         res._c_txn = res._c_signed_txn.raw_txn
         res._version = version
+        res._gas_used = gas
         return res
-
 
 
 cdef class BytesWrapper:
@@ -248,10 +248,10 @@ cdef class Transaction:
         assert self.is_p2p
         return self._c_txn.payload.args.value
 
-
 cdef class SignedTransaction(Transaction):
     cdef capi.LibraSignedTransaction _c_signed_txn
     cdef int _version
+    cdef int _gas_used
 
     @property
     def public_key(self) -> bytes:
@@ -264,6 +264,11 @@ cdef class SignedTransaction(Transaction):
     @property
     def version(self) -> int:
         return self._version
+
+    @property 
+    def gas(self) -> int:
+        return self._gas_used    
+
 
 cdef class EventFactory:
     @staticmethod

@@ -181,8 +181,8 @@ def test_send_transaction_success() -> None:
 @pytest.mark.xfail
 def test_transaction_by_range() -> None:
     api = LibraNetwork()
-    res = api.transactions_by_range(0, 1)
-    assert len(res) == 1
+    res = api.transactions_by_range(0, 10)
+    assert len(res) == 10
     tx, _ = res[0]
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version == 0
@@ -191,8 +191,8 @@ def test_transaction_by_range() -> None:
 @pytest.mark.xfail
 def test_transaction_by_range_with_events() -> None:
     api = LibraNetwork()
-    res = api.transactions_by_range(0, 1, True)
-    assert len(res) == 1
+    res = api.transactions_by_range(0, 10, True)
+    assert len(res) == 10
     tx, events = res[0]
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version == 0
@@ -238,3 +238,21 @@ def test_transaction_by_acc_seq_with_events() -> None:
 def test_timestamp_from_testnet() -> None:
     api = LibraNetwork()
     assert api.currentTimestampUsecs() > 0
+
+
+@pytest.mark.xfail
+def test_mint_sum() -> None:
+    api = LibraNetwork()
+
+    account = api.getAccount(ASSOC_ADDRESS)
+    print("Account Balance:", account.balance, "Sequence:", account.sequence)
+    total = 0
+    seq = 0
+    while seq < min(account.sequence, 10):
+        tx, events = api.transaction_by_acc_seq(ASSOC_ADDRESS, seq=seq, include_events=True)
+        if tx and tx.is_mint:
+            print("Found mint transaction: from: ", tx.sender.hex())
+            total = total + tx.amount
+            print("New Total:", total)
+        seq = seq + 1
+    assert total > 0

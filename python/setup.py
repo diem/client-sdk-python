@@ -78,12 +78,12 @@ setup(
     packages=find_packages("src"),
     include_package_data=False,  # see MANIFEST.in
     zip_safe=True,
-    install_requires=["grpcio", "protobuf", "requests"],
+    install_requires=["grpcio>=1.26", "protobuf>=3.9", "requests>=2.19"],
     tests_require=["pytest", "pytest-timeout", "pytest-runner", "pylama", "black"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.
         "setuptools>=18.0",
-        "cython",
+        "cython>=0.29",
         "grpcio-tools",
     ]
     + pytest_runner,

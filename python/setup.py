@@ -73,11 +73,11 @@ exts = [
 setup(
     name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
     # change to 0.1.YYYYMMDDNN on release
-    version="0.1.master",
+    version="0.1.2020022501",
     description="",
     python_requires=">=3.5",  # same as grpcio
     packages=find_packages("src"),
-    include_package_data=False,  # see MANIFEST.in
+    include_package_data=True,  # see MANIFEST.in
     zip_safe=True,
     install_requires=["grpcio>=1.26", "protobuf>=3.9", "requests>=2.19"],
     tests_require=["pytest", "pytest-timeout", "pytest-runner", "pylama", "black"],

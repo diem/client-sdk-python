@@ -33,6 +33,7 @@ class VendorCommand(Command):
 
 # Require pytest-runner only when running tests
 pytest_runner = ["pytest-runner"] if any(arg in sys.argv for arg in ("pytest", "test")) else []
+grpcio_tools = ["grpcio-tools"] if any(arg in sys.argv for arg in ["vendor"]) else []
 
 LIBRA_INCLUDE_DIR = "lib"
 LIBRA_HEADER = "%s/%s" % (LIBRA_INCLUDE_DIR, "data.h")
@@ -84,8 +85,8 @@ setup(
         # Setuptools 18.0 properly handles Cython extensions.
         "setuptools>=18.0",
         "cython>=0.29",
-        "grpcio-tools",
     ]
+    + grpcio_tools
     + pytest_runner,
     package_dir={"": "src/"},
     ext_modules=exts,

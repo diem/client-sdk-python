@@ -8,7 +8,7 @@ TEST_ADDR_BYTES: bytes = bytes.fromhex("deadbeef" * 8)
 
 def test_account_state_blob_invalid() -> None:
     with pytest.raises(ValueError):
-        AccountResource.create(TEST_ADDR_BYTES, b"deadbeef")
+        assert AccountResource.create(TEST_ADDR_BYTES, b"deadbeef")
 
 
 def test_account_state_blob_empty() -> None:

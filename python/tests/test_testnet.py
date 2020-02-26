@@ -18,7 +18,7 @@ import typing
 ASSOC_ADDRESS: str = "000000000000000000000000000000000000000000000000000000000a550c18"
 
 RT = typing.TypeVar("RT")
-T = typing.Callable[..., typing.Optional[RT]]
+TFun = typing.Callable[..., typing.Optional[RT]]
 
 
 def retry(
@@ -26,8 +26,8 @@ def retry(
     tries: int = 4,
     delay: int = 3,
     backoff: int = 2,
-    logger: typing.Optional[typing.Callable] = None,
-) -> typing.Callable[[T], T]:
+    logger: typing.Optional[typing.Callable[[str], None]] = None,
+) -> typing.Callable[[TFun], TFun]:
     """
     Retry calling the decorated function using an exponential backoff.
 
@@ -41,7 +41,7 @@ def retry(
         logger: Logger to use. If None, print.
     """
 
-    def deco_retry(f: T) -> T:
+    def deco_retry(f: TFun) -> TFun:
         @wraps(f)
         def f_retry(*args, **kwargs):  # pyre-ignore
             mtries, mdelay = tries, delay
@@ -51,7 +51,7 @@ def retry(
                 except exceptions as e:
                     msg = "{}, Retrying in {} seconds...".format(e, mdelay)
                     if logger:
-                        logger.warning(msg)
+                        logger(msg)
                     else:
                         print(msg)
                     time.sleep(mdelay)
@@ -59,7 +59,7 @@ def retry(
                     mdelay *= backoff
             return f(*args, **kwargs)
 
-        return f_retry  # true decorator
+        return typing.cast(TFun, f_retry)  # true decorator
 
     return deco_retry
 

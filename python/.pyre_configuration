@@ -7,6 +7,9 @@
   "search_path": [
     "typeshed"
   ],
+  "ignore_all_errors": [
+    "./venv"
+  ],
   "taint_models_path": "./venv/lib/pyre_check/taint/",
   "typeshed": "./venv/lib/pyre_check/typeshed"
 }

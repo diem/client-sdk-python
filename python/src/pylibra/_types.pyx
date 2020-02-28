@@ -46,7 +46,7 @@ cdef class AccountResource:
 
         if len(lcs_bytes):
             success = capi.libra_LibraAccountResource_from(lcs_bytes, len(lcs_bytes), &_c_ar)
-            if success != capi.LibraStatus.OK:
+            if success != capi.LibraStatus.Ok:
                 raise ValueError("AccountResource Decode failure: error {}", success)
         else:
             memset(&_c_ar, 0, sizeof(_c_ar))
@@ -126,7 +126,7 @@ cdef class TransactionUtils:
              expiration_time,
              &buf_ptr, &buf_len)
 
-        if status != capi.LibraStatus.OK:
+        if status != capi.LibraStatus.Ok:
             raise ValueError("libra_SignedTransactionBytes_from failed: %d", status)
 
         return BytesWrapper.create(buf_ptr, buf_len)
@@ -137,7 +137,7 @@ cdef class TransactionUtils:
         cdef SignedTransaction res = SignedTransaction.__new__(SignedTransaction)
 
         success = capi.libra_LibraSignedTransaction_from(lcs_bytes, len(lcs_bytes), &res._c_signed_txn)
-        if success != capi.LibraStatus.OK:
+        if success != capi.LibraStatus.Ok:
             raise ValueError("SignedTranscation fail to decode, error: %s." % success)
         res._c_txn = res._c_signed_txn.raw_txn
         res._version = version
@@ -184,8 +184,8 @@ class AccountKey:
         if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
             raise ValueError("Invalid private key.")
         cdef capi.LibraAccountKey _c_ak
-        success = capi.libra_LibraAccount_from(private_key_bytes, &_c_ak)
-        if success != capi.LibraStatus.OK:
+        success = capi.libra_LibraAccountKey_from(private_key_bytes, &_c_ak)
+        if success != capi.LibraStatus.Ok:
             raise ValueError("Decode error: invalid private key.")
         self._addr = <bytes> _c_ak.address[:32]
         self._privkey = <bytes> _c_ak.private_key[:32]
@@ -278,7 +278,7 @@ cdef class EventFactory:
         cdef PaymentEvent res_payment_event = PaymentEvent.__new__(PaymentEvent)
 
         success = capi.libra_LibraEvent_from(key, len(key), event_data, len(event_data), type_tag, len(type_tag), &_c_event)
-        if success != capi.LibraStatus.OK:
+        if success != capi.LibraStatus.Ok:
             raise ValueError("LibraEvent fail to decode, error: %s." % success)
 
         if _c_event.event_type == capi.LibraEventType.UndefinedEvent:

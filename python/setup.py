@@ -73,7 +73,7 @@ exts = [
 setup(
     name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
     # change to 0.1.YYYYMMDDNN on release
-    version="0.1.master",
+    version="0.1.2020030401",
     description="",
     python_requires=">=3.5",  # same as grpcio
     packages=find_packages("src"),

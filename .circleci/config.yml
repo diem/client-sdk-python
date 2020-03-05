@@ -3,46 +3,11 @@ version: 2.1
 executors:
   build-executor:
     docker:
-      - image: circleci/rust:1.40.0-buster
+      - image: circleci/rust:1.41.0-buster
     resource_class: 2xlarge
 
 commands:
-  set-cargo-master:
-    steps:
-      - run:
-          name: checkout nightly
-          command: |
-            cd rust
-            sed -i 's/testnet/master/g' Cargo.toml
-            cargo update
-            cd ../libra-dev
-            sed -i 's/testnet/master/g' Cargo.toml
-            cargo update
   build:
-    steps:
-      - run:
-          name: Setup
-          command: |
-            sudo apt-get update && sudo apt-get upgrade -y
-            sudo apt-get install cmake python3-dev python3-venv clang llvm libjemalloc-dev librocksdb-dev
-            cargo install bindgen
-            rustup component add clippy-preview
-            rustup component add rustfmt
-      - run:
-          name: Build libra-dev
-          command: |
-            ./build.sh
-      - run:
-          name: Install libra-dev
-          command: |
-            sudo cp libra-dev/target/debug/liblibra_dev.so /usr/lib
-      - run:
-          name: Test C++ client
-          shell: /bin/sh
-          command: |
-            cd cpp
-            ./build.sh && ./test.sh
-  build-python:
     steps:
       - run:
           name: Setup
@@ -58,35 +23,17 @@ commands:
             ./test.sh
 
 jobs:
-  build-testnet:
+  build:
     executor: build-executor
     steps:
       - checkout
       - build
-  build-master:
-    executor: build-executor
-    steps:
-      - checkout
-      - set-cargo-master
-      - build
-  build-python-testnet:
-    executor: build-executor
-    steps:
-      - checkout
-      - build-python
-  build-python-master:
-    executor: build-executor
-    steps:
-      - checkout
-      - set-cargo-master
-      - build-python
 
 workflows:
   version: 2
   build:
     jobs:
-      - build-testnet
-      - build-python-testnet
+      - build
   nightly:
     triggers:
       - schedule:
@@ -96,7 +43,4 @@ workflows:
               only:
                 - master
     jobs:
-      - build-testnet
-      - build-python-testnet
-      - build-master
-      - build-python-master
+      - build

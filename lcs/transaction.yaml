@@ -1,0 +1,337 @@
+AccessPath:
+  Struct:
+    - address:
+        Tuple:
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+    - path:
+        Seq: U8
+BlockMetadata:
+  Struct:
+    - id: Bytes
+    - timestamp_usecs: U64
+    - previous_block_votes:
+        Map:
+          key:
+            Tuple:
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+              - U8
+          value: Bytes
+    - proposer:
+        Tuple:
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+ChangeSet:
+  Struct:
+    - write_set:
+        Ident: WriteSet
+    - events:
+        Seq:
+          Ident: ContractEvent
+ContractEvent:
+  Struct:
+    - key: Bytes
+    - sequence_number: U64
+    - type_tag:
+        Ident: TypeTag
+    - event_data:
+        Seq: U8
+Identifier:
+  NewTypeStruct: Str
+Module:
+  Struct:
+    - code:
+        Seq: U8
+RawTransaction:
+  Struct:
+    - sender:
+        Tuple:
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+    - sequence_number: U64
+    - payload:
+        Ident: TransactionPayload
+    - max_gas_amount: U64
+    - gas_unit_price: U64
+    - expiration_time: U64
+Script:
+  Struct:
+    - code:
+        Seq: U8
+    - args:
+        Seq:
+          Ident: TransactionArgument
+SignedTransaction:
+  Struct:
+    - raw_txn:
+        Ident: RawTransaction
+    - public_key: Bytes
+    - signature: Bytes
+StructTag:
+  Struct:
+    - address:
+        Tuple:
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+          - U8
+    - module:
+        Ident: Identifier
+    - name:
+        Ident: Identifier
+    - type_params:
+        Seq:
+          Ident: TypeTag
+Transaction:
+  Variant:
+    0:
+      UserTransaction:
+        NewType:
+          Ident: SignedTransaction
+    1:
+      WriteSet:
+        NewType:
+          Ident: ChangeSet
+    2:
+      BlockMetadata:
+        NewType:
+          Ident: BlockMetadata
+TransactionArgument:
+  Variant:
+    0:
+      U64:
+        NewType: U64
+    1:
+      Address:
+        NewType:
+          Tuple:
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+            - U8
+    2:
+      U8Vector:
+        NewType:
+          Seq: U8
+TransactionPayload:
+  Variant:
+    1:
+      WriteSet:
+        NewType:
+          Ident: ChangeSet
+    2:
+      Script:
+        NewType:
+          Ident: Script
+    3:
+      Module:
+        NewType:
+          Ident: Module
+TypeTag:
+  Variant:
+    0:
+      Bool: Unit
+    2:
+      U64: Unit
+    4:
+      ByteArray: Unit
+    5:
+      Address: Unit
+    7:
+      Struct:
+        NewType:
+          Ident: StructTag
+WriteOp:
+  Variant:
+    0:
+      Deletion: Unit
+    1:
+      Value:
+        NewType:
+          Seq: U8
+WriteSet:
+  NewTypeStruct:
+    Ident: WriteSetMut
+WriteSetMut:
+  Struct:
+    - write_set:
+        Seq:
+          Tuple:
+            - Ident: AccessPath
+            - Ident: WriteOp

@@ -4,8 +4,10 @@ from libc.stdint cimport *
 from libc.stddef cimport *
 from libc.string cimport memset
 
-from pylibra cimport capi
+from . cimport capi
+
 import time
+
 
 cdef class EventHandle:
     """EventHandle"""
@@ -26,7 +28,7 @@ cdef class EventHandle:
     @property
     def key(self):
         """event key"""
-        return <bytes> self._c_eh.key[:40]
+        return <bytes> self._c_eh.key[:sizeof(self._c_eh.key)]
 
 
 cdef class AccountResource:
@@ -41,7 +43,7 @@ cdef class AccountResource:
         """Create AccountResource for addr_bytes with lcs_bytes."""
         cdef capi.LibraAccountResource _c_ar
 
-        if not isinstance(addr_bytes, bytes) or len(addr_bytes) != 32:
+        if not isinstance(addr_bytes, bytes) or len(addr_bytes) != capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
             raise ValueError("Invalid account address")
 
         if len(lcs_bytes):
@@ -49,8 +51,7 @@ cdef class AccountResource:
             if success != capi.LibraStatus.Ok:
                 raise ValueError("AccountResource Decode failure: error {}", success)
         else:
-            memset(&_c_ar, 0, sizeof(_c_ar))
-            _c_ar.authentication_key = addr_bytes[:32]
+            raise ValueError("Impossible to create AccountResource without lcs_bytes.")
 
         res = AccountResource()
         res._address = addr_bytes
@@ -77,7 +78,7 @@ cdef class AccountResource:
     @property
     def authentication_key(self):
         """Account authentication key, could be different than account address"""
-        return <bytes> self._c_ar.authentication_key[:32]
+        return <bytes> self._c_ar.authentication_key[:sizeof(self._c_ar.authentication_key)]
 
     @property
     def delegated_key_rotation_capability(self):
@@ -110,15 +111,15 @@ cdef class TransactionUtils:
         buf_ptr = NULL
         buf_len = 0
 
-        if not (len(sender_private_key) == 32
-                and len(receiver) == 32
+        if not (len(sender_private_key) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE
+                and len(receiver) == capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE
                 and sender_sequence >= 0
                 and num_coins_microlibra > 0):
             raise ValueError("Invalid argument!")
 
         status = capi.libra_SignedTransactionBytes_from(
-             <bytes> sender_private_key[:32],
-             <bytes> receiver[:32],
+             <bytes> sender_private_key[:len(sender_private_key)],
+             <bytes> receiver[:len(receiver)],
              sender_sequence,
              num_coins_microlibra,
              max_gas_amount,
@@ -181,15 +182,15 @@ class AccountKey:
     """AccountKey"""
     def __init__(self, private_key_bytes: bytes):
         """create AccountKey from private_key_bytes"""
-        if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != 32:
+        if not isinstance(private_key_bytes, bytes) or len(private_key_bytes) != capi.LIBRA_CONST._LIBRA_PRIVKEY_SIZE:
             raise ValueError("Invalid private key.")
         cdef capi.LibraAccountKey _c_ak
         success = capi.libra_LibraAccountKey_from(private_key_bytes, &_c_ak)
         if success != capi.LibraStatus.Ok:
             raise ValueError("Decode error: invalid private key.")
-        self._addr = <bytes> _c_ak.address[:32]
-        self._privkey = <bytes> _c_ak.private_key[:32]
-        self._pubkey = <bytes> _c_ak.public_key[:32]
+        self._addr = <bytes> _c_ak.address[:sizeof(_c_ak.address)]
+        self._privkey = <bytes> _c_ak.private_key[:sizeof(_c_ak.private_key)]
+        self._pubkey = <bytes> _c_ak.public_key[:sizeof(_c_ak.public_key)]
 
     @property
     def address(self) -> bytes:
@@ -212,7 +213,7 @@ cdef class Transaction:
 
     @property
     def sender(self) -> bytes:
-        return <bytes> self._c_txn.sender[:32]
+        return <bytes> self._c_txn.sender[:sizeof(self._c_txn.sender)]
 
     @property
     def sequence(self) -> int:
@@ -241,7 +242,7 @@ cdef class Transaction:
     @property
     def receiver(self) -> bytes:
         assert self.is_p2p or self.is_mint
-        return <bytes> self._c_txn.payload.args.address[:32]
+        return <bytes> self._c_txn.payload.args.address[:sizeof(self._c_txn.payload.args.address)]
 
     @property
     def amount(self) -> int:
@@ -255,11 +256,11 @@ cdef class SignedTransaction(Transaction):
 
     @property
     def public_key(self) -> bytes:
-        return <bytes> self._c_signed_txn.public_key[:32]
+        return <bytes> self._c_signed_txn.public_key[:sizeof(self._c_signed_txn.public_key)]
 
     @property
     def signature(self) -> bytes:
-        return <bytes> self._c_signed_txn.signature[:64]
+        return <bytes> self._c_signed_txn.signature[:sizeof(self._c_signed_txn.signature)]
 
     @property
     def version(self) -> int:
@@ -324,11 +325,11 @@ cdef class PaymentEvent(Event):
 
     @property
     def sender_address(self) -> bytes:
-        return <bytes> self._c_event.payment_event_data.sender_address[:32]
+        return <bytes> self._c_event.payment_event_data.sender_address[:sizeof(self._c_event.payment_event_data.sender_address)]
 
     @property
     def receiver_address(self) -> bytes:
-        return <bytes> self._c_event.payment_event_data.receiver_address[:32]
+        return <bytes> self._c_event.payment_event_data.receiver_address[:sizeof(self._c_event.payment_event_data.receiver_address)]
 
     @property
     def amount(self) -> int:

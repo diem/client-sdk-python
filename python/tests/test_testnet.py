@@ -71,6 +71,7 @@ def test_account_state_block_from_testnet() -> None:
     api = LibraNetwork()
     account = api.getAccount(ASSOC_ADDRESS)
     # For assoc address, we can only know a few things
+    assert account is not None
     assert account.sequence > 0
     assert account.balance > 0
     assert account.authentication_key != bytes.fromhex(ASSOC_ADDRESS)
@@ -82,14 +83,10 @@ def test_account_state_block_from_testnet() -> None:
 def test_non_existing_account() -> None:
     # just use an highly improbable address for now
     addr_hex = "ff" * 32
-    addr_bytes = bytes.fromhex(addr_hex)
 
     api = LibraNetwork()
     account = api.getAccount(addr_hex)
-    assert account.address == addr_bytes
-    assert account.authentication_key == addr_bytes
-    assert account.balance == 0
-    assert account.sequence == 0
+    assert account is None
 
 
 @pytest.mark.xfail
@@ -136,12 +133,12 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
     api = LibraNetwork()
     while True:
         ar = api.getAccount(addr_hex)
-        if ar.sequence >= seq:
+        if ar is not None and ar.sequence >= seq:
             return ar
         time.sleep(1)
 
 
-@pytest.mark.timeout(30)
+@pytest.mark.timeout(60)
 @pytest.mark.xfail
 def test_send_transaction_success() -> None:
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
@@ -151,14 +148,16 @@ def test_send_transaction_success() -> None:
     api = LibraNetwork()
 
     @retry(FaucetError, delay=1)
-    def _mint_and_wait() -> None:
+    def _mint_and_wait(amount: int) -> AccountResource:
         f = FaucetUtils()
-        seq = f.mint(addr_hex, 1)
-        _ = _wait_for_account_seq(ASSOC_ADDRESS, seq)
+        seq = f.mint(addr_hex, amount)
+        return _wait_for_account_seq(ASSOC_ADDRESS, seq)
 
-    _mint_and_wait()
+    _mint_and_wait(1)
 
     ar = api.getAccount(addr_hex)
+
+    assert ar is not None
     balance = ar.balance
     seq = ar.sequence
 
@@ -247,6 +246,8 @@ def test_mint_sum() -> None:
     api = LibraNetwork()
 
     account = api.getAccount(ASSOC_ADDRESS)
+    assert account is not None
+
     print("Account Balance:", account.balance, "Sequence:", account.sequence)
     total = 0
     seq = 0

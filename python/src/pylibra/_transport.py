@@ -51,7 +51,7 @@ class LibraNetwork:
             # TODO: care about version and proof!
             return response.ledger_info_with_sigs.ledger_info.timestamp_usecs
 
-    def getAccount(self, address_hex: str) -> AccountResource:
+    def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:
         """Get AccountResource for given address."""
         address_bytes = bytes.fromhex(address_hex)
 
@@ -66,7 +66,10 @@ class LibraNetwork:
             response = stub.UpdateToLatestLedger(request)
             # TODO: care about version and proof!
             blob = response.response_items[0].get_account_state_response.account_state_with_proof.blob.blob
-            return AccountResource.create(address_bytes, blob)
+            if blob:
+                return AccountResource.create(address_bytes, blob)
+            else:
+                return None
 
     def sendTransaction(self, signed_transaction_bytes: bytes) -> None:
         request = SubmitTransactionRequest()

@@ -31,6 +31,7 @@ def test_sign_transaction() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         PRIVATE_KEY,
         RECEIVER_ADDRESS,
+        b"",
         # sequence
         255,
         # micro libra
@@ -46,6 +47,7 @@ def test_sign_transaction_fail() -> None:
         _ = TransactionUtils.createSignedP2PTransaction(
             bytes.fromhex("deadbeef"),
             RECEIVER_ADDRESS,
+            b"",
             # sequence
             255,
             # micro libra

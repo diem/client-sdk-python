@@ -99,6 +99,7 @@ def test_send_transaction_fail() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         PRIVATE_KEY,
         RECEIVER_ADDRESS,
+        b"",
         # sequence
         255,
         # 1 libra
@@ -164,6 +165,7 @@ def test_send_transaction_success() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         private_key,
         bytes.fromhex(ASSOC_ADDRESS),
+        b"",
         # sequence
         seq,
         # 1 libra

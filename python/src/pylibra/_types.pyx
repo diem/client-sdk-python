@@ -103,7 +103,7 @@ cdef class AccountResource:
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int =140000, gas_unit_price:int = 0) -> BytesWrapper:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int =140000, gas_unit_price:int = 0) -> BytesWrapper:
         """createSignedP2PTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
@@ -113,13 +113,15 @@ cdef class TransactionUtils:
 
         if not (len(sender_private_key) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE
                 and len(receiver) == capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE
+                and len(receiver_authkey_prefix) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE - capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE
                 and sender_sequence >= 0
                 and num_coins_microlibra > 0):
             raise ValueError("Invalid argument!")
+        receiver_authkey = receiver_authkey_prefix + receiver
 
         status = capi.libra_SignedTransactionBytes_from(
              <bytes> sender_private_key[:len(sender_private_key)],
-             <bytes> receiver[:len(receiver)],
+             <bytes> receiver_authkey[:len(receiver_authkey)],
              sender_sequence,
              num_coins_microlibra,
              max_gas_amount,

@@ -20,15 +20,6 @@ class VendorCommand(Command):
 
         # Run update.sh to update vendored libra-dev files.
         subprocess.run(["./update.sh"], cwd="./lib", shell=True, check=True)
-        # Run download.sh to download all proto files
-        subprocess.run(["./download.sh"], cwd="./src/pylibra/grpc", shell=True, check=True)
-
-        # Generate proto files
-        from grpc_tools import command
-
-        command.build_package_protos("./src/pylibra/grpc", strict_mode=True)
-        # Run fix.sh to fix up geneated protos python bindings by adding . to import line
-        subprocess.run(["./fix.sh"], cwd="./src/pylibra/grpc", shell=True, check=True)
 
 
 # Require pytest-runner only when running tests
@@ -60,8 +51,8 @@ exts = [
         extra_link_args=extra_link_args,
     ),
     Extension(
-        name="pylibra._types",
-        sources=["src/pylibra/_types.pyx"],
+        name="pylibra._native",
+        sources=["src/pylibra/_native.pyx"],
         include_dirs=[LIBRA_INCLUDE_DIR],
         extra_objects=[LIBRA_LIB_FILE],
         depends=["src/pylibra/capi.pxd", LIBRA_HEADER, LIBRA_LIB_FILE],
@@ -73,7 +64,7 @@ exts = [
 setup(
     name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
     # change to 0.1.YYYYMMDDNN on release
-    version="0.1.master",
+    version="0.2.master",
     description="",
     python_requires=">=3.5",  # same as grpcio
     packages=find_packages("src"),

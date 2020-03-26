@@ -1,9 +1,9 @@
 # pyre-strict
 
-from abc import ABC
+from abc import ABCMeta, abstractmethod
 
 
-class AccountResource(ABC):
+class AccountResource(metaclass=ABCMeta):
     @property
     def address(self) -> bytes:
         """Account address in bytes"""
@@ -45,7 +45,7 @@ class AccountResource(ABC):
         raise NotImplementedError()
 
 
-class AccountKey(ABC):
+class AccountKey(metaclass=ABCMeta):
     @property
     def address(self) -> bytes:
         raise NotImplementedError()
@@ -63,61 +63,74 @@ class AccountKey(ABC):
         raise NotImplementedError()
 
 
-class SignedTransaction(ABC):
+class SignedTransaction(metaclass=ABCMeta):
     @property
+    @abstractmethod
     def sender(self) -> bytes:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def sequence(self) -> int:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def max_gas_amount(self) -> int:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def gas_unit_price(self) -> int:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def expiration_time(self) -> int:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def is_p2p(self) -> bool:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def is_mint(self) -> bool:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def receiver(self) -> bytes:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def amount(self) -> int:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def public_key(self) -> bytes:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def signature(self) -> bytes:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def version(self) -> int:
         raise NotImplementedError()
 
     @property
+    @abstractmethod
     def gas(self) -> int:
         raise NotImplementedError()
 
 
-class Event(ABC):
+class Event(metaclass=ABCMeta):
     @property
     def module(self) -> str:
         raise NotImplementedError()
@@ -127,7 +140,7 @@ class Event(ABC):
         raise NotImplementedError()
 
 
-class PaymentEvent(Event, ABC):
+class PaymentEvent(Event, metaclass=ABCMeta):
     @property
     def is_sent(self) -> bool:
         raise NotImplementedError()

@@ -3,7 +3,7 @@
 import requests
 from requests.exceptions import RequestException
 
-from . import NETWORK_DEFAULT, ENDPOINT_CONFIG
+from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG
 
 
 class FaucetError(Exception):

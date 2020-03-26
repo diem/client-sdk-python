@@ -5,7 +5,7 @@ from abc import ABC
 import dataclasses
 
 from . import NETWORK_DEFAULT
-from ._types import AccountResource, SignedTransaction, Event, PaymentEvent
+from . import AccountResource, SignedTransaction, Event, PaymentEvent
 
 
 @dataclasses.dataclass
@@ -17,11 +17,11 @@ class ClientError(Exception):
 class SubmitTransactionError(Exception):
     code: int
     message: str
-    data: dict
+    data: typing.Dict[str, typing.Any]
 
 
 class BaseLibraNetwork(ABC):
-    def __init__(self, network: str = NETWORK_DEFAULT):
+    def __init__(self, network: str = NETWORK_DEFAULT) -> None:
         raise NotImplementedError()
 
     def currentTimestampUsecs(self) -> int:

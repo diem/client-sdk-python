@@ -13,4 +13,4 @@ set -euo pipefail
 
 ./venv/bin/python3 setup.py pytest --addopts="--pylama . $@"
 ./venv/bin/black --check .
-./venv/bin/pyre --preserve-pythonpath check
+./venv/bin/pyre check

@@ -257,7 +257,6 @@ def make_json_rpc_request(
 
     assert result_object["jsonrpc"] == "2.0"
     assert result_object["id"] == 1
-
     if result_class is None:
         if "error" in result_object:
             raise ClientError("Server returned error:" + str(result_object))
@@ -333,6 +332,9 @@ class LibraNetwork(BaseLibraNetwork):
         )
 
         events = []
+
+        if resp_dict is None:
+            return None, events
 
         if include_events and len(resp_dict["events"]):
             for e_dict in resp_dict["events"]:

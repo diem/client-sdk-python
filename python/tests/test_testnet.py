@@ -211,6 +211,13 @@ def test_transaction_by_range_with_events() -> None:
     assert events[3].name == "Unknown"
 
 
+def test_transaction_by_acc_seq_not_exist() -> None:
+    api = LibraNetwork()
+    tx, events = api.transaction_by_acc_seq("00000000000000000000000000000000", 0, include_events=True)
+    assert tx is None
+    assert events == []
+
+
 def test_transaction_by_acc_seq() -> None:
     api = LibraNetwork()
     tx, _ = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1, include_events=True)

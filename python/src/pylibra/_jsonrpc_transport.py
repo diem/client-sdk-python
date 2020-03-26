@@ -1,10 +1,8 @@
-# pyre-strict
-
 import dataclasses
 import requests
 import typing
 
-from . import NETWORK_DEFAULT, ENDPOINT_CONFIG
+from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG
 from ._types import SignedTransaction, Event, PaymentEvent, AccountResource
 from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
 
@@ -12,7 +10,7 @@ from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
 @dataclasses.dataclass
 class ServerError:
     code: int
-    data: dict
+    data: typing.Dict[str, str]
     message: str
 
 
@@ -62,10 +60,10 @@ class JSONTransaction:
 
 
 class JSONSignedTransaction(SignedTransaction):
-    _result: dict
-    _transaction: dict
+    _result: typing.Dict[str, typing.Any]
+    _transaction: typing.Dict[str, typing.Any]
 
-    def __init__(self, result: dict):
+    def __init__(self, result: typing.Dict[str, typing.Any]):
         self._result = result
         self._transaction = result["transaction"]
 
@@ -221,7 +219,7 @@ class JSONUnknownEvent(Event):
         return "Unknown"
 
 
-def as_result_or_error(cls: typing.ClassVar):
+def as_result_or_error(cls: typing.Any):
     def _as_result_or_error(x: dict):
         if "result" in x:
             if x["result"] is not None:
@@ -234,12 +232,13 @@ def as_result_or_error(cls: typing.ClassVar):
     return _as_result_or_error
 
 
-T = typing.TypeVar("T")
-
-
 def make_json_rpc_request(
-    url: str, session: requests.Session, method: str, params: typing.List[typing.Any], result_class: typing.Optional[T]
-) -> typing.Union[ServerError, T, dict]:
+    url: str,
+    session: requests.Session,
+    method: str,
+    params: typing.List[typing.Any],
+    result_class: typing.Optional[typing.Type[typing.Union[GetAccountStateResp, GetMetadataResp, SubmitResp]]],
+):
     req = {
         "jsonrpc": "2.0",
         "id": 1,
@@ -271,6 +270,9 @@ def make_json_rpc_request(
 
 
 class LibraNetwork(BaseLibraNetwork):
+    _url: str
+    _session: requests.Session
+
     def __init__(self, network: str = NETWORK_DEFAULT):
         self._url = ENDPOINT_CONFIG[network]["json-rpc"]
         self._session = requests.sessions.Session()

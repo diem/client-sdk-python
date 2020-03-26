@@ -1,11 +1,12 @@
 # pyre-strict
+import typing
 
-NETWORK_TESTNET = "testnet"
-NETWORK_DEV = "dev"
+NETWORK_TESTNET: str = "testnet"
+NETWORK_DEV: str = "dev"
 
-NETWORK_DEFAULT = NETWORK_TESTNET
+NETWORK_DEFAULT: str = NETWORK_TESTNET
 
-ENDPOINT_CONFIG = {
+ENDPOINT_CONFIG: typing.Dict[str, typing.Dict[str, str]] = {
     NETWORK_TESTNET: {"json-rpc": "https://client.testnet.libra.org/", "faucet": "http://faucet.testnet.libra.org"},
     NETWORK_DEV: {
         "json-rpc": "http://client.dev.aws.hlw3truzy4ls.com/",

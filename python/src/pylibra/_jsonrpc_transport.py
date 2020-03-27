@@ -277,9 +277,15 @@ class LibraNetwork(BaseLibraNetwork):
         self._url = ENDPOINT_CONFIG[network]["json-rpc"]
         self._session = requests.sessions.Session()
 
+    def __del__(self):
+        self._session.close()
+
+    def currentVersion(self) -> int:
+        result = make_json_rpc_request(self._url, self._session, "get_metadata", [], GetMetadataResp)
+        return result.version
+
     def currentTimestampUsecs(self) -> int:
         result = make_json_rpc_request(self._url, self._session, "get_metadata", [], GetMetadataResp)
-        print(result)
         return result.timestamp
 
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:

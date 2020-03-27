@@ -243,6 +243,11 @@ def test_timestamp_from_testnet() -> None:
     assert api.currentTimestampUsecs() > 0
 
 
+def test_version_from_testnet() -> None:
+    api = LibraNetwork()
+    assert api.currentVersion() > 1
+
+
 def test_assoc_events() -> None:
     api = LibraNetwork()
     ar = api.getAccount(ASSOC_ADDRESS)

@@ -28,6 +28,10 @@ class BaseLibraNetwork(ABC):
         """Get latest block timestamp from the network."""
         raise NotImplementedError()
 
+    def currentVersion(self) -> int:
+        """Get latest block version from the network."""
+        raise NotImplementedError()
+
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:
         """Get AccountResource for given address."""
         raise NotImplementedError()

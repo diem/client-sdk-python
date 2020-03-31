@@ -18,6 +18,9 @@ class VendorCommand(Command):
     def run(self):
         import subprocess
 
+        # Run update.sh to update python lcs files.
+        subprocess.run(["./update.sh"], cwd="./codegen", shell=True, check=True)
+
         # Run update.sh to update vendored libra-dev files.
         subprocess.run(["./update.sh"], cwd="./lib", shell=True, check=True)
 
@@ -70,7 +73,7 @@ setup(
     packages=find_packages("src"),
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,
-    install_requires=["requests>=2.19"],
+    install_requires=["requests>=2.19", "numpy>=1.18"],
     tests_require=["pytest", "pytest-timeout", "pytest-runner", "pylama", "black"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.

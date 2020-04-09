@@ -2,18 +2,18 @@
 
 from dataclasses import dataclass
 import numpy as np
-from typing import Sequence, Tuple
+import typing
 
 
 @dataclass
 class AccessPath:
     address: "AccountAddress"
-    path: Sequence[np.uint8]
+    path: typing.Sequence[np.uint8]
 
 
 @dataclass
 class AccountAddress:
-    value: Tuple[
+    value: typing.Tuple[
         np.uint8,
         np.uint8,
         np.uint8,
@@ -38,42 +38,56 @@ class BlockMetadata:
     id: "HashValue"
     round: np.uint64
     timestamp_usecs: np.uint64
-    previous_block_votes: Sequence["AccountAddress"]
+    previous_block_votes: typing.Sequence["AccountAddress"]
     proposer: "AccountAddress"
 
 
 @dataclass
 class ChangeSet:
     write_set: "WriteSet"
-    events: Sequence["ContractEvent"]
+    events: typing.Sequence["ContractEvent"]
+
+
+class ContractEvent:
+    pass
 
 
 @dataclass
-class ContractEvent:
+class _ContractEvent_V0(ContractEvent):
+    INDEX = 0
+    value: "ContractEventV0"
+
+
+ContractEvent.V0 = _ContractEvent_V0
+ContractEvent.VARIANTS = [ContractEvent.V0]
+
+
+@dataclass
+class ContractEventV0:
     key: "EventKey"
     sequence_number: np.uint64
     type_tag: "TypeTag"
-    event_data: Sequence[np.uint8]
+    event_data: typing.Sequence[np.uint8]
 
 
 @dataclass
 class Ed25519PublicKey:
-    value: Sequence[np.uint8]
+    value: typing.Sequence[np.uint8]
 
 
 @dataclass
 class Ed25519Signature:
-    value: Sequence[np.uint8]
+    value: typing.Sequence[np.uint8]
 
 
 @dataclass
 class EventKey:
-    value: Sequence[np.uint8]
+    value: typing.Sequence[np.uint8]
 
 
 @dataclass
 class HashValue:
-    value: Sequence[np.uint8]
+    value: typing.Sequence[np.uint8]
 
 
 @dataclass
@@ -83,7 +97,7 @@ class Identifier:
 
 @dataclass
 class Module:
-    code: Sequence[np.uint8]
+    code: typing.Sequence[np.uint8]
 
 
 @dataclass
@@ -99,8 +113,9 @@ class RawTransaction:
 
 @dataclass
 class Script:
-    code: Sequence[np.uint8]
-    args: Sequence["TransactionArgument"]
+    code: typing.Sequence[np.uint8]
+    ty_args: typing.Sequence["TypeTag"]
+    args: typing.Sequence["TransactionArgument"]
 
 
 @dataclass
@@ -114,7 +129,7 @@ class StructTag:
     address: "AccountAddress"
     module: "Identifier"
     name: "Identifier"
-    type_params: Sequence["TypeTag"]
+    type_params: typing.Sequence["TypeTag"]
 
 
 class Transaction:
@@ -128,7 +143,7 @@ class _Transaction_UserTransaction(Transaction):
 
 
 @dataclass
-class _Transaction_WriteSet(Transaction):
+class _Transaction_WaypointWriteSet(Transaction):
     INDEX = 1
     value: "ChangeSet"
 
@@ -140,9 +155,9 @@ class _Transaction_BlockMetadata(Transaction):
 
 
 Transaction.UserTransaction = _Transaction_UserTransaction
-Transaction.WriteSet = _Transaction_WriteSet
+Transaction.WaypointWriteSet = _Transaction_WaypointWriteSet
 Transaction.BlockMetadata = _Transaction_BlockMetadata
-Transaction.VARIANTS = [Transaction.UserTransaction, Transaction.WriteSet, Transaction.BlockMetadata]
+Transaction.VARIANTS = [Transaction.UserTransaction, Transaction.WaypointWriteSet, Transaction.BlockMetadata]
 
 
 class TransactionArgument:
@@ -164,7 +179,7 @@ class _TransactionArgument_Address(TransactionArgument):
 @dataclass
 class _TransactionArgument_U8Vector(TransactionArgument):
     INDEX = 2
-    value: Sequence[np.uint8]
+    value: typing.Sequence[np.uint8]
 
 
 @dataclass
@@ -310,7 +325,7 @@ class _WriteOp_Deletion(WriteOp):
 @dataclass
 class _WriteOp_Value(WriteOp):
     INDEX = 1
-    value: Sequence[np.uint8]
+    value: typing.Sequence[np.uint8]
 
 
 WriteOp.Deletion = _WriteOp_Deletion
@@ -325,4 +340,4 @@ class WriteSet:
 
 @dataclass
 class WriteSetMut:
-    write_set: Sequence[Tuple["AccessPath", "WriteOp"]]
+    write_set: typing.Sequence[typing.Tuple["AccessPath", "WriteOp"]]

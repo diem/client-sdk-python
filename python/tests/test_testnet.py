@@ -181,18 +181,14 @@ def test_transaction_by_range() -> None:
     api = LibraNetwork()
     res = api.transactions_by_range(0, 10)
     assert len(res) == 10
-    tx, _ = res[0]
-    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
-    assert tx.version == 0
+    # todo: verify the first txn is an WriteSet
 
 
 def test_transaction_by_range_with_events() -> None:
     api = LibraNetwork()
     res = api.transactions_by_range(0, 10, True)
     assert len(res) == 10
-    tx, events = res[0]
-    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
-    assert tx.version == 0
+    _, events = res[0]
     assert len(events) == 4
     assert events[0].module == "LibraAccount"
 

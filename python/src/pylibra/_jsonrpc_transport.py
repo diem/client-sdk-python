@@ -208,8 +208,25 @@ class JSONPaymentEvent(PaymentEvent):
     def name(self) -> str:
         return "SentPayment" if self.is_sent else "ReceivedPayment"
 
+    @property
+    def key(self) -> bytes:
+        return bytes.fromhex(self._ev_dict["key"])
+
+    @property
+    def sequence_number(self) -> int:
+        return self._ev_dict["sequence_number"]
+
+    @property
+    def transaction_version(self) -> int:
+        return self._ev_dict["transaction_version"]
+
 
 class JSONUnknownEvent(Event):
+    _ev_dict: dict
+
+    def __init__(self, ev_dict: dict):
+        self._ev_dict = ev_dict
+
     @property
     def module(self) -> str:
         return "Unknown"
@@ -217,6 +234,18 @@ class JSONUnknownEvent(Event):
     @property
     def name(self) -> str:
         return "Unknown"
+
+    @property
+    def key(self) -> bytes:
+        return bytes.fromhex(self._ev_dict["key"])
+
+    @property
+    def sequence_number(self) -> int:
+        return self._ev_dict["sequence_number"]
+
+    @property
+    def transaction_version(self) -> int:
+        return self._ev_dict["transaction_version"]
 
 
 def as_result_or_error(cls: typing.Any):
@@ -323,7 +352,7 @@ class LibraNetwork(BaseLibraNetwork):
                     if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
                         events.append(JSONPaymentEvent(e_dict))
                     else:
-                        events.append(JSONUnknownEvent())
+                        events.append(JSONUnknownEvent(e_dict))
 
             if tx_dict["transaction"]["type"] == "user":
                 tx = JSONSignedTransaction(tx_dict)
@@ -349,7 +378,7 @@ class LibraNetwork(BaseLibraNetwork):
                 if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
                     events.append(JSONPaymentEvent(e_dict))
                 else:
-                    events.append(JSONUnknownEvent())
+                    events.append(JSONUnknownEvent(e_dict))
 
         if resp_dict["transaction"]["type"] != "user":
             raise ClientError("Unexpected response: " + str(resp_dict))
@@ -367,6 +396,6 @@ class LibraNetwork(BaseLibraNetwork):
             if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
                 events.append(JSONPaymentEvent(e_dict))
             else:
-                events.append(JSONUnknownEvent())
+                events.append(JSONUnknownEvent(e_dict))
 
         return events

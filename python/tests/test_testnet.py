@@ -190,6 +190,9 @@ def test_transaction_by_range_with_events() -> None:
     assert len(res) == 10
     _, events = res[0]
     assert len(events) == 4
+    assert events[0].key == bytes.fromhex("01000000000000000000000000000000000000000a550c18")
+    assert events[0].sequence_number == 0
+    assert events[0].transaction_version == 0
     assert events[0].module == "LibraAccount"
 
     assert isinstance(events[0], PaymentEvent)

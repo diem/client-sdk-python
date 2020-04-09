@@ -29,10 +29,13 @@ fn main() {
 }
 
 fn python3_preambule() -> String {
-    r#"
+    r#"# pyre-ignore-all-errors
+
 from dataclasses import dataclass
 import numpy as np
-from typing import *
+import typing
+
+
 "#
     .into()
 }
@@ -47,24 +50,24 @@ fn python3_type(format: &Format) -> String {
         I16 => "np.int16".into(),
         I32 => "np.int32".into(),
         I64 => "np.int64".into(),
-        I128 => "Tuple(np.int64, np.int64)".into(),
+        I128 => "typing.Tuple(np.int64, np.int64)".into(),
         U8 => "np.uint8".into(),
         U16 => "np.uint16".into(),
         U32 => "np.uint32".into(),
         U64 => "np.uint64".into(),
-        U128 => "Tuple(np.uint64, np.uint64)".into(),
+        U128 => "typing.Tuple(np.uint64, np.uint64)".into(),
         F32 => "np.float32".into(),
         F64 => "np.float64".into(),
         Char => "char".into(),
         Str => "str".into(),
         Bytes => "bytes".into(),
 
-        Option(format) => format!("Optional[{}]", python3_type(format)),
-        Seq(format) => format!("Sequence[{}]", python3_type(format)),
-        Map { key, value } => format!("Dict[{}, {}]", python3_type(key), python3_type(value)),
-        Tuple(formats) => format!("Tuple[{}]", python3_types(formats)),
+        Option(format) => format!("typing.Optional[{}]", python3_type(format)),
+        Seq(format) => format!("typing.Sequence[{}]", python3_type(format)),
+        Map { key, value } => format!("typing.Dict[{}, {}]", python3_type(key), python3_type(value)),
+        Tuple(formats) => format!("typing.Tuple[{}]", python3_types(formats)),
         TupleArray { content, size } => format!(
-            "Tuple[{}]",
+            "typing.Tuple[{}]",
             python3_types(&vec![content.as_ref().clone(); *size])
         ), // Sadly, there are no fixed-size arrays in python.
 
@@ -93,11 +96,11 @@ fn python3_variant(base: &str, name: &str, index: u32, variant: &VariantFormat) 
     use VariantFormat::*;
     match variant {
         Unit => format!(
-            "@dataclass\nclass _{}_{}({}):\n    INDEX={}\n",
+            "@dataclass\nclass _{}_{}({}):\n    INDEX={}\n\n",
             base, name, base, index,
         ),
         NewType(format) => format!(
-            "@dataclass\nclass _{}_{}({}):\n    INDEX={}\n    value: {}\n",
+            "@dataclass\nclass _{}_{}({}):\n    INDEX={}\n    value: {}\n\n",
             base,
             name,
             base,
@@ -105,7 +108,7 @@ fn python3_variant(base: &str, name: &str, index: u32, variant: &VariantFormat) 
             python3_type(format)
         ),
         Tuple(formats) => format!(
-            "@dataclass\nclass _{}_{}({}):\n    INDEX={}\n    value: Tuple[{}]\n",
+            "@dataclass\nclass _{}_{}({}):\n    INDEX={}\n    value: Tuple[{}]\n\n",
             base,
             name,
             base,
@@ -146,7 +149,7 @@ fn python3_variant_aliases(base: &str, variants: &BTreeMap<u32, Named<VariantFor
 fn python3_container(name: &str, format: &ContainerFormat) -> String {
     use ContainerFormat::*;
     match format {
-        UnitStruct => format!("@dataclass\nclass {}:\n    pass\n", name,),
+        UnitStruct => format!("@dataclass\nclass {}:\n    pass\n\n", name,),
         NewTypeStruct(format) => format!(
             "@dataclass\nclass {}:\n    value: {}\n",
             name,

@@ -8,7 +8,7 @@ def test_lcs_e2e() -> None:
     print("Testing serialization: ")
 
     # pyre-ignore
-    obj = Transaction.WriteSet(ChangeSet(WriteSet(WriteSetMut(write_set=[])), []))
+    obj = Transaction.WaypointWriteSet(ChangeSet(WriteSet(WriteSetMut(write_set=[])), []))
     content = lcs_bytes(obj, Transaction)
 
     print("Serialization result: ", content)

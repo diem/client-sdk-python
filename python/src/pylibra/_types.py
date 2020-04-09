@@ -139,6 +139,18 @@ class Event(metaclass=ABCMeta):
     def name(self) -> str:
         raise NotImplementedError()
 
+    @property
+    def key(self) -> bytes:
+        raise NotImplementedError()
+
+    @property
+    def sequence_number(self) -> int:
+        raise NotImplementedError()
+
+    @property
+    def transaction_version(self) -> int:
+        raise NotImplementedError()
+
 
 class PaymentEvent(Event, metaclass=ABCMeta):
     @property

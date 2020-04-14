@@ -12,7 +12,7 @@ from ._types import SignedTransaction, AccountKey
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int =140000, gas_unit_price:int = 0) -> bytes:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int =140000, gas_unit_price:int = 0, metadata: bytes = b'') -> bytes:
         """createSignedP2PTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
@@ -45,6 +45,8 @@ cdef class TransactionUtils:
              max_gas_amount,
              gas_unit_price,
              expiration_time,
+             metadata,
+             len(metadata),
              &buf_ptr, &buf_len)
 
         if status != capi.LibraStatus.Ok:
@@ -153,6 +155,11 @@ cdef class NativeTransaction:
         assert self.is_p2p or self.is_mint
         return self._c_txn.payload.args.value
 
+    @property
+    def metadata(self) -> bytes:
+        return <bytes> self._c_txn.payload.args.metadata_bytes[:self._c_txn.payload.args.metadata_len]
+
+
 cdef class NativeSignedTransaction(NativeTransaction):
     cdef capi.LibraSignedTransaction _c_signed_txn
     cdef int _version
@@ -170,6 +177,6 @@ cdef class NativeSignedTransaction(NativeTransaction):
     def version(self) -> int:
         return self._version
 
-    @property 
+    @property
     def gas(self) -> int:
         return self._gas_used

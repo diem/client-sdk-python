@@ -37,6 +37,9 @@ cdef extern from "data.h":
     struct LibraP2PTransferTransactionArgument:
         uint64_t value
         uint8_t[LIBRA_ADDRESS_SIZE] address
+        uint8_t [LIBRA_PUBKEY_SIZE - LIBRA_ADDRESS_SIZE] auth_key_prefix
+        uint8_t* metadata_bytes
+        size_t metadata_len
 
     enum TransactionType:
         PeerToPeer = 0
@@ -85,10 +88,10 @@ cdef extern from "data.h":
 
 
     LibraStatus libra_LibraAccountResource_from(const uint8_t *, size_t length, LibraAccountResource* out)
-    LibraStatus libra_SignedTransactionBytes_from(const uint8_t sender_private_bytes[LIBRA_PRIVKEY_SIZE], const uint8_t receiver[LIBRA_PUBKEY_SIZE], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, uint8_t** ptr_buf, size_t* ptr_len)
+    LibraStatus libra_SignedTransactionBytes_from(const uint8_t sender_private_bytes[LIBRA_PRIVKEY_SIZE], const uint8_t receiver[LIBRA_PUBKEY_SIZE], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, const uint8_t * metadata_bytes, size_t metadata_len, uint8_t** ptr_buf, size_t* ptr_len)
     void libra_free_bytes_buffer(const uint8_t* buf)
     LibraStatus libra_LibraSignedTransaction_from(const uint8_t *buf, size_t len, LibraSignedTransaction *out)
-    LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[LIBRA_ADDRESS_SIZE], const uint8_t receiver[LIBRA_PUBKEY_SIZE], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, uint8_t** buf, size_t* len)
+    LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[LIBRA_ADDRESS_SIZE], const uint8_t receiver[LIBRA_PUBKEY_SIZE], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, const uint8_t * metadata_bytes, size_t metadata_len, uint8_t** buf, size_t* len)
     LibraStatus libra_RawTransaction_sign(const uint8_t *buf_raw_txn, size_t len_raw_txn, const uint8_t *buf_public_key, size_t len_public_key, const uint8_t *buf_signature, size_t len_signature, uint8_t** buf_result, size_t* len_result)
     LibraStatus libra_LibraAccountKey_from(const uint8_t private_key_bytes[LIBRA_PRIVKEY_SIZE], LibraAccountKey *out)
     LibraStatus libra_LibraEvent_from(const uint8_t *buf_key, size_t len_key, const uint8_t *buf_data, size_t len_data, const uint8_t *buf_type_tag, size_t len_type_tag, LibraEvent** out)

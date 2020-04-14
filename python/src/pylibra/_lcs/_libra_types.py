@@ -101,13 +101,23 @@ class Module:
 
 
 @dataclass
+class MultiEd25519PublicKey:
+    value: typing.Sequence[np.uint8]
+
+
+@dataclass
+class MultiEd25519Signature:
+    value: typing.Sequence[np.uint8]
+
+
+@dataclass
 class RawTransaction:
     sender: "AccountAddress"
     sequence_number: np.uint64
     payload: "TransactionPayload"
     max_gas_amount: np.uint64
     gas_unit_price: np.uint64
-    gas_specifier: "TypeTag"
+    gas_specifier: str
     expiration_time: np.uint64
 
 
@@ -211,8 +221,16 @@ class _TransactionAuthenticator_Ed25519(TransactionAuthenticator):
     signature: "Ed25519Signature"
 
 
+@dataclass
+class _TransactionAuthenticator_MultiEd25519(TransactionAuthenticator):
+    INDEX = 1
+    public_key: "MultiEd25519PublicKey"
+    signature: "MultiEd25519Signature"
+
+
 TransactionAuthenticator.Ed25519 = _TransactionAuthenticator_Ed25519
-TransactionAuthenticator.VARIANTS = [TransactionAuthenticator.Ed25519]
+TransactionAuthenticator.MultiEd25519 = _TransactionAuthenticator_MultiEd25519
+TransactionAuthenticator.VARIANTS = [TransactionAuthenticator.Ed25519, TransactionAuthenticator.MultiEd25519]
 
 
 class TransactionPayload:

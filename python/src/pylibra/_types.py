@@ -129,6 +129,11 @@ class SignedTransaction(metaclass=ABCMeta):
     def gas(self) -> int:
         raise NotImplementedError()
 
+    @property
+    @abstractmethod
+    def metadata(self) -> bytes:
+        raise NotImplementedError()
+
 
 class Event(metaclass=ABCMeta):
     @property

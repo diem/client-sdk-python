@@ -122,6 +122,10 @@ class JSONSignedTransaction(SignedTransaction):
     def gas(self) -> int:
         return self._result["gas_used"]
 
+    @property
+    def metadata(self) -> bytes:
+        return bytes.fromhex(self._transaction["script"]["metadata"]) if self.is_p2p else b""
+
 
 class JSONAccountResource(AccountResource):
     _address: bytes

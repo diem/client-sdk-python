@@ -10,3 +10,4 @@
 /.eggs
 /venv
 /.pyre
+Cargo.lock

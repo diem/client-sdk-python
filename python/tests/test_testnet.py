@@ -223,6 +223,7 @@ def test_transaction_by_acc_seq() -> None:
     assert tx
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version != 0
+    assert tx.metadata == b""
     assert tx.gas == 0
 
 

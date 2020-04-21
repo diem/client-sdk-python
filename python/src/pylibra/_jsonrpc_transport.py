@@ -100,7 +100,7 @@ class JSONSignedTransaction(SignedTransaction):
 
     @property
     def receiver(self) -> bytes:
-        return self._transaction["script"]["receiver"]
+        return bytes.fromhex(self._transaction["script"]["receiver"])
 
     @property
     def amount(self) -> int:
@@ -108,11 +108,11 @@ class JSONSignedTransaction(SignedTransaction):
 
     @property
     def public_key(self) -> bytes:
-        return self._transaction["public_key"]
+        return bytes.fromhex(self._transaction["public_key"])
 
     @property
     def signature(self) -> bytes:
-        return self._transaction["signature"]
+        return bytes.fromhex(self._transaction["signature"])
 
     @property
     def version(self) -> int:

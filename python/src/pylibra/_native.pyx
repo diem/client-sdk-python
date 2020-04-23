@@ -12,7 +12,7 @@ from ._types import SignedTransaction, AccountKey
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int =140000, gas_unit_price:int = 0, metadata: bytes = b'') -> bytes:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, metadata: bytes = b'') -> bytes:
         """createSignedP2PTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len

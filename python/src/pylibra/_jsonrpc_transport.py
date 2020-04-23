@@ -20,7 +20,7 @@ class GetAccountStateResp:
     authentication_key: str
     delegated_key_rotation_capability: bool
     delegated_withdrawal_capability: bool
-    balance: int
+    balance: typing.Dict
     sent_events_key: str
     received_events_key: str
 
@@ -141,7 +141,7 @@ class JSONAccountResource(AccountResource):
 
     @property
     def balance(self) -> int:
-        return self._state.balance
+        return self._state.balance["amount"]
 
     @property
     def sequence(self) -> int:

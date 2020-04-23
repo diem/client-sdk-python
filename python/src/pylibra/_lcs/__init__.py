@@ -53,10 +53,26 @@ def lcs_decode_str(content: bytes) -> typing.Tuple[str, bytes]:
     return val, content
 
 
+def lcs_decode_bytes(content: bytes) -> typing.Tuple[bytes, bytes]:
+    global prefix
+
+    len, content = lcs_decode_uleb128_as_u32(content)
+    val, content = content[:len], content[len:]
+
+    print(prefix, "Bytes: ", val)
+    return val, content
+
+
 def lcs_encode_str(value: str) -> bytes:
     global prefix
     print(prefix, "String: ", value)
     return lcs_encode_u32_as_uleb128(len(value)) + value.encode()
+
+
+def lcs_encode_bytes(value: bytes) -> bytes:
+    global prefix
+    print(prefix, "Bytes: ", value)
+    return lcs_encode_u32_as_uleb128(len(value)) + value
 
 
 lcs_primitive_map = {
@@ -65,6 +81,7 @@ lcs_primitive_map = {
     np.uint32: lambda x: int(x).to_bytes(4, "little", signed=False),
     np.uint64: lambda x: int(x).to_bytes(8, "little", signed=False),
     str: lambda x: lcs_encode_str(x),
+    bytes: lambda x: lcs_encode_bytes(x),
 }
 
 lcs_primitive_deser_map = {
@@ -73,6 +90,7 @@ lcs_primitive_deser_map = {
     np.uint32: lambda content: (int.from_bytes(content[0:4], byteorder="little"), content[4:]),
     np.uint64: lambda content: (int.from_bytes(content[0:8], byteorder="little"), content[8:]),
     str: lambda content: lcs_decode_str(content),
+    bytes: lambda content: lcs_decode_bytes(content),
 }
 
 

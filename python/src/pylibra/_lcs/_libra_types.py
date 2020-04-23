@@ -72,22 +72,22 @@ class ContractEventV0:
 
 @dataclass
 class Ed25519PublicKey:
-    value: typing.Sequence[np.uint8]
+    value: bytes
 
 
 @dataclass
 class Ed25519Signature:
-    value: typing.Sequence[np.uint8]
+    value: bytes
 
 
 @dataclass
 class EventKey:
-    value: typing.Sequence[np.uint8]
+    value: bytes
 
 
 @dataclass
 class HashValue:
-    value: typing.Sequence[np.uint8]
+    value: bytes
 
 
 @dataclass
@@ -102,12 +102,12 @@ class Module:
 
 @dataclass
 class MultiEd25519PublicKey:
-    value: typing.Sequence[np.uint8]
+    value: bytes
 
 
 @dataclass
 class MultiEd25519Signature:
-    value: typing.Sequence[np.uint8]
+    value: bytes
 
 
 @dataclass
@@ -117,7 +117,6 @@ class RawTransaction:
     payload: "TransactionPayload"
     max_gas_amount: np.uint64
     gas_unit_price: np.uint64
-    gas_specifier: str
     expiration_time: np.uint64
 
 

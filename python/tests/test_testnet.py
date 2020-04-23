@@ -16,7 +16,7 @@ from functools import wraps
 import typing
 
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
-ASSOC_AUTHKEY: str = "3126dc954143b1282565e8829cd8cdfdc179db444f64b406dee28015fce7f392"
+ASSOC_AUTHKEY: str = "254d77ec7ceae382e842dcff2df1590753b260f98a749dbc77e307a15ae781a6"
 
 RT = typing.TypeVar("RT")
 TFun = typing.Callable[..., typing.Optional[RT]]
@@ -147,6 +147,8 @@ def test_send_transaction_success() -> None:
     addr_hex = ak.address.hex()
     api = LibraNetwork()
 
+    print("Using account", addr_hex)
+
     @retry(FaucetError, delay=1)
     def _mint_and_wait(amount: int) -> AccountResource:
         f = FaucetUtils()
@@ -157,6 +159,8 @@ def test_send_transaction_success() -> None:
 
     ar = api.getAccount(addr_hex)
     assert ar is not None
+    assert ar.balance >= 1_000_000
+
     balance = ar.balance
     seq = ar.sequence
 
@@ -169,6 +173,7 @@ def test_send_transaction_success() -> None:
         # 1 libra
         1_000_000,
         expiration_time=int(time.time()) + 5 * 60,
+        metadata="pylibra:test_send_transaction_success".encode("utf-8"),
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)

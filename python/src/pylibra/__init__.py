@@ -14,6 +14,8 @@ __all__ = [
     "NETWORK_DEV",
     "NETWORK_DEFAULT",
     "ENDPOINT_CONFIG",
+    "DEFAULT_CONNECT_TIMEOUT_SECS",
+    "DEFAULT_TIMEOUT_SECS",
     # Main helper object
     "LibraNetwork",
     "TransactionUtils",

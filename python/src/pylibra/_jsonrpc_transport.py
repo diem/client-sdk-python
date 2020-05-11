@@ -2,7 +2,7 @@ import dataclasses
 import requests
 import typing
 
-from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG
+from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG, DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS
 from ._types import SignedTransaction, Event, PaymentEvent, AccountResource
 from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
 
@@ -268,6 +268,7 @@ def as_result_or_error(cls: typing.Any):
 def make_json_rpc_request(
     url: str,
     session: requests.Session,
+    timeout: typing.Tuple[float, float],
     method: str,
     params: typing.List[typing.Any],
     result_class: typing.Optional[typing.Type[typing.Union[GetAccountStateResp, GetMetadataResp, SubmitResp]]],
@@ -280,7 +281,7 @@ def make_json_rpc_request(
     }
 
     try:
-        resp = session.post(url, json=req, timeout=1)
+        resp = session.post(url, json=req, timeout=timeout)
         resp.raise_for_status()
     except requests.RequestException as e:
         raise ClientError("API Error: " + str(e))
@@ -304,25 +305,44 @@ def make_json_rpc_request(
 
 class LibraNetwork(BaseLibraNetwork):
     _url: str
+    _should_close_session: bool
     _session: requests.Session
+    _timeout: typing.Tuple[float, float]
 
-    def __init__(self, network: str = NETWORK_DEFAULT):
+    def __init__(
+        self,
+        network: str = NETWORK_DEFAULT,
+        session: typing.Optional[requests.Session] = None,
+        timeout: typing.Optional[typing.Tuple[float, float]] = None,
+    ):
         self._url = ENDPOINT_CONFIG[network]["json-rpc"]
-        self._session = requests.sessions.Session()
+        if timeout:
+            self._timeout = timeout
+        else:
+            self._timeout = (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
+        if session:
+            self._session = session
+            self._should_close_session = False
+        else:
+            self._session = requests.sessions.Session()
+            self._should_close_session = True
 
     def __del__(self):
-        self._session.close()
+        if self._should_close_session:
+            self._session.close()
 
     def currentVersion(self) -> int:
-        result = make_json_rpc_request(self._url, self._session, "get_metadata", [], GetMetadataResp)
+        result = make_json_rpc_request(self._url, self._session, self._timeout, "get_metadata", [], GetMetadataResp)
         return result.version
 
     def currentTimestampUsecs(self) -> int:
-        result = make_json_rpc_request(self._url, self._session, "get_metadata", [], GetMetadataResp)
+        result = make_json_rpc_request(self._url, self._session, self._timeout, "get_metadata", [], GetMetadataResp)
         return result.timestamp
 
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:
-        resp = make_json_rpc_request(self._url, self._session, "get_account_state", [address_hex], GetAccountStateResp)
+        resp = make_json_rpc_request(
+            self._url, self._session, self._timeout, "get_account_state", [address_hex], GetAccountStateResp
+        )
         if resp is None:
             return None
         elif isinstance(resp, GetAccountStateResp):
@@ -331,7 +351,9 @@ class LibraNetwork(BaseLibraNetwork):
             raise ClientError(str(resp))
 
     def sendTransaction(self, signed_transaction_bytes: bytes) -> None:
-        resp = make_json_rpc_request(self._url, self._session, "submit", [signed_transaction_bytes.hex()], SubmitResp)
+        resp = make_json_rpc_request(
+            self._url, self._session, self._timeout, "submit", [signed_transaction_bytes.hex()], SubmitResp
+        )
         if resp is None:
             return None
         elif isinstance(resp, SubmitResp):
@@ -343,7 +365,7 @@ class LibraNetwork(BaseLibraNetwork):
         self, start_version: int, limit: int, include_events: bool = False
     ) -> typing.List[typing.Tuple[SignedTransaction, typing.List[typing.Union[Event, PaymentEvent]]]]:
         resp_dict = make_json_rpc_request(
-            self._url, self._session, "get_transactions", [start_version, limit, include_events], None
+            self._url, self._session, self._timeout, "get_transactions", [start_version, limit, include_events], None
         )
 
         results = []
@@ -369,7 +391,7 @@ class LibraNetwork(BaseLibraNetwork):
         self, addr_hex: str, seq: int, include_events: bool = False
     ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]]]:
         resp_dict = make_json_rpc_request(
-            self._url, self._session, "get_account_transaction", [addr_hex, seq, include_events], None
+            self._url, self._session, self._timeout, "get_account_transaction", [addr_hex, seq, include_events], None
         )
 
         events = []
@@ -392,7 +414,9 @@ class LibraNetwork(BaseLibraNetwork):
         return res, events
 
     def get_events(self, key_hex: str, start: int, limit: int) -> typing.List[typing.Union[Event, PaymentEvent]]:
-        resp_list = make_json_rpc_request(self._url, self._session, "get_events", [key_hex, start, limit], None)
+        resp_list = make_json_rpc_request(
+            self._url, self._session, self._timeout, "get_events", [key_hex, start, limit], None
+        )
 
         events = []
 

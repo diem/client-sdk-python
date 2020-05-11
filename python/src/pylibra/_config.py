@@ -13,3 +13,7 @@ ENDPOINT_CONFIG: typing.Dict[str, typing.Dict[str, str]] = {
         "faucet": "http://faucet.dev.aws.hlw3truzy4ls.com",
     },
 }
+
+# Default timeout value for requests
+DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
+DEFAULT_TIMEOUT_SECS: float = 30.0

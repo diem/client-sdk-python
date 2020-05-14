@@ -1,5 +1,5 @@
 # pyre-strict
-
+import typing
 from abc import ABCMeta, abstractmethod
 
 
@@ -10,8 +10,8 @@ class AccountResource(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
-    def balance(self) -> int:
-        """Account balance"""
+    def balances(self) -> typing.Dict[str, int]:
+        """Account balance as an dict, currency: amount."""
         raise NotImplementedError()
 
     @property
@@ -132,6 +132,11 @@ class SignedTransaction(metaclass=ABCMeta):
     @property
     @abstractmethod
     def metadata(self) -> bytes:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def vm_status(self) -> int:
         raise NotImplementedError()
 
 

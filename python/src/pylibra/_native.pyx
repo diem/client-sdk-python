@@ -12,7 +12,7 @@ from ._types import SignedTransaction, AccountKey
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, metadata: bytes = b'') -> bytes:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, metadata: bytes = b'', metadata_signature: bytes = b'') -> bytes:
         """createSignedP2PTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
@@ -35,6 +35,12 @@ cdef class TransactionUtils:
         if not num_coins_microlibra > 0:
             raise ValueError("Invalid num_coins_microlibra!")
 
+        if not(
+                (len(metadata) == 0 and len(metadata_signature) == 0) or
+                (len(metadata) > 0 and len(metadata_signature) > 0)
+        ):
+            raise ValueError("Must supply both metadata and metadata signatures.")
+
         receiver_authkey = receiver_authkey_prefix + receiver
 
         status = capi.libra_SignedTransactionBytes_from(
@@ -45,8 +51,10 @@ cdef class TransactionUtils:
              max_gas_amount,
              gas_unit_price,
              expiration_time,
-             metadata,
+             <bytes> metadata[:len(metadata)],
              len(metadata),
+             <bytes> metadata_signature[:len(metadata_signature)],
+             len(metadata_signature),
              &buf_ptr, &buf_len)
 
         if status != capi.LibraStatus.Ok:
@@ -180,3 +188,7 @@ cdef class NativeSignedTransaction(NativeTransaction):
     @property
     def gas(self) -> int:
         return self._gas_used
+
+    @property
+    def vm_status(self) -> int:
+        return 4000 # UNKNOWN_RUNTIME_STATUS

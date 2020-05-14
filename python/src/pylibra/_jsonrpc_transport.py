@@ -20,7 +20,7 @@ class GetAccountStateResp:
     authentication_key: str
     delegated_key_rotation_capability: bool
     delegated_withdrawal_capability: bool
-    balance: typing.Dict
+    balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
 
@@ -126,22 +126,30 @@ class JSONSignedTransaction(SignedTransaction):
     def metadata(self) -> bytes:
         return bytes.fromhex(self._transaction["script"]["metadata"]) if self.is_p2p else b""
 
+    @property
+    def vm_status(self) -> int:
+        return self._result["vm_status"]
+
 
 class JSONAccountResource(AccountResource):
     _address: bytes
     _state: GetAccountStateResp
+    _balances: typing.Dict[str, int]
 
     def __init__(self, address_hex: str, state: GetAccountStateResp):
         self._address = bytes.fromhex(address_hex)
         self._state = state
+        self._balances = {}
+        for balance_dict in self._state.balances:
+            self._balances[balance_dict["currency"]] = balance_dict["amount"]
 
     @property
     def address(self) -> bytes:
         return self._address
 
     @property
-    def balance(self) -> int:
-        return self._state.balance["amount"]
+    def balances(self) -> typing.Dict[str, int]:
+        return self._balances
 
     @property
     def sequence(self) -> int:

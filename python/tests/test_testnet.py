@@ -14,6 +14,7 @@ from pylibra import (
 )
 from functools import wraps
 import typing
+import pprint
 
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
 ASSOC_AUTHKEY: str = "254d77ec7ceae382e842dcff2df1590753b260f98a749dbc77e307a15ae781a6"
@@ -72,7 +73,6 @@ def test_assoc_account() -> None:
     # For assoc address, we can only know a few things
     assert account is not None
     assert account.sequence > 0
-    assert account.balance > 0
     assert account.authentication_key.hex() == ASSOC_AUTHKEY
     assert not account.delegated_key_rotation_capability
     assert not account.delegated_withdrawal_capability
@@ -141,11 +141,16 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
 @pytest.mark.timeout(60)
 def test_send_transaction_success() -> None:
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
+    private_key2 = bytes.fromhex("deadbeef" * 8)
 
     ak = AccountKeyUtils.from_private_key(private_key)
     authkey_hex: str = ak.authentication_key.hex()
     addr_hex = ak.address.hex()
     api = LibraNetwork()
+
+    dest_ak = AccountKeyUtils.from_private_key(private_key2)
+    dest_authkey = dest_ak.authentication_key
+    dest_addr = dest_ak.address
 
     print("Using account", addr_hex)
 
@@ -159,27 +164,35 @@ def test_send_transaction_success() -> None:
 
     ar = api.getAccount(addr_hex)
     assert ar is not None
-    assert ar.balance >= 1_000_000
+    assert ar.balances["LBR"] >= 1_000_000
 
-    balance = ar.balance
+    balance = ar.balances["LBR"]
     seq = ar.sequence
 
     tx = TransactionUtils.createSignedP2PTransaction(
         private_key,
-        bytes.fromhex(ASSOC_ADDRESS),
-        bytes.fromhex(ASSOC_AUTHKEY[: len(ASSOC_ADDRESS)]),
+        dest_addr,
+        dest_authkey[: len(dest_addr)],
         # sequence
         seq,
         # 1 libra
         1_000_000,
         expiration_time=int(time.time()) + 5 * 60,
-        metadata="pylibra:test_send_transaction_success".encode("utf-8"),
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)
 
     assert ar.sequence == seq + 1
-    assert ar.balance == balance - 1_000_000
+
+    tx, events = api.transaction_by_acc_seq(addr_hex, seq, include_events=True)
+    pprint.pprint(tx)
+    pprint.pprint(events)
+
+    assert tx.vm_status == 4001
+    assert len(events) == 2
+    assert isinstance(events[0], PaymentEvent)
+    assert isinstance(events[1], PaymentEvent)
+    assert ar.balances["LBR"] == balance - 1_000_000
 
 
 def test_transaction_by_range() -> None:
@@ -194,25 +207,11 @@ def test_transaction_by_range_with_events() -> None:
     res = api.transactions_by_range(0, 10, True)
     assert len(res) == 10
     _, events = res[0]
-    assert len(events) == 4
-    assert events[0].key.hex() == "0d000000000000000000000000000000000000000a550c18"
+    assert len(events) == 1
+    assert events[0].key.hex() == "0000000000000000000000000000000000000000000f1a95"
     assert events[0].sequence_number == 0
     assert events[0].transaction_version == 0
-    assert events[0].module == "LibraAccount"
-
-    assert isinstance(events[0], PaymentEvent)
-    e = typing.cast(PaymentEvent, events[0])
-    assert e.is_sent is True
-
-    assert isinstance(events[1], PaymentEvent)
-    e = typing.cast(PaymentEvent, events[1])
-    assert e.module == "LibraAccount"
-    assert e.is_received is True
-
-    assert events[2].module == "Unknown"
-    assert events[2].name == "Unknown"
-    assert events[3].module == "Unknown"
-    assert events[3].name == "Unknown"
+    assert events[0].module == "Unknown"
 
 
 def test_transaction_by_acc_seq_not_exist() -> None:
@@ -273,7 +272,7 @@ def test_assoc_mint_sum() -> None:
     account = api.getAccount(ASSOC_ADDRESS)
     assert account is not None
 
-    print("Account Balance:", account.balance, "Sequence:", account.sequence)
+    print("Account Balance:", account.balances["LBR"], "Sequence:", account.sequence)
     total = 0
     seq = 0
     while seq < min(account.sequence, 10):

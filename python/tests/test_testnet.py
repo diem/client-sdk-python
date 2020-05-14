@@ -91,7 +91,7 @@ def test_send_transaction_fail() -> None:
     RECEIVER_ADDRESS = bytes.fromhex("01" * 16)
     RECEIVER_AUTHKEY_PREFIX = bytes.fromhex("01" * 16)
 
-    PRIVATE_KEY = bytes.fromhex("deadbeef" * 8)
+    PRIVATE_KEY = bytes.fromhex("12345678" * 8)
 
     api = LibraNetwork()
 
@@ -188,6 +188,7 @@ def test_send_transaction_success() -> None:
     pprint.pprint(tx)
     pprint.pprint(events)
 
+    assert tx is not None
     assert tx.vm_status == 4001
     assert len(events) == 2
     assert isinstance(events[0], PaymentEvent)

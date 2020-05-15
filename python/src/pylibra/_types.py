@@ -180,6 +180,10 @@ class PaymentEvent(Event, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
+    def currency(self) -> str:
+        raise NotImplementedError()
+
+    @property
     def amount(self) -> int:
         raise NotImplementedError()
 

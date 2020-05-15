@@ -178,6 +178,7 @@ def test_send_transaction_success() -> None:
         # 1 libra
         1_000_000,
         expiration_time=int(time.time()) + 5 * 60,
+        metadata=b"pylibra_test_send_transaction_success",
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)
@@ -190,9 +191,19 @@ def test_send_transaction_success() -> None:
 
     assert tx is not None
     assert tx.vm_status == 4001
+
     assert len(events) == 2
+
     assert isinstance(events[0], PaymentEvent)
+    e = typing.cast(PaymentEvent, events[0])
+    assert e.currency == "LBR"
+    assert e.amount == 1_000_000
+
     assert isinstance(events[1], PaymentEvent)
+    e = typing.cast(PaymentEvent, events[1])
+    assert e.currency == "LBR"
+    assert e.amount == 1_000_000
+
     assert ar.balances["LBR"] == balance - 1_000_000
 
 

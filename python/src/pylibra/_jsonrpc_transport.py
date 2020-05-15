@@ -205,8 +205,12 @@ class JSONPaymentEvent(PaymentEvent):
             return bytes.fromhex(self._ev_dict["key"][8:])
 
     @property
+    def currency(self) -> str:
+        return self._ev_dict["data"]["amount"]["currency"]
+
+    @property
     def amount(self) -> int:
-        return self._ev_dict["data"]["amount"]
+        return self._ev_dict["data"]["amount"]["amount"]
 
     @property
     def metadata(self) -> bytes:

@@ -37,7 +37,7 @@ cdef class TransactionUtils:
 
         if not(
                 (len(metadata) == 0 and len(metadata_signature) == 0) or
-                (len(metadata) > 0 and len(metadata_signature) > 0)
+                (len(metadata) > 0 and len(metadata_signature) >= 0)
         ):
             raise ValueError("Must supply both metadata and metadata signatures.")
 

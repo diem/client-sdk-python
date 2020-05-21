@@ -30,5 +30,5 @@ __all__ = [
     "SignedTransaction",
     "Event",
     "PaymentEvent",
-    "CurrencyInfo"
+    "CurrencyInfo",
 ]

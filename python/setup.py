@@ -67,7 +67,7 @@ exts = [
 setup(
     name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
     # change to 0.1.YYYYMMDDNN on release
-    version="0.3.2020052101",
+    version="0.3.2020052102",
     description="",
     python_requires=">=3.7",
     packages=find_packages("src"),

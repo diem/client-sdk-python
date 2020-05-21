@@ -117,6 +117,7 @@ class RawTransaction:
     payload: "TransactionPayload"
     max_gas_amount: np.uint64
     gas_unit_price: np.uint64
+    gas_currency_code: str
     expiration_time: np.uint64
 
 
@@ -174,35 +175,51 @@ class TransactionArgument:
 
 
 @dataclass
-class _TransactionArgument_U64(TransactionArgument):
+class _TransactionArgument_U8(TransactionArgument):
     INDEX = 0
+    value: np.uint8
+
+
+@dataclass
+class _TransactionArgument_U64(TransactionArgument):
+    INDEX = 1
     value: np.uint64
 
 
 @dataclass
+class _TransactionArgument_U128(TransactionArgument):
+    INDEX = 2
+    value: typing.Tuple[np.uint64, np.uint64]
+
+
+@dataclass
 class _TransactionArgument_Address(TransactionArgument):
-    INDEX = 1
+    INDEX = 3
     value: "AccountAddress"
 
 
 @dataclass
 class _TransactionArgument_U8Vector(TransactionArgument):
-    INDEX = 2
+    INDEX = 4
     value: typing.Sequence[np.uint8]
 
 
 @dataclass
 class _TransactionArgument_Bool(TransactionArgument):
-    INDEX = 3
+    INDEX = 5
     value: np.bool
 
 
+TransactionArgument.U8 = _TransactionArgument_U8
 TransactionArgument.U64 = _TransactionArgument_U64
+TransactionArgument.U128 = _TransactionArgument_U128
 TransactionArgument.Address = _TransactionArgument_Address
 TransactionArgument.U8Vector = _TransactionArgument_U8Vector
 TransactionArgument.Bool = _TransactionArgument_Bool
 TransactionArgument.VARIANTS = [
+    TransactionArgument.U8,
     TransactionArgument.U64,
+    TransactionArgument.U128,
     TransactionArgument.Address,
     TransactionArgument.U8Vector,
     TransactionArgument.Bool,
@@ -301,14 +318,19 @@ class _TypeTag_Address(TypeTag):
 
 
 @dataclass
-class _TypeTag_Vector(TypeTag):
+class _TypeTag_Signer(TypeTag):
     INDEX = 5
+
+
+@dataclass
+class _TypeTag_Vector(TypeTag):
+    INDEX = 6
     value: "TypeTag"
 
 
 @dataclass
 class _TypeTag_Struct(TypeTag):
-    INDEX = 6
+    INDEX = 7
     value: "StructTag"
 
 
@@ -317,6 +339,7 @@ TypeTag.U8 = _TypeTag_U8
 TypeTag.U64 = _TypeTag_U64
 TypeTag.U128 = _TypeTag_U128
 TypeTag.Address = _TypeTag_Address
+TypeTag.Signer = _TypeTag_Signer
 TypeTag.Vector = _TypeTag_Vector
 TypeTag.Struct = _TypeTag_Struct
 TypeTag.VARIANTS = [
@@ -325,6 +348,7 @@ TypeTag.VARIANTS = [
     TypeTag.U64,
     TypeTag.U128,
     TypeTag.Address,
+    TypeTag.Signer,
     TypeTag.Vector,
     TypeTag.Struct,
 ]

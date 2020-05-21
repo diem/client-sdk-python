@@ -3,7 +3,7 @@ import requests
 import typing
 
 from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG, DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS
-from ._types import SignedTransaction, Event, PaymentEvent, AccountResource
+from ._types import SignedTransaction, Event, PaymentEvent, AccountResource, CurrencyInfo
 from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
 
 
@@ -439,3 +439,8 @@ class LibraNetwork(BaseLibraNetwork):
                 events.append(JSONUnknownEvent(e_dict))
 
         return events
+
+    def get_currencies(self) -> typing.List[CurrencyInfo]:
+        resp_list = make_json_rpc_request(self._url, self._session, self._timeout, "currencies_info", [], None)
+        res = [CurrencyInfo(**x) for x in resp_list]
+        return res

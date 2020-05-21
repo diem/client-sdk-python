@@ -5,7 +5,7 @@ from abc import ABC
 import dataclasses
 
 from . import NETWORK_DEFAULT
-from . import AccountResource, SignedTransaction, Event, PaymentEvent
+from . import AccountResource, SignedTransaction, Event, PaymentEvent, CurrencyInfo
 
 
 @dataclasses.dataclass
@@ -50,4 +50,7 @@ class BaseLibraNetwork(ABC):
         raise NotImplementedError()
 
     def get_events(self, key_hex: str, start: int, limit: int) -> typing.List[typing.Union[Event, PaymentEvent]]:
+        raise NotImplementedError()
+
+    def get_currencies(self) -> typing.List[CurrencyInfo]:
         raise NotImplementedError()

@@ -296,3 +296,10 @@ def test_assoc_mint_sum() -> None:
         seq = seq + 1
 
     assert total > 0
+
+
+def test_currencies() -> None:
+    api = LibraNetwork()
+    currency_list = api.get_currencies()
+    print(currency_list)
+    assert len(currency_list) > 1

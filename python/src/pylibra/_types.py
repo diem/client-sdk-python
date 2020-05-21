@@ -1,4 +1,5 @@
 # pyre-strict
+import dataclasses
 import typing
 from abc import ABCMeta, abstractmethod
 
@@ -190,3 +191,10 @@ class PaymentEvent(Event, metaclass=ABCMeta):
     @property
     def metadata(self) -> bytes:
         raise NotImplementedError()
+
+
+@dataclasses.dataclass
+class CurrencyInfo:
+    code: str
+    scaling_factor: int
+    fractional_part: int

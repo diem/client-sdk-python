@@ -123,7 +123,7 @@ def test_mint() -> None:
     @retry(FaucetError, delay=1)
     def _mint() -> None:
         f = FaucetUtils()
-        seq = f.mint(RECEIVER_AUTHKEY_HEX, 1.5)
+        seq = f.mint(RECEIVER_AUTHKEY_HEX, int(1.5 * 1_000_000))
         assert 0 != seq
 
     _mint()
@@ -160,7 +160,7 @@ def test_send_transaction_success() -> None:
         seq = f.mint(authkey_hex, amount)
         return _wait_for_account_seq(ASSOC_ADDRESS, seq)
 
-    _mint_and_wait(1)
+    _mint_and_wait(1_000_000)
 
     ar = api.getAccount(addr_hex)
     assert ar is not None
@@ -249,8 +249,9 @@ def test_transaction_by_acc_seq_with_events() -> None:
     assert tx
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version != 0
-    assert len(events) == 2
-    assert events[0].module == "LibraAccount"
+    assert len(events) == 4
+    assert events[2].module == "LibraAccount"
+    assert events[3].module == "LibraAccount"
     assert tx.gas == 0
 
 
@@ -287,7 +288,7 @@ def test_assoc_mint_sum() -> None:
     print("Account Balance:", account.balances["LBR"], "Sequence:", account.sequence)
     total = 0
     seq = 0
-    while seq < min(account.sequence, 10):
+    while seq < min(account.sequence, 20):
         tx, events = api.transaction_by_acc_seq(ASSOC_ADDRESS, seq=seq, include_events=True)
         if tx and tx.is_mint:
             print("Found mint transaction: from: ", tx.sender.hex())

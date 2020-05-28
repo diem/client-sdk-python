@@ -12,13 +12,16 @@ from ._types import SignedTransaction, AccountKey
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, num_coins_microlibra: int, *ignore, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, metadata: bytes = b'', metadata_signature: bytes = b'') -> bytes:
+    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, amount: int, *ignore, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, metadata: bytes = b'', metadata_signature: bytes = b'', identifier: str='LBR', gas_identifier: str='LBR') -> bytes:
         """createSignedP2PTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
 
         buf_ptr = NULL
         buf_len = 0
+
+        cdef const char* c_ident = NULL
+        cdef const char* c_gas_ident = NULL
 
         if not len(sender_private_key) == capi.LIBRA_CONST._LIBRA_PRIVKEY_SIZE:
             raise ValueError("Invalid private key!")
@@ -32,7 +35,7 @@ cdef class TransactionUtils:
         if not sender_sequence >= 0:
             raise ValueError("Invalid sender_sequence!")
 
-        if not num_coins_microlibra > 0:
+        if not amount > 0:
             raise ValueError("Invalid num_coins_microlibra!")
 
         if not(
@@ -47,9 +50,11 @@ cdef class TransactionUtils:
              <bytes> sender_private_key[:len(sender_private_key)],
              <bytes> receiver_authkey[:len(receiver_authkey)],
              sender_sequence,
-             num_coins_microlibra,
+             <bytes> identifier.encode("utf-8")[:],
+             amount,
              max_gas_amount,
              gas_unit_price,
+             <bytes> gas_identifier.encode("utf-8")[:],
              expiration_time,
              <bytes> metadata[:len(metadata)],
              len(metadata),

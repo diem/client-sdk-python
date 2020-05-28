@@ -10,13 +10,15 @@ class TransactionUtils:
         receiver: bytes,
         receiver_authkey_prefix: bytes,
         sender_sequence: int,
-        num_coins_microlibra: int,
+        amount: int,
         *ignore: typing.Any,
         expiration_time: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         metadata: bytes = b"",
         metadata_signature: bytes = b"",
+        identifier: str = "LBR",
+        gas_identifier: str = "LBR",
     ) -> bytes: ...
     @staticmethod
     def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction: ...

@@ -20,7 +20,8 @@ class FaucetUtils:
     def mint(
         self,
         authkey_hex: str,
-        libra_amount: float,
+        amount: int,
+        identifier: str = "LBR",
         session: typing.Optional[requests.Session] = None,
         timeout: typing.Optional[typing.Union[float, typing.Tuple[float, float]]] = None,
     ) -> int:
@@ -28,14 +29,14 @@ class FaucetUtils:
         if len(authkey_hex) != 64:
             raise ValueError("Invalid argument for authkey")
 
-        if libra_amount <= 0:
-            raise ValueError("Invalid argument for libra_amount")
+        if amount <= 0:
+            raise ValueError("Invalid argument for amount")
 
         _session = session if session else requests.Session()
         try:
             r = _session.post(
                 self._baseurl,
-                params={"amount": int(libra_amount * 1_000_000), "auth_key": authkey_hex},
+                params={"amount": amount, "auth_key": authkey_hex, "currency_code": identifier},
                 timeout=timeout if timeout else (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS),
             )
             r.raise_for_status()

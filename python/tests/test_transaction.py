@@ -17,18 +17,24 @@ def test_parse_transaction_fail() -> None:
         TransactionUtils.parse(0, bytes.fromhex("deadbeef"), GAS_USED)
 
 
-def test_parse_transaction() -> None:
-    tx_bytes = TransactionUtils.createSignedP2PTransaction(
-        PRIVATE_KEY,
+def test_p2p_transaction() -> None:
+
+    p2p_script = TransactionUtils.createP2PTransactionScriptBytes(
         RECEIVER_ADDRESS,
         RECEIVER_AUTHKEY_PREFIX,
-        # sequence
-        255,
         # micro libra
         987_654_321,
+    )
+
+    tx_bytes = TransactionUtils.createSignedTransaction(
+        PRIVATE_KEY,
+        # sequence
+        255,
+        script_bytes=p2p_script,
         expiration_time=123_456_789,
         max_gas_amount=140000,
     )
+
     tx = TransactionUtils.parse(0, tx_bytes, GAS_USED)
     assert tx.version == 0
     assert tx.is_p2p
@@ -43,3 +49,6 @@ def test_parse_transaction() -> None:
     assert tx.public_key == PUBLIC_KEY
     assert tx.gas == GAS_USED
     assert tx.vm_status == 4000
+
+def test_add_currency_transaction() -> None:
+    pass

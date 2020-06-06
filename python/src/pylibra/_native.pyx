@@ -12,8 +12,8 @@ from ._types import SignedTransaction, AccountKey
 
 cdef class TransactionUtils:
     @staticmethod
-    def createSignedP2PTransaction(sender_private_key: bytes, receiver: bytes, receiver_authkey_prefix: bytes, sender_sequence: int, amount: int, *ignore, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, metadata: bytes = b'', metadata_signature: bytes = b'', identifier: str='LBR', gas_identifier: str='LBR') -> bytes:
-        """createSignedP2PTransaction"""
+    def createSignedTransaction(sender_private_key: bytes, sender_sequence: int, *ignore, script_bytes: bytes, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, gas_identifier: str='LBR') -> bytes:
+        """createSignedTransaction"""
         cdef uint8_t* buf_ptr
         cdef size_t buf_len
 
@@ -26,40 +26,21 @@ cdef class TransactionUtils:
         if not len(sender_private_key) == capi.LIBRA_CONST._LIBRA_PRIVKEY_SIZE:
             raise ValueError("Invalid private key!")
 
-        if not len(receiver) == capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
-            raise ValueError("Invalid receiver address!")
-
-        if not len(receiver_authkey_prefix) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE - capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
-            raise ValueError("Invalid receiver authkey prefix!")
-
         if not sender_sequence >= 0:
             raise ValueError("Invalid sender_sequence!")
 
-        if not amount > 0:
-            raise ValueError("Invalid num_coins_microlibra!")
-
-        if not(
-                (len(metadata) == 0 and len(metadata_signature) == 0) or
-                (len(metadata) > 0 and len(metadata_signature) >= 0)
-        ):
-            raise ValueError("Must supply both metadata and metadata signatures.")
-
-        receiver_authkey = receiver_authkey_prefix + receiver
+        if not len(script_bytes) > 0:
+            raise ValueError("Invalid Transaction Script!")        
 
         status = capi.libra_SignedTransactionBytes_from(
              <bytes> sender_private_key[:len(sender_private_key)],
-             <bytes> receiver_authkey[:len(receiver_authkey)],
              sender_sequence,
-             <bytes> identifier.encode("utf-8")[:],
-             amount,
              max_gas_amount,
              gas_unit_price,
              <bytes> gas_identifier.encode("utf-8")[:],
              expiration_time,
-             <bytes> metadata[:len(metadata)],
-             len(metadata),
-             <bytes> metadata_signature[:len(metadata_signature)],
-             len(metadata_signature),
+             <bytes> script_bytes[:len(script_bytes)],
+             len(script_bytes),
              &buf_ptr, &buf_len)
 
         if status != capi.LibraStatus.Ok:
@@ -70,6 +51,79 @@ cdef class TransactionUtils:
 
         return result
 
+    @staticmethod
+    def createP2PTransactionScriptBytes(
+        receiver: bytes,
+        receiver_authkey_prefix: bytes,
+        amount: int,
+        metadata: bytes = b"",
+        metadata_signature: bytes = b"",
+        identifier: str = "LBR",
+    ) -> bytes:
+        """Create P2P Transaction Script Bytes"""
+        cdef uint8_t* buf_ptr
+        cdef size_t buf_len
+
+        buf_ptr = NULL
+        buf_len = 0
+
+        if not len(receiver) == capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
+            raise ValueError("Invalid receiver address!")
+
+        if not len(receiver_authkey_prefix) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE - capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
+            raise ValueError("Invalid receiver authkey prefix!")
+
+        if not amount > 0:
+            raise ValueError("Invalid num_coins_microlibra!")
+
+        if not(
+                (len(metadata) == 0 and len(metadata_signature) == 0) or
+                (len(metadata) > 0 and len(metadata_signature) >= 0)
+        ):
+            raise ValueError("Must supply both metadata and metadata signatures.")
+        
+        receiver_authkey = receiver_authkey_prefix + receiver
+
+        status = capi.libra_TransactionP2PScript_from(
+            <bytes> receiver_authkey[:len(receiver_authkey)],
+            <bytes> identifier.encode("utf-8")[:],
+            amount,
+            <bytes> metadata[:len(metadata)],
+            len(metadata),
+            <bytes> metadata_signature[:len(metadata_signature)],
+            len(metadata_signature),
+            &buf_ptr, &buf_len
+        )
+
+        if status != capi.LibraStatus.Ok:
+            raise ValueError("libra_TransactionP2PScript_from failed: %d", status)
+
+        result = <bytes> buf_ptr[:buf_len]
+        capi.libra_free_bytes_buffer(buf_ptr)
+
+        return result
+    
+    @staticmethod
+    def createAddCurrencyTransactionScriptBytes(identifier: str = "LBR") -> bytes:
+        """Create AddCurrency TX Script Bytes"""
+        cdef uint8_t* buf_ptr
+        cdef size_t buf_len
+
+        buf_ptr = NULL
+        buf_len = 0
+
+        status = capi.libra_TransactionAddCurrencyScript_from(
+            <bytes> identifier.encode("utf-8")[:],
+            &buf_ptr, &buf_len
+        )
+
+        if status != capi.LibraStatus.Ok:
+            raise ValueError("libra_TransactionAddCurrencyScript_from failed: %d", status)
+
+        result = <bytes> buf_ptr[:buf_len]
+        capi.libra_free_bytes_buffer(buf_ptr)
+
+        return result     
 
     @staticmethod
     def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction:

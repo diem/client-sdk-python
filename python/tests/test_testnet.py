@@ -95,15 +95,19 @@ def test_send_transaction_fail() -> None:
 
     api = LibraNetwork()
 
-    tx = TransactionUtils.createSignedP2PTransaction(
-        PRIVATE_KEY,
+    p2p_script = TransactionUtils.createP2PTransactionScriptBytes(
         RECEIVER_ADDRESS,
         RECEIVER_AUTHKEY_PREFIX,
+        # 1 libra
+        1_000_000
+    )
+
+    tx = TransactionUtils.createSignedTransaction(
+        PRIVATE_KEY,
         # sequence
         255,
-        # 1 libra
-        1_000_000,
-        expiration_time=int(time.time()) + 5 * 60,
+        script_bytes = p2p_script,
+        expiration_time=int(time.time()) + 5 * 60
     )
 
     print("Submitting: " + tx.hex())
@@ -169,16 +173,24 @@ def test_send_transaction_success() -> None:
     balance = ar.balances["LBR"]
     seq = ar.sequence
 
-    tx = TransactionUtils.createSignedP2PTransaction(
-        private_key,
+    p2p_script = TransactionUtils.createP2PTransactionScriptBytes(
         dest_addr,
         dest_authkey[: len(dest_addr)],
+        # 1 libra
+        1_000_000,
+        metadata=b"pylibra_test_send_transaction_success"
+    )
+    assert len(p2p_script) > 0
+
+
+    tx = TransactionUtils.createSignedTransaction(
+        private_key,
         # sequence
         seq,
         # 1 libra
         1_000_000,
-        expiration_time=int(time.time()) + 5 * 60,
-        metadata=b"pylibra_test_send_transaction_success",
+        script_bytes=p2p_script,
+        expiration_time=int(time.time()) + 5 * 60
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)

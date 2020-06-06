@@ -24,14 +24,20 @@ def test_lcs_e2e() -> None:
 
 
 def test_lcs_e2e_native() -> None:
-    content = TransactionUtils.createSignedP2PTransaction(
-        bytes.fromhex("11" * 32),
+    p2p_script = TransactionUtils.createP2PTransactionScriptBytes(
         bytes.fromhex("22" * 16),
         bytes.fromhex("33" * 16),
+        # micro libra
+        987_654_321
+    )
+
+    content = TransactionUtils.createSignedTransaction(
+        bytes.fromhex("11" * 32),
         255,
-        1_234_567,
+        script_bytes=p2p_script,
         expiration_time=123456789,
     )
+
     print("Testing Deserialization native bytes: ", content)
 
     # pyre-fixme

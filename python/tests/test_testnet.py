@@ -249,7 +249,7 @@ def test_add_currency_transaction_success() -> None:
     # Check whether currency is added
     ar = api.getAccount(addr_hex)
     assert ar is not None
-    assert ar.balances[COIN1] == 0  # currency is added
+    assert "COIN1" in ar.balances[COIN1]
 
 def test_transaction_by_range() -> None:
     api = LibraNetwork()
@@ -284,7 +284,7 @@ def test_transaction_by_acc_seq() -> None:
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version != 0
     assert tx.metadata == b""
-    assert tx.gas == 0
+    assert tx.gas == 444505  # gas used
 
 
 def test_transaction_by_acc_seq_with_events() -> None:
@@ -296,7 +296,7 @@ def test_transaction_by_acc_seq_with_events() -> None:
     assert len(events) == 4
     assert events[2].module == "LibraAccount"
     assert events[3].module == "LibraAccount"
-    assert tx.gas == 0
+    assert tx.gas == 444505  # gas used
 
 
 def test_timestamp_from_testnet() -> None:

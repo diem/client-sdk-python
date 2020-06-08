@@ -441,6 +441,6 @@ class LibraNetwork(BaseLibraNetwork):
         return events
 
     def get_currencies(self) -> typing.List[CurrencyInfo]:
-        resp_list = make_json_rpc_request(self._url, self._session, self._timeout, "currencies_info", [], None)
+        resp_list = make_json_rpc_request(self._url, self._session, self._timeout, "get_currencies", [], None)
         res = [CurrencyInfo(**x) for x in resp_list]
         return res

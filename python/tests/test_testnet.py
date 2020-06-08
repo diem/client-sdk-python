@@ -95,19 +95,15 @@ def test_send_transaction_fail() -> None:
 
     api = LibraNetwork()
 
-    p2p_script = TransactionUtils.createP2PTransactionScriptBytes(
+    tx = TransactionUtils.createSignedP2PTransaction(
+        PRIVATE_KEY,
         RECEIVER_ADDRESS,
         RECEIVER_AUTHKEY_PREFIX,
-        # 1 libra
-        1_000_000
-    )
-
-    tx = TransactionUtils.createSignedTransaction(
-        PRIVATE_KEY,
         # sequence
         255,
-        script_bytes = p2p_script,
-        expiration_time=int(time.time()) + 5 * 60
+        # 1 libra
+        1_000_000,
+        expiration_time=int(time.time()) + 5 * 60,
     )
 
     print("Submitting: " + tx.hex())
@@ -173,24 +169,16 @@ def test_send_transaction_success() -> None:
     balance = ar.balances["LBR"]
     seq = ar.sequence
 
-    p2p_script = TransactionUtils.createP2PTransactionScriptBytes(
+    tx = TransactionUtils.createSignedP2PTransaction(
+        private_key,
         dest_addr,
         dest_authkey[: len(dest_addr)],
-        # 1 libra
-        1_000_000,
-        metadata=b"pylibra_test_send_transaction_success"
-    )
-    assert len(p2p_script) > 0
-
-
-    tx = TransactionUtils.createSignedTransaction(
-        private_key,
         # sequence
         seq,
         # 1 libra
         1_000_000,
-        script_bytes=p2p_script,
-        expiration_time=int(time.time()) + 5 * 60
+        expiration_time=int(time.time()) + 5 * 60,
+        metadata=b"pylibra_test_send_transaction_success",
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)
@@ -218,6 +206,50 @@ def test_send_transaction_success() -> None:
 
     assert ar.balances["LBR"] == balance - 1_000_000
 
+@pytest.mark.timeout(60)
+def test_add_currency_transaction_success() -> None:
+    private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758c")
+
+    ak = AccountKeyUtils.from_private_key(private_key)
+    authkey_hex: str = ak.authentication_key.hex()
+    addr_hex = ak.address.hex()
+    api = LibraNetwork()
+
+    print("Using account", addr_hex)
+
+    @retry(FaucetError, delay=1)
+    def _mint_and_wait(amount: int) -> AccountResource:
+        f = FaucetUtils()
+        seq = f.mint(authkey_hex, amount)
+        return _wait_for_account_seq(ASSOC_ADDRESS, seq)
+
+    _mint_and_wait(1_000_000)
+
+    ar = api.getAccount(addr_hex)
+    assert ar is not None
+    assert ar.balances["LBR"] >= 1_000_000
+
+    seq = ar.sequence
+
+    tx = TransactionUtils.createSignedAddCurrencyransaction(
+        private_key,
+        # sequence
+        seq,
+        expiration_time=int(time.time()) + 5 * 60,
+        identifier="COIN1"
+    )
+    api.sendTransaction(tx)
+    ar = _wait_for_account_seq(addr_hex, seq + 1)
+
+    assert ar.sequence == seq + 1
+
+    assert tx is not None
+    assert tx.vm_status == 4001
+
+    # Check whether currency is added
+    ar = api.getAccount(addr_hex)
+    assert ar is not None
+    assert ar.balances[COIN1] == 0  # currency is added
 
 def test_transaction_by_range() -> None:
     api = LibraNetwork()

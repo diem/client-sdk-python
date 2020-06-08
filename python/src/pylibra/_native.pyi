@@ -3,6 +3,17 @@
 from ._types import SignedTransaction, AccountKey
 import typing
 
+
+def _createSignedTransaction(
+    sender_private_key: bytes,
+    sender_sequence: int,
+    script_bytes: bytes,
+    expiration_time: int,
+    max_gas_amount: int = 1_000_000,
+    gas_unit_price: int = 0,
+    gas_identifier: str = "LBR",
+) -> bytes: ...
+
 class TransactionUtils:
     @staticmethod
     def createSignedP2PTransaction(
@@ -29,16 +40,6 @@ class TransactionUtils:
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         identifier: str = "LBR",
-        gas_identifier: str = "LBR",
-    ) -> bytes: ...
-    @staticmethod
-    def _createSignedTransaction(
-        sender_private_key: bytes,
-        sender_sequence: int,
-        script_bytes: bytes,
-        expiration_time: int,
-        max_gas_amount: int = 1_000_000,
-        gas_unit_price: int = 0,
         gas_identifier: str = "LBR",
     ) -> bytes: ...
     @staticmethod

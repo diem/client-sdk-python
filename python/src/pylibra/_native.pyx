@@ -9,6 +9,44 @@ from . cimport capi
 import time
 from ._types import SignedTransaction, AccountKey
 
+def _createSignedTransaction(sender_private_key: bytes, sender_sequence: int, script_bytes: bytes, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, gas_identifier: str='LBR') -> bytes:
+    """Create SignedTransaction"""
+    cdef uint8_t* buf_ptr
+    cdef size_t buf_len
+
+    buf_ptr = NULL
+    buf_len = 0
+
+    cdef const char* c_ident = NULL
+    cdef const char* c_gas_ident = NULL
+
+    if not len(sender_private_key) == capi.LIBRA_CONST._LIBRA_PRIVKEY_SIZE:
+        raise ValueError("Invalid private key!")
+
+    if not sender_sequence >= 0:
+        raise ValueError("Invalid sender_sequence!")
+
+    if not len(script_bytes) > 0:
+        raise ValueError("Invalid Transaction Script!")        
+
+    status = capi.libra_SignedTransactionBytes_from(
+            <bytes> sender_private_key[:len(sender_private_key)],
+            sender_sequence,
+            max_gas_amount,
+            gas_unit_price,
+            <bytes> gas_identifier.encode("utf-8")[:],
+            expiration_time,
+            <bytes> script_bytes[:len(script_bytes)],
+            len(script_bytes),
+            &buf_ptr, &buf_len)
+
+    if status != capi.LibraStatus.Ok:
+        raise ValueError("libra_SignedTransactionBytes_from failed: %d", status)
+
+    result = <bytes> buf_ptr[:buf_len]
+    capi.libra_free_bytes_buffer(buf_ptr)
+
+    return result
 
 cdef class TransactionUtils:
     @staticmethod
@@ -68,15 +106,15 @@ cdef class TransactionUtils:
         script_bytes = <bytes> buf_ptr[:buf_len]
         capi.libra_free_bytes_buffer(buf_ptr)
 
-        return TransactionUtils._createSignedTransaction(
-                                        sender_private_key, 
-                                        sender_sequence,
-                                        script_bytes,
-                                        expiration_time, 
-                                        max_gas_amount,
-                                        gas_unit_price,
-                                        gas_identifier
-                                    )
+        return _createSignedTransaction(
+                    sender_private_key, 
+                    sender_sequence,
+                    script_bytes,
+                    expiration_time, 
+                    max_gas_amount,
+                    gas_unit_price,
+                    gas_identifier
+                )
 
 
     @staticmethod
@@ -108,55 +146,17 @@ cdef class TransactionUtils:
         script_bytes = <bytes> buf_ptr[:buf_len]
         capi.libra_free_bytes_buffer(buf_ptr)
 
-        return TransactionUtils._createSignedTransaction(
-                                        sender_private_key, 
-                                        sender_sequence, 
-                                        script_bytes, 
-                                        expiration_time, 
-                                        max_gas_amount,
-                                        gas_unit_price,
-                                        gas_identifier
-                                    )
+        return _createSignedTransaction(
+                    sender_private_key, 
+                    sender_sequence, 
+                    script_bytes, 
+                    expiration_time, 
+                    max_gas_amount,
+                    gas_unit_price,
+                    gas_identifier
+                )
 
-    @staticmethod
-    def _createSignedTransaction(sender_private_key: bytes, sender_sequence: int, script_bytes: bytes, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, gas_identifier: str='LBR') -> bytes:
-        """Create SignedTransaction"""
-        cdef uint8_t* buf_ptr
-        cdef size_t buf_len
 
-        buf_ptr = NULL
-        buf_len = 0
-
-        cdef const char* c_ident = NULL
-        cdef const char* c_gas_ident = NULL
-
-        if not len(sender_private_key) == capi.LIBRA_CONST._LIBRA_PRIVKEY_SIZE:
-            raise ValueError("Invalid private key!")
-
-        if not sender_sequence >= 0:
-            raise ValueError("Invalid sender_sequence!")
-
-        if not len(script_bytes) > 0:
-            raise ValueError("Invalid Transaction Script!")        
-
-        status = capi.libra_SignedTransactionBytes_from(
-             <bytes> sender_private_key[:len(sender_private_key)],
-             sender_sequence,
-             max_gas_amount,
-             gas_unit_price,
-             <bytes> gas_identifier.encode("utf-8")[:],
-             expiration_time,
-             <bytes> script_bytes[:len(script_bytes)],
-             len(script_bytes),
-             &buf_ptr, &buf_len)
-
-        if status != capi.LibraStatus.Ok:
-            raise ValueError("libra_SignedTransactionBytes_from failed: %d", status)
-
-        result = <bytes> buf_ptr[:buf_len]
-        capi.libra_free_bytes_buffer(buf_ptr)
-
-        return result
 
     @staticmethod
     def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction:

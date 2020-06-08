@@ -358,11 +358,15 @@ class LibraNetwork(BaseLibraNetwork):
             self._session.close()
 
     def currentVersion(self) -> int:
-        result = make_json_rpc_request(self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp)
+        result = make_json_rpc_request(
+            self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp
+        )
         return result.version
 
     def currentTimestampUsecs(self) -> int:
-        result = make_json_rpc_request(self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp)
+        result = make_json_rpc_request(
+            self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp
+        )
         return result.timestamp
 
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:

@@ -15,6 +15,7 @@ from pylibra import (
 from functools import wraps
 import typing
 import pprint
+import random
 
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
 ASSOC_AUTHKEY: str = "254d77ec7ceae382e842dcff2df1590753b260f98a749dbc77e307a15ae781a6"
@@ -209,7 +210,10 @@ def test_send_transaction_success() -> None:
 
 @pytest.mark.timeout(60)
 def test_add_currency_transaction_success() -> None:
-    private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758c")
+    # Have to generate random address every time
+    # If not, adding same currency to the same address doesn't check for regression as it will be correct always"
+    random_str = str(random.randrange(100_000_00, 100_000_000)) * 8
+    private_key = bytes.fromhex(random_str)
 
     ak = AccountKeyUtils.from_private_key(private_key)
     authkey_hex: str = ak.authentication_key.hex()
@@ -219,9 +223,9 @@ def test_add_currency_transaction_success() -> None:
     print("Using account", addr_hex)
 
     @retry(FaucetError, delay=1)
-    def _mint_and_wait(amount: int) -> AccountResource:
+    def _mint_and_wait(amount: int, identifier: str = "LBR") -> AccountResource:
         f = FaucetUtils()
-        seq = f.mint(authkey_hex, amount)
+        seq = f.mint(authkey_hex, amount, identifier)
         return _wait_for_account_seq(ASSOC_ADDRESS, seq)
 
     _mint_and_wait(1_000_000)
@@ -237,17 +241,28 @@ def test_add_currency_transaction_success() -> None:
         # sequence
         seq,
         expiration_time=int(time.time()) + 5 * 60,
-        identifier="COIN1",
+        identifier="Coin1",
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)
 
     assert ar.sequence == seq + 1
 
+    tx, events = api.transaction_by_acc_seq(addr_hex, seq, include_events=True)
+    pprint.pprint(tx)
+    pprint.pprint(events)
+
+    assert tx is not None
+    assert tx.vm_status == 4001
+
+    # mint some coins to the currency
+    _mint_and_wait(1_000_000, "Coin1")
+
     # Check whether currency is added
     ar = api.getAccount(addr_hex)
     assert ar is not None
-    assert "COIN1" in ar.balances
+    assert "Coin1" in ar.balances
+    assert ar.balances["Coin1"] >= 1_000_000
 
 
 def test_transaction_by_range() -> None:

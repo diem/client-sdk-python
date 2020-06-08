@@ -3,7 +3,6 @@
 from ._types import SignedTransaction, AccountKey
 import typing
 
-
 def _createSignedTransaction(
     sender_private_key: bytes,
     sender_sequence: int,

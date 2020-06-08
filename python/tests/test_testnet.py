@@ -206,6 +206,7 @@ def test_send_transaction_success() -> None:
 
     assert ar.balances["LBR"] == balance - 1_000_000
 
+
 @pytest.mark.timeout(60)
 def test_add_currency_transaction_success() -> None:
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758c")
@@ -231,25 +232,23 @@ def test_add_currency_transaction_success() -> None:
 
     seq = ar.sequence
 
-    tx = TransactionUtils.createSignedAddCurrencyransaction(
+    tx = TransactionUtils.createSignedAddCurrencyTransaction(
         private_key,
         # sequence
         seq,
         expiration_time=int(time.time()) + 5 * 60,
-        identifier="COIN1"
+        identifier="COIN1",
     )
     api.sendTransaction(tx)
     ar = _wait_for_account_seq(addr_hex, seq + 1)
 
     assert ar.sequence == seq + 1
 
-    assert tx is not None
-    assert tx.vm_status == 4001
-
     # Check whether currency is added
     ar = api.getAccount(addr_hex)
     assert ar is not None
-    assert "COIN1" in ar.balances[COIN1]
+    assert "COIN1" in ar.balances
+
 
 def test_transaction_by_range() -> None:
     api = LibraNetwork()
@@ -284,7 +283,7 @@ def test_transaction_by_acc_seq() -> None:
     assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
     assert tx.version != 0
     assert tx.metadata == b""
-    assert tx.gas == 444505  # gas used
+    assert tx.gas > 0  # gas used
 
 
 def test_transaction_by_acc_seq_with_events() -> None:

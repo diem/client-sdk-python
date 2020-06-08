@@ -15,6 +15,19 @@ class ServerError:
 
 
 @dataclasses.dataclass
+class ParentVASP:
+    human_name: str
+    base_url: str
+    expiration_date: int
+    compliance_public_key: bytes
+
+
+@dataclasses.dataclass
+class ChildVASP:
+    parent_vasp_address: bytes
+
+
+@dataclasses.dataclass
 class GetAccountStateResp:
     sequence_number: int
     authentication_key: str
@@ -23,6 +36,7 @@ class GetAccountStateResp:
     balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
+    role: typing.Union[ParentVASP, ChildVASP, None]  # [ASK]: Is another level of indirection needed?
 
 
 @dataclasses.dataclass

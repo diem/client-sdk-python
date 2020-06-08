@@ -20,7 +20,6 @@ class TransactionUtils:
         identifier: str = "LBR",
         gas_identifier: str = "LBR",
     ) -> bytes: ...
-
     @staticmethod
     def createSignedAddCurrencyTransaction(
         sender_private_key: bytes,
@@ -32,18 +31,16 @@ class TransactionUtils:
         identifier: str = "LBR",
         gas_identifier: str = "LBR",
     ) -> bytes: ...
-
     @staticmethod
     def _createSignedTransaction(
         sender_private_key: bytes,
         sender_sequence: int,
-        script_bytes : bytes,
+        script_bytes: bytes,
         expiration_time: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
-        gas_identifier: str = "LBR"
+        gas_identifier: str = "LBR",
     ) -> bytes: ...
-
     @staticmethod
     def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction: ...
 

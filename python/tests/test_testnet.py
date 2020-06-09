@@ -398,11 +398,16 @@ def test_account_role_exists() -> None:
     assert ar is not None
 
     # every account created on testnet is parentVASP
+    """
     pprint.pprint(ar.role)
     assert "parent_vasp" in ar.role
     parent_vasp_dict = ar.role["parent_vasp"]
     p_vasp = ParentVASP(**parent_vasp_dict)
     assert isinstance(p_vasp, ParentVASP)
+
+    """
+    assert isinstance(ar.role, ParentVASP)
+    p_vasp = typing.cast(ParentVASP, ar.role)
     assert p_vasp.base_url == "https://libra.org/"
     assert p_vasp.human_name == "testnet"
 

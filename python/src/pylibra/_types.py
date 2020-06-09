@@ -4,6 +4,19 @@ import typing
 from abc import ABCMeta, abstractmethod
 
 
+@dataclasses.dataclass
+class ParentVASP:
+    human_name: str
+    base_url: str
+    expiration_date: int
+    compliance_public_key: bytes
+
+
+@dataclasses.dataclass
+class ChildVASP:
+    parent_vasp_address: bytes
+
+
 class AccountResource(metaclass=ABCMeta):
     @property
     def address(self) -> bytes:
@@ -43,6 +56,11 @@ class AccountResource(metaclass=ABCMeta):
     @property
     def received_events_key(self) -> bytes:
         """received_events"""
+        raise NotImplementedError()
+
+    @property
+    def role(self) -> typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]:
+        """role associated with account"""
         raise NotImplementedError()
 
 

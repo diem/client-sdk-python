@@ -3,7 +3,7 @@ import requests
 import typing
 
 from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG, DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS
-from ._types import SignedTransaction, Event, PaymentEvent, AccountResource, CurrencyInfo
+from ._types import SignedTransaction, Event, PaymentEvent, AccountResource, CurrencyInfo, ParentVASP, ChildVASP
 from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
 
 
@@ -15,19 +15,6 @@ class ServerError:
 
 
 @dataclasses.dataclass
-class ParentVASP:
-    human_name: str
-    base_url: str
-    expiration_date: int
-    compliance_public_key: bytes
-
-
-@dataclasses.dataclass
-class ChildVASP:
-    parent_vasp_address: bytes
-
-
-@dataclasses.dataclass
 class GetAccountStateResp:
     sequence_number: int
     authentication_key: str
@@ -36,7 +23,7 @@ class GetAccountStateResp:
     balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
-    role: typing.Union[ParentVASP, ChildVASP, None]  # [ASK]: Is another level of indirection needed?
+    role: typing.Optional[typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]]
 
 
 @dataclasses.dataclass
@@ -149,13 +136,18 @@ class JSONAccountResource(AccountResource):
     _address: bytes
     _state: GetAccountStateResp
     _balances: typing.Dict[str, int]
+    _role: typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]
 
     def __init__(self, address_hex: str, state: GetAccountStateResp):
         self._address = bytes.fromhex(address_hex)
         self._state = state
         self._balances = {}
+        self._role = {}
         for balance_dict in self._state.balances:
             self._balances[balance_dict["currency"]] = balance_dict["amount"]
+        if self._state.role != 'empty':
+            for account_role in self._state.role:
+                self._role[account_role] = self._state.role[account_role]
 
     @property
     def address(self) -> bytes:
@@ -188,6 +180,10 @@ class JSONAccountResource(AccountResource):
     @property
     def received_events_key(self) -> bytes:
         return bytes.fromhex(self._state.received_events_key)
+
+    @property
+    def role(self) -> typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]:
+        return self._role
 
 
 class JSONPaymentEvent(PaymentEvent):

@@ -284,3 +284,4 @@ cdef class NativeSignedTransaction(NativeTransaction):
     @property
     def vm_status(self) -> int:
         return 4000 # UNKNOWN_RUNTIME_STATUS
+        

@@ -401,10 +401,10 @@ def test_account_role_exists() -> None:
     pprint.pprint(ar.role)
     assert "parent_vasp" in ar.role
     parent_vasp_dict = ar.role["parent_vasp"]
-    print(parent_vasp_dict["base_url"])
-    p_vasp = ParentVASP.__new__(ParentVASP, **parent_vasp_dict)
+    p_vasp = ParentVASP(**parent_vasp_dict)
     assert isinstance(p_vasp, ParentVASP)
-    print(p_vasp.base_url)
+    assert p_vasp.base_url == "https://libra.org/"
+    assert p_vasp.human_name == "testnet"
 
 
 # [TODO] Every address on testnet seems to be ParentVASP

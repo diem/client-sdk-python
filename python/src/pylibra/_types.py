@@ -6,10 +6,10 @@ from abc import ABCMeta, abstractmethod
 
 @dataclasses.dataclass
 class ParentVASP:
-    human_name: str
     base_url: str
-    expiration_date: int
-    compliance_public_key: bytes
+    compliance_key: bytes
+    expiration_time: int
+    human_name: str
 
 
 @dataclasses.dataclass

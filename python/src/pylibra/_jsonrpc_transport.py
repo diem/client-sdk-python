@@ -23,7 +23,7 @@ class GetAccountStateResp:
     balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
-    role: typing.Optional[typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]]
+    role: typing.Union[str, ParentVASP, ChildVASP]
 
 
 @dataclasses.dataclass
@@ -47,6 +47,7 @@ class JSONUserTransaction:
     sequence_number: int
     max_gas_amount: int
     gas_unit_price: int
+    gas_currency: str
     expiration_time: int
     gas_used: int
     script_hash: str
@@ -86,6 +87,10 @@ class JSONSignedTransaction(SignedTransaction):
     @property
     def gas_unit_price(self) -> int:
         return self._transaction["gas_unit_price"]
+
+    @property
+    def gas_currency(self) -> str:
+        return self._transaction["gas_currency"]
 
     @property
     def expiration_time(self) -> int:
@@ -136,18 +141,13 @@ class JSONAccountResource(AccountResource):
     _address: bytes
     _state: GetAccountStateResp
     _balances: typing.Dict[str, int]
-    _role: typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]
 
     def __init__(self, address_hex: str, state: GetAccountStateResp):
         self._address = bytes.fromhex(address_hex)
         self._state = state
         self._balances = {}
-        self._role = {}
         for balance_dict in self._state.balances:
             self._balances[balance_dict["currency"]] = balance_dict["amount"]
-        if self._state.role != 'empty':
-            for account_role in self._state.role:
-                self._role[account_role] = self._state.role[account_role]
 
     @property
     def address(self) -> bytes:
@@ -182,8 +182,8 @@ class JSONAccountResource(AccountResource):
         return bytes.fromhex(self._state.received_events_key)
 
     @property
-    def role(self) -> typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]:
-        return self._role
+    def role(self) -> typing.Union[str, ParentVASP, ChildVASP]:
+        return self._state.role
 
 
 class JSONPaymentEvent(PaymentEvent):

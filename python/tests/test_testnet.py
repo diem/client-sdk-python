@@ -11,6 +11,7 @@ from pylibra import (
     AccountResource,
     FaucetError,
     PaymentEvent,
+    ParentVASP,
 )
 from functools import wraps
 import typing
@@ -399,6 +400,11 @@ def test_account_role_exists() -> None:
     # every account created on testnet is parentVASP
     pprint.pprint(ar.role)
     assert "parent_vasp" in ar.role
+    parent_vasp_dict = ar.role["parent_vasp"]
+    print(parent_vasp_dict["base_url"])
+    p_vasp = ParentVASP.__new__(ParentVASP, **parent_vasp_dict)
+    assert isinstance(p_vasp, ParentVASP)
+    print(p_vasp.base_url)
 
 
 # [TODO] Every address on testnet seems to be ParentVASP

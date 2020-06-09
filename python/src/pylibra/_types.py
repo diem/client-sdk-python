@@ -59,7 +59,7 @@ class AccountResource(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
-    def role(self) -> typing.Dict[str, typing.Union[ParentVASP, ChildVASP]]:
+    def role(self) -> typing.Union[str, ParentVASP, ChildVASP]:
         """role associated with account"""
         raise NotImplementedError()
 
@@ -101,6 +101,11 @@ class SignedTransaction(metaclass=ABCMeta):
     @property
     @abstractmethod
     def gas_unit_price(self) -> int:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def gas_currency(self) -> str:
         raise NotImplementedError()
 
     @property

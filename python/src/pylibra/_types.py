@@ -4,6 +4,19 @@ import typing
 from abc import ABCMeta, abstractmethod
 
 
+@dataclasses.dataclass
+class ParentVASP:
+    base_url: str
+    compliance_key: bytes
+    expiration_time: int
+    human_name: str
+
+
+@dataclasses.dataclass
+class ChildVASP:
+    parent_vasp_address: bytes
+
+
 class AccountResource(metaclass=ABCMeta):
     @property
     def address(self) -> bytes:
@@ -45,6 +58,11 @@ class AccountResource(metaclass=ABCMeta):
         """received_events"""
         raise NotImplementedError()
 
+    @property
+    def role(self) -> typing.Union[str, ParentVASP, ChildVASP]:
+        """role associated with account"""
+        raise NotImplementedError()
+
 
 class AccountKey(metaclass=ABCMeta):
     @property
@@ -83,6 +101,11 @@ class SignedTransaction(metaclass=ABCMeta):
     @property
     @abstractmethod
     def gas_unit_price(self) -> int:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def gas_currency(self) -> str:
         raise NotImplementedError()
 
     @property

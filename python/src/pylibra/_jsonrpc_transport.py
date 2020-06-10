@@ -3,7 +3,7 @@ import requests
 import typing
 
 from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG, DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS
-from ._types import SignedTransaction, Event, PaymentEvent, AccountResource, CurrencyInfo
+from ._types import SignedTransaction, Event, PaymentEvent, AccountResource, CurrencyInfo, ParentVASP, ChildVASP
 from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
 
 
@@ -23,6 +23,7 @@ class GetAccountStateResp:
     balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
+    role: typing.Union[str, typing.Dict]
 
 
 @dataclasses.dataclass
@@ -46,6 +47,7 @@ class JSONUserTransaction:
     sequence_number: int
     max_gas_amount: int
     gas_unit_price: int
+    gas_currency: str
     expiration_time: int
     gas_used: int
     script_hash: str
@@ -85,6 +87,10 @@ class JSONSignedTransaction(SignedTransaction):
     @property
     def gas_unit_price(self) -> int:
         return self._transaction["gas_unit_price"]
+
+    @property
+    def gas_currency(self) -> str:
+        return self._transaction["gas_currency"]
 
     @property
     def expiration_time(self) -> int:
@@ -135,13 +141,25 @@ class JSONAccountResource(AccountResource):
     _address: bytes
     _state: GetAccountStateResp
     _balances: typing.Dict[str, int]
+    _role: typing.Union[str, ParentVASP, ChildVASP]
 
     def __init__(self, address_hex: str, state: GetAccountStateResp):
         self._address = bytes.fromhex(address_hex)
         self._state = state
         self._balances = {}
+        self._role = "unknown"
         for balance_dict in self._state.balances:
             self._balances[balance_dict["currency"]] = balance_dict["amount"]
+
+        if type(self._state.role) == str:
+            # For strings returned like "empty", "unknown"
+            self._role = typing.cast(str, self._state.role)
+        else:
+            role_dict = typing.cast(typing.Dict, self._state.role)
+            if "parent_vasp" in self._state.role:
+                self._role = ParentVASP(**(role_dict["parent_vasp"]))
+            elif "child_vasp" in self._state.role:
+                self._role = ChildVASP(**(role_dict["child_vasp"]))
 
     @property
     def address(self) -> bytes:
@@ -174,6 +192,10 @@ class JSONAccountResource(AccountResource):
     @property
     def received_events_key(self) -> bytes:
         return bytes.fromhex(self._state.received_events_key)
+
+    @property
+    def role(self) -> typing.Union[str, ParentVASP, ChildVASP]:
+        return self._role
 
 
 class JSONPaymentEvent(PaymentEvent):
@@ -344,11 +366,15 @@ class LibraNetwork(BaseLibraNetwork):
             self._session.close()
 
     def currentVersion(self) -> int:
-        result = make_json_rpc_request(self._url, self._session, self._timeout, "get_metadata", [], GetMetadataResp)
+        result = make_json_rpc_request(
+            self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp
+        )
         return result.version
 
     def currentTimestampUsecs(self) -> int:
-        result = make_json_rpc_request(self._url, self._session, self._timeout, "get_metadata", [], GetMetadataResp)
+        result = make_json_rpc_request(
+            self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp
+        )
         return result.timestamp
 
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:
@@ -441,6 +467,6 @@ class LibraNetwork(BaseLibraNetwork):
         return events
 
     def get_currencies(self) -> typing.List[CurrencyInfo]:
-        resp_list = make_json_rpc_request(self._url, self._session, self._timeout, "currencies_info", [], None)
+        resp_list = make_json_rpc_request(self._url, self._session, self._timeout, "get_currencies", [], None)
         res = [CurrencyInfo(**x) for x in resp_list]
         return res

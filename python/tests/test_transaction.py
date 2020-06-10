@@ -29,6 +29,7 @@ def test_parse_transaction() -> None:
         expiration_time=123_456_789,
         max_gas_amount=140000,
     )
+
     tx = TransactionUtils.parse(0, tx_bytes, GAS_USED)
     assert tx.version == 0
     assert tx.is_p2p

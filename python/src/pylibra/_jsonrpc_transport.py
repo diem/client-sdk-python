@@ -23,7 +23,7 @@ class GetAccountStateResp:
     balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
-    role: typing.Union[str, ParentVASP, ChildVASP]
+    role: typing.Union[str, typing.Dict]
 
 
 @dataclasses.dataclass
@@ -151,13 +151,15 @@ class JSONAccountResource(AccountResource):
         for balance_dict in self._state.balances:
             self._balances[balance_dict["currency"]] = balance_dict["amount"]
 
-        if "parent_vasp" in self._state.role:
-            self._role = ParentVASP(**(self._state.role["parent_vasp"]))
-        elif "child_vasp" in self._state.role:
-            self._role = ChildVASP(**(self._state.role["child_vasp"]))
-        else:
+        if type(self._state.role) == str:
             # For strings returned like "empty", "unknown"
-            self._role = self._state.role
+            self._role = typing.cast(str, self._state.role)
+        else:
+            role_dict = typing.cast(typing.Dict, self._state.role)
+            if "parent_vasp" in self._state.role:
+                self._role = ParentVASP(**(role_dict["parent_vasp"]))
+            elif "child_vasp" in self._state.role:
+                self._role = ChildVASP(**(role_dict["child_vasp"]))
 
     @property
     def address(self) -> bytes:

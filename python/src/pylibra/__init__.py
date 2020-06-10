@@ -31,4 +31,6 @@ __all__ = [
     "Event",
     "PaymentEvent",
     "CurrencyInfo",
+    "ParentVASP",
+    "ChildVASP",
 ]

@@ -7,7 +7,7 @@ def _createSignedTransaction(
     sender_private_key: bytes,
     sender_sequence: int,
     script_bytes: bytes,
-    expiration_time: int,
+    expiration_time: int,  # unix timestamp at which the tx will expire
     max_gas_amount: int = 1_000_000,
     gas_unit_price: int = 0,
     gas_identifier: str = "LBR",
@@ -22,7 +22,7 @@ class TransactionUtils:
         sender_sequence: int,
         amount: int,
         *ignore: typing.Any,
-        expiration_time: int,
+        expiration_time: int,  # unix timestamp at which the tx will expire
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         metadata: bytes = b"",
@@ -35,7 +35,7 @@ class TransactionUtils:
         sender_private_key: bytes,
         sender_sequence: int,
         *ignore: typing.Any,
-        expiration_time: int,
+        expiration_time: int,  # unix timestamp at which the tx will expire
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         identifier: str = "LBR",

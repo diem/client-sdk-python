@@ -25,12 +25,7 @@ def test_lcs_e2e() -> None:
 
 def test_lcs_e2e_native() -> None:
     content = TransactionUtils.createSignedP2PTransaction(
-        bytes.fromhex("11" * 32),
-        bytes.fromhex("22" * 16),
-        bytes.fromhex("33" * 16),
-        255,
-        1_234_567,
-        expiration_time=123456789,
+        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789,
     )
 
     print("Testing Deserialization native bytes: ", content)

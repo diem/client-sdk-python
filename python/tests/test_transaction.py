@@ -4,7 +4,6 @@ import pytest
 from pylibra import TransactionUtils, AccountKeyUtils
 
 RECEIVER_ADDRESS: bytes = bytes.fromhex("00" * 16)
-RECEIVER_AUTHKEY_PREFIX: bytes = bytes.fromhex("00" * 16)
 PRIVATE_KEY: bytes = bytes.fromhex("11" * 32)
 PUBLIC_KEY: bytes = AccountKeyUtils.from_private_key(PRIVATE_KEY).public_key
 ADDRESS: bytes = AccountKeyUtils.from_private_key(PRIVATE_KEY).address
@@ -21,7 +20,6 @@ def test_parse_transaction() -> None:
     tx_bytes = TransactionUtils.createSignedP2PTransaction(
         PRIVATE_KEY,
         RECEIVER_ADDRESS,
-        RECEIVER_AUTHKEY_PREFIX,
         # sequence
         255,
         # micro libra

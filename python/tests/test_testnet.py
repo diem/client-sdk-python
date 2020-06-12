@@ -91,7 +91,6 @@ def test_non_existing_account() -> None:
 
 def test_send_transaction_fail() -> None:
     RECEIVER_ADDRESS = bytes.fromhex("01" * 16)
-    RECEIVER_AUTHKEY_PREFIX = bytes.fromhex("01" * 16)
 
     PRIVATE_KEY = bytes.fromhex("12345678" * 8)
 
@@ -100,7 +99,6 @@ def test_send_transaction_fail() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         PRIVATE_KEY,
         RECEIVER_ADDRESS,
-        RECEIVER_AUTHKEY_PREFIX,
         # sequence
         255,
         # 1 libra
@@ -146,7 +144,7 @@ def test_send_transaction_success() -> None:
     private_key2 = bytes.fromhex("deadbeef" * 8)
 
     ak = AccountKeyUtils.from_private_key(private_key)
-    authkey_hex: str = ak.authentication_key.hex()
+    authkey = ak.authentication_key
     addr_hex = ak.address.hex()
     api = LibraNetwork()
 
@@ -154,15 +152,22 @@ def test_send_transaction_success() -> None:
     dest_authkey = dest_ak.authentication_key
     dest_addr = dest_ak.address
 
-    print("Using account", addr_hex)
+    print("Sending LBR from account ", addr_hex, "to account", dest_addr)
+
+    f: FaucetUtils = FaucetUtils()
 
     @retry(FaucetError, delay=1)
-    def _mint_and_wait(amount: int) -> AccountResource:
-        f = FaucetUtils()
+    def _mint_and_wait(authkey_hex: str, amount: int) -> AccountResource:
         seq = f.mint(authkey_hex, amount)
         return _wait_for_account_seq(ASSOC_ADDRESS, seq)
 
-    _mint_and_wait(1_000_000)
+    ar = api.getAccount(addr_hex)
+    if ar is None or ar.balances["LBR"] <= 1_000_000:
+        _mint_and_wait(authkey.hex(), 1_000_000)
+
+    ar = api.getAccount(dest_addr.hex())
+    if ar is None:
+        _mint_and_wait(dest_authkey.hex(), 1_000_000)
 
     ar = api.getAccount(addr_hex)
     assert ar is not None
@@ -174,7 +179,6 @@ def test_send_transaction_success() -> None:
     tx = TransactionUtils.createSignedP2PTransaction(
         private_key,
         dest_addr,
-        dest_authkey[: len(dest_addr)],
         # sequence
         seq,
         # 1 libra
@@ -408,7 +412,7 @@ def test_account_role_exists() -> None:
     """
     assert isinstance(ar.role, ParentVASP)
     p_vasp = typing.cast(ParentVASP, ar.role)
-    assert p_vasp.base_url == "https://libra.org/"
+    assert p_vasp.base_url == "https://libra.org"
     assert p_vasp.human_name == "testnet"
 
 

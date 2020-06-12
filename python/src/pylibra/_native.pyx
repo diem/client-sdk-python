@@ -53,7 +53,6 @@ cdef class TransactionUtils:
     def createSignedP2PTransaction(
         sender_private_key: bytes,
         receiver: bytes,
-        receiver_authkey_prefix: bytes,
         sender_sequence: int,
         amount: int,
         *ignore: typing.Any,
@@ -75,9 +74,6 @@ cdef class TransactionUtils:
         if not len(receiver) == capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
             raise ValueError("Invalid receiver address!")
 
-        if not len(receiver_authkey_prefix) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE - capi.LIBRA_CONST._LIBRA_ADDRESS_SIZE:
-            raise ValueError("Invalid receiver authkey prefix!")
-
         if not amount > 0:
             raise ValueError("Invalid num_coins_microlibra!")
 
@@ -86,11 +82,9 @@ cdef class TransactionUtils:
                 (len(metadata) > 0 and len(metadata_signature) >= 0)
         ):
             raise ValueError("Must supply both metadata and metadata signatures.")
-        
-        receiver_authkey = receiver_authkey_prefix + receiver
 
         status = capi.libra_TransactionP2PScript_from(
-            <bytes> receiver_authkey[:len(receiver_authkey)],
+            <bytes> receiver[:len(receiver)],
             <bytes> identifier.encode("utf-8")[:],
             amount,
             <bytes> metadata[:len(metadata)],
@@ -284,4 +278,3 @@ cdef class NativeSignedTransaction(NativeTransaction):
     @property
     def vm_status(self) -> int:
         return 4000 # UNKNOWN_RUNTIME_STATUS
-        

@@ -18,7 +18,6 @@ class TransactionUtils:
     def createSignedP2PTransaction(
         sender_private_key: bytes,
         receiver: bytes,
-        receiver_authkey_prefix: bytes,
         sender_sequence: int,
         amount: int,
         *ignore: typing.Any,

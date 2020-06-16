@@ -1,7 +1,8 @@
 # pyre-strict
 
 from pylibra import TransactionUtils
-from pylibra._lcs import lcs_bytes, lcs_from_bytes, Transaction, ChangeSet, WriteSet, WriteSetMut
+from pylibra.libra_types import Transaction, ChangeSet, WriteSet, WriteSetMut
+from pylibra import lcs
 
 
 def test_lcs_e2e() -> None:
@@ -9,11 +10,11 @@ def test_lcs_e2e() -> None:
 
     # pyre-ignore
     obj = Transaction.WaypointWriteSet(ChangeSet(WriteSet(WriteSetMut(write_set=[])), []))
-    content = lcs_bytes(obj, Transaction)
+    content = lcs.serialize(obj, Transaction)
 
     print("Serialization result: ", content)
 
-    deobj, remaining = lcs_from_bytes(content, Transaction)
+    deobj, remaining = lcs.deserialize(content, Transaction)
 
     if remaining:
         raise ValueError("Remaining bytes: ", remaining)
@@ -31,7 +32,7 @@ def test_lcs_e2e_native() -> None:
     print("Testing Deserialization native bytes: ", content)
 
     # pyre-fixme
-    deobj, remaining = lcs_from_bytes(content, Transaction.UserTransaction)
+    deobj, remaining = lcs.deserialize(content, Transaction.UserTransaction)
 
     if remaining:
         raise ValueError("Remaining bytes: ", remaining)
@@ -40,7 +41,7 @@ def test_lcs_e2e_native() -> None:
 
     print("Testing serialization again")
 
-    new_content = lcs_bytes(deobj, Transaction.UserTransaction)
+    new_content = lcs.serialize(deobj, Transaction.UserTransaction)
 
     print("Result:", new_content)
 

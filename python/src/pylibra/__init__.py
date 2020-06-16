@@ -33,4 +33,8 @@ __all__ = [
     "CurrencyInfo",
     "ParentVASP",
     "ChildVASP",
+    # Modules
+    "lcs",
+    "serde_types",
+    "libra_types",
 ]

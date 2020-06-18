@@ -19,6 +19,7 @@ import pprint
 import random
 
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
+TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
 ASSOC_AUTHKEY: str = "254d77ec7ceae382e842dcff2df1590753b260f98a749dbc77e307a15ae781a6"
 
 RT = typing.TypeVar("RT")
@@ -298,9 +299,9 @@ def test_transaction_by_acc_seq_not_exist() -> None:
 
 def test_transaction_by_acc_seq() -> None:
     api = LibraNetwork()
-    tx, _ = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1, include_events=True)
+    tx, _ = api.transaction_by_acc_seq(TREASURY_ADDRESS, 1, include_events=True)
     assert tx
-    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert tx.sender == bytes.fromhex(TREASURY_ADDRESS)
     assert tx.version != 0
     assert tx.metadata == b""
     assert tx.gas > 0  # gas used
@@ -308,9 +309,9 @@ def test_transaction_by_acc_seq() -> None:
 
 def test_transaction_by_acc_seq_with_events() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq(ASSOC_ADDRESS, 1, include_events=True)
+    tx, events = api.transaction_by_acc_seq(TREASURY_ADDRESS, 1, include_events=True)
     assert tx
-    assert tx.sender == bytes.fromhex(ASSOC_ADDRESS)
+    assert tx.sender == bytes.fromhex(TREASURY_ADDRESS)
     assert tx.version != 0
     assert len(events) == 4
     assert events[2].module == "LibraAccount"
@@ -328,9 +329,9 @@ def test_version_from_testnet() -> None:
     assert api.currentVersion() > 1
 
 
-def test_assoc_events() -> None:
+def test_treasury_events() -> None:
     api = LibraNetwork()
-    ar = api.getAccount(ASSOC_ADDRESS)
+    ar = api.getAccount(TREASURY_ADDRESS)
     assert ar is not None
     events = api.get_events(ar.sent_events_key.hex(), 0, 1)
     assert len(events) == 1
@@ -348,7 +349,7 @@ def test_no_events() -> None:
 def test_assoc_mint_sum() -> None:
     api = LibraNetwork()
 
-    account = api.getAccount(ASSOC_ADDRESS)
+    account = api.getAccount(TREASURY_ADDRESS)
     assert account is not None
 
     print("Account Balance:", account.balances["LBR"], "Sequence:", account.sequence)
@@ -356,7 +357,7 @@ def test_assoc_mint_sum() -> None:
     seq = 0
     is_mint_tx_present = False
     while seq < min(account.sequence, 20):
-        tx, events = api.transaction_by_acc_seq(ASSOC_ADDRESS, seq=seq, include_events=True)
+        tx, events = api.transaction_by_acc_seq(TREASURY_ADDRESS, seq=seq, include_events=True)
         if tx and tx.is_mint:
             print("Found mint transaction: from: ", tx.sender.hex())
             total = total + tx.amount

@@ -24,6 +24,8 @@ class GetAccountStateResp:
     sent_events_key: str
     received_events_key: str
     role: typing.Union[str, typing.Dict]
+    is_frozen: bool
+    role_id: int
 
 
 @dataclasses.dataclass
@@ -196,6 +198,10 @@ class JSONAccountResource(AccountResource):
     @property
     def role(self) -> typing.Union[str, ParentVASP, ChildVASP]:
         return self._role
+
+    @property
+    def is_frozen(self) -> bool:
+        return self._state.is_frozen
 
 
 class JSONPaymentEvent(PaymentEvent):

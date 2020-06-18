@@ -63,6 +63,16 @@ class AccountResource(metaclass=ABCMeta):
         """role associated with account"""
         raise NotImplementedError()
 
+    @property
+    def role_id(self) -> int:
+        """account role_id"""
+        raise NotImplementedError()
+
+    @property
+    def is_frozen(self) -> bool:
+        """is account frozen"""
+        raise NotImplementedError()
+
 
 class AccountKey(metaclass=ABCMeta):
     @property

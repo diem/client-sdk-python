@@ -254,38 +254,27 @@ class TransactionPayload:
 
 
 @dataclass
-class _TransactionPayload_Program(TransactionPayload):
-    INDEX = 0
-
-
-@dataclass
 class _TransactionPayload_WriteSet(TransactionPayload):
-    INDEX = 1
+    INDEX = 0
     value: "ChangeSet"
 
 
 @dataclass
 class _TransactionPayload_Script(TransactionPayload):
-    INDEX = 2
+    INDEX = 1
     value: "Script"
 
 
 @dataclass
 class _TransactionPayload_Module(TransactionPayload):
-    INDEX = 3
+    INDEX = 2
     value: "Module"
 
 
-TransactionPayload.Program = _TransactionPayload_Program
 TransactionPayload.WriteSet = _TransactionPayload_WriteSet
 TransactionPayload.Script = _TransactionPayload_Script
 TransactionPayload.Module = _TransactionPayload_Module
-TransactionPayload.VARIANTS = [
-    TransactionPayload.Program,
-    TransactionPayload.WriteSet,
-    TransactionPayload.Script,
-    TransactionPayload.Module,
-]
+TransactionPayload.VARIANTS = [TransactionPayload.WriteSet, TransactionPayload.Script, TransactionPayload.Module]
 
 
 class TypeTag:

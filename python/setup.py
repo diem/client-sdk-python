@@ -42,6 +42,8 @@ elif platform.system() == "Linux":
     extra_link_args.append("-ldl")
     extra_link_args.append("-lm")
     extra_link_args.append("-pthread")
+elif platform.system() == "Windows":
+    LIBRA_LIB_FILE = "%s/%s-%s.a" % (LIBRA_LIB_DIR, "liblibra_dev", "windows-%s" % platform.machine())
 
 
 exts = [
@@ -67,7 +69,7 @@ exts = [
 setup(
     name="ivtjfchcukjgtekjrnbllkfrdkvdhdkh",
     # change to 0.1.YYYYMMDDNN on release
-    version="0.3.master",
+    version="0.4.2020062401",
     description="",
     python_requires=">=3.7",
     packages=find_packages("src"),

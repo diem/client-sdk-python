@@ -10,6 +10,7 @@ class ParentVASP:
     compliance_key: bytes
     expiration_time: int
     human_name: str
+    num_children: int
 
 
 @dataclasses.dataclass

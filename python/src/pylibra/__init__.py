@@ -37,4 +37,5 @@ __all__ = [
     "lcs",
     "serde_types",
     "libra_types",
+    "stdlib",
 ]

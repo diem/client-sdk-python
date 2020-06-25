@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Generate python code for Libra types and LCS runtime
-cargo install serde-generate --version 0.3.0
+cargo install serde-generate --version 0.4.0
 
 LIBRA=../libra
 
@@ -10,7 +10,7 @@ $HOME/.cargo/bin/serdegen\
     --language python3\
     --module-name libra_types\
     --with-runtimes serde lcs\
-    --serde-package-name ..\
+    --serde-package-name pylibra\
     --target-source-dir src/pylibra\
     "$LIBRA/testsuite/generate-format/tests/staged/libra.yaml"
 
@@ -19,8 +19,8 @@ $HOME/.cargo/bin/serdegen\
 "$LIBRA/target/debug/transaction-builder-generator"\
     --language python3\
     --module-name stdlib\
-    --serde-package-name ..\
-    --libra-package-name ..\
+    --serde-package-name pylibra\
+    --libra-package-name pylibra\
     --target-source-dir src/pylibra\
     "$LIBRA/language/stdlib/compiled/transaction_scripts/abi"
 

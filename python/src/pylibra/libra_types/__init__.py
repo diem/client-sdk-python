@@ -1,7 +1,6 @@
-# pyre-ignore-all-errors
 from dataclasses import dataclass
 import typing
-from .. import serde_types as st
+from pylibra import serde_types as st
 
 
 @dataclass
@@ -48,18 +47,17 @@ class ChangeSet:
 
 
 class ContractEvent:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _ContractEvent_V0(ContractEvent):
+class ContractEvent__V0(ContractEvent):
     INDEX = 0
     value: "ContractEventV0"
 
 
-ContractEvent.V0 = _ContractEvent_V0
 ContractEvent.VARIANTS = [
-    ContractEvent.V0,
+    ContractEvent__V0,
 ]
 
 
@@ -144,237 +142,213 @@ class StructTag:
 
 
 class Transaction:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _Transaction_UserTransaction(Transaction):
+class Transaction__UserTransaction(Transaction):
     INDEX = 0
     value: "SignedTransaction"
 
 
 @dataclass
-class _Transaction_WaypointWriteSet(Transaction):
+class Transaction__WaypointWriteSet(Transaction):
     INDEX = 1
     value: "ChangeSet"
 
 
 @dataclass
-class _Transaction_BlockMetadata(Transaction):
+class Transaction__BlockMetadata(Transaction):
     INDEX = 2
     value: "BlockMetadata"
 
 
-Transaction.UserTransaction = _Transaction_UserTransaction
-Transaction.WaypointWriteSet = _Transaction_WaypointWriteSet
-Transaction.BlockMetadata = _Transaction_BlockMetadata
 Transaction.VARIANTS = [
-    Transaction.UserTransaction,
-    Transaction.WaypointWriteSet,
-    Transaction.BlockMetadata,
+    Transaction__UserTransaction,
+    Transaction__WaypointWriteSet,
+    Transaction__BlockMetadata,
 ]
 
 
 class TransactionArgument:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _TransactionArgument_U8(TransactionArgument):
+class TransactionArgument__U8(TransactionArgument):
     INDEX = 0
     value: st.uint8
 
 
 @dataclass
-class _TransactionArgument_U64(TransactionArgument):
+class TransactionArgument__U64(TransactionArgument):
     INDEX = 1
     value: st.uint64
 
 
 @dataclass
-class _TransactionArgument_U128(TransactionArgument):
+class TransactionArgument__U128(TransactionArgument):
     INDEX = 2
     value: st.uint128
 
 
 @dataclass
-class _TransactionArgument_Address(TransactionArgument):
+class TransactionArgument__Address(TransactionArgument):
     INDEX = 3
     value: "AccountAddress"
 
 
 @dataclass
-class _TransactionArgument_U8Vector(TransactionArgument):
+class TransactionArgument__U8Vector(TransactionArgument):
     INDEX = 4
     value: typing.Sequence[st.uint8]
 
 
 @dataclass
-class _TransactionArgument_Bool(TransactionArgument):
+class TransactionArgument__Bool(TransactionArgument):
     INDEX = 5
     value: st.bool
 
 
-TransactionArgument.U8 = _TransactionArgument_U8
-TransactionArgument.U64 = _TransactionArgument_U64
-TransactionArgument.U128 = _TransactionArgument_U128
-TransactionArgument.Address = _TransactionArgument_Address
-TransactionArgument.U8Vector = _TransactionArgument_U8Vector
-TransactionArgument.Bool = _TransactionArgument_Bool
 TransactionArgument.VARIANTS = [
-    TransactionArgument.U8,
-    TransactionArgument.U64,
-    TransactionArgument.U128,
-    TransactionArgument.Address,
-    TransactionArgument.U8Vector,
-    TransactionArgument.Bool,
+    TransactionArgument__U8,
+    TransactionArgument__U64,
+    TransactionArgument__U128,
+    TransactionArgument__Address,
+    TransactionArgument__U8Vector,
+    TransactionArgument__Bool,
 ]
 
 
 class TransactionAuthenticator:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _TransactionAuthenticator_Ed25519(TransactionAuthenticator):
+class TransactionAuthenticator__Ed25519(TransactionAuthenticator):
     INDEX = 0
     public_key: "Ed25519PublicKey"
     signature: "Ed25519Signature"
 
 
 @dataclass
-class _TransactionAuthenticator_MultiEd25519(TransactionAuthenticator):
+class TransactionAuthenticator__MultiEd25519(TransactionAuthenticator):
     INDEX = 1
     public_key: "MultiEd25519PublicKey"
     signature: "MultiEd25519Signature"
 
 
-TransactionAuthenticator.Ed25519 = _TransactionAuthenticator_Ed25519
-TransactionAuthenticator.MultiEd25519 = _TransactionAuthenticator_MultiEd25519
 TransactionAuthenticator.VARIANTS = [
-    TransactionAuthenticator.Ed25519,
-    TransactionAuthenticator.MultiEd25519,
+    TransactionAuthenticator__Ed25519,
+    TransactionAuthenticator__MultiEd25519,
 ]
 
 
 class TransactionPayload:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _TransactionPayload_WriteSet(TransactionPayload):
+class TransactionPayload__WriteSet(TransactionPayload):
     INDEX = 0
     value: "ChangeSet"
 
 
 @dataclass
-class _TransactionPayload_Script(TransactionPayload):
+class TransactionPayload__Script(TransactionPayload):
     INDEX = 1
     value: "Script"
 
 
 @dataclass
-class _TransactionPayload_Module(TransactionPayload):
+class TransactionPayload__Module(TransactionPayload):
     INDEX = 2
     value: "Module"
 
 
-TransactionPayload.WriteSet = _TransactionPayload_WriteSet
-TransactionPayload.Script = _TransactionPayload_Script
-TransactionPayload.Module = _TransactionPayload_Module
 TransactionPayload.VARIANTS = [
-    TransactionPayload.WriteSet,
-    TransactionPayload.Script,
-    TransactionPayload.Module,
+    TransactionPayload__WriteSet,
+    TransactionPayload__Script,
+    TransactionPayload__Module,
 ]
 
 
 class TypeTag:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _TypeTag_Bool(TypeTag):
+class TypeTag__Bool(TypeTag):
     INDEX = 0
 
 
 @dataclass
-class _TypeTag_U8(TypeTag):
+class TypeTag__U8(TypeTag):
     INDEX = 1
 
 
 @dataclass
-class _TypeTag_U64(TypeTag):
+class TypeTag__U64(TypeTag):
     INDEX = 2
 
 
 @dataclass
-class _TypeTag_U128(TypeTag):
+class TypeTag__U128(TypeTag):
     INDEX = 3
 
 
 @dataclass
-class _TypeTag_Address(TypeTag):
+class TypeTag__Address(TypeTag):
     INDEX = 4
 
 
 @dataclass
-class _TypeTag_Signer(TypeTag):
+class TypeTag__Signer(TypeTag):
     INDEX = 5
 
 
 @dataclass
-class _TypeTag_Vector(TypeTag):
+class TypeTag__Vector(TypeTag):
     INDEX = 6
     value: "TypeTag"
 
 
 @dataclass
-class _TypeTag_Struct(TypeTag):
+class TypeTag__Struct(TypeTag):
     INDEX = 7
     value: "StructTag"
 
 
-TypeTag.Bool = _TypeTag_Bool
-TypeTag.U8 = _TypeTag_U8
-TypeTag.U64 = _TypeTag_U64
-TypeTag.U128 = _TypeTag_U128
-TypeTag.Address = _TypeTag_Address
-TypeTag.Signer = _TypeTag_Signer
-TypeTag.Vector = _TypeTag_Vector
-TypeTag.Struct = _TypeTag_Struct
 TypeTag.VARIANTS = [
-    TypeTag.Bool,
-    TypeTag.U8,
-    TypeTag.U64,
-    TypeTag.U128,
-    TypeTag.Address,
-    TypeTag.Signer,
-    TypeTag.Vector,
-    TypeTag.Struct,
+    TypeTag__Bool,
+    TypeTag__U8,
+    TypeTag__U64,
+    TypeTag__U128,
+    TypeTag__Address,
+    TypeTag__Signer,
+    TypeTag__Vector,
+    TypeTag__Struct,
 ]
 
 
 class WriteOp:
-    pass
+    VARIANTS = []
 
 
 @dataclass
-class _WriteOp_Deletion(WriteOp):
+class WriteOp__Deletion(WriteOp):
     INDEX = 0
 
 
 @dataclass
-class _WriteOp_Value(WriteOp):
+class WriteOp__Value(WriteOp):
     INDEX = 1
     value: typing.Sequence[st.uint8]
 
 
-WriteOp.Deletion = _WriteOp_Deletion
-WriteOp.Value = _WriteOp_Value
 WriteOp.VARIANTS = [
-    WriteOp.Deletion,
-    WriteOp.Value,
+    WriteOp__Deletion,
+    WriteOp__Value,
 ]
 
 

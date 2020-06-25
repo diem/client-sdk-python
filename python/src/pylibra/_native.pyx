@@ -150,7 +150,94 @@ cdef class TransactionUtils:
                     gas_identifier
                 )
 
+    @staticmethod
+    def createSignedRotateCompliancePublicKeyTransaction(
+            new_key: bytes,
+            *ignore: typing.Any,
+            sender_private_key: bytes,
+            sender_sequence: int,
+            expiration_time: int,
+            max_gas_amount: int = 1_000_000,
+            gas_unit_price: int = 0,
+            identifier: str = "LBR",
+            gas_identifier: str = "LBR",
+    ) -> bytes :
 
+        """Create RotateCompliancePublicKey Transaction"""
+        cdef uint8_t* buf_ptr
+        cdef size_t buf_len
+
+        buf_ptr = NULL
+        buf_len = 0
+
+        if not len(new_key) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE:
+            raise ValueError("Invalid new public key!")
+
+        status = capi.libra_TransactionRotateCompliancePublicKeyScript_from(
+                 <bytes> new_key[:len(new_key)],
+                 &buf_ptr, &buf_len
+        )
+
+        if status != capi.LibraStatus.Ok:
+            raise ValueError("libra_RotateCompliancePublicKeyTransactionScript_from failed: %d", status)
+
+        script_bytes = <bytes> buf_ptr[:buf_len]
+        capi.libra_free_bytes_buffer(buf_ptr)
+
+        return _createSignedTransaction(
+            sender_private_key,
+            sender_sequence,
+            script_bytes,
+            expiration_time,
+            max_gas_amount,
+            gas_unit_price,
+            gas_identifier
+        )
+
+    @staticmethod
+    def createSignedRotateBaseURLScriptTransaction(
+            new_url: str,
+            *ignore: typing.Any,
+            sender_private_key: bytes,
+            sender_sequence: int,
+            expiration_time: int,
+            max_gas_amount: int = 1_000_000,
+            gas_unit_price: int = 0,
+            identifier: str = "LBR",
+            gas_identifier: str = "LBR",
+    ):
+        """Create RotateBaseURL Transaction"""
+        cdef uint8_t* buf_ptr
+        cdef size_t buf_len
+
+        buf_ptr = NULL
+        buf_len = 0
+
+        if not new_url:
+            raise ValueError("Invalid new url!")
+
+        new_url_bytes = new_url.encode('utf-8')
+        status = capi.libra_TransactionRotateBaseURLScript_from(
+                 <bytes> new_url_bytes[:len(new_url_bytes)],
+                 len(new_url_bytes),
+                 &buf_ptr, &buf_len
+        )
+
+        if status != capi.LibraStatus.Ok:
+            raise ValueError("libra_RotateCompliancePublicKeyTransactionScript_from failed: %d", status)
+
+        script_bytes = <bytes> buf_ptr[:buf_len]
+        capi.libra_free_bytes_buffer(buf_ptr)
+
+        return _createSignedTransaction(
+            sender_private_key,
+            sender_sequence,
+            script_bytes,
+            expiration_time,
+            max_gas_amount,
+            gas_unit_price,
+            gas_identifier
+        )
 
     @staticmethod
     def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction:

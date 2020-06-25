@@ -48,14 +48,6 @@ elif platform.system() == "Windows":
 
 exts = [
     Extension(
-        name="pylibra.api",
-        sources=["src/pylibra/api.pyx"],
-        include_dirs=[LIBRA_INCLUDE_DIR],
-        extra_objects=[LIBRA_LIB_FILE],
-        depends=["src/pylibra/capi.pxd", LIBRA_HEADER, LIBRA_LIB_FILE],
-        extra_link_args=extra_link_args,
-    ),
-    Extension(
         name="pylibra._native",
         sources=["src/pylibra/_native.pyx"],
         include_dirs=[LIBRA_INCLUDE_DIR],

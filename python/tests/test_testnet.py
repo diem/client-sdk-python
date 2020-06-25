@@ -205,11 +205,17 @@ def test_send_transaction_success() -> None:
     e = typing.cast(PaymentEvent, events[0])
     assert e.currency == "LBR"
     assert e.amount == 1_000_000
+    assert e.is_sent
+    assert e.sender_address.hex() == addr_hex
+    assert e.receiver_address.hex() == dest_addr.hex()
 
     assert isinstance(events[1], PaymentEvent)
     e = typing.cast(PaymentEvent, events[1])
     assert e.currency == "LBR"
     assert e.amount == 1_000_000
+    assert e.is_received
+    assert e.sender_address.hex() == addr_hex
+    assert e.receiver_address.hex() == dest_addr.hex()
 
     assert ar.balances["LBR"] == balance - 1_000_000
 

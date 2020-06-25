@@ -221,7 +221,7 @@ class JSONPaymentEvent(PaymentEvent):
     @property
     def sender_address(self) -> bytes:
         if self.is_sent:
-            return bytes.fromhex(self._ev_dict["key"][8:])
+            return bytes.fromhex(self._ev_dict["key"][16:])
         else:
             return bytes.fromhex(self._ev_dict["data"]["sender"])
 
@@ -230,7 +230,7 @@ class JSONPaymentEvent(PaymentEvent):
         if self.is_sent:
             return bytes.fromhex(self._ev_dict["data"]["receiver"])
         else:
-            return bytes.fromhex(self._ev_dict["key"][8:])
+            return bytes.fromhex(self._ev_dict["key"][16:])
 
     @property
     def currency(self) -> str:

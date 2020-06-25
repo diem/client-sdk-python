@@ -41,6 +41,30 @@ class TransactionUtils:
         gas_identifier: str = "LBR",
     ) -> bytes: ...
     @staticmethod
+    def createSignedRotateCompliancePublicKeyTransaction(
+        new_key: bytes,
+        *ignore: typing.Any,
+        sender_private_key: bytes,
+        sender_sequence: int,
+        expiration_time: int,
+        max_gas_amount: int = 1_000_000,
+        gas_unit_price: int = 0,
+        identifier: str = "LBR",
+        gas_identifier: str = "LBR",
+    ) -> bytes: ...
+    @staticmethod
+    def createSignedRotateBaseURLScriptTransaction(
+        new_url: str,
+        *ignore: typing.Any,
+        sender_private_key: bytes,
+        sender_sequence: int,
+        expiration_time: int,
+        max_gas_amount: int = 1_000_000,
+        gas_unit_price: int = 0,
+        identifier: str = "LBR",
+        gas_identifier: str = "LBR",
+    ) -> bytes: ...
+    @staticmethod
     def parse(version: int, lcs_bytes: bytes, gas: int) -> SignedTransaction: ...
 
 class AccountKeyUtils:

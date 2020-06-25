@@ -42,3 +42,15 @@ def test_parse_transaction() -> None:
     assert tx.public_key == PUBLIC_KEY
     assert tx.gas == GAS_USED
     assert tx.vm_status == 4000
+
+
+def test_create_transcation() -> None:
+    tx = TransactionUtils.createSignedRotateCompliancePublicKeyTransaction(
+        PRIVATE_KEY, sender_private_key=PRIVATE_KEY, sender_sequence=255, expiration_time=123_456_789,
+    )
+    assert tx is not None
+
+    tx = TransactionUtils.createSignedRotateBaseURLScriptTransaction(
+        "test.test", sender_private_key=PRIVATE_KEY, sender_sequence=255, expiration_time=123_456_789,
+    )
+    assert tx is not None

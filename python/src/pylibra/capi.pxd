@@ -91,6 +91,8 @@ cdef extern from "data.h":
     LibraStatus libra_SignedTransactionBytes_from(const uint8_t sender_private_key[LIBRA_PRIVKEY_SIZE], uint64_t sequence, uint64_t max_gas_amount, uint64_t gas_unit_price, const char* gas_identifier, uint64_t expiration_time_secs, const uint8_t *script_bytes, size_t script_len, uint8_t **ptr_buf, size_t *ptr_len);
     LibraStatus libra_TransactionP2PScript_from(const uint8_t receiver[LIBRA_PUBKEY_SIZE], const char* identifier, uint64_t num_coins, const uint8_t* metadata_bytes, size_t metadata_len, const uint8_t* metadata_signature_bytes, size_t metadata_signature_len, uint8_t **ptr_buf, size_t *ptr_len);
     LibraStatus libra_TransactionAddCurrencyScript_from(const char* identifier, uint8_t **ptr_buf, size_t *ptr_len);
+    LibraStatus libra_TransactionRotateCompliancePublicKeyScript_from(const uint8_t new_key_bytes[LIBRA_PUBKEY_SIZE], uint8_t **ptr_buf, size_t *ptr_len);
+    LibraStatus libra_TransactionRotateBaseURLScript_from(const uint8_t* new_url_bytes, size_t new_url_len, uint8_t **ptr_buf, size_t *ptr_len);
     void libra_free_bytes_buffer(const uint8_t* buf)
     LibraStatus libra_LibraSignedTransaction_from(const uint8_t *buf, size_t len, LibraSignedTransaction *out)
     LibraStatus libra_RawTransactionBytes_from(const uint8_t sender[LIBRA_ADDRESS_SIZE], const uint8_t receiver[LIBRA_PUBKEY_SIZE], uint64_t sequence, uint64_t num_coins, uint64_t max_gas_amount, uint64_t gas_unit_price, uint64_t expiration_time_secs, const uint8_t * metadata_bytes, size_t metadata_len, uint8_t** buf, size_t* len)

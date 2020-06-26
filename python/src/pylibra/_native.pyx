@@ -1,5 +1,8 @@
 #cython: language_level=3
 
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 from libc.stdint cimport *
 from libc.stddef cimport *
 from libc.string cimport memset

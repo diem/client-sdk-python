@@ -1,5 +1,8 @@
 # pyre-strict
 
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 from ._types import SignedTransaction, AccountKey
 import typing
 

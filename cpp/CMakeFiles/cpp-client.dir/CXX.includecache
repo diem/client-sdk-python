@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/ericnakagawa/Desktop/work/libra-client-dev/cpp/main.cc
+string
+-
+iostream
+-
+cassert
+-
+data.h
+/Users/ericnakagawa/Desktop/work/libra-client-dev/cpp/data.h
+
+libra-dev/include/data.h
+stddef.h
+-
+stdint.h
+-
+stdbool.h
+-
+stddef.h
+-
+

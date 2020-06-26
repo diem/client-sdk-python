@@ -1,4 +1,8 @@
 # pyre-strict
+
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 import dataclasses
 import typing
 from abc import ABCMeta, abstractmethod

@@ -1,3 +1,6 @@
+# Copyright (c) Facebook, Inc. and its affiliates
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
 from dataclasses import dataclass
 import typing
 from pylibra import serde_types as st

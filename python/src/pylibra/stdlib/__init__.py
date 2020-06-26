@@ -1,3 +1,6 @@
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 import typing
 from pylibra import serde_types as st
 from pylibra.libra_types import (

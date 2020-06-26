@@ -1,3 +1,6 @@
+// Copyright (c) The Libra Core Contributors
+// SPDX-License-Identifier: Apache-2.0
+
 #ifndef LIBRA_DEV_H
 #define LIBRA_DEV_H
 

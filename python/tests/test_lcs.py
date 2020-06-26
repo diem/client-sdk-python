@@ -1,5 +1,8 @@
 # pyre-strict
 
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 from pylibra import TransactionUtils
 from pylibra import libra_types as libra
 from pylibra import serde_types as st

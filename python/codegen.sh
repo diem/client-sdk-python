@@ -1,4 +1,8 @@
 #!/bin/bash -xv
+
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
 set -euo pipefail
 
 # Generate python code for Libra types and LCS runtime

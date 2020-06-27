@@ -1,10 +1,10 @@
 # libra-client-dev
-Core rust client library for Libra
 
-# How do I even
+Client libraries for the Libra network.
+
+# Build
 ./build.sh
 
-# python folder
-./build.sh
+# Run tests
 ./test.sh
 ./format.sh

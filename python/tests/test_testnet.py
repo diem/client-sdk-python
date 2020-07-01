@@ -355,13 +355,15 @@ def test_no_events() -> None:
 # [TODO]: There seems to be no mint event for ASSOC_ADDRESS. Is it correct?
 # tx with seq 0 returning none tx which may be the 'mint' one??
 # For now, made fix so that it wont fail. Ideally should change to address which has mint events
-def test_assoc_mint_sum() -> None:
+def test_mint_sum() -> None:
     api = LibraNetwork()
 
     account = api.getAccount(TREASURY_ADDRESS)
     assert account is not None
+    # account has no balance
+    assert len(account.balances) == 0
 
-    print("Account Balance:", account.balances["LBR"], "Sequence:", account.sequence)
+    print("Sequence:", account.sequence)
     total = 0
     seq = 0
     is_mint_tx_present = False

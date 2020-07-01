@@ -28,7 +28,6 @@ class GetAccountStateResp:
     received_events_key: str
     role: typing.Union[str, typing.Dict]
     is_frozen: bool
-    role_id: int
 
 
 @dataclasses.dataclass

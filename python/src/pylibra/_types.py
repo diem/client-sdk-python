@@ -68,11 +68,6 @@ class AccountResource(metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
-    def role_id(self) -> int:
-        """account role_id"""
-        raise NotImplementedError()
-
-    @property
     def is_frozen(self) -> bool:
         """is account frozen"""
         raise NotImplementedError()
@@ -235,3 +230,4 @@ class CurrencyInfo:
     code: str
     scaling_factor: int
     fractional_part: int
+    to_lbr_exchange_rate: float

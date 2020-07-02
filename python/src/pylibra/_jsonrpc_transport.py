@@ -345,6 +345,22 @@ def make_json_rpc_request(
     return result_or_error
 
 
+# convert response events dict into event type instance
+def as_events(
+    resp_list: typing.List[typing.Dict], include: bool = True,
+) -> typing.List[typing.Union[Event, PaymentEvent]]:
+    events = []
+
+    if include and resp_list:
+        for e_dict in resp_list:
+            if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
+                events.append(JSONPaymentEvent(e_dict))
+            else:
+                events.append(JSONUnknownEvent(e_dict))
+
+    return events
+
+
 class LibraNetwork(BaseLibraNetwork):
     _url: str
     _should_close_session: bool
@@ -417,17 +433,9 @@ class LibraNetwork(BaseLibraNetwork):
         results = []
         for tx_dict in resp_dict:
             tx = None
-            events = []
-
-            if include_events:
-                for e_dict in tx_dict["events"]:
-                    if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
-                        events.append(JSONPaymentEvent(e_dict))
-                    else:
-                        events.append(JSONUnknownEvent(e_dict))
-
             if tx_dict["transaction"]["type"] == "user":
                 tx = JSONSignedTransaction(tx_dict)
+            events = as_events(tx_dict["events"], include_events)
 
             results.append((tx, events))
 
@@ -440,22 +448,14 @@ class LibraNetwork(BaseLibraNetwork):
             self._url, self._session, self._timeout, "get_account_transaction", [addr_hex, seq, include_events], None
         )
 
-        events = []
-
         if resp_dict is None:
-            return None, events
-
-        if include_events and len(resp_dict["events"]):
-            for e_dict in resp_dict["events"]:
-                if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
-                    events.append(JSONPaymentEvent(e_dict))
-                else:
-                    events.append(JSONUnknownEvent(e_dict))
+            return None, []
 
         if resp_dict["transaction"]["type"] != "user":
             raise ClientError("Unexpected response: " + str(resp_dict))
 
         res = JSONSignedTransaction(resp_dict)
+        events = as_events(resp_dict["events"], include_events)
 
         return res, events
 
@@ -463,16 +463,7 @@ class LibraNetwork(BaseLibraNetwork):
         resp_list = make_json_rpc_request(
             self._url, self._session, self._timeout, "get_events", [key_hex, start, limit], None
         )
-
-        events = []
-
-        for e_dict in resp_list:
-            if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
-                events.append(JSONPaymentEvent(e_dict))
-            else:
-                events.append(JSONUnknownEvent(e_dict))
-
-        return events
+        return as_events(resp_list)
 
     def get_currencies(self) -> typing.List[CurrencyInfo]:
         resp_list = make_json_rpc_request(self._url, self._session, self._timeout, "get_currencies", [], None)

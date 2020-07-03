@@ -6,8 +6,20 @@ import requests
 import typing
 
 from ._config import NETWORK_DEFAULT, ENDPOINT_CONFIG, DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS
-from ._types import SignedTransaction, Event, PaymentEvent, AccountResource, CurrencyInfo, ParentVASP, ChildVASP
+from ._types import (
+    SignedTransaction,
+    Event,
+    PaymentEvent,
+    ToLBRExchangeRateUpdateEvent,
+    AccountResource,
+    CurrencyInfo,
+    ParentVASP,
+    ChildVASP,
+)
 from ._transport import BaseLibraNetwork, ClientError, SubmitTransactionError
+
+
+EventsType = typing.List[typing.Union[Event, PaymentEvent, ToLBRExchangeRateUpdateEvent]]
 
 
 @dataclasses.dataclass
@@ -267,6 +279,21 @@ class JSONPaymentEvent(PaymentEvent):
         return self._ev_dict["transaction_version"]
 
 
+class JSONToLBRExchangeRateUpdateEvent(ToLBRExchangeRateUpdateEvent):
+    _ev_dict: dict
+
+    def __init__(self, ev_dict: dict):
+        self._ev_dict = ev_dict
+
+    @property
+    def currency_code(self) -> str:
+        return self._ev_dict["data"]["currency_code"]
+
+    @property
+    def new_to_lbr_exchange_rate(self) -> float:
+        return self._ev_dict["data"]["new_to_lbr_exchange_rate"]
+
+
 class JSONUnknownEvent(Event):
     _ev_dict: dict
 
@@ -346,15 +373,15 @@ def make_json_rpc_request(
 
 
 # convert response events dict into event type instance
-def as_events(
-    resp_list: typing.List[typing.Dict], include: bool = True,
-) -> typing.List[typing.Union[Event, PaymentEvent]]:
+def as_events(resp_list: typing.List[typing.Dict], include: bool = True) -> EventsType:
     events = []
 
     if include and resp_list:
         for e_dict in resp_list:
             if e_dict["data"]["type"] == "sentpayment" or e_dict["data"]["type"] == "receivedpayment":
                 events.append(JSONPaymentEvent(e_dict))
+            elif e_dict["data"]["type"] == "to_lbr_exchange_rate_update":
+                events.append(JSONToLBRExchangeRateUpdateEvent(e_dict))
             else:
                 events.append(JSONUnknownEvent(e_dict))
 
@@ -425,7 +452,7 @@ class LibraNetwork(BaseLibraNetwork):
 
     def transactions_by_range(
         self, start_version: int, limit: int, include_events: bool = False
-    ) -> typing.List[typing.Tuple[SignedTransaction, typing.List[typing.Union[Event, PaymentEvent]]]]:
+    ) -> typing.List[typing.Tuple[SignedTransaction, EventsType]]:
         resp_dict = make_json_rpc_request(
             self._url, self._session, self._timeout, "get_transactions", [start_version, limit, include_events], None
         )
@@ -443,7 +470,7 @@ class LibraNetwork(BaseLibraNetwork):
 
     def transaction_by_acc_seq(
         self, addr_hex: str, seq: int, include_events: bool = False
-    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]]]:
+    ) -> typing.Tuple[typing.Optional[SignedTransaction], EventsType]:
         resp_dict = make_json_rpc_request(
             self._url, self._session, self._timeout, "get_account_transaction", [addr_hex, seq, include_events], None
         )
@@ -459,7 +486,7 @@ class LibraNetwork(BaseLibraNetwork):
 
         return res, events
 
-    def get_events(self, key_hex: str, start: int, limit: int) -> typing.List[typing.Union[Event, PaymentEvent]]:
+    def get_events(self, key_hex: str, start: int, limit: int) -> EventsType:
         resp_list = make_json_rpc_request(
             self._url, self._session, self._timeout, "get_events", [key_hex, start, limit], None
         )

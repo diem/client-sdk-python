@@ -308,12 +308,13 @@ def test_transaction_by_acc_seq_not_exist() -> None:
 
 def test_transaction_by_acc_seq() -> None:
     api = LibraNetwork()
-    tx, _ = api.transaction_by_acc_seq(TREASURY_ADDRESS, 1, include_events=True)
+    tx, events = api.transaction_by_acc_seq(TREASURY_ADDRESS, 1, include_events=False)
     assert tx
     assert tx.sender == bytes.fromhex(TREASURY_ADDRESS)
     assert tx.version != 0
     assert tx.metadata == b""
     assert tx.gas > 0  # gas used
+    assert events == []
 
 
 def test_transaction_by_acc_seq_with_events() -> None:

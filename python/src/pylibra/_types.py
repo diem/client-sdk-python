@@ -225,6 +225,16 @@ class PaymentEvent(Event, metaclass=ABCMeta):
         raise NotImplementedError()
 
 
+class ToLBRExchangeRateUpdateEvent(Event, metaclass=ABCMeta):
+    @property
+    def currency_code(self) -> str:
+        raise NotImplementedError()
+
+    @property
+    def new_to_lbr_exchange_rate(self) -> float:
+        raise NotImplementedError()
+
+
 @dataclasses.dataclass
 class CurrencyInfo:
     code: str

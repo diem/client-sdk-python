@@ -75,7 +75,7 @@ def test_stdlib() -> None:
     )
     payee = make_address(b"\x22" * 16)
     amount = st.uint64(1_234_567)
-    script = stdlib.encode_peer_to_peer_with_metadata_script(token, payee, amount, [], [])
+    script = stdlib.encode_peer_to_peer_with_metadata_script(token, payee, amount, b"", b"")
 
     # We have successfully generated an (unsigned) P2P transaction in python.
     assert script == raw_txn.payload.value

@@ -6,7 +6,7 @@ from pylibra import serde_types as st
 @dataclass
 class AccessPath:
     address: "AccountAddress"
-    path: typing.Sequence[st.uint8]
+    path: bytes
 
 
 @dataclass
@@ -66,7 +66,7 @@ class ContractEventV0:
     key: "EventKey"
     sequence_number: st.uint64
     type_tag: "TypeTag"
-    event_data: typing.Sequence[st.uint8]
+    event_data: bytes
 
 
 @dataclass
@@ -96,7 +96,7 @@ class Identifier:
 
 @dataclass
 class Module:
-    code: typing.Sequence[st.uint8]
+    code: bytes
 
 
 @dataclass
@@ -122,7 +122,7 @@ class RawTransaction:
 
 @dataclass
 class Script:
-    code: typing.Sequence[st.uint8]
+    code: bytes
     ty_args: typing.Sequence["TypeTag"]
     args: typing.Sequence["TransactionArgument"]
 
@@ -201,7 +201,7 @@ class TransactionArgument__Address(TransactionArgument):
 @dataclass
 class TransactionArgument__U8Vector(TransactionArgument):
     INDEX = 4
-    value: typing.Sequence[st.uint8]
+    value: bytes
 
 
 @dataclass
@@ -343,7 +343,7 @@ class WriteOp__Deletion(WriteOp):
 @dataclass
 class WriteOp__Value(WriteOp):
     INDEX = 1
-    value: typing.Sequence[st.uint8]
+    value: bytes
 
 
 WriteOp.VARIANTS = [

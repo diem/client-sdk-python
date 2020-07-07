@@ -117,8 +117,19 @@ def assert_all_types_events(events: EventsType) -> None:
     assert e.currency_code == "Coin1"
     assert e.new_to_lbr_exchange_rate == 0.32
 
+    assert e.module == "LibraExchangeRate"
+    assert e.name == "ToLBRExchangeRateUpdate"
+    assert e.key.hex() == "2ef0"
+    assert e.sequence_number == 4
+    assert e.transaction_version == 8
+
 
 def create_event_dict(type: str, attrs: Dict[str, Any] = {}) -> Dict[str, Any]:
     data = {"type": type}
     data.update(attrs)
-    return {"data": data}
+    return {
+        "data": data,
+        "key": "2ef0",
+        "sequence_number": 4,
+        "transaction_version": 8,
+    }

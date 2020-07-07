@@ -293,6 +293,26 @@ class JSONToLBRExchangeRateUpdateEvent(ToLBRExchangeRateUpdateEvent):
     def new_to_lbr_exchange_rate(self) -> float:
         return self._ev_dict["data"]["new_to_lbr_exchange_rate"]
 
+    @property
+    def module(self) -> str:
+        return "LibraExchangeRate"
+
+    @property
+    def name(self) -> str:
+        return "ToLBRExchangeRateUpdate"
+
+    @property
+    def key(self) -> bytes:
+        return bytes.fromhex(self._ev_dict["key"])
+
+    @property
+    def sequence_number(self) -> int:
+        return self._ev_dict["sequence_number"]
+
+    @property
+    def transaction_version(self) -> int:
+        return self._ev_dict["transaction_version"]
+
 
 class JSONUnknownEvent(Event):
     _ev_dict: dict

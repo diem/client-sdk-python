@@ -12,7 +12,7 @@ cargo install cross || true
 
 # hack to make LTO work
 sed -i '' -e 's/, \"cdylib\"//' src/client/libra-dev/Cargo.toml
-export RUSTFLAGS="-C panic=abort -C debuginfo=0"
+export RUSTFLAGS="-C lto=on -C panic=abort -C debuginfo=0"
 cp Cross.toml src/
 
 # build linux release

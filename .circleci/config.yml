@@ -1,0 +1,46 @@
+version: 2.1
+
+executors:
+  build-executor:
+    docker:
+      - image: circleci/rust:1.41.0-buster
+    resource_class: 2xlarge
+
+commands:
+  build:
+    steps:
+      - run:
+          name: Setup
+          command: |
+            sudo apt-get update && sudo apt-get upgrade -y
+            sudo apt-get install cmake python3-dev python3-venv clang llvm libjemalloc-dev librocksdb-dev
+      - run:
+          name: Test Python stuff
+          shell: /bin/sh
+          command: |
+            cd python
+            ./build.sh
+            ./test.sh
+
+jobs:
+  build:
+    executor: build-executor
+    steps:
+      - checkout
+      - build
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 7 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build

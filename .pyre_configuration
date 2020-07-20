@@ -1,0 +1,18 @@
+{
+  "binary": "./venv/bin/pyre.bin",
+  "strict": true,
+  "source_directories": [
+    "src"
+  ],
+  "taint_models_path": "./venv/lib/pyre_check/taint",
+  "typeshed": "./venv/lib/pyre_check/typeshed",
+  "ignore_all_errors": [
+    "src/libra/jsonrpc/libra_jsonrpc_types_pb2.py",
+    "src/libra/lcs",
+    "src/libra/libra_types",
+    "src/libra/serde_binary",
+    "src/libra/serde_types",
+    "src/libra/stdlib",
+    "venv"
+  ]
+}

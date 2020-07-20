@@ -1,0 +1,338 @@
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+
+from libra import (
+    jsonrpc,
+    libra_types,
+    stdlib,
+    testnet,
+    utils,
+    InvalidAccountAddressError,
+    LocalAccount,
+)
+
+import numpy as np
+import time
+import pytest
+
+
+def test_get_metadata():
+    client = testnet.create_client()
+    metadata = client.get_metadata()
+    assert metadata is not None
+    assert isinstance(metadata, jsonrpc.Metadata)
+    assert metadata.chain_id == testnet.CHAIN_ID.value
+    assert metadata.version is not None
+    assert metadata.timestamp is not None
+
+
+def test_get_metadata_by_version():
+    client = testnet.create_client()
+    metadata = client.get_metadata(1)
+    assert metadata is not None
+    assert isinstance(metadata, jsonrpc.Metadata)
+    assert metadata.chain_id == testnet.CHAIN_ID.value
+    assert metadata.version == 1
+    assert metadata.timestamp is not None
+
+    # this is unexpected, will be updated to return None later
+    with pytest.raises(jsonrpc.JsonRpcError):
+        metadata = client.get_metadata(1999999999999)
+
+
+def test_get_currencies():
+    client = testnet.create_client()
+    currencies = client.get_currencies()
+    assert currencies is not None
+    assert isinstance(currencies, list)
+    assert len(currencies) > 0
+
+    lbr = next(filter(lambda curr: curr.code == testnet.TEST_CURRENCY_CODE, currencies))
+    assert lbr is not None
+    assert isinstance(lbr, jsonrpc.CurrencyInfo)
+
+
+def test_get_account():
+    client = testnet.create_client()
+    account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
+    assert account is not None
+    assert isinstance(account, jsonrpc.Account)
+    assert account.role is not None
+    assert account.role.type == jsonrpc.ACCOUNT_ROLE_DESIGNATED_DEALER
+
+
+def test_get_account_by_hex_encoded_account_address():
+    client = testnet.create_client()
+    account = client.get_account(utils.TREASURY_ADDRESS)
+    assert account is not None
+    assert isinstance(account, jsonrpc.Account)
+    assert account.role is not None
+    assert account.role.type == jsonrpc.ACCOUNT_ROLE_UNKNOWN
+
+
+def test_get_account_by_invalid_hex_encoded_account_address():
+    client = testnet.create_client()
+    with pytest.raises(InvalidAccountAddressError):
+        client.get_account(utils.TREASURY_ADDRESS + "invalid")
+
+
+def test_get_account_not_exist():
+    local_account = LocalAccount.generate()
+    client = testnet.create_client()
+    account = client.get_account(local_account.account_address)
+    assert account is None
+
+
+def test_get_account_sequence():
+    client = testnet.create_client()
+    seq = client.get_account_sequence(testnet.DESIGNATED_DEALER_ADDRESS)
+    assert isinstance(seq, int)
+    assert seq > 0
+
+    local = LocalAccount.generate()
+    with pytest.raises(jsonrpc.AccountNotFoundError):
+        client.get_account_sequence(local.account_address)
+
+
+def test_get_account_transaction():
+    client = testnet.create_client()
+    txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS, 0)
+    assert txn is not None
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version > 0
+    assert txn.hash is not None
+    assert len(txn.events) == 0
+
+
+def test_get_account_transaction_not_exist():
+    client = testnet.create_client()
+    txn = client.get_account_transaction(utils.ROOT_ADDRESS, 9000000000000000)
+    assert txn is None
+
+
+def test_get_account_transaction_by_hex_encoded_account_address():
+    client = testnet.create_client()
+    txn = client.get_account_transaction(utils.account_address_hex(testnet.DESIGNATED_DEALER_ADDRESS), 0)
+    assert txn is not None
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version > 0
+    assert txn.hash is not None
+    assert len(txn.events) == 0
+
+
+def test_get_account_transaction_include_events():
+    client = testnet.create_client()
+    txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS, 0, include_events=True)
+    assert txn is not None
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert len(txn.events) > 0
+
+
+def test_get_account_transactions():
+    client = testnet.create_client()
+    txns = client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS, 0, 1)
+    assert txns is not None
+    assert isinstance(txns, list)
+
+    txn = txns[0]
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version > 0
+    assert txn.hash is not None
+    assert len(txn.events) == 0
+
+
+def test_get_account_transactions_not_exist():
+    client = testnet.create_client()
+    txn = client.get_account_transactions(utils.ROOT_ADDRESS, 9000000000000000, 1)
+    assert txn == []
+
+
+def test_get_account_transactions_by_hex_encoded_account_address():
+    client = testnet.create_client()
+    txns = client.get_account_transactions(utils.account_address_hex(testnet.DESIGNATED_DEALER_ADDRESS), 0, 1)
+    assert txns is not None
+    assert isinstance(txns, list)
+
+    txn = txns[0]
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version > 0
+    assert txn.hash is not None
+    assert len(txn.events) == 0
+
+
+def test_get_account_transactions_with_events():
+    client = testnet.create_client()
+    txns = client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS, 0, 1, include_events=True)
+    assert txns is not None
+    assert isinstance(txns, list)
+
+    txn = txns[0]
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert len(txn.events) > 0
+
+    script_call = utils.decode_transaction_script(txn)
+    assert type(script_call).__name__ == "ScriptCall__PeerToPeerWithMetadata"
+    assert script_call.amount > 0
+    currency_code = utils.type_tag_to_str(script_call.currency)
+    assert currency_code in ["LBR", "Coin1"]
+
+
+def test_get_transactions():
+    client = testnet.create_client()
+    txns = client.get_transactions(1, 1)
+    assert txns is not None
+    assert isinstance(txns, list)
+
+    txn = txns[0]
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version == 1
+    assert txn.hash is not None
+
+
+def test_get_events():
+    client = testnet.create_client()
+    account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
+    events = client.get_events(account.sent_events_key, 0, 1)
+    assert events is not None
+    assert isinstance(events, list)
+
+    event = events[0]
+    assert isinstance(event, jsonrpc.Event)
+    assert event.key == account.sent_events_key
+    assert event.data is not None
+    assert event.data.type == jsonrpc.EVENT_DATA_SENT_PAYMENT
+
+
+def test_get_state_proof():
+    client = testnet.create_client()
+    state_proof = client.get_state_proof(1)
+    assert state_proof is not None
+    assert isinstance(state_proof, jsonrpc.StateProof)
+    # todo: decode ledger_info and validate version
+
+
+def test_get_last_known_state():
+    client = testnet.create_client()
+    metadata = client.get_metadata()
+    assert metadata is not None
+    state = client.get_last_known_state()
+    assert state is not None
+
+    assert metadata.chain_id == state.chain_id
+    assert metadata.version == state.version
+    assert metadata.timestamp == state.timestamp_usecs
+
+
+def test_get_account_state_with_proof():
+    client = testnet.create_client()
+    state_proof = client.get_account_state_with_proof(testnet.DESIGNATED_DEALER_ADDRESS)
+    assert state_proof is not None
+    assert isinstance(state_proof, jsonrpc.AccountStateWithProof)
+    assert state_proof.version == client.get_last_known_state().version
+
+
+def test_get_account_state_with_proof_with_version():
+    client = testnet.create_client()
+    ret = client.get_account_state_with_proof(testnet.DESIGNATED_DEALER_ADDRESS, 3, 4)
+    assert ret is not None
+    assert isinstance(ret, jsonrpc.AccountStateWithProof)
+    assert ret.version == 3
+
+
+def test_handle_stale_response_error():
+    client = testnet.create_client()
+    last = client.get_metadata().version
+    for i in range(0, 20):
+        metadata = client.get_metadata()
+        assert metadata.version >= last
+        assert client.get_last_known_state().version == metadata.version
+        last = metadata.version
+
+
+def test_submit_create_child_vasp():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+
+    parent_vasp = faucet.gen_account()
+    child_vasp = LocalAccount.generate()
+    signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
+
+    client.submit(signed_txn)
+
+    executed_txn = client.wait_for_transaction(signed_txn)
+    assert executed_txn is not None
+    assert isinstance(executed_txn, jsonrpc.Transaction)
+    assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
+
+    # wait for transaction by signed txn hex string
+    signed_txn_hex = signed_txn.lcs_serialize().hex()
+    executed_txn = client.wait_for_transaction(signed_txn_hex)
+    assert executed_txn is not None
+    assert isinstance(executed_txn, jsonrpc.Transaction)
+    assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
+    # should include events
+    assert len(executed_txn.events) > 0
+
+
+def test_submit_failed():
+    client = testnet.create_client()
+
+    parent_vasp = LocalAccount.generate()
+    child_vasp = LocalAccount.generate()
+    signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
+
+    with pytest.raises(jsonrpc.JsonRpcError):
+        client.submit(signed_txn)
+
+
+def test_wait_for_transaction_hash_mismatched_and_execution_failed():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+
+    parent_vasp = faucet.gen_account()
+    # parent vasp as child, invalid transaction
+    signed_txn = create_child_vasp_txn(parent_vasp, parent_vasp)
+    client.submit(signed_txn)
+
+    txn = signed_txn.raw_txn
+    with pytest.raises(jsonrpc.TransactionHashMismatchError):
+        client.wait_for_transaction2(txn.sender, txn.sequence_number, txn.expiration_timestamp_secs, "mismatched hash")
+
+    with pytest.raises(jsonrpc.TransactionExecutionFailed):
+        client.wait_for_transaction(signed_txn)
+
+
+def test_wait_for_transaction_timeout_and_expire():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+
+    parent_vasp = faucet.gen_account()
+
+    with pytest.raises(jsonrpc.TransactionExpired):
+        client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 0.2, "hash")
+
+    with pytest.raises(jsonrpc.WaitForTransactionTimeout):
+        client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 5, "hash", 0.1)
+
+
+def create_child_vasp_txn(parent_vasp, child_vasp):
+    script = stdlib.encode_create_child_vasp_account_script(
+        coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
+        child_address=child_vasp.account_address,
+        auth_key_prefix=child_vasp.auth_key.prefix(),
+        add_all_currencies=False,
+        child_initial_balance=1_000_000,
+    )
+    txn = libra_types.RawTransaction(
+        sender=parent_vasp.account_address,
+        sequence_number=0,
+        payload=libra_types.TransactionPayload__Script(script),
+        max_gas_amount=1_000_000,
+        gas_unit_price=0,
+        gas_currency_code=testnet.TEST_CURRENCY_CODE,
+        expiration_timestamp_secs=int(time.time()) + 30,
+        chain_id=testnet.CHAIN_ID,
+    )
+
+    return parent_vasp.sign(txn)

@@ -15,6 +15,7 @@ from pylibra import (
     FaucetError,
     PaymentEvent,
     ParentVASP,
+    CHAIN_ID_TESTNET,
 )
 from functools import wraps
 import typing
@@ -23,6 +24,7 @@ import random
 
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
 TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
+DESIGNATED_DEALER_ADDRESS: str = "000000000000000000000000000000dd"
 ASSOC_AUTHKEY: str = "254d77ec7ceae382e842dcff2df1590753b260f98a749dbc77e307a15ae781a6"
 
 RT = typing.TypeVar("RT")
@@ -108,6 +110,7 @@ def test_send_transaction_fail() -> None:
         # 1 libra
         1_000_000,
         expiration_time=int(time.time()) + 5 * 60,
+        chain_id=CHAIN_ID_TESTNET,
     )
 
     print("Submitting: " + tx.hex())
@@ -117,7 +120,7 @@ def test_send_transaction_fail() -> None:
     # vm validation error
     assert excinfo.value.code == -32001
     # account doesn't exists
-    assert excinfo.value.data["major_status"] == 7
+    assert excinfo.value.data["StatusCode"] == 7
 
 
 @pytest.mark.timeout(30)
@@ -156,14 +159,14 @@ def test_send_transaction_success() -> None:
     dest_authkey = dest_ak.authentication_key
     dest_addr = dest_ak.address
 
-    print("Sending LBR from account ", addr_hex, "to account", dest_addr)
+    print("Sending LBR from account ", addr_hex, "to account", dest_addr.hex())
 
     f: FaucetUtils = FaucetUtils()
 
     @retry(FaucetError, delay=1)
     def _mint_and_wait(authkey_hex: str, amount: int) -> AccountResource:
         seq = f.mint(authkey_hex, amount)
-        return _wait_for_account_seq(ASSOC_ADDRESS, seq)
+        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq + 1)
 
     ar = api.getAccount(addr_hex)
     if ar is None or ar.balances["LBR"] <= 1_000_000:
@@ -188,6 +191,7 @@ def test_send_transaction_success() -> None:
         # 1 libra
         1_000_000,
         expiration_time=int(time.time()) + 5 * 60,
+        chain_id=CHAIN_ID_TESTNET,
         metadata=b"pylibra_test_send_transaction_success",
     )
     api.sendTransaction(tx)
@@ -200,7 +204,7 @@ def test_send_transaction_success() -> None:
     pprint.pprint(events)
 
     assert tx is not None
-    assert tx.vm_status == 4001
+    assert tx.vm_status == "executed"
 
     assert len(events) == 2
 
@@ -241,7 +245,7 @@ def test_add_currency_transaction_success() -> None:
     def _mint_and_wait(amount: int, identifier: str = "LBR") -> AccountResource:
         f = FaucetUtils()
         seq = f.mint(authkey_hex, amount, identifier)
-        return _wait_for_account_seq(ASSOC_ADDRESS, seq)
+        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq + 1)
 
     _mint_and_wait(1_000_000)
 
@@ -256,6 +260,7 @@ def test_add_currency_transaction_success() -> None:
         # sequence
         seq,
         expiration_time=int(time.time()) + 5 * 60,
+        chain_id=CHAIN_ID_TESTNET,
         identifier="Coin1",
     )
     api.sendTransaction(tx)
@@ -268,7 +273,7 @@ def test_add_currency_transaction_success() -> None:
     pprint.pprint(events)
 
     assert tx is not None
-    assert tx.vm_status == 4001
+    assert tx.vm_status == "executed"
 
     # mint some coins to the currency
     _mint_and_wait(1_000_000, "Coin1")
@@ -292,8 +297,8 @@ def test_transaction_by_range_with_events() -> None:
     res = api.transactions_by_range(0, 10, True)
     assert len(res) == 10
     _, events = res[0]
-    assert len(events) == 1
-    assert events[0].key.hex() == "0000000000000000000000000000000000000000000f1a95"
+    assert len(events) == 10
+    assert events[0].key.hex() == "00000000000000000000000000000000000000000a550c18"
     assert events[0].sequence_number == 0
     assert events[0].transaction_version == 0
     assert events[0].module == "Unknown"
@@ -308,9 +313,9 @@ def test_transaction_by_acc_seq_not_exist() -> None:
 
 def test_transaction_by_acc_seq() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq(TREASURY_ADDRESS, 1, include_events=False)
-    assert tx
-    assert tx.sender == bytes.fromhex(TREASURY_ADDRESS)
+    tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, 1, include_events=False)
+    assert tx is not None
+    assert tx.sender == bytes.fromhex(DESIGNATED_DEALER_ADDRESS)
     assert tx.version != 0
     assert tx.metadata == b""
     assert tx.gas > 0  # gas used
@@ -319,13 +324,13 @@ def test_transaction_by_acc_seq() -> None:
 
 def test_transaction_by_acc_seq_with_events() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq(TREASURY_ADDRESS, 1, include_events=True)
+    tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, 1, include_events=True)
     assert tx
-    assert tx.sender == bytes.fromhex(TREASURY_ADDRESS)
+    assert tx.sender == bytes.fromhex(DESIGNATED_DEALER_ADDRESS)
     assert tx.version != 0
-    assert len(events) == 4
-    assert events[2].module == "LibraAccount"
-    assert events[3].module == "LibraAccount"
+    assert len(events) == 2
+    assert events[0].module == "LibraAccount"
+    assert events[1].module == "LibraAccount"
     assert tx.gas > 0  # gas used
 
 
@@ -339,9 +344,9 @@ def test_version_from_testnet() -> None:
     assert api.currentVersion() > 1
 
 
-def test_treasury_events() -> None:
+def test_dd_events() -> None:
     api = LibraNetwork()
-    ar = api.getAccount(TREASURY_ADDRESS)
+    ar = api.getAccount(DESIGNATED_DEALER_ADDRESS)
     assert ar is not None
     events = api.get_events(ar.sent_events_key.hex(), 0, 1)
     assert len(events) == 1
@@ -359,17 +364,17 @@ def test_no_events() -> None:
 def test_mint_sum() -> None:
     api = LibraNetwork()
 
-    account = api.getAccount(TREASURY_ADDRESS)
+    account = api.getAccount(DESIGNATED_DEALER_ADDRESS)
     assert account is not None
     # account has no balance
-    assert len(account.balances) == 0
+    assert len(account.balances) == 3
 
     print("Sequence:", account.sequence)
     total = 0
     seq = 0
     is_mint_tx_present = False
     while seq < min(account.sequence, 20):
-        tx, events = api.transaction_by_acc_seq(TREASURY_ADDRESS, seq=seq, include_events=True)
+        tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, seq=seq, include_events=True)
         if tx and tx.is_mint:
             print("Found mint transaction: from: ", tx.sender.hex())
             total = total + tx.amount
@@ -406,7 +411,7 @@ def test_account_role_exists() -> None:
     def _mint_and_wait(amount: int) -> AccountResource:
         f = FaucetUtils()
         seq = f.mint(authkey_hex, amount)
-        return _wait_for_account_seq(ASSOC_ADDRESS, seq)
+        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq + 1)
 
     _mint_and_wait(1_000_000)
 

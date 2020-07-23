@@ -104,6 +104,11 @@ class SignedTransaction(metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def chain_id(self) -> int:
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
     def max_gas_amount(self) -> int:
         raise NotImplementedError()
 
@@ -119,7 +124,7 @@ class SignedTransaction(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def expiration_time(self) -> int:
+    def expiration_timestamp_secs(self) -> int:
         raise NotImplementedError()
 
     @property
@@ -241,3 +246,8 @@ class CurrencyInfo:
     scaling_factor: int
     fractional_part: int
     to_lbr_exchange_rate: float
+    mint_events_key: str
+    burn_events_key: str
+    preburn_events_key: str
+    cancel_burn_events_key: str
+    exchange_rate_update_events_key: str

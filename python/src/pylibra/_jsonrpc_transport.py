@@ -97,6 +97,10 @@ class JSONSignedTransaction(SignedTransaction):
         return self._transaction["sequence_number"]
 
     @property
+    def chain_id(self) -> int:
+        return self._transaction["chain_id"]
+
+    @property
     def max_gas_amount(self) -> int:
         return self._transaction["max_gas_amount"]
 
@@ -109,8 +113,8 @@ class JSONSignedTransaction(SignedTransaction):
         return self._transaction["gas_currency"]
 
     @property
-    def expiration_time(self) -> int:
-        return self._transaction["expiration_time"]
+    def expiration_timestamp_secs(self) -> int:
+        return self._transaction["expiration_timestamp_secs"]
 
     @property
     def is_p2p(self) -> bool:
@@ -450,7 +454,7 @@ class LibraNetwork(BaseLibraNetwork):
 
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:
         resp = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_account_state", [address_hex], GetAccountStateResp
+            self._url, self._session, self._timeout, "get_account", [address_hex], GetAccountStateResp
         )
         if resp is None:
             return None

@@ -28,6 +28,7 @@ def test_parse_transaction() -> None:
         # micro libra
         987_654_321,
         expiration_time=123_456_789,
+        chain_id=255,
         max_gas_amount=140000,
     )
 
@@ -37,7 +38,8 @@ def test_parse_transaction() -> None:
     assert tx.sender == ADDRESS
     assert tx.receiver == RECEIVER_ADDRESS
     assert tx.amount == 987_654_321
-    assert tx.expiration_time == 123_456_789
+    assert tx.expiration_timestamp_secs == 123_456_789
+    assert tx.chain_id == 255
     assert tx.gas_unit_price == 0
     assert tx.max_gas_amount == 140000
     assert tx.sequence == 255
@@ -48,12 +50,12 @@ def test_parse_transaction() -> None:
 
 
 def test_create_transcation() -> None:
-    tx = TransactionUtils.createSignedRotateCompliancePublicKeyTransaction(
-        PRIVATE_KEY, sender_private_key=PRIVATE_KEY, sender_sequence=255, expiration_time=123_456_789,
-    )
-    assert tx is not None
-
-    tx = TransactionUtils.createSignedRotateBaseURLScriptTransaction(
-        "test.test", sender_private_key=PRIVATE_KEY, sender_sequence=255, expiration_time=123_456_789,
+    tx = TransactionUtils.createSignedRotateDualAttestationInfoTransaction(
+        "test.test",
+        PRIVATE_KEY,
+        sender_private_key=PRIVATE_KEY,
+        sender_sequence=255,
+        expiration_time=123_456_789,
+        chain_id=255,
     )
     assert tx is not None

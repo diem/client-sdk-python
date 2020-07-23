@@ -6,16 +6,6 @@
 from ._types import SignedTransaction, AccountKey
 import typing
 
-def _createSignedTransaction(
-    sender_private_key: bytes,
-    sender_sequence: int,
-    script_bytes: bytes,
-    expiration_time: int,  # unix timestamp at which the tx will expire
-    max_gas_amount: int = 1_000_000,
-    gas_unit_price: int = 0,
-    gas_identifier: str = "LBR",
-) -> bytes: ...
-
 class TransactionUtils:
     @staticmethod
     def createSignedP2PTransaction(
@@ -25,6 +15,7 @@ class TransactionUtils:
         amount: int,
         *ignore: typing.Any,
         expiration_time: int,  # unix timestamp at which the tx will expire
+        chain_id: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         metadata: bytes = b"",
@@ -38,30 +29,21 @@ class TransactionUtils:
         sender_sequence: int,
         *ignore: typing.Any,
         expiration_time: int,  # unix timestamp at which the tx will expire
+        chain_id: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         identifier: str = "LBR",
         gas_identifier: str = "LBR",
     ) -> bytes: ...
     @staticmethod
-    def createSignedRotateCompliancePublicKeyTransaction(
+    def createSignedRotateDualAttestationInfoTransaction(
+        new_url: str,
         new_key: bytes,
         *ignore: typing.Any,
         sender_private_key: bytes,
         sender_sequence: int,
         expiration_time: int,
-        max_gas_amount: int = 1_000_000,
-        gas_unit_price: int = 0,
-        identifier: str = "LBR",
-        gas_identifier: str = "LBR",
-    ) -> bytes: ...
-    @staticmethod
-    def createSignedRotateBaseURLScriptTransaction(
-        new_url: str,
-        *ignore: typing.Any,
-        sender_private_key: bytes,
-        sender_sequence: int,
-        expiration_time: int,
+        chain_id: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         identifier: str = "LBR",

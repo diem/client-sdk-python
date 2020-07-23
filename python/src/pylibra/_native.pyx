@@ -12,7 +12,7 @@ from . cimport capi
 import time
 from ._types import SignedTransaction, AccountKey
 
-def _createSignedTransaction(sender_private_key: bytes, sender_sequence: int, script_bytes: bytes, expiration_time: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, gas_identifier: str='LBR') -> bytes:
+def _createSignedTransaction(sender_private_key: bytes, sender_sequence: int, script_bytes: bytes, expiration_time: int, chain_id: int, max_gas_amount :int = 1_000_000, gas_unit_price:int = 0, gas_identifier: str='LBR') -> bytes:
     """Create SignedTransaction"""
     cdef uint8_t* buf_ptr
     cdef size_t buf_len
@@ -39,6 +39,7 @@ def _createSignedTransaction(sender_private_key: bytes, sender_sequence: int, sc
             gas_unit_price,
             <bytes> gas_identifier.encode("utf-8")[:],
             expiration_time,
+            chain_id,
             <bytes> script_bytes[:len(script_bytes)],
             len(script_bytes),
             &buf_ptr, &buf_len)
@@ -60,6 +61,7 @@ cdef class TransactionUtils:
         amount: int,
         *ignore: typing.Any,
         expiration_time: int,
+        chain_id: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         metadata: bytes = b"",
@@ -86,6 +88,9 @@ cdef class TransactionUtils:
         ):
             raise ValueError("Must supply both metadata and metadata signatures.")
 
+        if chain_id < 0 or chain_id > 255:
+            raise ValueError("invalid chain_id, must be 0-255")
+
         status = capi.libra_TransactionP2PScript_from(
             <bytes> receiver[:len(receiver)],
             <bytes> identifier.encode("utf-8")[:],
@@ -107,7 +112,8 @@ cdef class TransactionUtils:
                     sender_private_key, 
                     sender_sequence,
                     script_bytes,
-                    expiration_time, 
+                    expiration_time,
+                    chain_id,
                     max_gas_amount,
                     gas_unit_price,
                     gas_identifier
@@ -120,6 +126,7 @@ cdef class TransactionUtils:
         sender_sequence: int,
         *ignore: typing.Any,
         expiration_time: int,
+        chain_id: int,
         max_gas_amount: int = 1_000_000,
         gas_unit_price: int = 0,
         identifier: str = "LBR",
@@ -148,62 +155,21 @@ cdef class TransactionUtils:
                     sender_sequence, 
                     script_bytes, 
                     expiration_time, 
+                    chain_id,
                     max_gas_amount,
                     gas_unit_price,
                     gas_identifier
                 )
 
     @staticmethod
-    def createSignedRotateCompliancePublicKeyTransaction(
+    def createSignedRotateDualAttestationInfoTransaction(
+            new_url: str,
             new_key: bytes,
             *ignore: typing.Any,
             sender_private_key: bytes,
             sender_sequence: int,
             expiration_time: int,
-            max_gas_amount: int = 1_000_000,
-            gas_unit_price: int = 0,
-            identifier: str = "LBR",
-            gas_identifier: str = "LBR",
-    ) -> bytes :
-
-        """Create RotateCompliancePublicKey Transaction"""
-        cdef uint8_t* buf_ptr
-        cdef size_t buf_len
-
-        buf_ptr = NULL
-        buf_len = 0
-
-        if not len(new_key) == capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE:
-            raise ValueError("Invalid new public key!")
-
-        status = capi.libra_TransactionRotateCompliancePublicKeyScript_from(
-                 <bytes> new_key[:len(new_key)],
-                 &buf_ptr, &buf_len
-        )
-
-        if status != capi.LibraStatus.Ok:
-            raise ValueError("libra_RotateCompliancePublicKeyTransactionScript_from failed: %d", status)
-
-        script_bytes = <bytes> buf_ptr[:buf_len]
-        capi.libra_free_bytes_buffer(buf_ptr)
-
-        return _createSignedTransaction(
-            sender_private_key,
-            sender_sequence,
-            script_bytes,
-            expiration_time,
-            max_gas_amount,
-            gas_unit_price,
-            gas_identifier
-        )
-
-    @staticmethod
-    def createSignedRotateBaseURLScriptTransaction(
-            new_url: str,
-            *ignore: typing.Any,
-            sender_private_key: bytes,
-            sender_sequence: int,
-            expiration_time: int,
+            chain_id: int,
             max_gas_amount: int = 1_000_000,
             gas_unit_price: int = 0,
             identifier: str = "LBR",
@@ -219,15 +185,19 @@ cdef class TransactionUtils:
         if not new_url:
             raise ValueError("Invalid new url!")
 
+        if len(new_key) != capi.LIBRA_CONST._LIBRA_PUBKEY_SIZE:
+            raise ValueError("Invalid new key!")
+
         new_url_bytes = new_url.encode('utf-8')
-        status = capi.libra_TransactionRotateBaseURLScript_from(
+        status = capi.libra_TransactionRotateDualAttestationInfoScript_from(
                  <bytes> new_url_bytes[:len(new_url_bytes)],
                  len(new_url_bytes),
+                 <bytes> new_key[:len(new_key)],
                  &buf_ptr, &buf_len
         )
 
         if status != capi.LibraStatus.Ok:
-            raise ValueError("libra_RotateCompliancePublicKeyTransactionScript_from failed: %d", status)
+            raise ValueError("libra_TransactionRotateDualAttestationInfo_from failed: %d", status)
 
         script_bytes = <bytes> buf_ptr[:buf_len]
         capi.libra_free_bytes_buffer(buf_ptr)
@@ -237,6 +207,7 @@ cdef class TransactionUtils:
             sender_sequence,
             script_bytes,
             expiration_time,
+            chain_id,
             max_gas_amount,
             gas_unit_price,
             gas_identifier
@@ -310,6 +281,10 @@ cdef class NativeTransaction:
         return self._c_txn.sequence_number
 
     @property
+    def chain_id(self) -> int:
+        return self._c_txn.chain_id
+
+    @property
     def max_gas_amount(self) -> int:
         return self._c_txn.max_gas_amount
 
@@ -318,8 +293,8 @@ cdef class NativeTransaction:
         return self._c_txn.gas_unit_price
 
     @property
-    def expiration_time(self) -> int:
-        return self._c_txn.expiration_time_secs
+    def expiration_timestamp_secs(self) -> int:
+        return self._c_txn.expiration_timestamp_secs
 
     @property
     def is_p2p(self) -> bool:

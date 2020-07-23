@@ -41,6 +41,11 @@ class BlockMetadata:
 
 
 @dataclass
+class ChainId:
+    value: st.uint8
+
+
+@dataclass
 class ChangeSet:
     write_set: "WriteSet"
     events: typing.Sequence["ContractEvent"]
@@ -84,6 +89,28 @@ class EventKey:
     value: bytes
 
 
+class GeneralMetadata:
+    VARIANTS = []
+
+
+@dataclass
+class GeneralMetadata__GeneralMetadataVersion0(GeneralMetadata):
+    INDEX = 0
+    value: "GeneralMetadataV0"
+
+
+GeneralMetadata.VARIANTS = [
+    GeneralMetadata__GeneralMetadataVersion0,
+]
+
+
+@dataclass
+class GeneralMetadataV0:
+    to_subaddress: typing.Optional[bytes]
+    from_subaddress: typing.Optional[bytes]
+    referenced_event: typing.Optional[st.uint64]
+
+
 @dataclass
 class HashValue:
     value: bytes
@@ -92,6 +119,41 @@ class HashValue:
 @dataclass
 class Identifier:
     value: str
+
+
+class Metadata:
+    VARIANTS = []
+
+
+@dataclass
+class Metadata__Undefined(Metadata):
+    INDEX = 0
+
+
+@dataclass
+class Metadata__GeneralMetadata(Metadata):
+    INDEX = 1
+    value: "GeneralMetadata"
+
+
+@dataclass
+class Metadata__TravelRuleMetadata(Metadata):
+    INDEX = 2
+    value: "TravelRuleMetadata"
+
+
+@dataclass
+class Metadata__UnstructuredBytesMetadata(Metadata):
+    INDEX = 3
+    value: "UnstructuredBytesMetadata"
+
+
+Metadata.VARIANTS = [
+    Metadata__Undefined,
+    Metadata__GeneralMetadata,
+    Metadata__TravelRuleMetadata,
+    Metadata__UnstructuredBytesMetadata,
+]
 
 
 @dataclass
@@ -117,7 +179,8 @@ class RawTransaction:
     max_gas_amount: st.uint64
     gas_unit_price: st.uint64
     gas_currency_code: str
-    expiration_time: st.uint64
+    expiration_timestamp_secs: st.uint64
+    chain_id: "ChainId"
 
 
 @dataclass
@@ -251,7 +314,7 @@ class TransactionPayload:
 @dataclass
 class TransactionPayload__WriteSet(TransactionPayload):
     INDEX = 0
-    value: "ChangeSet"
+    value: "WriteSetPayload"
 
 
 @dataclass
@@ -271,6 +334,26 @@ TransactionPayload.VARIANTS = [
     TransactionPayload__Script,
     TransactionPayload__Module,
 ]
+
+
+class TravelRuleMetadata:
+    VARIANTS = []
+
+
+@dataclass
+class TravelRuleMetadata__TravelRuleMetadataVersion0(TravelRuleMetadata):
+    INDEX = 0
+    value: "TravelRuleMetadataV0"
+
+
+TravelRuleMetadata.VARIANTS = [
+    TravelRuleMetadata__TravelRuleMetadataVersion0,
+]
+
+
+@dataclass
+class TravelRuleMetadataV0:
+    off_chain_reference_id: typing.Optional[str]
 
 
 class TypeTag:
@@ -331,6 +414,11 @@ TypeTag.VARIANTS = [
 ]
 
 
+@dataclass
+class UnstructuredBytesMetadata:
+    metadata: typing.Optional[bytes]
+
+
 class WriteOp:
     VARIANTS = []
 
@@ -360,3 +448,26 @@ class WriteSet:
 @dataclass
 class WriteSetMut:
     write_set: typing.Sequence[typing.Tuple["AccessPath", "WriteOp"]]
+
+
+class WriteSetPayload:
+    VARIANTS = []
+
+
+@dataclass
+class WriteSetPayload__Direct(WriteSetPayload):
+    INDEX = 0
+    value: "ChangeSet"
+
+
+@dataclass
+class WriteSetPayload__Script(WriteSetPayload):
+    INDEX = 1
+    execute_as: "AccountAddress"
+    script: "Script"
+
+
+WriteSetPayload.VARIANTS = [
+    WriteSetPayload__Direct,
+    WriteSetPayload__Script,
+]

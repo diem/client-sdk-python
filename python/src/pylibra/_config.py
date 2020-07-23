@@ -20,3 +20,9 @@ ENDPOINT_CONFIG: typing.Dict[str, typing.Dict[str, str]] = {
 # Default timeout value for requests
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
 DEFAULT_TIMEOUT_SECS: float = 30.0
+
+CHAIN_ID_MAINNET: int = 0
+CHAIN_ID_PREMAINNET: int = 1
+CHAIN_ID_TESTNET: int = 2
+CHAIN_ID_DEVNET: int = 3
+CHAIN_ID_TESTING: int = 4

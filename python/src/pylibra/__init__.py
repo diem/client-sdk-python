@@ -19,6 +19,11 @@ __all__ = [
     "ENDPOINT_CONFIG",
     "DEFAULT_CONNECT_TIMEOUT_SECS",
     "DEFAULT_TIMEOUT_SECS",
+    "CHAIN_ID_MAINNET",
+    "CHAIN_ID_PREMAINNET",
+    "CHAIN_ID_TESTNET",
+    "CHAIN_ID_DEVNET",
+    "CHAIN_ID_TESTING",
     # Main helper object
     "LibraNetwork",
     "TransactionUtils",

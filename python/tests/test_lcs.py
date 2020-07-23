@@ -30,7 +30,7 @@ def test_lcs_e2e() -> None:
 
 def test_lcs_e2e_native() -> None:
     content = TransactionUtils.createSignedP2PTransaction(
-        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789,
+        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789, chain_id=255
     )
 
     print("Testing Deserialization native bytes: ", content)
@@ -59,7 +59,7 @@ def make_address(content: bytes) -> libra.AccountAddress:
 
 def test_stdlib() -> None:
     content = TransactionUtils.createSignedP2PTransaction(
-        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789,
+        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789, chain_id=255
     )
     raw_txn = lcs.deserialize(content, libra.Transaction__UserTransaction)[0].value.raw_txn
 

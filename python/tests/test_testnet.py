@@ -37,7 +37,7 @@ def retry(
     delay: int = 3,
     backoff: int = 2,
     logger: typing.Optional[typing.Callable[[str], None]] = None,
-) -> typing.Callable[[TFun], TFun]:
+) -> typing.Callable[[TFun], TFun]:  # pyre-ignore
     """
     Retry calling the decorated function using an exponential backoff.
 
@@ -123,6 +123,7 @@ def test_send_transaction_fail() -> None:
     assert excinfo.value.data["StatusCode"] == 7
 
 
+# pyre-ignore
 @pytest.mark.timeout(30)
 def test_mint() -> None:
     RECEIVER_AUTHKEY_HEX: str = "11" * 32
@@ -145,6 +146,7 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
         time.sleep(1)
 
 
+# pyre-ignore
 @pytest.mark.timeout(60)
 def test_send_transaction_success() -> None:
     private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
@@ -166,7 +168,7 @@ def test_send_transaction_success() -> None:
     @retry(FaucetError, delay=1)
     def _mint_and_wait(authkey_hex: str, amount: int) -> AccountResource:
         seq = f.mint(authkey_hex, amount)
-        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq + 1)
+        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq)
 
     ar = api.getAccount(addr_hex)
     if ar is None or ar.balances["LBR"] <= 1_000_000:
@@ -226,7 +228,7 @@ def test_send_transaction_success() -> None:
 
     assert ar.balances["LBR"] == balance - 1_000_000
 
-
+# pyre-ignore
 @pytest.mark.timeout(60)
 def test_add_currency_transaction_success() -> None:
     # Have to generate random address every time
@@ -245,7 +247,7 @@ def test_add_currency_transaction_success() -> None:
     def _mint_and_wait(amount: int, identifier: str = "LBR") -> AccountResource:
         f = FaucetUtils()
         seq = f.mint(authkey_hex, amount, identifier)
-        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq + 1)
+        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq)
 
     _mint_and_wait(1_000_000)
 
@@ -324,7 +326,7 @@ def test_transaction_by_acc_seq() -> None:
 
 def test_transaction_by_acc_seq_with_events() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, 1, include_events=True)
+    tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, 2, include_events=True)
     assert tx
     assert tx.sender == bytes.fromhex(DESIGNATED_DEALER_ADDRESS)
     assert tx.version != 0
@@ -411,7 +413,7 @@ def test_account_role_exists() -> None:
     def _mint_and_wait(amount: int) -> AccountResource:
         f = FaucetUtils()
         seq = f.mint(authkey_hex, amount)
-        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq + 1)
+        return _wait_for_account_seq(DESIGNATED_DEALER_ADDRESS, seq)
 
     _mint_and_wait(1_000_000)
 

@@ -64,7 +64,7 @@ exts = [
 setup(
     name="pylibra-beta",
     # change to 0.1.YYYYMMDDNN on release
-    version="0.5.2020073001",
+    version="0.5.master",
     description="",
     python_requires=">=3.7",
     packages=find_packages("src"),

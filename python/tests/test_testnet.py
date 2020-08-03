@@ -228,6 +228,7 @@ def test_send_transaction_success() -> None:
 
     assert ar.balances["LBR"] == balance - 1_000_000
 
+
 # pyre-ignore
 @pytest.mark.timeout(60)
 def test_add_currency_transaction_success() -> None:

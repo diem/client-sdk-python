@@ -3,13 +3,12 @@
 
 # pyre-strict
 
-# Must be at the top
 from ._config import *
-
-from ._mint import *
-from ._types import *
-from ._native import *
 from ._jsonrpc_transport import *
+from ._mint import *
+from ._native import *
+from ._types import *
+
 
 __all__ = [
     # Constants

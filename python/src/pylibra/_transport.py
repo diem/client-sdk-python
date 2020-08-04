@@ -3,12 +3,18 @@
 
 # pyre-strict
 
+import dataclasses
 import typing
 from abc import ABC
-import dataclasses
 
-from . import NETWORK_DEFAULT
-from . import AccountResource, SignedTransaction, Event, PaymentEvent, CurrencyInfo
+from . import (
+    NETWORK_DEFAULT,
+    AccountResource,
+    CurrencyInfo,
+    Event,
+    PaymentEvent,
+    SignedTransaction,
+)
 
 
 @dataclasses.dataclass
@@ -44,15 +50,22 @@ class BaseLibraNetwork(ABC):
 
     def transactions_by_range(
         self, start_version: int, limit: int, include_events: bool = False
-    ) -> typing.List[typing.Tuple[SignedTransaction, typing.List[typing.Union[Event, PaymentEvent]]]]:
+    ) -> typing.List[
+        typing.Tuple[SignedTransaction, typing.List[typing.Union[Event, PaymentEvent]]]
+    ]:
         raise NotImplementedError()
 
     def transaction_by_acc_seq(
         self, addr_hex: str, seq: int, include_events: bool = False
-    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]]]:
+    ) -> typing.Tuple[
+        typing.Optional[SignedTransaction],
+        typing.List[typing.Union[Event, PaymentEvent]],
+    ]:
         raise NotImplementedError()
 
-    def get_events(self, key_hex: str, start: int, limit: int) -> typing.List[typing.Union[Event, PaymentEvent]]:
+    def get_events(
+        self, key_hex: str, start: int, limit: int
+    ) -> typing.List[typing.Union[Event, PaymentEvent]]:
         raise NotImplementedError()
 
     def get_currencies(self) -> typing.List[CurrencyInfo]:

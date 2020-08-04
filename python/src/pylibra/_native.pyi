@@ -3,8 +3,9 @@
 
 # pyre-strict
 
-from ._types import SignedTransaction, AccountKey
 import typing
+
+from ._types import AccountKey, SignedTransaction
 
 class TransactionUtils:
     @staticmethod

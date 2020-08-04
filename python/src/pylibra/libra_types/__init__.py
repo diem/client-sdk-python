@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 import typing
+from dataclasses import dataclass
+
 from pylibra import serde_types as st
 
 
@@ -61,9 +62,7 @@ class ContractEvent__V0(ContractEvent):
     value: "ContractEventV0"
 
 
-ContractEvent.VARIANTS = [
-    ContractEvent__V0,
-]
+ContractEvent.VARIANTS = [ContractEvent__V0]
 
 
 @dataclass
@@ -99,9 +98,7 @@ class GeneralMetadata__GeneralMetadataVersion0(GeneralMetadata):
     value: "GeneralMetadataV0"
 
 
-GeneralMetadata.VARIANTS = [
-    GeneralMetadata__GeneralMetadataVersion0,
-]
+GeneralMetadata.VARIANTS = [GeneralMetadata__GeneralMetadataVersion0]
 
 
 @dataclass
@@ -346,9 +343,7 @@ class TravelRuleMetadata__TravelRuleMetadataVersion0(TravelRuleMetadata):
     value: "TravelRuleMetadataV0"
 
 
-TravelRuleMetadata.VARIANTS = [
-    TravelRuleMetadata__TravelRuleMetadataVersion0,
-]
+TravelRuleMetadata.VARIANTS = [TravelRuleMetadata__TravelRuleMetadataVersion0]
 
 
 @dataclass
@@ -434,10 +429,7 @@ class WriteOp__Value(WriteOp):
     value: bytes
 
 
-WriteOp.VARIANTS = [
-    WriteOp__Deletion,
-    WriteOp__Value,
-]
+WriteOp.VARIANTS = [WriteOp__Deletion, WriteOp__Value]
 
 
 @dataclass
@@ -467,7 +459,4 @@ class WriteSetPayload__Script(WriteSetPayload):
     script: "Script"
 
 
-WriteSetPayload.VARIANTS = [
-    WriteSetPayload__Direct,
-    WriteSetPayload__Script,
-]
+WriteSetPayload.VARIANTS = [WriteSetPayload__Direct, WriteSetPayload__Script]

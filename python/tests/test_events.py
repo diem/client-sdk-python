@@ -3,28 +3,23 @@
 
 # pyre-strict
 
-import requests
-from typing import (
-    Dict,
-    Union,
-    List,
-    Any,
-    cast,
-)
+from typing import Any, Dict, List, Union, cast
 
+import requests
 from pylibra import (
-    as_events,
+    EventsType,
+    JSONUnknownEvent,
     LibraNetwork,
     PaymentEvent,
-    JSONUnknownEvent,
     ToLBRExchangeRateUpdateEvent,
-    EventsType,
+    as_events,
 )
+
 
 EventJSONType = Dict[str, Union[str, Dict[str, Union[str, float]]]]
 TransactionJSONType = Dict[str, Union[Dict[str, str], List[EventJSONType]]]
 ResponseResultJSONType = Union[
-    TransactionJSONType, List[TransactionJSONType], List[EventJSONType],
+    TransactionJSONType, List[TransactionJSONType], List[EventJSONType]
 ]
 ResponseJSONType = Dict[str, Union[int, str, ResponseResultJSONType]]
 
@@ -90,10 +85,7 @@ def test_parse_events_from_transactions_by_range() -> None:
 
 
 def create_user_type_transaction_with_events() -> TransactionJSONType:
-    return {
-        "transaction": {"type": "user"},
-        "events": create_all_types_events(),
-    }
+    return {"transaction": {"type": "user"}, "events": create_all_types_events()}
 
 
 def create_all_types_events() -> List[EventJSONType]:
@@ -101,7 +93,10 @@ def create_all_types_events() -> List[EventJSONType]:
         create_event_dict("sentpayment"),
         create_event_dict("receivedpayment"),
         create_event_dict("unknown"),
-        create_event_dict("to_lbr_exchange_rate_update", {"currency_code": "Coin1", "new_to_lbr_exchange_rate": 0.32},),
+        create_event_dict(
+            "to_lbr_exchange_rate_update",
+            {"currency_code": "Coin1", "new_to_lbr_exchange_rate": 0.32},
+        ),
     ]
 
 
@@ -127,9 +122,4 @@ def assert_all_types_events(events: EventsType) -> None:
 def create_event_dict(type: str, attrs: Dict[str, Any] = {}) -> Dict[str, Any]:
     data = {"type": type}
     data.update(attrs)
-    return {
-        "data": data,
-        "key": "2ef0",
-        "sequence_number": 4,
-        "transaction_version": 8,
-    }
+    return {"data": data, "key": "2ef0", "sequence_number": 4, "transaction_version": 8}

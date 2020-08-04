@@ -10,4 +10,3 @@ cmake-build-*
 # .gitignore file locally for IDE/Emacs/Vim generated files.
 **/target
 **/*.rs.bk
-

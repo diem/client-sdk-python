@@ -3,24 +3,26 @@
 
 # pyre-strict
 
-import pytest
-import time
-from pylibra import (
-    LibraNetwork,
-    FaucetUtils,
-    AccountKeyUtils,
-    TransactionUtils,
-    SubmitTransactionError,
-    AccountResource,
-    FaucetError,
-    PaymentEvent,
-    ParentVASP,
-    CHAIN_ID_TESTNET,
-)
-from functools import wraps
-import typing
 import pprint
 import random
+import time
+import typing
+from functools import wraps
+
+import pytest
+from pylibra import (
+    CHAIN_ID_TESTNET,
+    AccountKeyUtils,
+    AccountResource,
+    FaucetError,
+    FaucetUtils,
+    LibraNetwork,
+    ParentVASP,
+    PaymentEvent,
+    SubmitTransactionError,
+    TransactionUtils,
+)
+
 
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
 TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
@@ -149,7 +151,9 @@ def _wait_for_account_seq(addr_hex: str, seq: int) -> AccountResource:
 # pyre-ignore
 @pytest.mark.timeout(60)
 def test_send_transaction_success() -> None:
-    private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b")
+    private_key = bytes.fromhex(
+        "82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec758b"
+    )
     private_key2 = bytes.fromhex("deadbeef" * 8)
 
     ak = AccountKeyUtils.from_private_key(private_key)
@@ -309,14 +313,18 @@ def test_transaction_by_range_with_events() -> None:
 
 def test_transaction_by_acc_seq_not_exist() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq("00000000000000000000000000000000", 0, include_events=True)
+    tx, events = api.transaction_by_acc_seq(
+        "00000000000000000000000000000000", 0, include_events=True
+    )
     assert tx is None
     assert events == []
 
 
 def test_transaction_by_acc_seq() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, 1, include_events=False)
+    tx, events = api.transaction_by_acc_seq(
+        DESIGNATED_DEALER_ADDRESS, 1, include_events=False
+    )
     assert tx is not None
     assert tx.sender == bytes.fromhex(DESIGNATED_DEALER_ADDRESS)
     assert tx.version != 0
@@ -327,7 +335,9 @@ def test_transaction_by_acc_seq() -> None:
 
 def test_transaction_by_acc_seq_with_events() -> None:
     api = LibraNetwork()
-    tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, 2, include_events=True)
+    tx, events = api.transaction_by_acc_seq(
+        DESIGNATED_DEALER_ADDRESS, 2, include_events=True
+    )
     assert tx
     assert tx.sender == bytes.fromhex(DESIGNATED_DEALER_ADDRESS)
     assert tx.version != 0
@@ -377,7 +387,9 @@ def test_mint_sum() -> None:
     seq = 0
     is_mint_tx_present = False
     while seq < min(account.sequence, 20):
-        tx, events = api.transaction_by_acc_seq(DESIGNATED_DEALER_ADDRESS, seq=seq, include_events=True)
+        tx, events = api.transaction_by_acc_seq(
+            DESIGNATED_DEALER_ADDRESS, seq=seq, include_events=True
+        )
         if tx and tx.is_mint:
             print("Found mint transaction: from: ", tx.sender.hex())
             total = total + tx.amount
@@ -401,7 +413,9 @@ def test_currencies() -> None:
 
 def test_account_role_exists() -> None:
     # [TODO] should refactor account creation
-    private_key = bytes.fromhex("82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec75fa")
+    private_key = bytes.fromhex(
+        "82001573a003fd3b7fd72ffb0eaf63aac62f12deb629dca72785a66268ec75fa"
+    )
 
     ak = AccountKeyUtils.from_private_key(private_key)
     authkey_hex: str = ak.authentication_key.hex()

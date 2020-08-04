@@ -4,7 +4,8 @@
 # pyre-strict
 
 import pytest
-from pylibra import TransactionUtils, AccountKeyUtils
+from pylibra import AccountKeyUtils, TransactionUtils
+
 
 RECEIVER_ADDRESS: bytes = bytes.fromhex("00" * 16)
 PRIVATE_KEY: bytes = bytes.fromhex("11" * 32)

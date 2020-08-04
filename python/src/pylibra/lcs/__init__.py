@@ -1,12 +1,12 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
-import dataclasses
 import collections
-
-from pylibra import serde_types as st
+import dataclasses
 import typing
 from typing import get_type_hints
+
+from pylibra import serde_types as st
 
 
 LCS_MAX_LENGTH = 1 << 31
@@ -105,19 +105,46 @@ primitive_encode_map = {
 }
 
 primitive_decode_map = {
-    st.bool: lambda content: (st.bool(int.from_bytes(content[:1], byteorder="little", signed=False)), content[1:],),
-    st.uint8: lambda content: (st.uint8(int.from_bytes(content[:1], byteorder="little", signed=False)), content[1:],),
-    st.uint16: lambda content: (st.uint16(int.from_bytes(content[:2], byteorder="little", signed=False)), content[2:],),
-    st.uint32: lambda content: (st.uint32(int.from_bytes(content[:4], byteorder="little", signed=False)), content[4:],),
-    st.uint64: lambda content: (st.uint64(int.from_bytes(content[:8], byteorder="little", signed=False)), content[8:],),
+    st.bool: lambda content: (
+        st.bool(int.from_bytes(content[:1], byteorder="little", signed=False)),
+        content[1:],
+    ),
+    st.uint8: lambda content: (
+        st.uint8(int.from_bytes(content[:1], byteorder="little", signed=False)),
+        content[1:],
+    ),
+    st.uint16: lambda content: (
+        st.uint16(int.from_bytes(content[:2], byteorder="little", signed=False)),
+        content[2:],
+    ),
+    st.uint32: lambda content: (
+        st.uint32(int.from_bytes(content[:4], byteorder="little", signed=False)),
+        content[4:],
+    ),
+    st.uint64: lambda content: (
+        st.uint64(int.from_bytes(content[:8], byteorder="little", signed=False)),
+        content[8:],
+    ),
     st.uint128: lambda content: (
         st.uint128(int.from_bytes(content[:16], byteorder="little", signed=False)),
         content[16:],
     ),
-    st.int8: lambda content: (st.int8(int.from_bytes(content[:1], byteorder="little", signed=True)), content[1:],),
-    st.int16: lambda content: (st.int16(int.from_bytes(content[:2], byteorder="little", signed=True)), content[2:],),
-    st.int32: lambda content: (st.int32(int.from_bytes(content[:4], byteorder="little", signed=True)), content[4:],),
-    st.int64: lambda content: (st.int64(int.from_bytes(content[:8], byteorder="little", signed=True)), content[8:],),
+    st.int8: lambda content: (
+        st.int8(int.from_bytes(content[:1], byteorder="little", signed=True)),
+        content[1:],
+    ),
+    st.int16: lambda content: (
+        st.int16(int.from_bytes(content[:2], byteorder="little", signed=True)),
+        content[2:],
+    ),
+    st.int32: lambda content: (
+        st.int32(int.from_bytes(content[:4], byteorder="little", signed=True)),
+        content[4:],
+    ),
+    st.int64: lambda content: (
+        st.int64(int.from_bytes(content[:8], byteorder="little", signed=True)),
+        content[8:],
+    ),
     st.int128: lambda content: (
         st.int128(int.from_bytes(content[:16], byteorder="little", signed=True)),
         content[16:],
@@ -163,7 +190,9 @@ def serialize(obj: typing.Any, obj_type) -> bytes:
             item_type = typing.Tuple[types[0], types[1]]
             result += encode_length(len(obj))
             # Sorting by lexicographic order on the serialized item (or equivalently, serialized keys).
-            serialized_items = sorted(serialize(item, item_type) for item in obj.items())
+            serialized_items = sorted(
+                serialize(item, item_type) for item in obj.items()
+            )
             for s in serialized_items:
                 result += s
 
@@ -244,8 +273,13 @@ def deserialize(content: bytes, obj_type):
                 key, content = deserialize(previous_content, types[0])
                 serialized_key = previous_content[: -len(content)]
                 value, content = deserialize(content, types[1])
-                if previous_serialized_key is not None and previous_serialized_key >= serialized_key:
-                    raise ValueError("Serialized keys in a map must be ordered by increasing lexicographic order")
+                if (
+                    previous_serialized_key is not None
+                    and previous_serialized_key >= serialized_key
+                ):
+                    raise ValueError(
+                        "Serialized keys in a map must be ordered by increasing lexicographic order"
+                    )
                 previous_serialized_key = serialized_key
                 res[key] = value
 

@@ -212,9 +212,9 @@ class Transaction__UserTransaction(Transaction):
 
 
 @dataclass
-class Transaction__WaypointWriteSet(Transaction):
+class Transaction__GenesisTransaction(Transaction):
     INDEX = 1
-    value: "ChangeSet"
+    value: "WriteSetPayload"
 
 
 @dataclass
@@ -225,7 +225,7 @@ class Transaction__BlockMetadata(Transaction):
 
 Transaction.VARIANTS = [
     Transaction__UserTransaction,
-    Transaction__WaypointWriteSet,
+    Transaction__GenesisTransaction,
     Transaction__BlockMetadata,
 ]
 

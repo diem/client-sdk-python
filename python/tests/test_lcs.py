@@ -3,20 +3,18 @@
 
 # pyre-strict
 
-from pylibra import (
-    TransactionUtils,
-    lcs,
-    libra_types as libra,
-    serde_types as st,
-    stdlib,
-)
+from pylibra import TransactionUtils
+from pylibra import libra_types as libra
+from pylibra import serde_types as st
+from pylibra import lcs
+from pylibra import stdlib
 
 
 def test_lcs_e2e() -> None:
     print("Testing serialization: ")
 
-    obj = libra.Transaction__WaypointWriteSet(
-        libra.ChangeSet(libra.WriteSet(libra.WriteSetMut(write_set=[])), [])
+    obj = libra.Transaction__GenesisTransaction(
+        libra.WriteSetPayload__Direct(libra.ChangeSet(libra.WriteSet(libra.WriteSetMut(write_set=[])), []))
     )
     content = lcs.serialize(obj, libra.Transaction)
 
@@ -34,12 +32,7 @@ def test_lcs_e2e() -> None:
 
 def test_lcs_e2e_native() -> None:
     content = TransactionUtils.createSignedP2PTransaction(
-        bytes.fromhex("11" * 32),
-        bytes.fromhex("22" * 16),
-        255,
-        1_234_567,
-        expiration_time=123456789,
-        chain_id=255,
+        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789, chain_id=255
     )
 
     print("Testing Deserialization native bytes: ", content)
@@ -68,16 +61,9 @@ def make_address(content: bytes) -> libra.AccountAddress:
 
 def test_stdlib() -> None:
     content = TransactionUtils.createSignedP2PTransaction(
-        bytes.fromhex("11" * 32),
-        bytes.fromhex("22" * 16),
-        255,
-        1_234_567,
-        expiration_time=123456789,
-        chain_id=255,
+        bytes.fromhex("11" * 32), bytes.fromhex("22" * 16), 255, 1_234_567, expiration_time=123456789, chain_id=255
     )
-    raw_txn = lcs.deserialize(content, libra.Transaction__UserTransaction)[
-        0
-    ].value.raw_txn
+    raw_txn = lcs.deserialize(content, libra.Transaction__UserTransaction)[0].value.raw_txn
 
     assert isinstance(raw_txn.payload, libra.TransactionPayload__Script)
 
@@ -91,9 +77,7 @@ def test_stdlib() -> None:
     )
     payee = make_address(b"\x22" * 16)
     amount = st.uint64(1_234_567)
-    script = stdlib.encode_peer_to_peer_with_metadata_script(
-        token, payee, amount, b"", b""
-    )
+    script = stdlib.encode_peer_to_peer_with_metadata_script(token, payee, amount, b"", b"")
 
     # We have successfully generated an (unsigned) P2P transaction in python.
     assert script == raw_txn.payload.value

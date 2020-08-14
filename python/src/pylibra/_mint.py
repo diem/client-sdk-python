@@ -32,9 +32,7 @@ class FaucetUtils:
         amount: int,
         identifier: str = "LBR",
         session: typing.Optional[requests.Session] = None,
-        timeout: typing.Optional[
-            typing.Union[float, typing.Tuple[float, float]]
-        ] = None,
+        timeout: typing.Optional[typing.Union[float, typing.Tuple[float, float]]] = None,
     ) -> int:
         """Request faucet to send libra to destination address."""
         if len(authkey_hex) != 64:
@@ -47,14 +45,8 @@ class FaucetUtils:
         try:
             r = _session.post(
                 self._baseurl,
-                params={
-                    "amount": amount,
-                    "auth_key": authkey_hex,
-                    "currency_code": identifier,
-                },
-                timeout=timeout
-                if timeout
-                else (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS),
+                params={"amount": amount, "auth_key": authkey_hex, "currency_code": identifier},
+                timeout=timeout if timeout else (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS),
             )
             r.raise_for_status()
             if r.text:

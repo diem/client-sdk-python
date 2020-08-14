@@ -4,10 +4,10 @@
 # pyre-strict
 
 from ._config import *
+from ._types import *
 from ._jsonrpc_transport import *
 from ._mint import *
 from ._native import *
-from ._types import *
 
 
 __all__ = [

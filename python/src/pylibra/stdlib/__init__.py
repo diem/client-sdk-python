@@ -1,16 +1,15 @@
 import typing
-
 from pylibra import serde_types as st
 from pylibra.libra_types import (
-    AccountAddress,
     Script,
-    TransactionArgument__Address,
+    TypeTag,
+    AccountAddress,
     TransactionArgument__Bool,
     TransactionArgument__U8,
-    TransactionArgument__U8Vector,
     TransactionArgument__U64,
     TransactionArgument__U128,
-    TypeTag,
+    TransactionArgument__Address,
+    TransactionArgument__U8Vector,
 )
 
 
@@ -30,9 +29,7 @@ def encode_add_currency_to_account_script(currency: TypeTag) -> Script:
     )
 
 
-def encode_add_recovery_rotation_capability_script(
-    recovery_address: AccountAddress,
-) -> Script:
+def encode_add_recovery_rotation_capability_script(recovery_address: AccountAddress) -> Script:
     """Add the `KeyRotationCapability` for `to_recover_account` to the `RecoveryAddress` resource under `recovery_address`.
 
     ## Aborts * Aborts with `LibraAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` if
@@ -68,9 +65,7 @@ def encode_add_validator_and_reconfigure_script(
     )
 
 
-def encode_burn_script(
-    token: TypeTag, sliding_nonce: st.uint64, preburn_address: AccountAddress
-) -> Script:
+def encode_burn_script(token: TypeTag, sliding_nonce: st.uint64, preburn_address: AccountAddress) -> Script:
     """Permanently destroy the `Token`s stored in the oldest burn request under the `Preburn` resource.
 
     This will only succeed if `account` has a `MintCapability<Token>`, a `Preburn<Token>`
@@ -80,10 +75,7 @@ def encode_burn_script(
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x04\x03\x04\x0b\x04\x0f\x02\x05\x11\x11\x07\x22\x2e\x08\x50\x10\x00\x00\x00\x01\x01\x02\x00\x01\x00\x00\x03\x02\x01\x01\x01\x01\x04\x02\x06\x0c\x03\x00\x02\x06\x0c\x05\x03\x06\x0c\x03\x05\x01\x09\x00\x05\x4c\x69\x62\x72\x61\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x04\x62\x75\x72\x6e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x03\x01\x07\x0a\x00\x0a\x01\x11\x00\x0b\x00\x0a\x02\x38\x00\x02",
         ty_args=[token],
-        args=[
-            TransactionArgument__U64(sliding_nonce),
-            TransactionArgument__Address(preburn_address),
-        ],
+        args=[TransactionArgument__U64(sliding_nonce), TransactionArgument__Address(preburn_address)],
     )
 
 
@@ -99,9 +91,7 @@ def encode_burn_txn_fees_script(coin_type: TypeTag) -> Script:
     )
 
 
-def encode_cancel_burn_script(
-    token: TypeTag, preburn_address: AccountAddress
-) -> Script:
+def encode_cancel_burn_script(token: TypeTag, preburn_address: AccountAddress) -> Script:
     """Cancel the oldest burn request from `preburn_address` and return the funds.
 
     Fails if the sender does not have a published `BurnCapability<Token>`.
@@ -226,10 +216,7 @@ def encode_create_recovery_address_script() -> Script:
 
 
 def encode_create_testing_account_script(
-    coin_type: TypeTag,
-    new_account_address: AccountAddress,
-    auth_key_prefix: bytes,
-    add_all_currencies: st.bool,
+    coin_type: TypeTag, new_account_address: AccountAddress, auth_key_prefix: bytes, add_all_currencies: st.bool
 ) -> Script:
     """Create an account with the ParentVASP role at `address` with authentication key `auth_key_prefix` | `new_account_address` and a 0 balance of type `currency`.
 
@@ -250,10 +237,7 @@ def encode_create_testing_account_script(
 
 
 def encode_create_validator_account_script(
-    sliding_nonce: st.uint64,
-    new_account_address: AccountAddress,
-    auth_key_prefix: bytes,
-    human_name: bytes,
+    sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
 ) -> Script:
     """Create a validator account at `new_validator_address` with `auth_key_prefix`and human_name."""
     return Script(
@@ -269,10 +253,7 @@ def encode_create_validator_account_script(
 
 
 def encode_create_validator_operator_account_script(
-    sliding_nonce: st.uint64,
-    new_account_address: AccountAddress,
-    auth_key_prefix: bytes,
-    human_name: bytes,
+    sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
 ) -> Script:
     """Create a validator operator account at `new_validator_address` with `auth_key_prefix`and human_name."""
     return Script(
@@ -287,9 +268,7 @@ def encode_create_validator_operator_account_script(
     )
 
 
-def encode_freeze_account_script(
-    sliding_nonce: st.uint64, to_freeze_account: AccountAddress
-) -> Script:
+def encode_freeze_account_script(sliding_nonce: st.uint64, to_freeze_account: AccountAddress) -> Script:
     """Freeze account `address`.
 
     Initiator must be authorized. `sliding_nonce` is a unique nonce for operation, see
@@ -298,10 +277,7 @@ def encode_freeze_account_script(
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x04\x03\x04\x0a\x05\x0e\x0e\x07\x1c\x42\x08\x5e\x10\x00\x00\x00\x01\x00\x02\x00\x01\x00\x01\x03\x02\x01\x00\x02\x06\x0c\x05\x00\x02\x06\x0c\x03\x03\x06\x0c\x03\x05\x0f\x41\x63\x63\x6f\x75\x6e\x74\x46\x72\x65\x65\x7a\x69\x6e\x67\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x0e\x66\x72\x65\x65\x7a\x65\x5f\x61\x63\x63\x6f\x75\x6e\x74\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x03\x01\x07\x0a\x00\x0a\x01\x11\x01\x0b\x00\x0a\x02\x11\x00\x02",
         ty_args=[],
-        args=[
-            TransactionArgument__U64(sliding_nonce),
-            TransactionArgument__Address(to_freeze_account),
-        ],
+        args=[TransactionArgument__U64(sliding_nonce), TransactionArgument__Address(to_freeze_account)],
     )
 
 
@@ -327,31 +303,29 @@ def encode_modify_publishing_option_script(args: bytes) -> Script:
 
 
 def encode_peer_to_peer_with_metadata_script(
-    currency: TypeTag,
-    payee: AccountAddress,
-    amount: st.uint64,
-    metadata: bytes,
-    metadata_signature: bytes,
+    currency: TypeTag, payee: AccountAddress, amount: st.uint64, metadata: bytes, metadata_signature: bytes
 ) -> Script:
     """Transfer `amount` coins of type `Currency` from `payer` to `payee` with (optional) associated `metadata` and an (optional) `metadata_signature` on the message `metadata` | `Signer::address_of(payer)` | `amount` | `DualAttestation::DOMAIN_SEPARATOR`.
 
     The `metadata` and `metadata_signature` parameters are only required if `amount` >=
     `DualAttestation::get_cur_microlibra_limit` LBR and `payer` and `payee` are distinct
-    entities (e.g., different VASPs, or a VASP and a DesignatedDealer). Standardized
-    `metadata` LCS format can be found in `libra_types::transaction::metadata::Metadata`.
-    ## Events When this script executes without aborting, it emits two events:
-    `SentPaymentEvent { amount, currency_code = Currency, payee, metadata }` on `payer`'s
-    `LibraAccount::sent_events` handle, and `ReceivedPaymentEvent { amount, currency_code
-    = Currency, payer, metadata }` on `payee`'s `LibraAccount::received_events` handle. ##
-    Common Aborts These aborts can in occur in any payment. * Aborts with
-    `LibraAccount::EINSUFFICIENT_BALANCE` if `amount` is greater than `payer`'s balance in
-    `Currency`. * Aborts with `LibraAccount::ECOIN_DEPOSIT_IS_ZERO` if `amount` is zero. *
-    Aborts with `LibraAccount::EPAYEE_DOES_NOT_EXIST` if no account exists at the address
-    `payee`. * Aborts with `LibraAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE` if an account
-    exists at `payee`, but it does not accept payments in `Currency`. ## Dual Attestation
-    Aborts These aborts can occur in any payment subject to dual attestation. * Aborts
-    with `DualAttestation::EMALFORMED_METADATA_SIGNATURE` if `metadata_signature`'s is not
-    64 bytes. * Aborts with `DualAttestation:EINVALID_METADATA_SIGNATURE` if
+    VASPs. However, a transaction sender can opt in to dual attestation even when it is
+    not required (e.g., a DesignatedDealer -> VASP payment) by providing a non-empty
+    `metadata_signature`. Standardized `metadata` LCS format can be found in
+    `libra_types::transaction::metadata::Metadata`. ## Events When this script executes
+    without aborting, it emits two events: `SentPaymentEvent { amount, currency_code =
+    Currency, payee, metadata }` on `payer`'s `LibraAccount::sent_events` handle, and
+    `ReceivedPaymentEvent { amount, currency_code = Currency, payer, metadata }` on
+    `payee`'s `LibraAccount::received_events` handle. ## Common Aborts These aborts can in
+    occur in any payment. * Aborts with `LibraAccount::EINSUFFICIENT_BALANCE` if `amount`
+    is greater than `payer`'s balance in `Currency`. * Aborts with
+    `LibraAccount::ECOIN_DEPOSIT_IS_ZERO` if `amount` is zero. * Aborts with
+    `LibraAccount::EPAYEE_DOES_NOT_EXIST` if no account exists at the address `payee`. *
+    Aborts with `LibraAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE` if an account exists at
+    `payee`, but it does not accept payments in `Currency`. ## Dual Attestation Aborts
+    These aborts can occur in any payment subject to dual attestation. * Aborts with
+    `DualAttestation::EMALFORMED_METADATA_SIGNATURE` if `metadata_signature`'s is not 64
+    bytes. * Aborts with `DualAttestation:EINVALID_METADATA_SIGNATURE` if
     `metadata_signature` does not verify on the message `metadata` | `payer` | `value` |
     `DOMAIN_SEPARATOR` using the `compliance_public_key` published in the `payee`'s
     `DualAttestation::Credential` resource. ## Other Aborts These aborts should only
@@ -472,10 +446,8 @@ def encode_rotate_authentication_key_script(new_key: bytes) -> Script:
     )
 
 
-def encode_rotate_authentication_key_with_nonce_script(
-    sliding_nonce: st.uint64, new_key: bytes
-) -> Script:
-    """Rotate the sender's authentication key to `new_key`.
+def encode_rotate_authentication_key_with_nonce_script(sliding_nonce: st.uint64, new_key: bytes) -> Script:
+    """Rotate `account`'s authentication key to `new_key`.
 
     `new_key` should be a 256 bit sha3 hash of an ed25519 public key. This script also
     takes `sliding_nonce`, as a unique nonce for this operation. See sliding_nonce.move
@@ -484,10 +456,21 @@ def encode_rotate_authentication_key_with_nonce_script(
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x04\x02\x04\x04\x03\x08\x14\x05\x1c\x17\x07\x33\xa0\x01\x08\xd3\x01\x10\x00\x00\x00\x01\x00\x03\x01\x00\x01\x02\x00\x01\x00\x00\x04\x02\x03\x00\x00\x05\x03\x01\x00\x00\x06\x04\x01\x00\x02\x06\x0c\x03\x00\x01\x06\x0c\x01\x08\x00\x02\x06\x08\x00\x0a\x02\x03\x06\x0c\x03\x0a\x02\x0c\x4c\x69\x62\x72\x61\x41\x63\x63\x6f\x75\x6e\x74\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x15\x4b\x65\x79\x52\x6f\x74\x61\x74\x69\x6f\x6e\x43\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x1f\x65\x78\x74\x72\x61\x63\x74\x5f\x6b\x65\x79\x5f\x72\x6f\x74\x61\x74\x69\x6f\x6e\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x1f\x72\x65\x73\x74\x6f\x72\x65\x5f\x6b\x65\x79\x5f\x72\x6f\x74\x61\x74\x69\x6f\x6e\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x19\x72\x6f\x74\x61\x74\x65\x5f\x61\x75\x74\x68\x65\x6e\x74\x69\x63\x61\x74\x69\x6f\x6e\x5f\x6b\x65\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x05\x03\x0c\x0a\x00\x0a\x01\x11\x00\x0b\x00\x11\x01\x0c\x03\x0e\x03\x0b\x02\x11\x03\x0b\x03\x11\x02\x02",
         ty_args=[],
-        args=[
-            TransactionArgument__U64(sliding_nonce),
-            TransactionArgument__U8Vector(new_key),
-        ],
+        args=[TransactionArgument__U64(sliding_nonce), TransactionArgument__U8Vector(new_key)],
+    )
+
+
+def encode_rotate_authentication_key_with_nonce_admin_script(sliding_nonce: st.uint64, new_key: bytes) -> Script:
+    """Rotate `account`'s authentication key to `new_key`.
+
+    `new_key` should be a 256 bit sha3 hash of an ed25519 public key. This script also
+    takes `sliding_nonce`, as a unique nonce for this operation. See sliding_nonce.move
+    for details.
+    """
+    return Script(
+        code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x04\x02\x04\x04\x03\x08\x14\x05\x1c\x19\x07\x35\xa0\x01\x08\xd5\x01\x10\x00\x00\x00\x01\x00\x03\x01\x00\x01\x02\x00\x01\x00\x00\x04\x02\x03\x00\x00\x05\x03\x01\x00\x00\x06\x04\x01\x00\x02\x06\x0c\x03\x00\x01\x06\x0c\x01\x08\x00\x02\x06\x08\x00\x0a\x02\x04\x06\x0c\x06\x0c\x03\x0a\x02\x0c\x4c\x69\x62\x72\x61\x41\x63\x63\x6f\x75\x6e\x74\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x15\x4b\x65\x79\x52\x6f\x74\x61\x74\x69\x6f\x6e\x43\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x1f\x65\x78\x74\x72\x61\x63\x74\x5f\x6b\x65\x79\x5f\x72\x6f\x74\x61\x74\x69\x6f\x6e\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x1f\x72\x65\x73\x74\x6f\x72\x65\x5f\x6b\x65\x79\x5f\x72\x6f\x74\x61\x74\x69\x6f\x6e\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x19\x72\x6f\x74\x61\x74\x65\x5f\x61\x75\x74\x68\x65\x6e\x74\x69\x63\x61\x74\x69\x6f\x6e\x5f\x6b\x65\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x05\x03\x0c\x0b\x00\x0a\x02\x11\x00\x0b\x01\x11\x01\x0c\x04\x0e\x04\x0b\x03\x11\x03\x0b\x04\x11\x02\x02",
+        ty_args=[],
+        args=[TransactionArgument__U64(sliding_nonce), TransactionArgument__U8Vector(new_key)],
     )
 
 
@@ -514,9 +497,7 @@ def encode_rotate_authentication_key_with_recovery_address_script(
     )
 
 
-def encode_rotate_dual_attestation_info_script(
-    new_url: bytes, new_key: bytes
-) -> Script:
+def encode_rotate_dual_attestation_info_script(new_url: bytes, new_key: bytes) -> Script:
     """Rotate `account`'s base URL to `new_url` and its compliance public key to `new_key`.
 
     Aborts if `account` is not a ParentVASP or DesignatedDealer Aborts if `new_key` is not
@@ -525,10 +506,7 @@ def encode_rotate_dual_attestation_info_script(
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x02\x03\x02\x0a\x05\x0c\x0d\x07\x19\x3d\x08\x56\x10\x00\x00\x00\x01\x00\x01\x00\x00\x02\x00\x01\x00\x02\x06\x0c\x0a\x02\x00\x03\x06\x0c\x0a\x02\x0a\x02\x0f\x44\x75\x61\x6c\x41\x74\x74\x65\x73\x74\x61\x74\x69\x6f\x6e\x0f\x72\x6f\x74\x61\x74\x65\x5f\x62\x61\x73\x65\x5f\x75\x72\x6c\x1c\x72\x6f\x74\x61\x74\x65\x5f\x63\x6f\x6d\x70\x6c\x69\x61\x6e\x63\x65\x5f\x70\x75\x62\x6c\x69\x63\x5f\x6b\x65\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x02\x01\x07\x0a\x00\x0b\x01\x11\x00\x0b\x00\x0b\x02\x11\x01\x02",
         ty_args=[],
-        args=[
-            TransactionArgument__U8Vector(new_url),
-            TransactionArgument__U8Vector(new_key),
-        ],
+        args=[TransactionArgument__U8Vector(new_url), TransactionArgument__U8Vector(new_key)],
     )
 
 
@@ -570,28 +548,12 @@ def encode_set_validator_config_and_reconfigure_script(
     )
 
 
-def encode_set_validator_operator_script(
-    operator_name: bytes, operator_account: AccountAddress
-) -> Script:
+def encode_set_validator_operator_script(operator_name: bytes, operator_account: AccountAddress) -> Script:
     """Set validator's operator."""
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x04\x03\x04\x0a\x05\x0e\x13\x07\x21\x44\x08\x65\x10\x00\x00\x00\x01\x01\x02\x00\x01\x00\x00\x03\x02\x03\x00\x01\x05\x01\x0a\x02\x02\x06\x0c\x05\x00\x03\x06\x0c\x0a\x02\x05\x02\x01\x03\x0f\x56\x61\x6c\x69\x64\x61\x74\x6f\x72\x43\x6f\x6e\x66\x69\x67\x17\x56\x61\x6c\x69\x64\x61\x74\x6f\x72\x4f\x70\x65\x72\x61\x74\x6f\x72\x43\x6f\x6e\x66\x69\x67\x0e\x67\x65\x74\x5f\x68\x75\x6d\x61\x6e\x5f\x6e\x61\x6d\x65\x0c\x73\x65\x74\x5f\x6f\x70\x65\x72\x61\x74\x6f\x72\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x04\x05\x0f\x0a\x02\x11\x00\x0b\x01\x21\x0c\x03\x0b\x03\x03\x0b\x0b\x00\x01\x06\x00\x00\x00\x00\x00\x00\x00\x00\x27\x0b\x00\x0a\x02\x11\x01\x02",
         ty_args=[],
-        args=[
-            TransactionArgument__U8Vector(operator_name),
-            TransactionArgument__Address(operator_account),
-        ],
-    )
-
-
-def encode_testnet_mint_script(
-    token: TypeTag, payee: AccountAddress, amount: st.uint64
-) -> Script:
-    """Send `amount` coins of type `Token` to `payee`."""
-    return Script(
-        code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x08\x01\x00\x08\x02\x08\x04\x03\x0c\x25\x04\x31\x04\x05\x35\x28\x07\x5d\xc1\x01\x08\x9e\x02\x10\x06\xae\x02\x16\x00\x00\x00\x01\x00\x02\x00\x03\x02\x07\x01\x00\x00\x04\x00\x01\x00\x03\x05\x02\x03\x00\x01\x06\x01\x01\x01\x01\x02\x08\x03\x04\x00\x02\x09\x02\x05\x00\x02\x0a\x06\x00\x01\x01\x02\x0b\x05\x00\x00\x02\x09\x05\x09\x00\x01\x03\x01\x06\x0c\x01\x05\x01\x01\x01\x08\x00\x05\x06\x08\x00\x05\x03\x0a\x02\x0a\x02\x03\x06\x0c\x05\x03\x07\x08\x00\x01\x03\x01\x03\x01\x03\x01\x09\x00\x0f\x44\x75\x61\x6c\x41\x74\x74\x65\x73\x74\x61\x74\x69\x6f\x6e\x05\x4c\x69\x62\x72\x61\x0c\x4c\x69\x62\x72\x61\x41\x63\x63\x6f\x75\x6e\x74\x06\x53\x69\x67\x6e\x65\x72\x18\x67\x65\x74\x5f\x63\x75\x72\x5f\x6d\x69\x63\x72\x6f\x6c\x69\x62\x72\x61\x5f\x6c\x69\x6d\x69\x74\x0a\x61\x64\x64\x72\x65\x73\x73\x5f\x6f\x66\x14\x61\x70\x70\x72\x6f\x78\x5f\x6c\x62\x72\x5f\x66\x6f\x72\x5f\x76\x61\x6c\x75\x65\x12\x57\x69\x74\x68\x64\x72\x61\x77\x43\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x09\x65\x78\x69\x73\x74\x73\x5f\x61\x74\x1b\x65\x78\x74\x72\x61\x63\x74\x5f\x77\x69\x74\x68\x64\x72\x61\x77\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x08\x70\x61\x79\x5f\x66\x72\x6f\x6d\x1b\x72\x65\x73\x74\x6f\x72\x65\x5f\x77\x69\x74\x68\x64\x72\x61\x77\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x05\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xdd\x0a\x02\x01\x00\x01\x01\x07\x08\x2b\x0a\x01\x11\x03\x0c\x04\x0b\x04\x03\x09\x0b\x00\x01\x06\xcb\x15\x7a\x00\x00\x00\x00\x00\x27\x0a\x00\x11\x01\x07\x00\x21\x0c\x06\x0b\x06\x03\x14\x0b\x00\x01\x06\xcc\x15\x7a\x00\x00\x00\x00\x00\x27\x0a\x02\x38\x00\x11\x00\x23\x0c\x08\x0b\x08\x03\x1f\x0b\x00\x01\x06\xcd\x15\x7a\x00\x00\x00\x00\x00\x27\x0b\x00\x11\x04\x0c\x03\x0e\x03\x0a\x01\x0a\x02\x07\x01\x07\x01\x38\x01\x0b\x03\x11\x06\x02",
-        ty_args=[token],
-        args=[TransactionArgument__Address(payee), TransactionArgument__U64(amount)],
+        args=[TransactionArgument__U8Vector(operator_name), TransactionArgument__Address(operator_account)],
     )
 
 
@@ -620,9 +582,7 @@ def encode_tiered_mint_script(
     )
 
 
-def encode_unfreeze_account_script(
-    sliding_nonce: st.uint64, to_unfreeze_account: AccountAddress
-) -> Script:
+def encode_unfreeze_account_script(sliding_nonce: st.uint64, to_unfreeze_account: AccountAddress) -> Script:
     """Unfreeze account `address`.
 
     Initiator must be authorized. `sliding_nonce` is a unique nonce for operation, see
@@ -631,10 +591,7 @@ def encode_unfreeze_account_script(
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x04\x03\x04\x0a\x05\x0e\x0e\x07\x1c\x44\x08\x60\x10\x00\x00\x00\x01\x00\x02\x00\x01\x00\x01\x03\x02\x01\x00\x02\x06\x0c\x05\x00\x02\x06\x0c\x03\x03\x06\x0c\x03\x05\x0f\x41\x63\x63\x6f\x75\x6e\x74\x46\x72\x65\x65\x7a\x69\x6e\x67\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x10\x75\x6e\x66\x72\x65\x65\x7a\x65\x5f\x61\x63\x63\x6f\x75\x6e\x74\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x03\x01\x07\x0a\x00\x0a\x01\x11\x01\x0b\x00\x0a\x02\x11\x00\x02",
         ty_args=[],
-        args=[
-            TransactionArgument__U64(sliding_nonce),
-            TransactionArgument__Address(to_unfreeze_account),
-        ],
+        args=[TransactionArgument__U64(sliding_nonce), TransactionArgument__Address(to_unfreeze_account)],
     )
 
 
@@ -680,10 +637,7 @@ def encode_update_account_limit_definition_script(
 
 
 def encode_update_account_limit_window_info_script(
-    coin_type: TypeTag,
-    window_address: AccountAddress,
-    aggregate_balance: st.uint64,
-    new_limit_address: AccountAddress,
+    coin_type: TypeTag, window_address: AccountAddress, aggregate_balance: st.uint64, new_limit_address: AccountAddress
 ) -> Script:
     """* Sets the account limits window `tracking_balance` field for `CoinType` at `window_address` to `aggregate_balance` if `aggregate_balance != 0`.
 
@@ -701,17 +655,12 @@ def encode_update_account_limit_window_info_script(
     )
 
 
-def encode_update_dual_attestation_limit_script(
-    sliding_nonce: st.uint64, new_micro_lbr_limit: st.uint64
-) -> Script:
+def encode_update_dual_attestation_limit_script(sliding_nonce: st.uint64, new_micro_lbr_limit: st.uint64) -> Script:
     """Update the dual attesation limit to `new_micro_lbr_limit`."""
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x04\x03\x04\x0a\x05\x0e\x0a\x07\x18\x48\x08\x60\x10\x00\x00\x00\x01\x00\x02\x00\x01\x00\x01\x03\x00\x01\x00\x02\x06\x0c\x03\x00\x03\x06\x0c\x03\x03\x0f\x44\x75\x61\x6c\x41\x74\x74\x65\x73\x74\x61\x74\x69\x6f\x6e\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x14\x73\x65\x74\x5f\x6d\x69\x63\x72\x6f\x6c\x69\x62\x72\x61\x5f\x6c\x69\x6d\x69\x74\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x02\x01\x07\x0a\x00\x0a\x01\x11\x01\x0b\x00\x0a\x02\x11\x00\x02",
         ty_args=[],
-        args=[
-            TransactionArgument__U64(sliding_nonce),
-            TransactionArgument__U64(new_micro_lbr_limit),
-        ],
+        args=[TransactionArgument__U64(sliding_nonce), TransactionArgument__U64(new_micro_lbr_limit)],
     )
 
 
@@ -745,9 +694,7 @@ def encode_update_libra_version_script(sliding_nonce: st.uint64, major: st.uint6
     )
 
 
-def encode_update_minting_ability_script(
-    currency: TypeTag, allow_minting: st.bool
-) -> Script:
+def encode_update_minting_ability_script(currency: TypeTag, allow_minting: st.bool) -> Script:
     """Allows--true--or disallows--false--minting of `currency` based upon `allow_minting`."""
     return Script(
         code=b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x02\x03\x02\x06\x04\x08\x02\x05\x0a\x08\x07\x12\x1d\x08\x2f\x10\x00\x00\x00\x01\x00\x01\x01\x01\x00\x02\x02\x06\x0c\x01\x00\x01\x09\x00\x05\x4c\x69\x62\x72\x61\x16\x75\x70\x64\x61\x74\x65\x5f\x6d\x69\x6e\x74\x69\x6e\x67\x5f\x61\x62\x69\x6c\x69\x74\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x00\x01\x04\x0b\x00\x0a\x01\x38\x00\x02",

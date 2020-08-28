@@ -105,19 +105,46 @@ primitive_encode_map = {
 }
 
 primitive_decode_map = {
-    st.bool: lambda content: (st.bool(int.from_bytes(content[:1], byteorder="little", signed=False)), content[1:],),
-    st.uint8: lambda content: (st.uint8(int.from_bytes(content[:1], byteorder="little", signed=False)), content[1:],),
-    st.uint16: lambda content: (st.uint16(int.from_bytes(content[:2], byteorder="little", signed=False)), content[2:],),
-    st.uint32: lambda content: (st.uint32(int.from_bytes(content[:4], byteorder="little", signed=False)), content[4:],),
-    st.uint64: lambda content: (st.uint64(int.from_bytes(content[:8], byteorder="little", signed=False)), content[8:],),
+    st.bool: lambda content: (
+        st.bool(int.from_bytes(content[:1], byteorder="little", signed=False)),
+        content[1:],
+    ),
+    st.uint8: lambda content: (
+        st.uint8(int.from_bytes(content[:1], byteorder="little", signed=False)),
+        content[1:],
+    ),
+    st.uint16: lambda content: (
+        st.uint16(int.from_bytes(content[:2], byteorder="little", signed=False)),
+        content[2:],
+    ),
+    st.uint32: lambda content: (
+        st.uint32(int.from_bytes(content[:4], byteorder="little", signed=False)),
+        content[4:],
+    ),
+    st.uint64: lambda content: (
+        st.uint64(int.from_bytes(content[:8], byteorder="little", signed=False)),
+        content[8:],
+    ),
     st.uint128: lambda content: (
         st.uint128(int.from_bytes(content[:16], byteorder="little", signed=False)),
         content[16:],
     ),
-    st.int8: lambda content: (st.int8(int.from_bytes(content[:1], byteorder="little", signed=True)), content[1:],),
-    st.int16: lambda content: (st.int16(int.from_bytes(content[:2], byteorder="little", signed=True)), content[2:],),
-    st.int32: lambda content: (st.int32(int.from_bytes(content[:4], byteorder="little", signed=True)), content[4:],),
-    st.int64: lambda content: (st.int64(int.from_bytes(content[:8], byteorder="little", signed=True)), content[8:],),
+    st.int8: lambda content: (
+        st.int8(int.from_bytes(content[:1], byteorder="little", signed=True)),
+        content[1:],
+    ),
+    st.int16: lambda content: (
+        st.int16(int.from_bytes(content[:2], byteorder="little", signed=True)),
+        content[2:],
+    ),
+    st.int32: lambda content: (
+        st.int32(int.from_bytes(content[:4], byteorder="little", signed=True)),
+        content[4:],
+    ),
+    st.int64: lambda content: (
+        st.int64(int.from_bytes(content[:8], byteorder="little", signed=True)),
+        content[8:],
+    ),
     st.int128: lambda content: (
         st.int128(int.from_bytes(content[:16], byteorder="little", signed=True)),
         content[16:],

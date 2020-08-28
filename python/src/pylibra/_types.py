@@ -9,6 +9,7 @@ from abc import ABCMeta, abstractmethod
 
 @dataclasses.dataclass
 class ParentVASP:
+    type: str
     base_url: str
     compliance_key: bytes
     expiration_time: int
@@ -18,6 +19,7 @@ class ParentVASP:
 
 @dataclasses.dataclass
 class ChildVASP:
+    type: str
     parent_vasp_address: bytes
 
 

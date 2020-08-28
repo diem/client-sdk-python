@@ -50,6 +50,7 @@ class GetAccountStateResp:
 
 @dataclasses.dataclass
 class GetMetadataResp:
+    chain_id: int
     version: int
     timestamp: int
 
@@ -182,10 +183,10 @@ class JSONAccountResource(AccountResource):
             self._role = typing.cast(str, self._state.role)
         else:
             role_dict = typing.cast(typing.Dict, self._state.role)
-            if "parent_vasp" in self._state.role:
-                self._role = ParentVASP(**(role_dict["parent_vasp"]))
-            elif "child_vasp" in self._state.role:
-                self._role = ChildVASP(**(role_dict["child_vasp"]))
+            if self._state.role["type"] == "parent_vasp":
+                self._role = ParentVASP(**(role_dict))
+            elif self._state.role["type"] == "child_vasp":
+                self._role = ChildVASP(**(role_dict))
 
     @property
     def address(self) -> bytes:
@@ -443,19 +444,34 @@ class LibraNetwork(BaseLibraNetwork):
 
     def currentVersion(self) -> int:
         result = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp,
+            self._url,
+            self._session,
+            self._timeout,
+            "get_metadata",
+            ["NULL"],
+            GetMetadataResp,
         )
         return result.version
 
     def currentTimestampUsecs(self) -> int:
         result = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_metadata", ["NULL"], GetMetadataResp,
+            self._url,
+            self._session,
+            self._timeout,
+            "get_metadata",
+            ["NULL"],
+            GetMetadataResp,
         )
         return result.timestamp
 
     def getAccount(self, address_hex: str) -> typing.Optional[AccountResource]:
         resp = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_account", [address_hex], GetAccountStateResp,
+            self._url,
+            self._session,
+            self._timeout,
+            "get_account",
+            [address_hex],
+            GetAccountStateResp,
         )
         if resp is None:
             return None
@@ -466,7 +482,12 @@ class LibraNetwork(BaseLibraNetwork):
 
     def sendTransaction(self, signed_transaction_bytes: bytes) -> None:
         resp = make_json_rpc_request(
-            self._url, self._session, self._timeout, "submit", [signed_transaction_bytes.hex()], SubmitResp,
+            self._url,
+            self._session,
+            self._timeout,
+            "submit",
+            [signed_transaction_bytes.hex()],
+            SubmitResp,
         )
         if resp is None:
             return None
@@ -479,7 +500,12 @@ class LibraNetwork(BaseLibraNetwork):
         self, start_version: int, limit: int, include_events: bool = False
     ) -> typing.List[typing.Tuple[SignedTransaction, EventsType]]:
         resp_dict = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_transactions", [start_version, limit, include_events], None,
+            self._url,
+            self._session,
+            self._timeout,
+            "get_transactions",
+            [start_version, limit, include_events],
+            None,
         )
 
         results = []
@@ -497,7 +523,12 @@ class LibraNetwork(BaseLibraNetwork):
         self, addr_hex: str, seq: int, include_events: bool = False
     ) -> typing.Tuple[typing.Optional[SignedTransaction], EventsType]:
         resp_dict = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_account_transaction", [addr_hex, seq, include_events], None,
+            self._url,
+            self._session,
+            self._timeout,
+            "get_account_transaction",
+            [addr_hex, seq, include_events],
+            None,
         )
 
         if resp_dict is None:
@@ -513,7 +544,12 @@ class LibraNetwork(BaseLibraNetwork):
 
     def get_events(self, key_hex: str, start: int, limit: int) -> EventsType:
         resp_list = make_json_rpc_request(
-            self._url, self._session, self._timeout, "get_events", [key_hex, start, limit], None,
+            self._url,
+            self._session,
+            self._timeout,
+            "get_events",
+            [key_hex, start, limit],
+            None,
         )
         return as_events(resp_list)
 

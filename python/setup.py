@@ -38,15 +38,27 @@ LIBRA_LIB_DIR = "lib"
 
 extra_link_args = []
 if platform.system() == "Darwin":
-    LIBRA_LIB_FILE = "%s/%s-%s.a" % (LIBRA_LIB_DIR, "liblibra_dev", "darwin-%s" % platform.machine(),)
+    LIBRA_LIB_FILE = "%s/%s-%s.a" % (
+        LIBRA_LIB_DIR,
+        "liblibra_dev",
+        "darwin-%s" % platform.machine(),
+    )
     extra_link_args.extend(["-framework", "Security"])
 elif platform.system() == "Linux":
-    LIBRA_LIB_FILE = "%s/%s-%s.a" % (LIBRA_LIB_DIR, "liblibra_dev", "linux-%s" % platform.machine(),)
+    LIBRA_LIB_FILE = "%s/%s-%s.a" % (
+        LIBRA_LIB_DIR,
+        "liblibra_dev",
+        "linux-%s" % platform.machine(),
+    )
     extra_link_args.append("-ldl")
     extra_link_args.append("-lm")
     extra_link_args.append("-pthread")
 elif platform.system() == "Windows":
-    LIBRA_LIB_FILE = "%s/%s-%s.a" % (LIBRA_LIB_DIR, "liblibra_dev", "windows-%s" % platform.machine(),)
+    LIBRA_LIB_FILE = "%s/%s-%s.a" % (
+        LIBRA_LIB_DIR,
+        "liblibra_dev",
+        "windows-%s" % platform.machine(),
+    )
 
 
 exts = [

@@ -27,7 +27,7 @@ from pylibra import (
 ASSOC_ADDRESS: str = "0000000000000000000000000a550c18"
 TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
 DESIGNATED_DEALER_ADDRESS: str = "000000000000000000000000000000dd"
-ASSOC_AUTHKEY: str = "254d77ec7ceae382e842dcff2df1590753b260f98a749dbc77e307a15ae781a6"
+ASSOC_AUTHKEY: str = "47aee3951cfcffe581112185e1699ea0e6f1565495c581dfac665239a414eafc"
 
 RT = typing.TypeVar("RT")
 TFun = typing.Callable[..., typing.Optional[RT]]
@@ -208,7 +208,7 @@ def test_send_transaction_success() -> None:
     pprint.pprint(events)
 
     assert tx is not None
-    assert tx.vm_status == "executed"
+    assert tx.vm_status["type"] == "executed"
 
     assert len(events) == 2
 
@@ -278,7 +278,7 @@ def test_add_currency_transaction_success() -> None:
     pprint.pprint(events)
 
     assert tx is not None
-    assert tx.vm_status == "executed"
+    assert tx.vm_status["type"] == "executed"
 
     # mint some coins to the currency
     _mint_and_wait(1_000_000, "Coin1")
@@ -424,18 +424,9 @@ def test_account_role_exists() -> None:
     ar = api.getAccount(addr_hex)
     assert ar is not None
 
-    # every account created on testnet is parentVASP
-    """
-    pprint.pprint(ar.role)
-    assert "parent_vasp" in ar.role
-    parent_vasp_dict = ar.role["parent_vasp"]
-    p_vasp = ParentVASP(**parent_vasp_dict)
-    assert isinstance(p_vasp, ParentVASP)
-
-    """
     assert isinstance(ar.role, ParentVASP)
     p_vasp = typing.cast(ParentVASP, ar.role)
-    assert p_vasp.base_url == "https://libra.org"
+    assert p_vasp.base_url == ""
     assert p_vasp.human_name == "testnet"
 
 

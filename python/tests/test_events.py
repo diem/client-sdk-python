@@ -91,7 +91,10 @@ def create_all_types_events() -> List[EventJSONType]:
         create_event_dict("sentpayment"),
         create_event_dict("receivedpayment"),
         create_event_dict("unknown"),
-        create_event_dict("to_lbr_exchange_rate_update", {"currency_code": "Coin1", "new_to_lbr_exchange_rate": 0.32},),
+        create_event_dict(
+            "to_lbr_exchange_rate_update",
+            {"currency_code": "Coin1", "new_to_lbr_exchange_rate": 0.32},
+        ),
     ]
 
 

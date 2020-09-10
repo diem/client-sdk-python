@@ -15,9 +15,8 @@ def test_lcs_e2e() -> None:
 
     obj = libra.Transaction__GenesisTransaction(
         value=libra.WriteSetPayload__Direct(
-            value=libra.ChangeSet(
-                write_set=libra.WriteSet(
-                    value=libra.WriteSetMut(write_set=[])), events=[]))
+            value=libra.ChangeSet(write_set=libra.WriteSet(value=libra.WriteSetMut(write_set=[])), events=[])
+        )
     )
     content = lcs.serialize(obj, libra.Transaction)
 

@@ -48,7 +48,7 @@ elif platform.system() == "Linux":
     LIBRA_LIB_FILE = "%s/%s-%s.a" % (
         LIBRA_LIB_DIR,
         "liblibra_dev",
-        "manylinux2010-%s" % platform.machine(),
+        "linux-%s" % platform.machine(),
     )
     extra_link_args.append("-ldl")
     extra_link_args.append("-lm")

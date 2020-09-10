@@ -55,7 +55,7 @@ class BaseLibraNetwork(ABC):
 
     def transaction_by_acc_seq(
         self, addr_hex: str, seq: int, include_events: bool = False
-    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]],]:
+    ) -> typing.Tuple[typing.Optional[SignedTransaction], typing.List[typing.Union[Event, PaymentEvent]]]:
         raise NotImplementedError()
 
     def get_events(self, key_hex: str, start: int, limit: int) -> typing.List[typing.Union[Event, PaymentEvent]]:

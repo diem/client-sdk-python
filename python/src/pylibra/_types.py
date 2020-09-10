@@ -15,6 +15,8 @@ class ParentVASP:
     expiration_time: int
     human_name: str
     num_children: int
+    base_url_rotation_events_key: str
+    compliance_key_rotation_events_key: str
 
 
 @dataclasses.dataclass

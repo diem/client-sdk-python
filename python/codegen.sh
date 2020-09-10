@@ -8,7 +8,7 @@ LIBRA=../libra
 
 # Add transaction builders
 (cd "$LIBRA" && cargo build -p transaction-builder-generator)
-"$LIBRA/target/debug/transaction-builder-generator"\
+"$LIBRA/target/debug/generate-transaction-builders"\
     --language python3\
     --module-name stdlib\
     --with-libra-types "$LIBRA/testsuite/generate-format/tests/staged/libra.yaml"\

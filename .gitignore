@@ -10,3 +10,16 @@ cmake-build-*
 # .gitignore file locally for IDE/Emacs/Vim generated files.
 **/target
 **/*.rs.bk
+
+*.pyc
+*.pyd
+*.c
+*.so
+/build
+/dist
+**/*.egg-info
+/_skbuild
+/.pytest_cache
+/.eggs
+/venv
+/.pyre

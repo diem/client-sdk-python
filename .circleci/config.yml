@@ -18,7 +18,6 @@ commands:
           name: Test Python stuff
           shell: /bin/sh
           command: |
-            cd python
             ./build.sh
             ./test.sh
 

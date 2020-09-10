@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-LIBRA=../libra
+LIBRA=libra
 
 # Add transaction builders
 (cd "$LIBRA" && cargo build -p transaction-builder-generator)

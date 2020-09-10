@@ -14,7 +14,9 @@ def test_lcs_e2e() -> None:
     print("Testing serialization: ")
 
     obj = libra.Transaction__GenesisTransaction(
-        libra.WriteSetPayload__Direct(libra.ChangeSet(libra.WriteSet(libra.WriteSetMut(write_set=[])), []))
+        value=libra.WriteSetPayload__Direct(
+            value=libra.ChangeSet(write_set=libra.WriteSet(value=libra.WriteSetMut(write_set=[])), events=[])
+        )
     )
     content = lcs.serialize(obj, libra.Transaction)
 
@@ -68,7 +70,7 @@ def test_stdlib() -> None:
     assert isinstance(raw_txn.payload, libra.TransactionPayload__Script)
 
     token = libra.TypeTag__Struct(
-        libra.StructTag(
+        value=libra.StructTag(
             address=make_address(b"\x00" * 15 + b"\x01"),
             module=libra.Identifier("LBR"),
             name=libra.Identifier("LBR"),

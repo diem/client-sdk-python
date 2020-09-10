@@ -44,7 +44,7 @@ class GetAccountStateResp:
     balances: typing.List[typing.Dict]
     sent_events_key: str
     received_events_key: str
-    role: typing.Union[str, typing.Dict]
+    role: typing.Dict[str, typing.Any]
     is_frozen: bool
 
 
@@ -160,7 +160,7 @@ class JSONSignedTransaction(SignedTransaction):
         return bytes.fromhex(self._transaction["script"]["metadata"]) if self.is_p2p else b""
 
     @property
-    def vm_status(self) -> int:
+    def vm_status(self) -> typing.Dict[str, typing.Any]:
         return self._result["vm_status"]
 
 
@@ -178,15 +178,11 @@ class JSONAccountResource(AccountResource):
         for balance_dict in self._state.balances:
             self._balances[balance_dict["currency"]] = balance_dict["amount"]
 
-        if type(self._state.role) == str:
-            # For strings returned like "empty", "unknown"
-            self._role = typing.cast(str, self._state.role)
-        else:
-            role_dict = typing.cast(typing.Dict, self._state.role)
-            if self._state.role["type"] == "parent_vasp":
-                self._role = ParentVASP(**(role_dict))
-            elif self._state.role["type"] == "child_vasp":
-                self._role = ChildVASP(**(role_dict))
+        role_dict = typing.cast(typing.Dict, self._state.role)
+        if self._state.role["type"] == "parent_vasp":
+            self._role = ParentVASP(**(role_dict))
+        elif self._state.role["type"] == "child_vasp":
+            self._role = ChildVASP(**(role_dict))
 
     @property
     def address(self) -> bytes:

@@ -178,7 +178,7 @@ class SignedTransaction(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def vm_status(self) -> int:
+    def vm_status(self) -> typing.Dict[str, typing.Any]:
         raise NotImplementedError()
 
 

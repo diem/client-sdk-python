@@ -37,6 +37,7 @@ class ServerError:
 
 @dataclasses.dataclass
 class GetAccountStateResp:
+    address: str
     sequence_number: int
     authentication_key: str
     delegated_key_rotation_capability: bool

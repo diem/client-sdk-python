@@ -1,8 +1,8 @@
-# libra-client-dev
+# pylibra-beta & pylibra2
 
-Client libraries for the Libra network.
+Python Client libraries for the Libra network.
 
-# Build & Test Pylibra
+## Build & Test
 
 ```
 cd python
@@ -10,7 +10,7 @@ cd python
 ./test.sh
 ```
 
-# Upgrade to latest libra release
+## Upgrade to latest libra release
 
 ```
 cd libra
@@ -18,7 +18,6 @@ git fetch
 git reset --hard origin/testnet
 cd ..
 
-cd python
 ./venv/bin/python3 setup.py vendor
 ./codegen.sh
 ./test.sh

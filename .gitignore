@@ -1,12 +1,14 @@
-# idea
 /.idea
-
-# cmake stuff
-cmake-build-*
+*.pyc
+*.pyd
+*.c
+*.so
 /build
-
-# Rust specific ignores
-# Please follow https://help.github.com/en/articles/ignoring-files to create a global
-# .gitignore file locally for IDE/Emacs/Vim generated files.
-**/target
-**/*.rs.bk
+/dist
+**/*.egg-info
+/_skbuild
+/.pytest_cache
+/.eggs
+/venv
+/.pyre
+Cargo.lock

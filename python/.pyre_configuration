@@ -1,9 +1,0 @@
-{
-  "source_directories": [
-    "src",
-    "tests"
-  ],
-  "search_path": [
-    "typeshed"
-  ]
-}

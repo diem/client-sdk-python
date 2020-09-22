@@ -1,0 +1,10 @@
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+recursive-include src *.py *.pyi *.pyx *.pxd
+include lib *.a *.h
+
+recursive-exclude src *.proto *.sh
+recursive-exclude lib src *.sh
+
+global-exclude *.so

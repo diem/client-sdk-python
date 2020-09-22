@@ -1,0 +1,11 @@
+[build.env]
+passthrough = [
+	"CARGO_PROFILE_RELEASE_LTO",
+	"RUSTFLAGS",
+]
+
+[target.x86_64-unknown-linux-gnu]
+image = "x86_64:latest"
+
+[target.x86_64-pc-windows-gnu]
+image = "x86_64:latest"

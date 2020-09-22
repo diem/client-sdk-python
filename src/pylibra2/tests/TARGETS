@@ -1,0 +1,79 @@
+# @noautodeps
+
+load("@fbcode_macros//build_defs:python_binary.bzl", "python_binary")
+load("@fbcode_macros//build_defs:python_pytest.bzl", "python_pytest")
+
+python_pytest(
+    name = "pylibra2_tests",
+    srcs = [
+        "test_pylibra2.py",
+    ],
+    needed_coverage = [
+        (70, "//calibra/lib/clients/pylibra2:pylibra2=_lib.py"),
+        (70, "//calibra/lib/clients/pylibra2:pylibra2=_transaction.py"),
+        (70, "//calibra/lib/clients/pylibra2:pylibra2=_events.py"),
+        (70, "//calibra/lib/clients/pylibra2:pylibra2=_account.py"),
+    ],
+    py_version = ">=3.7",
+    deps = [
+        "//calibra/lib/clients/pylibra2:pylibra2",
+        "//python/wheel/pytest:pytest",
+    ],
+)
+
+python_pytest(
+    name = "json_rpc_tests",
+    srcs = [
+        "test_json_rpc.py",
+    ],
+    needed_coverage = [
+        (80, "//calibra/lib/clients/pylibra2:pylibra2=json_rpc/request.py"),
+    ],
+    py_version = ">=3.7",
+    deps = [
+        "//calibra/lib/clients/pylibra2:pylibra2",
+        "//python/wheel/pytest:pytest",
+    ],
+)
+
+python_pytest(
+    name = "test_address",
+    srcs = [
+        "test_address.py",
+    ],
+    needed_coverage = [
+        (80, "//calibra/lib/clients/pylibra2:pylibra2=_address.py"),
+    ],
+    py_version = ">=3.7",
+    deps = [
+        "//calibra/lib/clients/pylibra2:pylibra2",
+        "//python/wheel/pytest:pytest",
+    ],
+)
+
+python_pytest(
+    name = "test_utils",
+    srcs = [
+        "test_utils.py",
+    ],
+    needed_coverage = [
+        (45, "//calibra/lib/clients/pylibra2:pylibra2=_utils.py"),
+    ],
+    py_version = ">=3.7",
+    deps = [
+        "//calibra/lib/clients/pylibra2:pylibra2",
+        "//python/wheel/pytest:pytest",
+    ],
+)
+
+python_binary(
+    name = "pylibra2_integration_tests",
+    srcs = [
+        "integration_tests.py",
+    ],
+    main_module = "calibra.lib.clients.pylibra2.tests.integration_tests",
+    py_version = ">=3.7",
+    deps = [
+        "//calibra/lib/clients/pylibra2:pylibra2",
+    ],
+)

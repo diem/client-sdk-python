@@ -1,10 +1,21 @@
 # Copyright (c) Facebook, Inc. and its affiliates
 # SPDX-License-Identifier: MIT OR Apache-2.0
 
-import typing
-from dataclasses import dataclass
-
 import numpy as np
+from dataclasses import dataclass
+import typing
+
+
+class SerializationError(ValueError):
+    """Error raised during Serialization"""
+
+    pass
+
+
+class DeserializationError(ValueError):
+    """Error raised during Deserialization"""
+
+    pass
 
 
 @dataclass(init=False)
@@ -41,6 +52,9 @@ class char:
         if len(s) != 1:
             raise ValueError("`char` expects a single unicode character")
         self.value = s
+
+    def __str__(self):
+        return self.value
 
 
 unit = typing.Type[None]

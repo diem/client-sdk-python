@@ -1,6 +1,6 @@
 import typing
 
-from calibra.lib.clients.pylibra2.json_rpc.types import (
+from .json_rpc.types import (
     Event,
     ReceivedPaymentEventData,
     SentPaymentEventData,

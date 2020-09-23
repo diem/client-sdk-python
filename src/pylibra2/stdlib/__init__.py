@@ -18,8 +18,7 @@ from ..libra_types import (
 
 
 class ScriptCall:
-    """Structured representation of a call into a known Move script.
-    """
+    """Structured representation of a call into a known Move script."""
 
     pass
 
@@ -52,8 +51,7 @@ class ScriptCall__AddRecoveryRotationCapability(ScriptCall):
 
 @dataclass
 class ScriptCall__AddToScriptAllowList(ScriptCall):
-    """Append the `hash` to script hashes list allowed to be executed by the network.
-    """
+    """Append the `hash` to script hashes list allowed to be executed by the network."""
 
     hash: bytes
     sliding_nonce: st.uint64
@@ -190,8 +188,7 @@ class ScriptCall__CreateRecoveryAddress(ScriptCall):
 
 @dataclass
 class ScriptCall__CreateValidatorAccount(ScriptCall):
-    """Create a validator account at `new_validator_address` with `auth_key_prefix`and human_name.
-    """
+    """Create a validator account at `new_validator_address` with `auth_key_prefix`and human_name."""
 
     sliding_nonce: st.uint64
     new_account_address: libra_types.AccountAddress
@@ -201,8 +198,7 @@ class ScriptCall__CreateValidatorAccount(ScriptCall):
 
 @dataclass
 class ScriptCall__CreateValidatorOperatorAccount(ScriptCall):
-    """Create a validator operator account at `new_validator_address` with `auth_key_prefix`and human_name.
-    """
+    """Create a validator operator account at `new_validator_address` with `auth_key_prefix`and human_name."""
 
     sliding_nonce: st.uint64
     new_account_address: libra_types.AccountAddress
@@ -474,8 +470,7 @@ class ScriptCall__SetValidatorConfigAndReconfigure(ScriptCall):
 
 @dataclass
 class ScriptCall__SetValidatorOperator(ScriptCall):
-    """Set validator's operator.
-    """
+    """Set validator's operator."""
 
     operator_name: bytes
     operator_account: libra_types.AccountAddress
@@ -533,8 +528,7 @@ class ScriptCall__UnmintLbr(ScriptCall):
 
 @dataclass
 class ScriptCall__UpdateDualAttestationLimit(ScriptCall):
-    """Update the dual attesation limit to `new_micro_lbr_limit`.
-    """
+    """Update the dual attesation limit to `new_micro_lbr_limit`."""
 
     sliding_nonce: st.uint64
     new_micro_lbr_limit: st.uint64
@@ -565,23 +559,20 @@ class ScriptCall__UpdateLibraVersion(ScriptCall):
 
 @dataclass
 class ScriptCall__UpdateMintingAbility(ScriptCall):
-    """Allows--true--or disallows--false--minting of `currency` based upon `allow_minting`.
-    """
+    """Allows--true--or disallows--false--minting of `currency` based upon `allow_minting`."""
 
     currency: libra_types.TypeTag
     allow_minting: st.bool
 
 
 def encode_script(call: ScriptCall) -> Script:
-    """Build a Libra `Script` from a structured object `ScriptCall`.
-    """
+    """Build a Libra `Script` from a structured object `ScriptCall`."""
     helper = SCRIPT_ENCODER_MAP[call.__class__]
     return helper(call)
 
 
 def decode_script(script: Script) -> ScriptCall:
-    """Try to recognize a Libra `Script` and convert it into a structured object `ScriptCall`.
-    """
+    """Try to recognize a Libra `Script` and convert it into a structured object `ScriptCall`."""
     helper = SCRIPT_DECODER_MAP.get(script.code)
     if helper is None:
         raise ValueError("Unknown script bytecode")
@@ -616,11 +607,8 @@ def encode_add_recovery_rotation_capability_script(
     )
 
 
-def encode_add_to_script_allow_list_script(
-    hash: bytes, sliding_nonce: st.uint64
-) -> Script:
-    """Append the `hash` to script hashes list allowed to be executed by the network.
-    """
+def encode_add_to_script_allow_list_script(hash: bytes, sliding_nonce: st.uint64) -> Script:
+    """Append the `hash` to script hashes list allowed to be executed by the network."""
     return Script(
         code=ADD_TO_SCRIPT_ALLOW_LIST_CODE,
         ty_args=[],
@@ -651,9 +639,7 @@ def encode_add_validator_and_reconfigure_script(
     )
 
 
-def encode_burn_script(
-    token: TypeTag, sliding_nonce: st.uint64, preburn_address: AccountAddress
-) -> Script:
+def encode_burn_script(token: TypeTag, sliding_nonce: st.uint64, preburn_address: AccountAddress) -> Script:
     """Permanently destroy the `Token`s stored in the oldest burn request under the `Preburn` resource.
 
     This will only succeed if `account` has a `MintCapability<Token>`, a `Preburn<Token>` resource
@@ -679,9 +665,7 @@ def encode_burn_txn_fees_script(coin_type: TypeTag) -> Script:
     return Script(code=BURN_TXN_FEES_CODE, ty_args=[coin_type], args=[])
 
 
-def encode_cancel_burn_script(
-    token: TypeTag, preburn_address: AccountAddress
-) -> Script:
+def encode_cancel_burn_script(token: TypeTag, preburn_address: AccountAddress) -> Script:
     """Cancel the oldest burn request from `preburn_address` and return the funds.
 
     Fails if the sender does not have a published `BurnCapability<Token>`.
@@ -805,8 +789,7 @@ def encode_create_validator_account_script(
     auth_key_prefix: bytes,
     human_name: bytes,
 ) -> Script:
-    """Create a validator account at `new_validator_address` with `auth_key_prefix`and human_name.
-    """
+    """Create a validator account at `new_validator_address` with `auth_key_prefix`and human_name."""
     return Script(
         code=CREATE_VALIDATOR_ACCOUNT_CODE,
         ty_args=[],
@@ -825,8 +808,7 @@ def encode_create_validator_operator_account_script(
     auth_key_prefix: bytes,
     human_name: bytes,
 ) -> Script:
-    """Create a validator operator account at `new_validator_address` with `auth_key_prefix`and human_name.
-    """
+    """Create a validator operator account at `new_validator_address` with `auth_key_prefix`and human_name."""
     return Script(
         code=CREATE_VALIDATOR_OPERATOR_ACCOUNT_CODE,
         ty_args=[],
@@ -839,9 +821,7 @@ def encode_create_validator_operator_account_script(
     )
 
 
-def encode_freeze_account_script(
-    sliding_nonce: st.uint64, to_freeze_account: AccountAddress
-) -> Script:
+def encode_freeze_account_script(sliding_nonce: st.uint64, to_freeze_account: AccountAddress) -> Script:
     """Freeze account `address`.
 
     Initiator must be authorized.
@@ -1058,9 +1038,7 @@ def encode_rotate_authentication_key_script(new_key: bytes) -> Script:
     )
 
 
-def encode_rotate_authentication_key_with_nonce_script(
-    sliding_nonce: st.uint64, new_key: bytes
-) -> Script:
+def encode_rotate_authentication_key_with_nonce_script(sliding_nonce: st.uint64, new_key: bytes) -> Script:
     """Rotate `account`'s authentication key to `new_key`.
 
     `new_key` should be a 256 bit sha3 hash of an ed25519 public key. This script also takes
@@ -1076,9 +1054,7 @@ def encode_rotate_authentication_key_with_nonce_script(
     )
 
 
-def encode_rotate_authentication_key_with_nonce_admin_script(
-    sliding_nonce: st.uint64, new_key: bytes
-) -> Script:
+def encode_rotate_authentication_key_with_nonce_admin_script(sliding_nonce: st.uint64, new_key: bytes) -> Script:
     """Rotate `account`'s authentication key to `new_key`.
 
     `new_key` should be a 256 bit sha3 hash of an ed25519 public key. This script also takes
@@ -1117,9 +1093,7 @@ def encode_rotate_authentication_key_with_recovery_address_script(
     )
 
 
-def encode_rotate_dual_attestation_info_script(
-    new_url: bytes, new_key: bytes
-) -> Script:
+def encode_rotate_dual_attestation_info_script(new_url: bytes, new_key: bytes) -> Script:
     """Rotate `account`'s base URL to `new_url` and its compliance public key to `new_key`.
 
     Aborts if `account` is not a ParentVASP or DesignatedDealer
@@ -1173,11 +1147,8 @@ def encode_set_validator_config_and_reconfigure_script(
     )
 
 
-def encode_set_validator_operator_script(
-    operator_name: bytes, operator_account: AccountAddress
-) -> Script:
-    """Set validator's operator.
-    """
+def encode_set_validator_operator_script(operator_name: bytes, operator_account: AccountAddress) -> Script:
+    """Set validator's operator."""
     return Script(
         code=SET_VALIDATOR_OPERATOR_CODE,
         ty_args=[],
@@ -1232,9 +1203,7 @@ def encode_tiered_mint_script(
     )
 
 
-def encode_unfreeze_account_script(
-    sliding_nonce: st.uint64, to_unfreeze_account: AccountAddress
-) -> Script:
+def encode_unfreeze_account_script(sliding_nonce: st.uint64, to_unfreeze_account: AccountAddress) -> Script:
     """Unfreeze account `address`.
 
     Initiator must be authorized.
@@ -1261,11 +1230,8 @@ def encode_unmint_lbr_script(amount_lbr: st.uint64) -> Script:
     )
 
 
-def encode_update_dual_attestation_limit_script(
-    sliding_nonce: st.uint64, new_micro_lbr_limit: st.uint64
-) -> Script:
-    """Update the dual attesation limit to `new_micro_lbr_limit`.
-    """
+def encode_update_dual_attestation_limit_script(sliding_nonce: st.uint64, new_micro_lbr_limit: st.uint64) -> Script:
+    """Update the dual attesation limit to `new_micro_lbr_limit`."""
     return Script(
         code=UPDATE_DUAL_ATTESTATION_LIMIT_CODE,
         ty_args=[],
@@ -1296,9 +1262,7 @@ def encode_update_exchange_rate_script(
     )
 
 
-def encode_update_libra_version_script(
-    sliding_nonce: st.uint64, major: st.uint64
-) -> Script:
+def encode_update_libra_version_script(sliding_nonce: st.uint64, major: st.uint64) -> Script:
     """Update Libra version.
 
     `sliding_nonce` is a unique nonce for operation, see sliding_nonce.move for details.
@@ -1313,11 +1277,8 @@ def encode_update_libra_version_script(
     )
 
 
-def encode_update_minting_ability_script(
-    currency: TypeTag, allow_minting: st.bool
-) -> Script:
-    """Allows--true--or disallows--false--minting of `currency` based upon `allow_minting`.
-    """
+def encode_update_minting_ability_script(currency: TypeTag, allow_minting: st.bool) -> Script:
+    """Allows--true--or disallows--false--minting of `currency` based upon `allow_minting`."""
     return Script(
         code=UPDATE_MINTING_ABILITY_CODE,
         ty_args=[currency],
@@ -1330,9 +1291,7 @@ def decode_add_currency_to_account_script(script: Script) -> ScriptCall:
 
 
 def decode_add_recovery_rotation_capability_script(script: Script) -> ScriptCall:
-    return ScriptCall__AddRecoveryRotationCapability(
-        recovery_address=decode_address_argument(script.args[0])
-    )
+    return ScriptCall__AddRecoveryRotationCapability(recovery_address=decode_address_argument(script.args[0]))
 
 
 def decode_add_to_script_allow_list_script(script: Script) -> ScriptCall:
@@ -1363,9 +1322,7 @@ def decode_burn_txn_fees_script(script: Script) -> ScriptCall:
 
 
 def decode_cancel_burn_script(script: Script) -> ScriptCall:
-    return ScriptCall__CancelBurn(
-        token=script.ty_args[0], preburn_address=decode_address_argument(script.args[0])
-    )
+    return ScriptCall__CancelBurn(token=script.ty_args[0], preburn_address=decode_address_argument(script.args[0]))
 
 
 def decode_create_child_vasp_account_script(script: Script) -> ScriptCall:
@@ -1444,15 +1401,11 @@ def decode_peer_to_peer_with_metadata_script(script: Script) -> ScriptCall:
 
 
 def decode_preburn_script(script: Script) -> ScriptCall:
-    return ScriptCall__Preburn(
-        token=script.ty_args[0], amount=decode_u64_argument(script.args[0])
-    )
+    return ScriptCall__Preburn(token=script.ty_args[0], amount=decode_u64_argument(script.args[0]))
 
 
 def decode_publish_shared_ed25519_public_key_script(script: Script) -> ScriptCall:
-    return ScriptCall__PublishSharedEd25519PublicKey(
-        public_key=decode_u8vector_argument(script.args[0])
-    )
+    return ScriptCall__PublishSharedEd25519PublicKey(public_key=decode_u8vector_argument(script.args[0]))
 
 
 def decode_register_validator_config_script(script: Script) -> ScriptCall:
@@ -1473,9 +1426,7 @@ def decode_remove_validator_and_reconfigure_script(script: Script) -> ScriptCall
 
 
 def decode_rotate_authentication_key_script(script: Script) -> ScriptCall:
-    return ScriptCall__RotateAuthenticationKey(
-        new_key=decode_u8vector_argument(script.args[0])
-    )
+    return ScriptCall__RotateAuthenticationKey(new_key=decode_u8vector_argument(script.args[0]))
 
 
 def decode_rotate_authentication_key_with_nonce_script(script: Script) -> ScriptCall:
@@ -1512,9 +1463,7 @@ def decode_rotate_dual_attestation_info_script(script: Script) -> ScriptCall:
 
 
 def decode_rotate_shared_ed25519_public_key_script(script: Script) -> ScriptCall:
-    return ScriptCall__RotateSharedEd25519PublicKey(
-        public_key=decode_u8vector_argument(script.args[0])
-    )
+    return ScriptCall__RotateSharedEd25519PublicKey(public_key=decode_u8vector_argument(script.args[0]))
 
 
 def decode_set_validator_config_and_reconfigure_script(script: Script) -> ScriptCall:
@@ -1664,9 +1613,7 @@ UPDATE_LIBRA_VERSION_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x04\x
 UPDATE_MINTING_ABILITY_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x02\x03\x02\x06\x04\x08\x02\x05\x0a\x08\x07\x12\x1d\x08\x2f\x10\x00\x00\x00\x01\x00\x01\x01\x01\x00\x02\x02\x06\x0c\x01\x00\x01\x09\x00\x05\x4c\x69\x62\x72\x61\x16\x75\x70\x64\x61\x74\x65\x5f\x6d\x69\x6e\x74\x69\x6e\x67\x5f\x61\x62\x69\x6c\x69\x74\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x00\x01\x04\x0b\x00\x0a\x01\x38\x00\x02"
 
 # pyre-ignore
-SCRIPT_ENCODER_MAP: typing.Dict[
-    typing.Type[ScriptCall], typing.Callable[[ScriptCall], Script]
-] = {
+SCRIPT_ENCODER_MAP: typing.Dict[typing.Type[ScriptCall], typing.Callable[[ScriptCall], Script]] = {
     ScriptCall__AddCurrencyToAccount: encode_add_currency_to_account_script,
     ScriptCall__AddRecoveryRotationCapability: encode_add_recovery_rotation_capability_script,
     ScriptCall__AddToScriptAllowList: encode_add_to_script_allow_list_script,

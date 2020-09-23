@@ -81,9 +81,7 @@ class LibraClient:
         server: str = DEFAULT_JSON_RPC_SERVER,
         faucet: str = DEFAULT_FAUCET_SERVER,
         session: typing.Optional[requests.Session] = None,
-        timeout: typing.Optional[
-            typing.Union[float, typing.Tuple[float, float]]
-        ] = None,
+        timeout: typing.Optional[typing.Union[float, typing.Tuple[float, float]]] = None,
     ):
         if not session:
             self._session = requests.Session()
@@ -116,23 +114,17 @@ class LibraClient:
         if self._should_close_session:
             self._session.close()
 
-    def mint_and_wait(
-        self, authkey_hex: str, amount: int, identifier: str = "LBR"
-    ) -> None:
+    def mint_and_wait(self, authkey_hex: str, amount: int, identifier: str = "LBR") -> None:
         if len(authkey_hex) != 64:
             raise ValueError("Invalid argument for authkey")
 
         if amount <= 0:
             raise ValueError("Invalid argument for amount")
 
-        designated_dealer_next_sequence_num: int = self._mint(
-            authkey_hex, amount, identifier
-        )
+        designated_dealer_next_sequence_num: int = self._mint(authkey_hex, amount, identifier)
 
         # TODO (ssinghaldev) T69027015 log later instead of just re-raising
-        self._wait_for_transaction_to_complete(
-            DESIGNATED_DEALER_ADDRESS, designated_dealer_next_sequence_num - 1
-        )
+        self._wait_for_transaction_to_complete(DESIGNATED_DEALER_ADDRESS, designated_dealer_next_sequence_num - 1)
 
     def submit_transaction_and_wait(self, signed_transaction_bytes: bytes) -> TxStatus:
         # checking the signed_transaction_bytes
@@ -141,13 +133,9 @@ class LibraClient:
         if len(signed_transaction_bytes) == 0:
             raise ValueError("Invalid argument for signed_transaction_bytes")
 
-        signed_tx, remaining_bytes = lcs.deserialize(
-            signed_transaction_bytes, libra.SignedTransaction
-        )
+        signed_tx, remaining_bytes = lcs.deserialize(signed_transaction_bytes, libra.SignedTransaction)
         if remaining_bytes:
-            raise ValueError(
-                f"Invalid signed_transaction_bytes: {signed_transaction_bytes}"
-            )
+            raise ValueError(f"Invalid signed_transaction_bytes: {signed_transaction_bytes}")
 
         # submitting the tx
         try:
@@ -171,13 +159,9 @@ class LibraClient:
 
         submit_resp = batch_resp.responses[0]
         if isinstance(submit_resp, JsonRpcError):
-            raise ClientError(
-                f"Received error response: {repr(submit_resp)} from server"
-            )
+            raise ClientError(f"Received error response: {repr(submit_resp)} from server")
 
-    def wait_for_transaction_execution(
-        self, signed_tx: libra.SignedTransaction
-    ) -> TxStatus:
+    def wait_for_transaction_execution(self, signed_tx: libra.SignedTransaction) -> TxStatus:
         """Function to get the final status of an account transaction
 
         This func will wait-loop till the expiration timestamp of transaction to get its status.
@@ -205,16 +189,10 @@ class LibraClient:
             current_timestamp_secs = int(time.time())
             is_expired = current_timestamp_secs >= tx_expiration_timestamp_secs
 
-            current_status = self._get_current_transaction_status(
-                sender_account_addr, tx_seq, signed_tx
-            )
+            current_status = self._get_current_transaction_status(sender_account_addr, tx_seq, signed_tx)
 
             # if we know for sure whether the tx is success or failure or is_expired, then break from the loop,
-            if (
-                current_status == TxStatus.SUCCESS
-                or current_status == TxStatus.EXECUTION_FAIL
-                or is_expired
-            ):
+            if current_status == TxStatus.SUCCESS or current_status == TxStatus.EXECUTION_FAIL or is_expired:
                 break
 
             time.sleep(WAIT_TIME_FOR_TX_STATUS_CHECK)
@@ -235,9 +213,7 @@ class LibraClient:
             return TxStatus.EXPIRED
 
         # tx execution failed or tx is not the one which is submitted
-        if not isinstance(
-            tx_info.vm_status, ExecutedVMStatus
-        ) or not self._verify_user_transaction(
+        if not isinstance(tx_info.vm_status, ExecutedVMStatus) or not self._verify_user_transaction(
             typing.cast(LibraUserTransaction, tx_info), signed_tx
         ):
             return TxStatus.EXECUTION_FAIL
@@ -264,9 +240,7 @@ class LibraClient:
         batch: JsonRpcBatch = JsonRpcBatch()
         batch.add_get_account_request(account_address)
 
-        batch_resp = self._execute_and_update_ledger_state(
-            batch, minimum_blockchain_timestamp_usecs
-        )
+        batch_resp = self._execute_and_update_ledger_state(batch, minimum_blockchain_timestamp_usecs)
 
         accnt_state_resp = batch_resp.responses[0]
         if accnt_state_resp is None:  # account doesn't exist
@@ -304,12 +278,9 @@ class LibraClient:
             raise ValueError("amount to transfer should be positive")
 
         if not (
-            (len(metadata) == 0 and len(metadata_signature) == 0)
-            or (len(metadata) > 0 and len(metadata_signature) > 0)
+            (len(metadata) == 0 and len(metadata_signature) == 0) or (len(metadata) > 0 and len(metadata_signature) > 0)
         ):
-            raise ValueError(
-                "Either both metadata and metadata signatures should be empty or both should be non-empty"
-            )
+            raise ValueError("Either both metadata and metadata signatures should be empty or both should be non-empty")
 
         # create txn_params
         tx_params = self._create_tx_params_dict(
@@ -371,9 +342,7 @@ class LibraClient:
         type_tag = self._create_currency_type_tag(currency_to_add)
 
         ## create script
-        tx_script: libra.Script = stdlib.encode_add_currency_to_account_script(
-            currency=type_tag
-        )
+        tx_script: libra.Script = stdlib.encode_add_currency_to_account_script(currency=type_tag)
 
         # create signed_tx_bytes
         signed_tx_bytes = self._get_signed_tx_bytes(tx_params, tx_script)
@@ -411,9 +380,7 @@ class LibraClient:
         )
 
         ## create script
-        tx_script: libra.Script = stdlib.encode_rotate_dual_attestation_info_script(
-            bytes(new_url, "utf-8"), new_key
-        )
+        tx_script: libra.Script = stdlib.encode_rotate_dual_attestation_info_script(bytes(new_url, "utf-8"), new_key)
 
         # create signed_tx_bytes
         signed_tx_bytes = self._get_signed_tx_bytes(tx_params, tx_script)
@@ -429,21 +396,15 @@ class LibraClient:
         minimum_blockchain_timestamp_usecs: typing.Optional[int] = None,
     ) -> typing.Optional[LibraTransaction]:
         batch: JsonRpcBatch = JsonRpcBatch()
-        batch.add_get_trasaction_by_accnt_seq_request(
-            account_address, seq, inlcude_events
-        )
+        batch.add_get_trasaction_by_accnt_seq_request(account_address, seq, inlcude_events)
 
-        batch_resp = self._execute_and_update_ledger_state(
-            batch, minimum_blockchain_timestamp_usecs
-        )
+        batch_resp = self._execute_and_update_ledger_state(batch, minimum_blockchain_timestamp_usecs)
 
         tx_resp = batch_resp.responses[0]
         if tx_resp is None:  # tx doesn't exist
             return None
 
-        if isinstance(tx_resp, Transaction) and isinstance(
-            tx_resp.transaction, UserTransactionData
-        ):
+        if isinstance(tx_resp, Transaction) and isinstance(tx_resp.transaction, UserTransactionData):
             return typing.cast(LibraTransaction, LibraUserTransaction(tx_resp))
 
     def get_transactions(
@@ -454,38 +415,24 @@ class LibraClient:
         minimum_blockchain_timestamp_usecs: typing.Optional[int] = None,
     ) -> typing.List[LibraTransaction]:
         batch: JsonRpcBatch = JsonRpcBatch()
-        batch.add_get_transactions_by_range_request(
-            start_version, limit, include_events
-        )
+        batch.add_get_transactions_by_range_request(start_version, limit, include_events)
 
-        batch_resp = self._execute_and_update_ledger_state(
-            batch, minimum_blockchain_timestamp_usecs
-        )
+        batch_resp = self._execute_and_update_ledger_state(batch, minimum_blockchain_timestamp_usecs)
 
         tx_resp = batch_resp.responses[0]
 
         transactions: typing.List[LibraTransaction] = []
         for tx in tx_resp:
             if isinstance(tx.transaction, UserTransactionData):
-                transactions.append(
-                    typing.cast(LibraTransaction, LibraUserTransaction(tx))
-                )
+                transactions.append(typing.cast(LibraTransaction, LibraUserTransaction(tx)))
             elif isinstance(tx.transaction, BlockMetadataTransactionData):
-                transactions.append(
-                    typing.cast(LibraTransaction, LibraBlockMetadataTransaction(tx))
-                )
+                transactions.append(typing.cast(LibraTransaction, LibraBlockMetadataTransaction(tx)))
             elif isinstance(tx.transaction, WriteSetTransactionData):
-                transactions.append(
-                    typing.cast(LibraTransaction, LibraWriteSetTransaction(tx))
-                )
+                transactions.append(typing.cast(LibraTransaction, LibraWriteSetTransaction(tx)))
             elif isinstance(tx.transaction, UnknownTransactionData):
-                transactions.append(
-                    typing.cast(LibraTransaction, LibraUnknownTransaction(tx))
-                )
+                transactions.append(typing.cast(LibraTransaction, LibraUnknownTransaction(tx)))
             else:
-                raise ClientError(
-                    f"Unrecognized transaction: {repr(tx)} response from server"
-                )
+                raise ClientError(f"Unrecognized transaction: {repr(tx)} response from server")
 
         return transactions
 
@@ -533,18 +480,14 @@ class LibraClient:
         batch: JsonRpcBatch = JsonRpcBatch()
         batch.add_get_currencies_request()
 
-        batch_resp = self._execute_and_update_ledger_state(
-            batch, minimum_blockchain_timestamp_usecs
-        )
+        batch_resp = self._execute_and_update_ledger_state(batch, minimum_blockchain_timestamp_usecs)
 
         curr_resp = batch_resp.responses[0]
 
         if isinstance(curr_resp, JsonRpcError):
             raise ClientError(f"Received error response: {repr(curr_resp)} from server")
 
-        return [
-            LibraCurrency(currency_info) for currency_info in curr_resp.currencies_info
-        ]
+        return [LibraCurrency(currency_info) for currency_info in curr_resp.currencies_info]
 
     def get_metadata(
         self,
@@ -554,15 +497,11 @@ class LibraClient:
         batch: JsonRpcBatch = JsonRpcBatch()
         batch.add_get_metadata_request(version)
 
-        batch_resp = self._execute_and_update_ledger_state(
-            batch, minimum_blockchain_timestamp_usecs
-        )
+        batch_resp = self._execute_and_update_ledger_state(batch, minimum_blockchain_timestamp_usecs)
 
         metadata_resp = batch_resp.responses[0]
         if isinstance(metadata_resp, JsonRpcError):
-            raise ClientError(
-                f"Received error response: {repr(metadata_resp)} from server"
-            )
+            raise ClientError(f"Received error response: {repr(metadata_resp)} from server")
 
         return LibraBlockchainMetadata(metadata_resp)
 
@@ -570,9 +509,7 @@ class LibraClient:
         try:
             libra_accnt = self.get_account(account_address)
         except ClientError as e:
-            raise ClientError(
-                f"Unable to fetch given account: {account_address} information. Error: {e}"
-            )
+            raise ClientError(f"Unable to fetch given account: {account_address} information. Error: {e}")
 
         if not libra_accnt:
             raise ValueError(f"Given account address: {account_address} does not exist")
@@ -582,9 +519,7 @@ class LibraClient:
         elif libra_accnt.role == "child_vasp":
             return self._get_parent_vasp_account(libra_accnt)
         else:
-            raise ValueError(
-                f"Given account address: {account_address} is neither Parent or Child VASP"
-            )
+            raise ValueError(f"Given account address: {account_address} is neither Parent or Child VASP")
 
     def _mint(self, authkey_hex: str, amount: int, identifier: str = "LBR") -> int:
         """Mint coins from faucet & return TREASURY's next sequence number"""
@@ -626,9 +561,7 @@ class LibraClient:
             if tx:
                 if not isinstance(tx.vm_status, ExecutedVMStatus):
                     # [TODO] Should define a enum class for status codes
-                    raise ClientError(
-                        f"Transaction failed to execute. Status Code: {tx.vm_status}"
-                    )
+                    raise ClientError(f"Transaction failed to execute. Status Code: {tx.vm_status}")
 
                 return
 
@@ -636,21 +569,13 @@ class LibraClient:
 
         raise ClientError("Waiting for transaction execution timed out!!")
 
-    def _verify_user_transaction(
-        self, tx_info: LibraUserTransaction, signed_tx: libra.SignedTransaction
-    ) -> bool:
+    def _verify_user_transaction(self, tx_info: LibraUserTransaction, signed_tx: libra.SignedTransaction) -> bool:
         # Check Public Key
-        if (
-            not tx_info.public_key
-            == signed_tx.authenticator.public_key.value  # pyre-ignore
-        ):
+        if not tx_info.public_key == signed_tx.authenticator.public_key.value:  # pyre-ignore
             return False
 
         # Check Signature
-        if (
-            not tx_info.signature
-            == signed_tx.authenticator.signature.value  # pyre-ignore
-        ):
+        if not tx_info.signature == signed_tx.authenticator.signature.value:  # pyre-ignore
             return False
 
         # if tx is P2P, verify sender, receiver, amount
@@ -659,9 +584,7 @@ class LibraClient:
 
         return True
 
-    def _verify_p2p_transaction(
-        self, tx_info: LibraUserTransaction, signed_tx: libra.SignedTransaction
-    ) -> bool:
+    def _verify_p2p_transaction(self, tx_info: LibraUserTransaction, signed_tx: libra.SignedTransaction) -> bool:
 
         # to avoid pyre errors
         script = typing.cast(LibraP2PScript, tx_info.script)
@@ -702,21 +625,15 @@ class LibraClient:
             )
         )
 
-    def _get_signed_tx_bytes(
-        self, tx_params: typing.Dict[str, typing.Any], tx_script: libra.Script
-    ):
+    def _get_signed_tx_bytes(self, tx_params: typing.Dict[str, typing.Any], tx_script: libra.Script):
         ## create payload object
-        tx_payload: libra.TransactionPayload = libra.TransactionPayload__Script(
-            value=tx_script
-        )
+        tx_payload: libra.TransactionPayload = libra.TransactionPayload__Script(value=tx_script)
 
         # create RawTransaction
         raw_tx: libra.RawTransaction = self._create_raw_txn(tx_params, tx_payload)
 
         # create SignedTransaction
-        signed_tx: libra.SignedTransaction = self._create_signed_txn(
-            raw_tx, tx_params["sender_private_key"]
-        )
+        signed_tx: libra.SignedTransaction = self._create_signed_txn(raw_tx, tx_params["sender_private_key"])
 
         # serialize signned_txn
         signed_tx_bytes: bytes = lcs.serialize(signed_tx, libra.SignedTransaction)
@@ -728,9 +645,7 @@ class LibraClient:
         tx_params: typing.Dict[str, typing.Any],
         tx_payload: libra.TransactionPayload,
     ) -> libra.RawTransaction:
-        account = utils.LibraCryptoUtils.LibraAccount.create_from_private_key(
-            tx_params["sender_private_key"]
-        )
+        account = utils.LibraCryptoUtils.LibraAccount.create_from_private_key(tx_params["sender_private_key"])
         return libra.RawTransaction(
             utils.make_libra_account_address(account.address.hex()),
             st.uint64(tx_params["sender_sequence"]),
@@ -743,24 +658,18 @@ class LibraClient:
             libra.ChainId(value=st.uint8(ChainId.TESTNET)),
         )
 
-    def _create_signed_txn(
-        self, raw_txn: libra.RawTransaction, private_key: bytes
-    ) -> libra.SignedTransaction:
+    def _create_signed_txn(self, raw_txn: libra.RawTransaction, private_key: bytes) -> libra.SignedTransaction:
         # LCS of the Raw Transaction
         raw_tx_bytes: bytes = lcs.serialize(raw_txn, libra.RawTransaction)
 
         # Adding seed to LCS bytes
-        raw_tx_bytes_hash = utils.LibraCryptoUtils.add_seed_to_raw_tx_bytes(
-            raw_tx_bytes
-        )
+        raw_tx_bytes_hash = utils.LibraCryptoUtils.add_seed_to_raw_tx_bytes(raw_tx_bytes)
 
         # Signing the resulting bytes
         signature = utils.LibraCryptoUtils.ed25519_sign(private_key, raw_tx_bytes_hash)
 
         # Assembling them in the Struct
-        public_key_bytes = utils.LibraCryptoUtils.ed25519_public_key_from_private_key(
-            private_key
-        )
+        public_key_bytes = utils.LibraCryptoUtils.ed25519_public_key_from_private_key(private_key)
         return libra.SignedTransaction(
             raw_txn=raw_txn,
             authenticator=libra.TransactionAuthenticator__Ed25519(
@@ -795,9 +704,7 @@ class LibraClient:
         batch: JsonRpcBatch = JsonRpcBatch()
         batch.add_get_events_request(event_key, start_seq, limit)
 
-        batch_resp = self._execute_and_update_ledger_state(
-            batch, minimum_blockchain_timestamp_usecs
-        )
+        batch_resp = self._execute_and_update_ledger_state(batch, minimum_blockchain_timestamp_usecs)
 
         events_resp = batch_resp.responses[0]
 
@@ -844,9 +751,7 @@ class LibraClient:
 
         return parent_accnt
 
-    def _execute_and_update_ledger_state(
-        self, batch_request, minimum_blockchain_timestamp_usecs
-    ):
+    def _execute_and_update_ledger_state(self, batch_request, minimum_blockchain_timestamp_usecs):
         # execute the batch request
         try:
             batch_resp: JsonRpcResponse = self._json_rpc_client.execute(batch_request)
@@ -857,9 +762,7 @@ class LibraClient:
 
         # Check for json-rpc error
         if isinstance(batch_resp.responses[0], JsonRpcError):
-            raise ClientError(
-                f"Received error response: {repr(batch_resp.responses[0])} from server"
-            )
+            raise ClientError(f"Received error response: {repr(batch_resp.responses[0])} from server")
 
         # check whether the chain_id matches & response is not stale
         try:

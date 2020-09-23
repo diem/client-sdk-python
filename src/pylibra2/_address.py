@@ -21,17 +21,13 @@ _LIBRA_BECH32_SIZE = 50  # in characters
 # Class for encoding/decoding bech32 addresses
 class LibraUserIdentifier:
     @staticmethod
-    def encode(
-        onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb"
-    ) -> str:
+    def encode(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb") -> str:
         """Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format"""
         onchain_address_bytes = bytes.fromhex(onchain_addr)
         subaddress_bytes = bytes.fromhex(subaddr) if subaddr else None
 
         try:
-            encoded_address = bech32_address_encode(
-                hrp, onchain_address_bytes, subaddress_bytes
-            )
+            encoded_address = bech32_address_encode(hrp, onchain_address_bytes, subaddress_bytes)
         except Bech32Error as e:
             raise ValueError(
                 f"Can't encode from "
@@ -42,18 +38,12 @@ class LibraUserIdentifier:
         return encoded_address
 
     @staticmethod
-    def decode(
-        encoded_address: str, hrp: str = "tlb"
-    ) -> typing.Tuple[str, typing.Optional[str]]:
+    def decode(encoded_address: str, hrp: str = "tlb") -> typing.Tuple[str, typing.Optional[str]]:
         """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
         try:
-            (_version, onchain_address_bytes, subaddress_bytes) = bech32_address_decode(
-                hrp, encoded_address
-            )
+            (_version, onchain_address_bytes, subaddress_bytes) = bech32_address_decode(hrp, encoded_address)
         except Bech32Error as e:
-            raise ValueError(
-                f"Can't decode from encoded str {encoded_address}, " f"got error: {e}"
-            )
+            raise ValueError(f"Can't decode from encoded str {encoded_address}, " f"got error: {e}")
 
         # If subaddress is absent, subaddress_bytes is a list of 0
         if subaddress_bytes != _LIBRA_ZERO_SUBADDRESS:
@@ -74,9 +64,7 @@ class Bech32Error(Exception):
     pass
 
 
-def bech32_address_encode(
-    hrp: str, address_bytes: bytes, subaddress_bytes: typing.Optional[bytes]
-) -> str:
+def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typing.Optional[bytes]) -> str:
     """Encode a Libra address (and sub-address if provided).
     Args:
         hrp: Bech32 human readable part
@@ -94,22 +82,16 @@ def bech32_address_encode(
 
     # only accept correct size for Libra address
     if len(address_bytes) != _LIBRA_ADDRESS_SIZE:
-        raise Bech32Error(
-            f"Address size should be {_LIBRA_ADDRESS_SIZE}, but got: {len(address_bytes)}"
-        )
+        raise Bech32Error(f"Address size should be {_LIBRA_ADDRESS_SIZE}, but got: {len(address_bytes)}")
 
     # only accept correct size for Libra subaddress (if set)
     if subaddress_bytes is not None and len(subaddress_bytes) != _LIBRA_SUBADDRESS_SIZE:
-        raise Bech32Error(
-            f"Subaddress size should be {_LIBRA_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}"
-        )
+        raise Bech32Error(f"Subaddress size should be {_LIBRA_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}")
 
     encoding_version = _LIBRA_BECH32_VERSION
 
     # if subaddress has not been provided it's set to 8 zero bytes.
-    subaddress_final_bytes = (
-        subaddress_bytes if subaddress_bytes is not None else _LIBRA_ZERO_SUBADDRESS
-    )
+    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else _LIBRA_ZERO_SUBADDRESS
     total_bytes = address_bytes + subaddress_final_bytes
 
     five_bit_data = _convertbits(total_bytes, 8, 5, True)
@@ -119,9 +101,7 @@ def bech32_address_encode(
     return _bech32_encode(hrp, [encoding_version] + five_bit_data)
 
 
-def bech32_address_decode(
-    expected_hrp: str, bech32: str
-) -> typing.Tuple[int, bytes, bytes]:
+def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, bytes, bytes]:
     """Validate a Bech32 Libra address Bech32 string, and split between version, address and sub-address.
     Args:
         expected_hrp: expected Bech32 human readable part (lbr or tlb)
@@ -132,9 +112,7 @@ def bech32_address_decode(
     len_bech32 = len(bech32)
     # check expected length
     if len_bech32 != _LIBRA_BECH32_SIZE:
-        raise Bech32Error(
-            f"Bech32 size should be {_LIBRA_BECH32_SIZE}, but it is: {len_bech32}"
-        )
+        raise Bech32Error(f"Bech32 size should be {_LIBRA_BECH32_SIZE}, but it is: {len_bech32}")
 
     # do not allow mixed case per BIP 173
     if bech32 != bech32.lower() and bech32 != bech32.upper():
@@ -167,10 +145,7 @@ def bech32_address_decode(
     address_version = _BECH32_CHARSET.find(bech32[4])
     # check valid version
     if address_version != _LIBRA_BECH32_VERSION:
-        raise Bech32Error(
-            f"Version mismatch. Expected {_LIBRA_BECH32_VERSION}, "
-            f"but received {address_version}"
-        )
+        raise Bech32Error(f"Version mismatch. Expected {_LIBRA_BECH32_VERSION}, " f"but received {address_version}")
 
     # we've already checked that all characters are in the correct alphabet,
     # thus, this will always succeed

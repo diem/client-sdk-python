@@ -46,9 +46,7 @@ class InvalidServerResponse(Exception):
 def get_type_hooks() -> typing.Dict[typing.Type, typing.Callable[..., typing.Type]]:
     """ Get hooks to run before parsing a dataclass """
 
-    def from_dict_(
-        data_class: typing.Type, data: typing.Dict[str, typing.Any]
-    ) -> typing.Any:
+    def from_dict_(data_class: typing.Type, data: typing.Dict[str, typing.Any]) -> typing.Any:
         return from_dict(data_class, data, config=Config(strict=True))
 
     return {_union: f_create_union_type(_union, from_dict_) for _union in UNION_TYPES}
@@ -86,21 +84,15 @@ class JsonRpcBatch:
 
         self._add_request("get_metadata", [version])
 
-    def add_get_transactions_by_range_request(
-        self, start_version: int, limit: int, include_events: bool
-    ) -> None:
+    def add_get_transactions_by_range_request(self, start_version: int, limit: int, include_events: bool) -> None:
         self._add_request("get_transactions", [start_version, limit, include_events])
 
     def add_get_trasaction_by_accnt_seq_request(
         self, account_address_hex: str, sequence: int, include_events: bool
     ) -> None:
-        self._add_request(
-            "get_account_transaction", [account_address_hex, sequence, include_events]
-        )
+        self._add_request("get_account_transaction", [account_address_hex, sequence, include_events])
 
-    def add_get_events_request(
-        self, event_stream_key: str, start_sequence: int, limit: int
-    ) -> None:
+    def add_get_events_request(self, event_stream_key: str, start_sequence: int, limit: int) -> None:
         if len(bytes.fromhex(event_stream_key)) != LIBRA_EVENT_KEY_LEN:
             raise ValueError(f"Invalid Event Key: {event_stream_key}")
 
@@ -131,9 +123,7 @@ class JsonRpcClient:
         self,
         fullnode_url: str,
         session: requests.Session,
-        timeout: typing.Optional[
-            typing.Union[float, typing.Tuple[float, float]]
-        ] = None,
+        timeout: typing.Optional[typing.Union[float, typing.Tuple[float, float]]] = None,
     ):
         self._url = fullnode_url
         self._session = session
@@ -153,30 +143,22 @@ class JsonRpcClient:
             response objs are of various types such as AccountStateResponse, JsonRpcError etc
 
         """
-        json_rpc_requests: typing.List[
-            typing.Dict[typing.Any, typing.Any]
-        ] = batch.get_json_rpc_request_object()
+        json_rpc_requests: typing.List[typing.Dict[typing.Any, typing.Any]] = batch.get_json_rpc_request_object()
 
         try:
-            response = self._session.post(
-                self._url, json=json_rpc_requests, timeout=self._timeout
-            )
+            response = self._session.post(self._url, json=json_rpc_requests, timeout=self._timeout)
             response.raise_for_status()
         except requests.RequestException as e:
-            raise NetworkError(
-                f"Error in connecting to Full Node: {e}\nPlease retry..."
-            )
+            raise NetworkError(f"Error in connecting to Full Node: {e}\nPlease retry...")
 
         # Process the response if there is no network error
         try:
             response_json = response.json()
-            json_rpc_responses: typing.List[
-                typing.Dict[typing.Any, typing.Any]
-            ] = response_json if type(response_json) is list else [response_json]
-        except ValueError as e:
-            raise InvalidServerResponse(
-                f"Received invalid json from server: {e}\nFull http response: {response.text}"
+            json_rpc_responses: typing.List[typing.Dict[typing.Any, typing.Any]] = (
+                response_json if type(response_json) is list else [response_json]
             )
+        except ValueError as e:
+            raise InvalidServerResponse(f"Received invalid json from server: {e}\nFull http response: {response.text}")
 
         return self._process_batch_responses(json_rpc_requests, json_rpc_responses)
 
@@ -196,8 +178,7 @@ class JsonRpcClient:
         #        requests_ids_map = { 100: 0,  # zero based indexing
         #                            200: 1, }
         requests_ids_map: typing.Dict[int, int] = {
-            json_rpc_request["id"]: index
-            for index, json_rpc_request in enumerate(json_rpc_requests)
+            json_rpc_request["id"]: index for index, json_rpc_request in enumerate(json_rpc_requests)
         }
 
         response_objects_map: typing.Dict[int, typing.Any] = {}
@@ -224,43 +205,27 @@ class JsonRpcClient:
 
             request_index = requests_ids_map[response_id]
             request_method = json_rpc_requests[request_index]["method"]
-            response_objects_map[response_id] = self._extract_result_or_error(
-                json_rpc_response, request_method
-            )
+            response_objects_map[response_id] = self._extract_result_or_error(json_rpc_response, request_method)
 
-            chain_id = (
-                json_rpc_response[JSONRPC_LIBRA_CHAIN_ID] if chain_id == 0 else chain_id
-            )
-            version = (
-                json_rpc_response[JSONRPC_LIBRA_LEDGER_VERSION]
-                if version == 0
-                else version
-            )
+            chain_id = json_rpc_response[JSONRPC_LIBRA_CHAIN_ID] if chain_id == 0 else chain_id
+            version = json_rpc_response[JSONRPC_LIBRA_LEDGER_VERSION] if version == 0 else version
             timestamp_usecs = (
-                json_rpc_response[JSONRPC_LIBRA_LEDGER_TIMESTAMPUSECS]
-                if timestamp_usecs == 0
-                else timestamp_usecs
+                json_rpc_response[JSONRPC_LIBRA_LEDGER_TIMESTAMPUSECS] if timestamp_usecs == 0 else timestamp_usecs
             )
 
             # chain_id, version, timestamp_usecs should be same across all responses
-            self._validate_ledger_state(
-                chain_id, version, timestamp_usecs, json_rpc_response
-            )
+            self._validate_ledger_state(chain_id, version, timestamp_usecs, json_rpc_response)
 
         # sorting response objects according to the request.
         # caller process the responses as per the requests added
         responses = [
             response_object
-            for _, response_object in sorted(
-                response_objects_map.items(), key=lambda kv: requests_ids_map[kv[0]]
-            )
+            for _, response_object in sorted(response_objects_map.items(), key=lambda kv: requests_ids_map[kv[0]])
         ]
 
         return JsonRpcResponse(chain_id, version, timestamp_usecs, responses)
 
-    def _sanity_check_json_rpc_response_object(
-        self, json_rpc_response: typing.Dict[typing.Any, typing.Any]
-    ) -> None:
+    def _sanity_check_json_rpc_response_object(self, json_rpc_response: typing.Dict[typing.Any, typing.Any]) -> None:
         #  Sanity check the object received
         required_fields = [
             "id",
@@ -387,9 +352,7 @@ class JsonRpcClient:
                 )
 
         if request_method == "get_currencies":
-            if not json_rpc_response["result"] or not isinstance(
-                json_rpc_response["result"], typing.Sequence
-            ):
+            if not json_rpc_response["result"] or not isinstance(json_rpc_response["result"], typing.Sequence):
                 raise InvalidServerResponse(
                     f"Server response object: {json_rpc_response} \nhas invalid result response for {request_method}. It it None!!"
                 )
@@ -439,9 +402,7 @@ class JsonRpcClient:
                 return tx_response
 
         if request_method == "get_transactions":
-            if not json_rpc_response["result"] or not isinstance(
-                json_rpc_response["result"], typing.Sequence
-            ):
+            if not json_rpc_response["result"] or not isinstance(json_rpc_response["result"], typing.Sequence):
                 raise InvalidServerResponse(
                     f"Server response object: {json_rpc_response} \nhas invalid result response for {request_method}. It it not a list!!"
                 )
@@ -469,9 +430,7 @@ class JsonRpcClient:
                 )
 
         if request_method == "get_events":
-            if not json_rpc_response["result"] or not isinstance(
-                json_rpc_response["result"], typing.Sequence
-            ):
+            if not json_rpc_response["result"] or not isinstance(json_rpc_response["result"], typing.Sequence):
                 raise InvalidServerResponse(
                     f"Server response object: {json_rpc_response} \nhas invalid result response for {request_method}. It it not a list!!"
                 )

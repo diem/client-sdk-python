@@ -68,7 +68,7 @@ class LibraAccount:
     @property
     def vasp_info(self) -> typing.Optional[typing.Dict[str, typing.Any]]:
         """if the role is VASP, give the relevant parent/child vasp info
-           if not return None
+        if not return None
         """
         if isinstance(self._role, ParentVASPRole):
             return asdict(self._role)

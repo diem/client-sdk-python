@@ -1,5 +1,3 @@
-from pylibra import TransactionUtils  # @manual
-
 from . import lcs, libra_types, serde_types, stdlib
 from ._account import LibraAccount
 from ._address import LibraUserIdentifier
@@ -73,7 +71,6 @@ __all__ = [  # noqa [F405]
     "LibraEvent",
     "LibraPaymentEvent",
     "LibraUnknownEvent",
-    "TransactionUtils",
     "JsonRpcBatch",
     "JsonRpcClient",
     "LibraAccount",

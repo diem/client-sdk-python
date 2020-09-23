@@ -7,9 +7,14 @@ from pylibra2 import (
     LibraClient,
     LibraCryptoUtils,
     SubmitTransactionError,
-    TransactionUtils,
     TxStatus,
+    stdlib,
+    _utils,
+    libra_types as libra,
+    lcs,
+    serde_types as st,
 )
+from pylibra2._config import CORE_CODE_ADDRESS
 
 
 # [TODO] Can write a decorator?? Less overhead than a function!
@@ -24,17 +29,52 @@ def get_test_account() -> LibraCryptoUtils.LibraAccount:
 
 
 def get_p2p_signed_transaction_bytes(sender_private_key: bytes, receiver_address: bytes, sender_sequence: int):
-    signed_tx_bytes = TransactionUtils.createSignedP2PTransaction(
-        sender_private_key,
-        receiver_address,
-        # sequence
-        sender_sequence,
-        # micro libra
-        1_000_000,
-        chain_id=ChainId.TESTNET,
-        expiration_time=int(time.time()) + 5 * 60,
+    lbr_type_tag = libra.TypeTag__Struct(
+        value=libra.StructTag(
+            address=_utils.make_libra_account_address(CORE_CODE_ADDRESS),
+            module=libra.Identifier("LBR"),
+            name=libra.Identifier("LBR"),
+            type_params=[],
+        )
+    )
+    tx_script: libra.Script = stdlib.encode_peer_to_peer_with_metadata_script(
+        currency=lbr_type_tag,
+        payee=_utils.make_libra_account_address(receiver_address.hex()),
+        amount=st.uint64(1_000_000),
+        metadata=b"",
+        metadata_signature=b"",
     )
 
+    account = LibraCryptoUtils.LibraAccount.create_from_private_key(sender_private_key)
+    raw_txn = libra.RawTransaction(
+        _utils.make_libra_account_address(account.address.hex()),
+        st.uint64(sender_sequence),
+        libra.TransactionPayload__Script(value=tx_script),
+        st.uint64(1_000_000),
+        st.uint64(0),
+        "LBR",
+        st.uint64(time.time() + 5 * 60),
+        libra.ChainId(value=st.uint8(ChainId.TESTNET)),
+    )
+    # LCS of the Raw Transaction
+    raw_tx_bytes: bytes = lcs.serialize(raw_txn, libra.RawTransaction)
+
+    # Adding seed to LCS bytes
+    raw_tx_bytes_hash = LibraCryptoUtils.add_seed_to_raw_tx_bytes(raw_tx_bytes)
+
+    # Signing the resulting bytes
+    signature = LibraCryptoUtils.ed25519_sign(sender_private_key, raw_tx_bytes_hash)
+
+    # Assembling them in the Struct
+    public_key_bytes = LibraCryptoUtils.ed25519_public_key_from_private_key(sender_private_key)
+    signed_tx = libra.SignedTransaction(
+        raw_txn=raw_txn,
+        authenticator=libra.TransactionAuthenticator__Ed25519(
+            public_key=libra.Ed25519PublicKey(public_key_bytes),
+            signature=libra.Ed25519Signature(value=signature),
+        ),
+    )
+    signed_tx_bytes = lcs.serialize(signed_tx, libra.SignedTransaction)
     return signed_tx_bytes
 
 
@@ -207,11 +247,3 @@ def test_p2p_transaction():
         print("Integration test of `transfer_coin_peer_to_peer` success for an existing account!")
 
     add_separator(end=True)
-
-
-if __name__ == "__main__":
-    test_get_account_exists()
-    test_get_currencies()
-    test_mint_and_wait()
-    test_submit_and_wait()
-    test_p2p_transaction()

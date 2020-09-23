@@ -3,7 +3,7 @@ import typing
 from unittest.mock import MagicMock, call, patch
 
 import pytest
-from calibra.lib.clients.pylibra2 import (
+from pylibra2 import (
     DEFAULT_JSON_RPC_SERVER,
     ChainId,
     ClientError,
@@ -17,12 +17,11 @@ from calibra.lib.clients.pylibra2 import (
     LibraUserTransaction,
     LibraWriteSetTransaction,
     SubmitTransactionError,
-    TransactionUtils,
     TxStatus,
     lcs,
     libra_types as libra,
 )
-from calibra.lib.clients.pylibra2._config import (
+from pylibra2._config import (
     DEFAULT_CONNECT_TIMEOUT_SECS,
     DEFAULT_LIBRA_CHAIN_ID,
     DEFAULT_TIMEOUT_SECS,
@@ -44,9 +43,7 @@ MOCK_SUCCESSFUL_SUBMIT_RESPONSE: typing.Dict[str, typing.Any] = {
 }
 
 
-def get_mock_transaction(
-    tx_type: str = "user", script_type: str = "p2p", with_events: bool = False
-):
+def get_mock_transaction(tx_type: str = "user", script_type: str = "p2p", with_events: bool = False):
     mock_tx = {
         "transaction": {
             "expiration_timestamp_secs": 1590680747,
@@ -175,9 +172,7 @@ def get_side_effect_for_wait_failures(which_func: str) -> typing.List[typing.Any
     if which_func == "mint":
         side_effect.append(MagicMock(text=0, ok=True))
     elif which_func == "submit":
-        side_effect.append(
-            MagicMock(json=MagicMock(return_value=MOCK_SUCCESSFUL_SUBMIT_RESPONSE))
-        )
+        side_effect.append(MagicMock(json=MagicMock(return_value=MOCK_SUCCESSFUL_SUBMIT_RESPONSE)))
 
     # Have to generate RequestException MAX_WAIT_ITERATIONS bcoz if there is network error,
     # the wait function will retry till it times out
@@ -187,30 +182,22 @@ def get_side_effect_for_wait_failures(which_func: str) -> typing.List[typing.Any
     return side_effect
 
 
-def get_valid_tx_response(
-    signed_tx_bytes: bytes, tx_resp: typing.Dict[str, typing.Any]
-):
-    """ Function to generate correct tx_response (appropriate signature/public key/sender/receiver/amount) depending on signed tx bytes
+def get_valid_tx_response(signed_tx_bytes: bytes, tx_resp: typing.Dict[str, typing.Any]):
+    """Function to generate correct tx_response (appropriate signature/public key/sender/receiver/amount) depending on signed tx bytes
 
-        This func is needed for checking submit_transaction_and_wait func & transfer coins APIs
+    This func is needed for checking submit_transaction_and_wait func & transfer coins APIs
     """
     signed_tx, _ = lcs.deserialize(signed_tx_bytes, libra.SignedTransaction)
 
     valid_tx_resp = tx_resp
-    valid_tx_resp["result"]["transaction"][
-        "public_key"
-    ] = signed_tx.authenticator.public_key.value.hex()
-    valid_tx_resp["result"]["transaction"][
-        "signature"
-    ] = signed_tx.authenticator.signature.value.hex()
+    valid_tx_resp["result"]["transaction"]["public_key"] = signed_tx.authenticator.public_key.value.hex()
+    valid_tx_resp["result"]["transaction"]["signature"] = signed_tx.authenticator.signature.value.hex()
 
     # These are the details used for building signed transaction
     sender_private_key = "11" * 32
     receiver_address = "00" * 16
 
-    account = LibraCryptoUtils.LibraAccount.create_from_private_key(
-        bytes.fromhex(sender_private_key)
-    )
+    account = LibraCryptoUtils.LibraAccount.create_from_private_key(bytes.fromhex(sender_private_key))
     valid_tx_resp["result"]["transaction"]["sender"] = account.address.hex()
 
     # Unknown Scripts will not have receiver/amount
@@ -324,9 +311,7 @@ def account_state_response():
 
         if role != "parent":
             if role == "child":
-                resp["result"]["role"] = {  # pyre-ignore
-                    "child_vasp": {"parent_vasp_address": "33" * 16}
-                }
+                resp["result"]["role"] = {"child_vasp": {"parent_vasp_address": "33" * 16}}  # pyre-ignore
             else:
                 resp["result"]["role"] = role
 
@@ -376,9 +361,7 @@ def multiple_transaction_response():
             "result": [],
         }
         for tx_type in tx_types:
-            resp["result"].append(  # pyre-ignore
-                get_mock_transaction(tx_type, with_events=with_events)
-            )
+            resp["result"].append(get_mock_transaction(tx_type, with_events=with_events))  # pyre-ignore
 
         return resp
 
@@ -387,9 +370,7 @@ def multiple_transaction_response():
 
 @pytest.fixture
 def multiple_events_response():
-    def _multiple_events_response(
-        id: int = 0, types: typing.Optional[typing.List[str]] = None
-    ):
+    def _multiple_events_response(id: int = 0, types: typing.Optional[typing.List[str]] = None):
         if types is None:
             types = ["sent"]
 
@@ -527,10 +508,7 @@ def test_create_libra_client_with_remote_sync_success(mock_session, metadata_res
     libra_client = LibraClient(check_server_state=True, session=mock_session)
     assert libra_client._ledger_state.chain_id == DEFAULT_LIBRA_CHAIN_ID
     assert libra_client._ledger_state.blockchain_version == resp["result"]["version"]
-    assert (
-        libra_client._ledger_state.blockchain_timestamp_usecs
-        == resp["result"]["timestamp"]
-    )
+    assert libra_client._ledger_state.blockchain_timestamp_usecs == resp["result"]["timestamp"]
 
 
 @patch("requests.Session")
@@ -542,9 +520,7 @@ def test_create_libra_client_with_remote_sync_get_metadata_network_fail(mock_ses
 
 
 @patch("requests.Session")
-def test_create_libra_client_with_remote_sync_get_metadata_err_resp_fail(
-    mock_session, json_rpc_error_resp
-):
+def test_create_libra_client_with_remote_sync_get_metadata_err_resp_fail(mock_session, json_rpc_error_resp):
     mock_session.post.return_value.json.return_value = [json_rpc_error_resp(0)]
 
     with pytest.raises(ClientError):
@@ -552,13 +528,9 @@ def test_create_libra_client_with_remote_sync_get_metadata_err_resp_fail(
 
 
 @patch("requests.Session")
-def test_create_libra_client_with_remote_sync_get_metadata_stale_resp_fail(
-    mock_session, stale_resp
-):
+def test_create_libra_client_with_remote_sync_get_metadata_stale_resp_fail(mock_session, stale_resp):
     # stale_response bcoz timestamp is negative & default is 0
-    mock_session.post.return_value.json.return_value = [
-        stale_resp(0, stale_timestamp_usecs=-1)
-    ]
+    mock_session.post.return_value.json.return_value = [stale_resp(0, stale_timestamp_usecs=-1)]
 
     with pytest.raises(ClientError):
         LibraClient(check_server_state=True, session=mock_session)
@@ -577,9 +549,7 @@ def test_create_libra_client_with_user_state_success():
 
 
 @patch("requests.Session")
-def test_create_libra_client_with_user_state_and_check_state_success(
-    mock_session, metadata_resp
-):
+def test_create_libra_client_with_user_state_and_check_state_success(mock_session, metadata_resp):
 
     resp = metadata_resp(0)
     mock_session.post.return_value.json.return_value = [resp]
@@ -596,20 +566,13 @@ def test_create_libra_client_with_user_state_and_check_state_success(
     # state should be metadata_resp state
     assert libra_client._ledger_state.chain_id == DEFAULT_LIBRA_CHAIN_ID
     assert libra_client._ledger_state.blockchain_version == resp["result"]["version"]
-    assert (
-        libra_client._ledger_state.blockchain_timestamp_usecs
-        == resp["result"]["timestamp"]
-    )
+    assert libra_client._ledger_state.blockchain_timestamp_usecs == resp["result"]["timestamp"]
 
 
 @patch("requests.Session")
-def test_create_libra_client_with_user_state_and_check_state_fail(
-    mock_session, stale_resp
-):
+def test_create_libra_client_with_user_state_and_check_state_fail(mock_session, stale_resp):
     # stale_response bcoz timestamp is 1 less than last_seen_blockchain_timestamp_usecs(given below)
-    mock_session.post.return_value.json.return_value = [
-        stale_resp(0, stale_version=100, stale_timestamp_usecs=999_999)
-    ]
+    mock_session.post.return_value.json.return_value = [stale_resp(0, stale_version=100, stale_timestamp_usecs=999_999)]
 
     with pytest.raises(ClientError):
         LibraClient(
@@ -628,15 +591,11 @@ def test_stale_resp_fail(mock_session, stale_resp):
 
     with pytest.raises(ClientError):
         libra_client = LibraClient(session=mock_session)
-        libra_client.get_metadata(
-            minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000
-        )
+        libra_client.get_metadata(minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000)
 
 
 @patch("requests.Session")
-def test_mint_and_wait_success(
-    mock_session, test_auth_key, transaction_response
-) -> None:
+def test_mint_and_wait_success(mock_session, test_auth_key, transaction_response) -> None:
     # Setting up Mock
     mock_session.post.return_value.ok = True
     mock_session.post.return_value.text = 0
@@ -689,9 +648,7 @@ def test_submit_transaction_and_wait_success(
 
 
 @patch("requests.Session")
-def test_submit_transaction_and_wait_fail_submitting(
-    mock_session, signed_transaction_bytes
-) -> None:
+def test_submit_transaction_and_wait_fail_submitting(mock_session, signed_transaction_bytes) -> None:
     mock_session.post.side_effect = RequestException
 
     with pytest.raises(SubmitTransactionError):  # pyre-ignore
@@ -732,10 +689,7 @@ def test_get_account_success(mock_session, test_address, account_state_response)
 
     # Check various fields
     assert account.address == test_address.hex()
-    assert (
-        account.authentication_key
-        == "2ee7110c881f5e62d168fb8e757fead0e0372b4f465415dcc4c103d66f237ecb"
-    )
+    assert account.authentication_key == "2ee7110c881f5e62d168fb8e757fead0e0372b4f465415dcc4c103d66f237ecb"
     assert account.balances == {"LBR": 100000000000}
     assert account.currencies == ["LBR"]
     assert account.role == "parent_vasp"
@@ -774,9 +728,7 @@ def test_get_account_stale_resp_fail(mock_session, test_address, stale_resp):
 
 
 @patch("requests.Session")
-def test_p2p_tx_sucess(
-    mock_session, signed_transaction_bytes, submit_tx_response, transaction_response
-):
+def test_p2p_tx_sucess(mock_session, signed_transaction_bytes, submit_tx_response, transaction_response):
     # p2p tx
     signed_tx_bytes = signed_transaction_bytes()
 
@@ -802,9 +754,7 @@ def test_p2p_tx_sucess(
     )
 
     # generating this to verify appropriate calls are made
-    account = LibraCryptoUtils.LibraAccount.create_from_private_key(
-        bytes.fromhex(sender_private_key)
-    )
+    account = LibraCryptoUtils.LibraAccount.create_from_private_key(bytes.fromhex(sender_private_key))
     sender_address = account.address.hex()
 
     calls = [
@@ -880,14 +830,10 @@ def test_p2p_tx_fail_waiting(mock_session, submit_tx_response, transaction_respo
 
 
 @patch("requests.Session")
-def test_add_currency_tx_sucess(
-    mock_session, signed_transaction_bytes, submit_tx_response, transaction_response
-):
+def test_add_currency_tx_sucess(mock_session, signed_transaction_bytes, submit_tx_response, transaction_response):
 
     signed_tx_bytes = signed_transaction_bytes("add_currency")
-    valid_tx_response = get_valid_tx_response(
-        signed_tx_bytes, transaction_response(0, "user", "unknown")
-    )
+    valid_tx_response = get_valid_tx_response(signed_tx_bytes, transaction_response(0, "user", "unknown"))
 
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[submit_tx_response(0)])),
@@ -897,9 +843,7 @@ def test_add_currency_tx_sucess(
     sender_private_key = "11" * 32
 
     # generating this to verify appropriate calls are made
-    account = LibraCryptoUtils.LibraAccount.create_from_private_key(
-        bytes.fromhex(sender_private_key)
-    )
+    account = LibraCryptoUtils.LibraAccount.create_from_private_key(bytes.fromhex(sender_private_key))
     sender_address = account.address.hex()
 
     libra_client = LibraClient(session=mock_session)
@@ -957,9 +901,7 @@ def test_add_currency_tx_fail_submitting(mock_session):
 
 
 @patch("requests.Session")
-def test_add_currency_tx_fail_waiting(
-    mock_session, submit_tx_response, transaction_response
-):
+def test_add_currency_tx_fail_waiting(mock_session, submit_tx_response, transaction_response):
 
     # transaction_response will not have matching signature/public key, so the tx will fail
     mock_session.post.side_effect = [
@@ -985,9 +927,7 @@ def test_rotate_dual_attestation_info_tx_sucess(
 ):
 
     signed_tx_bytes = signed_transaction_bytes("rotate_dual_attestation")
-    valid_tx_response = get_valid_tx_response(
-        signed_tx_bytes, transaction_response(0, "user", "unknown")
-    )
+    valid_tx_response = get_valid_tx_response(signed_tx_bytes, transaction_response(0, "user", "unknown"))
 
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[submit_tx_response(0)])),
@@ -997,9 +937,7 @@ def test_rotate_dual_attestation_info_tx_sucess(
     sender_private_key = "11" * 32
 
     # generating this to verify appropriate calls are made
-    account = LibraCryptoUtils.LibraAccount.create_from_private_key(
-        bytes.fromhex(sender_private_key)
-    )
+    account = LibraCryptoUtils.LibraAccount.create_from_private_key(bytes.fromhex(sender_private_key))
     sender_address = account.address.hex()
 
     libra_client = LibraClient(session=mock_session)
@@ -1059,9 +997,7 @@ def test_rotate_dual_attestation_info_tx_fail_submitting(mock_session):
 
 
 @patch("requests.Session")
-def test_rotate_dual_attestation_info_tx_fail_waiting(
-    mock_session, submit_tx_response, transaction_response
-):
+def test_rotate_dual_attestation_info_tx_fail_waiting(mock_session, submit_tx_response, transaction_response):
 
     # transaction_response will not have matching signature/public key, so the tx will fail
     mock_session.post.side_effect = [
@@ -1083,13 +1019,9 @@ def test_rotate_dual_attestation_info_tx_fail_waiting(
 
 
 @patch("requests.Session")
-def test_get_account_transaction_success(
-    mock_session, test_address, transaction_response
-):
+def test_get_account_transaction_success(mock_session, test_address, transaction_response):
 
-    mock_session.post.return_value.json.return_value = [
-        transaction_response(0, "user", "p2p", True)
-    ]
+    mock_session.post.return_value.json.return_value = [transaction_response(0, "user", "p2p", True)]
 
     libra_client = LibraClient(session=mock_session)
     tx = libra_client.get_account_transaction(test_address.hex(), 0, True)
@@ -1117,9 +1049,7 @@ def test_get_account_transaction_fail(mock_session, test_address):
 
 
 @patch("requests.Session")
-def test_get_account_transaction_error_resp_fail(
-    mock_session, test_address, json_rpc_error_resp
-):
+def test_get_account_transaction_error_resp_fail(mock_session, test_address, json_rpc_error_resp):
 
     mock_session.post.return_value.json.return_value = [json_rpc_error_resp(0)]
 
@@ -1129,9 +1059,7 @@ def test_get_account_transaction_error_resp_fail(
 
 
 @patch("requests.Session")
-def test_get_account_transaction_stale_resp_fail(
-    mock_session, test_address, stale_resp
-):
+def test_get_account_transaction_stale_resp_fail(mock_session, test_address, stale_resp):
 
     mock_session.post.return_value.json.return_value = [stale_resp(0)]
 
@@ -1149,9 +1077,7 @@ def test_get_account_transaction_stale_resp_fail(
 def test_get_transactions_success(mock_session, multiple_transaction_response):
 
     mock_session.post.return_value.json.return_value = [
-        multiple_transaction_response(
-            0, ["user", "blockmetadata", "writeset", "unknown"], True
-        )
+        multiple_transaction_response(0, ["user", "blockmetadata", "writeset", "unknown"], True)
     ]
 
     libra_client = LibraClient(session=mock_session)
@@ -1193,20 +1119,14 @@ def test_get_transactions_stale_resp_fail(mock_session, stale_resp):
 
     with pytest.raises(ClientError):
         libra_client = LibraClient(session=mock_session)
-        libra_client.get_transactions(
-            0, 10, True, minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000
-        )
+        libra_client.get_transactions(0, 10, True, minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000)
 
 
 @patch("requests.Session")
-def test_get_account_sent_events_success(
-    mock_session, test_address, account_state_response, multiple_events_response
-):
+def test_get_account_sent_events_success(mock_session, test_address, account_state_response, multiple_events_response):
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[account_state_response(0)])),
-        MagicMock(
-            json=MagicMock(return_value=[multiple_events_response(0, ["sent", "sent"])])
-        ),
+        MagicMock(json=MagicMock(return_value=[multiple_events_response(0, ["sent", "sent"])])),
     ]
 
     libra_client = LibraClient(session=mock_session)
@@ -1246,9 +1166,7 @@ def test_get_account_sent_events_success(
     mock_session.post.assert_has_calls(calls)
 
     assert len(events) == 2
-    assert isinstance(events[0], LibraPaymentEvent) and isinstance(
-        events[1], LibraPaymentEvent
-    )
+    assert isinstance(events[0], LibraPaymentEvent) and isinstance(events[1], LibraPaymentEvent)
     assert events[0].type == "sentpayment" and events[1].type == "sentpayment"
 
     sent_mock_event = get_mock_event("sent")
@@ -1290,11 +1208,7 @@ def test_get_account_sent_events_other_resp_fail(
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[account_state_response(0)])),
         # getting received events in response. Should raise exception
-        MagicMock(
-            json=MagicMock(
-                return_value=[multiple_events_response(0, ["sent", "received"])]
-            )
-        ),
+        MagicMock(json=MagicMock(return_value=[multiple_events_response(0, ["sent", "received"])])),
     ]
     with pytest.raises(ClientError):
         libra_client = LibraClient(session=mock_session)
@@ -1302,9 +1216,7 @@ def test_get_account_sent_events_other_resp_fail(
 
 
 @patch("requests.Session")
-def test_get_account_sent_events_stale_resp_fail(
-    mock_session, test_address, stale_resp
-):
+def test_get_account_sent_events_stale_resp_fail(mock_session, test_address, stale_resp):
 
     mock_session.post.return_value.json.return_value = [stale_resp(0)]
 
@@ -1324,11 +1236,7 @@ def test_get_account_received_events_success(
 ):
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[account_state_response(0)])),
-        MagicMock(
-            json=MagicMock(
-                return_value=[multiple_events_response(0, ["received", "received"])]
-            )
-        ),
+        MagicMock(json=MagicMock(return_value=[multiple_events_response(0, ["received", "received"])])),
     ]
 
     libra_client = LibraClient(session=mock_session)
@@ -1368,9 +1276,7 @@ def test_get_account_received_events_success(
     mock_session.post.assert_has_calls(calls)
 
     assert len(events) == 2
-    assert isinstance(events[0], LibraPaymentEvent) and isinstance(
-        events[1], LibraPaymentEvent
-    )
+    assert isinstance(events[0], LibraPaymentEvent) and isinstance(events[1], LibraPaymentEvent)
     assert events[0].type == "receivedpayment" and events[1].type == "receivedpayment"
 
     received_mock_event = get_mock_event("received")
@@ -1413,11 +1319,7 @@ def test_get_account_received_events_other_resp_fail(
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[account_state_response(0)])),
         # getting sent events in response. Should raise exception
-        MagicMock(
-            json=MagicMock(
-                return_value=[multiple_events_response(0, ["sent", "received"])]
-            )
-        ),
+        MagicMock(json=MagicMock(return_value=[multiple_events_response(0, ["sent", "received"])])),
     ]
     with pytest.raises(ClientError):
         libra_client = LibraClient(session=mock_session)
@@ -1425,9 +1327,7 @@ def test_get_account_received_events_other_resp_fail(
 
 
 @patch("requests.Session")
-def test_get_account_received_events_stale_resp_fail(
-    mock_session, test_address, stale_resp
-):
+def test_get_account_received_events_stale_resp_fail(mock_session, test_address, stale_resp):
 
     mock_session.post.return_value.json.return_value = [stale_resp(0)]
 
@@ -1480,9 +1380,7 @@ def test_get_currencies_stale_resp_fail(mock_session, stale_resp):
 
     with pytest.raises(ClientError):
         libra_client = LibraClient(session=mock_session)
-        libra_client.get_currencies(
-            minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000
-        )
+        libra_client.get_currencies(minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000)
 
 
 @patch("requests.Session")
@@ -1524,15 +1422,11 @@ def test_get_metadata_stale_resp_fail(mock_session, stale_resp):
 
     with pytest.raises(ClientError):
         libra_client = LibraClient(session=mock_session)
-        libra_client.get_metadata(
-            minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000
-        )
+        libra_client.get_metadata(minimum_blockchain_timestamp_usecs=int(time.time()) * 1_000_000)
 
 
 @patch("requests.Session")
-def test_get_root_vasp_account_input_parent_success(
-    mock_session, test_address, account_state_response
-):
+def test_get_root_vasp_account_input_parent_success(mock_session, test_address, account_state_response):
 
     mock_session.post.return_value.json.return_value = [account_state_response(0)]
 
@@ -1558,14 +1452,10 @@ def test_get_root_vasp_account_input_parent_success(
 
 
 @patch("requests.Session")
-def test_get_root_vasp_account_input_child_success(
-    mock_session, test_address, account_state_response
-):
+def test_get_root_vasp_account_input_child_success(mock_session, test_address, account_state_response):
     child_accnt_resp = account_state_response(0, "child")
     parent_accnt_resp = account_state_response(0, "parent")
-    parent_vasp_addr = child_accnt_resp["result"]["role"]["child_vasp"][
-        "parent_vasp_address"
-    ]
+    parent_vasp_addr = child_accnt_resp["result"]["role"]["child_vasp"]["parent_vasp_address"]
     mock_session.post.side_effect = [
         MagicMock(json=MagicMock(return_value=[child_accnt_resp])),
         MagicMock(json=MagicMock(return_value=[parent_accnt_resp])),

@@ -190,9 +190,7 @@ def serialize(obj: typing.Any, obj_type) -> bytes:
             item_type = typing.Tuple[types[0], types[1]]
             result += encode_length(len(obj))
             # Sorting by lexicographic order on the serialized item (or equivalently, serialized keys).
-            serialized_items = sorted(
-                serialize(item, item_type) for item in obj.items()
-            )
+            serialized_items = sorted(serialize(item, item_type) for item in obj.items())
             for s in serialized_items:
                 result += s
 
@@ -273,13 +271,8 @@ def deserialize(content: bytes, obj_type):
                 key, content = deserialize(previous_content, types[0])
                 serialized_key = previous_content[: -len(content)]
                 value, content = deserialize(content, types[1])
-                if (
-                    previous_serialized_key is not None
-                    and previous_serialized_key >= serialized_key
-                ):
-                    raise ValueError(
-                        "Serialized keys in a map must be ordered by increasing lexicographic order"
-                    )
+                if previous_serialized_key is not None and previous_serialized_key >= serialized_key:
+                    raise ValueError("Serialized keys in a map must be ordered by increasing lexicographic order")
                 previous_serialized_key = serialized_key
                 res[key] = value
 

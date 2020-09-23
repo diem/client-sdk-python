@@ -11,8 +11,8 @@ set -euo pipefail
 ./venv/bin/pip3 install --upgrade black
 ./venv/bin/pip3 install --upgrade pyre-check
 
-./venv/bin/python3 setup.py develop
+./venv/bin/python3 setup-pylibra-beta.py develop
 
-./venv/bin/python3 setup.py pytest --addopts="-W ignore::pytest.PytestDeprecationWarning --pylama tests/pylibra2 $@"
+./venv/bin/python3 setup-pylibra-beta.py pytest --addopts="-W ignore::pytest.PytestDeprecationWarning --pylama tests $@"
 ./venv/bin/python3 -m black --check src tests
 ./venv/bin/pyre check

@@ -90,9 +90,7 @@ class UnknownTransactionScript:
     type: str = "unknown"
 
 
-Script = typing.Union[
-    PeerToPeerTransactionScript, MintTransactionScript, UnknownTransactionScript
-]
+Script = typing.Union[PeerToPeerTransactionScript, MintTransactionScript, UnknownTransactionScript]
 
 
 @dataclass
@@ -317,9 +315,7 @@ def f_create_union_type(
 ) -> typing.Callable[..., typing.Type]:
     type_map = {_type.type: _type for _type in union.__args__}
 
-    def normalize_data(
-        data_: typing.Union[str, typing.Dict[str, typing.Any]]
-    ) -> typing.Dict[str, typing.Any]:
+    def normalize_data(data_: typing.Union[str, typing.Dict[str, typing.Any]]) -> typing.Dict[str, typing.Any]:
         norm_data: typing.Dict[str, typing.Any] = {}
         if isinstance(data_, str):
             norm_data.update(type=data_)
@@ -334,16 +330,16 @@ def f_create_union_type(
         return norm_data
 
     def create(data_: typing.Union[str, typing.Dict[str, typing.Any]]) -> typing.Any:
-        """ Create a class instance from a json-rpc response object. Interprets 'type'
-            from both new/old style server responses. Uses type 'unknown' if type isn't supported
+        """Create a class instance from a json-rpc response object. Interprets 'type'
+        from both new/old style server responses. Uses type 'unknown' if type isn't supported
 
-            Args:
-                data: either a string specifying 'type_value' (old style)
-                      OR a dict containing {'type_value': attr_dict} (old style)
-                      OR an attr_dict containing {'type': 'type_value'} (new style)
+        Args:
+            data: either a string specifying 'type_value' (old style)
+                  OR a dict containing {'type_value': attr_dict} (old style)
+                  OR an attr_dict containing {'type': 'type_value'} (new style)
 
-            Returns:
-                An instantiated class that is a member of the passed type Union
+        Returns:
+            An instantiated class that is a member of the passed type Union
         """
         norm_data = normalize_data(data_)
         if "type" not in norm_data or norm_data["type"] not in type_map:

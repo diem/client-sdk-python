@@ -1,19 +1,19 @@
 from unittest.mock import patch
 
 import pytest
-from calibra.lib.clients.pylibra2._config import (
+from pylibra2._config import (
     DEFAULT_CONNECT_TIMEOUT_SECS,
     DEFAULT_TIMEOUT_SECS,
     JSONRPC_LIBRA_CHAIN_ID,
     JSONRPC_LIBRA_LEDGER_TIMESTAMPUSECS,
     JSONRPC_LIBRA_LEDGER_VERSION,
 )
-from calibra.lib.clients.pylibra2.json_rpc.request import (
+from pylibra2.json_rpc.request import (
     InvalidServerResponse,
     JsonRpcBatch,
     JsonRpcClient,
 )
-from calibra.lib.clients.pylibra2.json_rpc.types import (
+from pylibra2.json_rpc.types import (
     AccountStateResponse,
     Amount,
     CurrencyInfo,
@@ -130,9 +130,7 @@ def get_invalid_result_response(id: int):
     }
 
 
-def get_valid_result_tx_response(
-    id: int, tx_type: str = "user", with_events: bool = False
-):
+def get_valid_result_tx_response(id: int, tx_type: str = "user", with_events: bool = False):
 
     resp = {
         "id": id,
@@ -211,9 +209,7 @@ def get_valid_result_tx_response(
     return resp
 
 
-def get_valid_result_multiple_tx_response(
-    id: int, num_responses: int, with_events: bool = False
-):
+def get_valid_result_multiple_tx_response(id: int, num_responses: int, with_events: bool = False):
     resp = {
         "id": id,
         "jsonrpc": "2.0",
@@ -314,9 +310,7 @@ def get_writeset_unknown_transaction_response(id: int):
     return resp
 
 
-def get_valid_result_multiple_events_response(
-    id: int, event_key: str, num_responses: int
-):
+def get_valid_result_multiple_events_response(id: int, event_key: str, num_responses: int):
     resp = {
         "id": id,
         "jsonrpc": "2.0",
@@ -369,9 +363,7 @@ def test_json_rpc_client(mock_session):
     batch = JsonRpcBatch()
     batch.add_submit_request("abcdef0123456789")
 
-    mock_session.post.return_value.json.return_value = [
-        get_valid_result_submit_response(0)
-    ]
+    mock_session.post.return_value.json.return_value = [get_valid_result_submit_response(0)]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     client.execute(batch)
@@ -454,18 +446,14 @@ def test_account_state_response_success(mock_session):
     batch = JsonRpcBatch()
     batch.add_get_account_request("11" * 16)
 
-    mock_session.post.return_value.json.return_value = [
-        get_valid_result_account_state_response(0)
-    ]
+    mock_session.post.return_value.json.return_value = [get_valid_result_account_state_response(0)]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     response_obj = client.execute(batch)
 
     mock_session.post.assert_called_once_with(
         "https://dummyurl.com",
-        json=[
-            {"jsonrpc": "2.0", "id": 0, "method": "get_account", "params": ["11" * 16]}
-        ],
+        json=[{"jsonrpc": "2.0", "id": 0, "method": "get_account", "params": ["11" * 16]}],
         timeout=(DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS),
     )
 
@@ -508,9 +496,7 @@ def test_get_currency_success(mock_session):
     batch = JsonRpcBatch()
     batch.add_get_currencies_request()
 
-    mock_session.post.return_value.json.return_value = [
-        get_valid_result_currency_response(0)
-    ]
+    mock_session.post.return_value.json.return_value = [get_valid_result_currency_response(0)]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     response_obj = client.execute(batch)
@@ -566,9 +552,7 @@ def test_get_account_transaction_with_events_success(mock_session):
     batch = JsonRpcBatch()
     batch.add_get_trasaction_by_accnt_seq_request("11" * 16, 0, True)
 
-    mock_session.post.return_value.json.return_value = [
-        get_valid_result_tx_response(0, with_events=True)
-    ]
+    mock_session.post.return_value.json.return_value = [get_valid_result_tx_response(0, with_events=True)]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     response_obj = client.execute(batch)
@@ -705,9 +689,7 @@ def test_get_account_transaction_non_user_response_fail(mock_session):
     batch = JsonRpcBatch()
     batch.add_get_trasaction_by_accnt_seq_request("11" * 16, 0, True)
 
-    mock_session.post.return_value.json.return_value = [
-        get_valid_result_tx_response(0, "writeset")
-    ]
+    mock_session.post.return_value.json.return_value = [get_valid_result_tx_response(0, "writeset")]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     with pytest.raises(InvalidServerResponse):
@@ -719,9 +701,7 @@ def test_get_transactions_success(mock_session):
     batch = JsonRpcBatch()
     batch.add_get_transactions_by_range_request(0, 2, False)
 
-    mock_session.post.return_value.json.return_value = [
-        get_valid_result_multiple_tx_response(0, 2)
-    ]
+    mock_session.post.return_value.json.return_value = [get_valid_result_multiple_tx_response(0, 2)]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     response_obj = client.execute(batch)
@@ -822,9 +802,7 @@ def test_writeset_unknown_tx_success(mock_session):
     batch = JsonRpcBatch()
     batch.add_get_transactions_by_range_request(0, 2, False)
 
-    mock_session.post.return_value.json.return_value = [
-        get_writeset_unknown_transaction_response(0)
-    ]
+    mock_session.post.return_value.json.return_value = [get_writeset_unknown_transaction_response(0)]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)
     response_obj = client.execute(batch)
@@ -870,9 +848,7 @@ def test_get_events_success(mock_session):
     batch.add_get_events_request("11" * 24, 0, 2)
 
     mock_session.post.return_value.json.return_value = [
-        get_valid_result_multiple_events_response(
-            id=0, event_key="11" * 24, num_responses=2
-        )
+        get_valid_result_multiple_events_response(id=0, event_key="11" * 24, num_responses=2)
     ]
 
     client = JsonRpcClient("https://dummyurl.com", mock_session)

@@ -37,7 +37,7 @@ setup(
     packages=["pylibra2"],
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,
-    install_requires=["requests>=2.19", "numpy>=1.18"],
+    install_requires=["requests>=2.19", "cryptography>=3.1", "numpy>=1.18", "dacite>=1.5.0"],
     tests_require=["pytest", "pytest-timeout", "pytest-runner", "pylama", "black"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.

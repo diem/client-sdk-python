@@ -15,9 +15,7 @@ from ._types import LibraLedgerState
 
 
 def make_libra_account_address(addr: str) -> libra.AccountAddress:
-    return libra.AccountAddress(
-        tuple(st.uint8(x) for x in bytes.fromhex(addr))  # pyre-ignore
-    )
+    return libra.AccountAddress(tuple(st.uint8(x) for x in bytes.fromhex(addr)))  # pyre-ignore
 
 
 def make_addr_str(addr: libra.AccountAddress) -> str:
@@ -37,11 +35,7 @@ def extract_receiver_if_any(signed_tx: libra.SignedTransaction) -> typing.Option
         # P2P script takes 4 arguments -> receiver, amount, metadata, metadata_signature
         if len(script.args) == 4:
             if isinstance(script.args[0], libra.TransactionArgument__Address):
-                return make_addr_str(
-                    typing.cast(
-                        libra.TransactionArgument__Address, script.args[0]
-                    ).value
-                )
+                return make_addr_str(typing.cast(libra.TransactionArgument__Address, script.args[0]).value)
 
 
 def extract_amount_if_any(signed_tx: libra.SignedTransaction) -> typing.Optional[int]:
@@ -56,9 +50,7 @@ def extract_amount_if_any(signed_tx: libra.SignedTransaction) -> typing.Optional
         if len(script.args) == 4:
 
             if isinstance(script.args[1], libra.TransactionArgument__U64):
-                return int(
-                    typing.cast(libra.TransactionArgument__U64, script.args[1]).value
-                )
+                return int(typing.cast(libra.TransactionArgument__U64, script.args[1]).value)
 
 
 def validate_ledger_state(
@@ -67,14 +59,11 @@ def validate_ledger_state(
     minimum_blockchain_timestamp_usecs: typing.Optional[int] = None,
 ) -> None:
     if curr_state.chain_id != last_seen_state.chain_id:
-        raise ValueError(
-            f"chain_id mismatch! Expected: {last_seen_state.chain_id} Received: {curr_state.chain_id}"
-        )
+        raise ValueError(f"chain_id mismatch! Expected: {last_seen_state.chain_id} Received: {curr_state.chain_id}")
 
     if (
         curr_state.blockchain_version < last_seen_state.blockchain_version
-        or curr_state.blockchain_timestamp_usecs
-        < last_seen_state.blockchain_timestamp_usecs
+        or curr_state.blockchain_timestamp_usecs < last_seen_state.blockchain_timestamp_usecs
     ):
         raise ValueError(
             f"Current ledger state stale:\n"
@@ -111,9 +100,7 @@ class LibraCryptoUtils:
             return cls.create_from_private_key(private_key_bytes=private_key_bytes)
 
         @classmethod
-        def create_from_private_key(
-            cls, private_key_bytes: bytes
-        ) -> "LibraCryptoUtils.LibraAccount":
+        def create_from_private_key(cls, private_key_bytes: bytes) -> "LibraCryptoUtils.LibraAccount":
             """Create new account from private key
 
             Args:
@@ -125,9 +112,7 @@ class LibraCryptoUtils:
             if len(private_key_bytes) != LIBRA_PRIVATE_KEY_SIZE:
                 raise ValueError(f"Invalid private_key_bytes: {private_key_bytes}")
 
-            public_key_bytes = LibraCryptoUtils.ed25519_public_key_from_private_key(
-                private_key_bytes
-            )
+            public_key_bytes = LibraCryptoUtils.ed25519_public_key_from_private_key(private_key_bytes)
             auth_key, addr = LibraCryptoUtils.create_auth_key_and_addr(public_key_bytes)
 
             return cls(
@@ -139,9 +124,9 @@ class LibraCryptoUtils:
 
     @staticmethod
     def create_new_ed25519_key_pair() -> typing.Tuple[bytes, bytes]:
-        """ Create a new Ed25519 keypair
+        """Create a new Ed25519 keypair
 
-            Returns: Tuple[bytes, bytes]: private_key, public_key
+        Returns: Tuple[bytes, bytes]: private_key, public_key
         """
         private_key: Ed25519PrivateKey = Ed25519PrivateKey.generate()
 
@@ -150,9 +135,7 @@ class LibraCryptoUtils:
             format=serialization.PrivateFormat.Raw,
             encryption_algorithm=serialization.NoEncryption(),
         )
-        public_key_bytes = LibraCryptoUtils.ed25519_public_key_from_private_key(
-            private_key_bytes
-        )
+        public_key_bytes = LibraCryptoUtils.ed25519_public_key_from_private_key(private_key_bytes)
 
         return private_key_bytes, public_key_bytes
 
@@ -163,9 +146,7 @@ class LibraCryptoUtils:
 
         private_key = ed25519.Ed25519PrivateKey.from_private_bytes(private_key_bytes)
         public_key = private_key.public_key()
-        return public_key.public_bytes(
-            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
-        )
+        return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
 
     @staticmethod
     def ed25519_sign(private_key_bytes: bytes, message: bytes) -> bytes:

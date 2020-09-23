@@ -1,11 +1,11 @@
 import typing
 
-from calibra.lib.clients.pylibra2._events import (
+from ._events import (
     LibraEvent,
     LibraPaymentEvent,
     LibraUnknownEvent,
 )
-from calibra.lib.clients.pylibra2.json_rpc.types import (
+from .json_rpc.types import (
     BlockMetadataTransactionData,
     MintTransactionScript,
     PeerToPeerTransactionScript,
@@ -91,9 +91,7 @@ class LibraTransaction:
         self._events = []
 
         for event in self._tx_resp.events:
-            if isinstance(event.data, SentPaymentEventData) or isinstance(
-                event.data, ReceivedPaymentEventData
-            ):
+            if isinstance(event.data, SentPaymentEventData) or isinstance(event.data, ReceivedPaymentEventData):
                 self._events.append(typing.cast(LibraEvent, LibraPaymentEvent(event)))
             elif isinstance(event.data, UnknownEventData):
                 self._events.append(typing.cast(LibraEvent, LibraUnknownEvent(event)))
@@ -137,17 +135,11 @@ class LibraUserTransaction(LibraTransaction):
         self._user_tx = typing.cast(UserTransactionData, transaction_resp.transaction)
 
         if isinstance(self._user_tx.script, PeerToPeerTransactionScript):
-            self._script = typing.cast(
-                LibraScript, LibraP2PScript(self._user_tx.script)
-            )
+            self._script = typing.cast(LibraScript, LibraP2PScript(self._user_tx.script))
         elif isinstance(self._user_tx.script, MintTransactionScript):
-            self._script = typing.cast(
-                LibraScript, LibraMintScript(self._user_tx.script)
-            )
+            self._script = typing.cast(LibraScript, LibraMintScript(self._user_tx.script))
         elif isinstance(self._user_tx.script, UnknownTransactionScript):
-            self._script = typing.cast(
-                LibraScript, LibraUnknownScript(self._user_tx.script)
-            )
+            self._script = typing.cast(LibraScript, LibraUnknownScript(self._user_tx.script))
 
     @property
     def sender(self) -> bytes:
@@ -200,9 +192,7 @@ class LibraBlockMetadataTransaction(LibraTransaction):
     def __init__(self, transaction_resp: Transaction):
         super().__init__(transaction_resp)
 
-        self._block_metadata_tx = typing.cast(
-            BlockMetadataTransactionData, transaction_resp.transaction
-        )
+        self._block_metadata_tx = typing.cast(BlockMetadataTransactionData, transaction_resp.transaction)
 
     @property
     def timestamp(self) -> int:

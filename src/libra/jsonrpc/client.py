@@ -164,11 +164,16 @@ class Client:
         params = [address, version, ledger_version]
         return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: AccountStateWithProof()))
 
-    def submit(self, txn: typing.Union[libra_types.SignedTransaction, str]) -> None:
+    def submit(
+        self,
+        txn: typing.Union[libra_types.SignedTransaction, str],
+        raise_stale_response: typing.Optional[typing.Union[bool]] = None,
+    ) -> None:
         if isinstance(txn, libra_types.SignedTransaction):
             return self.submit(txn.lcs_serialize().hex())
 
-        self.execute_without_retry("submit", [txn])
+        self.execute_without_retry(
+            "submit", [txn], result_parser=None, ignore_stale_response=not raise_stale_response)
 
     def wait_for_transaction(
         self, txn: typing.Union[libra_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
@@ -215,7 +220,13 @@ class Client:
     def execute(self, *args, **kwargs):  # pyre-ignore
         return self._retry.execute(lambda: self.execute_without_retry(*args, **kwargs))
 
-    def execute_without_retry(self, method, params, result_parser=None):  # pyre-ignore
+    def execute_without_retry(
+        self,
+        method,
+        params,
+        result_parser=None,
+        ignore_stale_response=None,
+    ):  # pyre-ignore
         request = {
             "jsonrpc": "2.0",
             "id": 1,
@@ -226,15 +237,22 @@ class Client:
             response = self._session.post(self._url, json=request, timeout=self._timeout)
             response.raise_for_status()
             json = response.json()
+
+            # check stable response before check jsonrpc error
+            try:
+                self.update_last_known_state(
+                    json.get("libra_chain_id"),
+                    json.get("libra_ledger_version"),
+                    json.get("libra_ledger_timestampusec"),
+                )
+            except StaleResponseError as e:
+                if not ignore_stale_response:
+                    raise e
+
             if "error" in json:
                 err = json["error"]
                 raise JsonRpcError(f"{err}")
 
-            self.update_last_known_state(
-                json.get("libra_chain_id"),
-                json.get("libra_ledger_version"),
-                json.get("libra_ledger_timestampusec"),
-            )
             if "result" in json:
                 if result_parser:
                     return result_parser(json["result"])

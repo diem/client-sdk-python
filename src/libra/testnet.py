@@ -10,7 +10,7 @@ from . import libra_types, auth_key, jsonrpc, utils
 
 JSON_RPC_URL = "https://testnet.libra.org/v1"
 FAUCET_URL = "https://testnet.libra.org/mint"
-CHAIN_ID = libra_types.ChainId(value=2)
+CHAIN_ID = libra_types.ChainId(value=2)  # pyre-ignore
 
 DESIGNATED_DEALER_ADDRESS = utils.account_address("000000000000000000000000000000dd")
 

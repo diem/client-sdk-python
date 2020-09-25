@@ -49,6 +49,7 @@ dist:
 
 
 publish: dist
+	./venv/bin/pip install --upgrade twine
 	./venv/bin/python3 -m twine upload dist/*
 
 

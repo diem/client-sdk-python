@@ -44,7 +44,12 @@ protobuf:
 gen: libratypes protobuf format
 
 dist:
+	rm -rf build dist
 	./venv/bin/python setup.py -q sdist bdist_wheel
+
+
+publish: dist
+	./venv/bin/python3 -m twine upload dist/*
 
 
 .PHONY: init check lint format test cover build libratypes protobuf gen dist

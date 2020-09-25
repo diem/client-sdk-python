@@ -172,8 +172,7 @@ class Client:
         if isinstance(txn, libra_types.SignedTransaction):
             return self.submit(txn.lcs_serialize().hex())
 
-        self.execute_without_retry(
-            "submit", [txn], result_parser=None, ignore_stale_response=not raise_stale_response)
+        self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=not raise_stale_response)
 
     def wait_for_transaction(
         self, txn: typing.Union[libra_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None

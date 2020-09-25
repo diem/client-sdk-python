@@ -1,0 +1,235 @@
+// Copyright (c) The Libra Core Contributors
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+
+// Go lang generator uses this package name as generated file package name
+// so we have to use a long name to make sure we create a clean package name.
+package librajsonrpctypes;
+option go_package = "github.com/libra/librajsonrpctypes";
+option java_package = "org.libra.jsonrpctypes";
+option java_outer_classname = "JsonRpc";
+
+message Amount {
+  uint64 amount = 1;
+  string currency = 2;
+}
+
+message Account {
+  // hex-encoded bytes
+  string address = 1;
+  repeated Amount balances = 2;
+  uint64 sequence_number = 3 [json_name="sequence_number"];
+
+  // hex-encoded bytes
+  string authentication_key = 4 [json_name="authentication_key"];
+  // hex-encoded bytes
+  string sent_events_key = 5 [json_name="sent_events_key"];
+  // hex-encoded bytes
+  string received_events_key = 6 [json_name="received_events_key"];
+
+  bool delegated_key_rotation_capability = 7 [json_name="delegated_key_rotation_capability"];
+  bool delegated_withdrawal_capability = 8 [json_name="delegated_withdrawal_capability"];
+  bool is_frozen = 9 [json_name="delegated_withdrawal_capability"];
+
+  AccountRole role = 10;
+}
+
+message AccountRole {
+  string type = 1;
+  string parent_vasp_address = 2 [json_name="parent_vasp_address"];
+
+  string human_name = 3 [json_name="human_name"];
+  string base_url = 4 [json_name="base_url"];
+  uint64 expiration_time = 5 [json_name="expiration_time"];
+
+  // hex-encoded bytes
+  string compliance_key = 6 [json_name="compliance_key"];
+  // hex-encoded bytes
+  string compliance_key_rotation_events_key = 7 [json_name="compliance_key_rotation_events_key"];
+  // hex-encoded bytes
+  string base_url_rotation_events_key = 8 [json_name="base_url_rotation_events_key"];
+
+  uint64 num_children = 9 [json_name="num_children"];
+
+  // hex-encoded bytes
+  string received_mint_events_key = 10 [json_name="received_mint_events_key"];
+  repeated Amount preburn_balances = 11 [json_name="preburn_balances"];
+}
+
+message Event {
+  string key = 1;
+  uint64 sequence_number = 2 [json_name="sequence_number"];
+  uint64 transaction_version = 3 [json_name="transaction_version"];
+  EventData data = 4;
+}
+
+message EventData {
+  string type = 1;
+
+  // burn, cancelburn, mint, preburn, receivedpayment, sentpayment, receivedmint events
+  Amount amount = 2;
+
+  // burn, cancelburn, preburn events
+  // hex-encoded bytes
+  string preburn_address = 3 [json_name="preburn_address"];
+
+  // to_lbr_exchange_rate_update event only
+  string currency_code = 4 [json_name="currency_code"];
+  float new_to_lbr_exchange_rate = 5 [json_name="new_to_lbr_exchange_rate"];
+
+  // receivedpayment and sentpayment events
+  // hex-encoded bytes
+  string sender = 6;
+  // hex-encoded bytes
+  string receiver = 7;
+  // hex-encoded bytes
+  string metadata = 8;
+
+  // upgrade event only
+  // hex-encoded bytes
+  string write_set = 9 [json_name="write_set"];
+
+  // newepoch event only
+  uint64 epoch = 10;
+
+  // newblock event only
+  uint64 round = 11;
+  // hex-encoded bytes
+  string proposer = 12;
+  uint64 proposed_time = 13 [json_name="proposed_time"];
+
+  // receivedmint event only
+  // hex-encoded bytes
+  string destination_address = 14 [json_name="destination_address"];
+
+  // compliancekeyrotation event only
+  // hex-encoded bytes
+  string new_compliance_public_key = 15 [json_name="new_compliance_public_key"];
+
+  // baseurlrotation event only
+  string new_base_url = 17 [json_name="new_base_url"];
+
+  // compliancekeyrotation and baseurlrotation events
+  uint64 time_rotated_seconds = 16 [json_name="time_rotated_seconds"];
+}
+
+message BlockMetadata {
+  uint64 version = 1;
+  uint64 timestamp = 2;
+  uint32 chain_id = 3;
+}
+
+message Transaction {
+  uint64 version = 1;
+  TransactionData transaction = 2;
+  string hash = 3;
+  // hex-encoded lcs bytes
+  string bytes = 4;
+  repeated Event events = 5;
+  VMStatus vm_status = 6 [json_name="vm_status"];
+  uint64 gas_used = 7 [json_name="gas_used"];
+}
+
+
+message VMStatus {
+  string type = 1;
+
+  // move_abort, execution_failure
+  string location = 2;
+  // move_abort only
+  uint64 abort_code = 3 [json_name="abort_code"];
+
+  // execution_failure only
+  uint32 function_index = 4 [json_name="function_index"];
+  uint32 code_offset = 5 [json_name="code_offset"];
+}
+
+message TransactionData {
+  string type = 1;
+
+  // blockmetadata
+  uint64 timestamp_usecs = 2 [json_name="timestamp_usecs"];
+
+  // user
+  string sender = 3;
+  string signature_scheme = 4 [json_name="signature_scheme"];
+  string signature = 5;
+  // hex-encoded bytes
+  string public_key = 6 [json_name="public_key"];
+  uint64 sequence_number = 7 [json_name="sequence_number"];
+  uint32 chain_id = 8 [json_name="chain_id"];
+  uint64 max_gas_amount = 9 [json_name="max_gas_amount"];
+  uint64 gas_unit_price = 10 [json_name="gas_unit_price"];
+  string gas_currency = 11 [json_name="gas_currency"];
+  uint64 expiration_timestamp_secs = 12 [json_name="expiration_timestamp_secs"];
+  string script_hash = 13 [json_name="script_hash"];
+  // hex-encoded bytes
+  string script_bytes = 14 [json_name="script_bytes"];
+  Script script = 15;
+}
+
+message Script {
+  string type = 1;
+  // peer_to_peer_transaction and mint_transaction
+  // hex-encoded bytes
+  string receiver = 2;
+  uint64 amount = 3;
+  string currency = 4;
+
+  // peer_to_peer_transaction only
+  // hex-encoded bytes
+  string metadata = 5;
+  // hex-encoded bytes
+  string metadata_signature = 6 [json_name="metadata_signature"];
+
+  // mint_transaction only
+  // hex-encoded bytes
+  string auth_key_prefix = 7 [json_name="auth_key_prefix"];
+}
+
+message CurrencyInfo {
+  string code = 1;
+  uint64 scaling_factor = 2 [json_name="scaling_factor"];
+  uint64 fractional_part = 3 [json_name="fractional_part"];
+  float to_lbr_exchange_rate = 4 [json_name="to_lbr_exchange_rate"];
+  // hex-encoded bytes
+  string mint_events_key = 5 [json_name="mint_events_key"];
+  // hex-encoded bytes
+  string burn_events_key = 6 [json_name="burn_events_key"];
+  // HEX-encoded bytes
+  string preburn_events_key = 7 [json_name="preburn_events_key"];
+  // hex-encoded bytes
+  string cancel_burn_events_key = 8 [json_name="cancel_burn_events_key"];
+  // hex-encoded bytes
+  string exchange_rate_update_events_key = 9 [json_name="exchange_rate_update_events_key"];
+}
+
+message StateProof {
+  // hex-encoded lcs bytes
+  string ledger_info_with_signatures = 1 [json_name="ledger_info_with_signatures"];
+  // hex-encoded lcs bytes
+  string epoch_change_proof = 2 [json_name="epoch_change_proof"];
+  // hex-encoded lcs bytes
+  string ledger_consistency_proof = 3 [json_name="ledger_consistency_proof"];
+}
+
+message AccountStateWithProof {
+  uint64 version = 1;
+  // hex-encoded lcs bytes
+  string blob = 2;
+  // hex-encoded lcs bytes
+  AccountStateProof proof = 3;
+}
+
+
+message AccountStateProof {
+  // hex-encoded lcs bytes
+  string ledger_info_to_transaction_info_proof = 1 [json_name="ledger_info_to_transaction_info_proof"];
+  // hex-encoded lcs bytes
+  string transaction_info = 2 [json_name="transaction_info"];
+  // hex-encoded lcs bytes
+  string transaction_info_to_account_proof = 3 [json_name="transaction_info_to_account_proof"];
+}
+
+

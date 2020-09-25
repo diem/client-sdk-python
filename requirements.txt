@@ -1,0 +1,9 @@
+requests>=2.19
+cryptography>=3.1
+numpy>=1.18
+protobuf>=3.0
+pytest
+pylama
+black
+pyre-check
+pytest-cov

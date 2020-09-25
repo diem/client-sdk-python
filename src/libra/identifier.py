@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import typing
-
+from urllib import parse
 
 LBR = "lbr"  # lbr for mainnet
 TLB = "tlb"  # tlb for testnet
@@ -19,6 +19,44 @@ _LIBRA_SUBADDRESS_SIZE = 8  # in bytes (for V1)
 _LIBRA_ZERO_SUBADDRESS = b"\0" * _LIBRA_SUBADDRESS_SIZE
 _LIBRA_BECH32_VERSION = 1
 _LIBRA_BECH32_SIZE = 50  # in characters
+
+
+class IntentIdentifierError(Exception):
+    pass
+
+
+class IntentIdentifier:
+    @staticmethod
+    def encode(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
+        return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
+
+    @staticmethod
+    def decode(encoded_intent_identifier: str) -> (str, str, int):
+        result = parse.urlparse(encoded_intent_identifier)
+        account_identifier = result.netloc
+        params = parse.parse_qs(result.query)
+
+        amount = _decode_param("amount", params, "am", lambda am: int(am))
+        currency_code = _decode_param("currency code", params, "c", lambda c: str(c))
+
+        return (account_identifier, currency_code, amount)
+
+
+def _decode_param(name, params, field, convert):
+    if field not in params:
+        raise IntentIdentifierError(f"Can't decode {name}: not found in params {params}")
+
+    if not isinstance(params[field], list):
+        raise IntentIdentifierError(f"Can't decode {name}: unknown type {params}")
+
+    if len(params[field]) != 1:
+        raise IntentIdentifierError(f"Can't decode {name}: too many values {params}")
+
+    value = params[field][0]
+    try:
+        return convert(value)
+    except ValueError as e:
+        raise IntentIdentifierError(f"Can't decode {name}: {value}")
 
 
 # Class for encoding/decoding bech32 addresses

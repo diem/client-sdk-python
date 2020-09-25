@@ -1,14 +1,3 @@
-/.idea
-*.pyc
-*.pyd
-*.c
-*.so
-/build
-/dist
-**/*.egg-info
-/_skbuild
-/.pytest_cache
-/.eggs
 /venv
-/.pyre
-Cargo.lock
+/src/*.egg-info
+.pyre

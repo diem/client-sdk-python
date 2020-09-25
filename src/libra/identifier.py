@@ -28,11 +28,30 @@ class IntentIdentifierError(Exception):
 class IntentIdentifier:
     @staticmethod
     def encode(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
+        """
+        Encode account identifier string(encoded), currency code and amount into
+        Libra intent identifier (https://lip.libra.org/lip-5/)
+        """
+
         return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
 
     @staticmethod
     def decode(encoded_intent_identifier: str) -> (str, str, int):
+        """
+        Decode Libra intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
+        1. account identifier
+        2. currency code
+        3. amount
+
+        IntentIdentifierError is raised if given identifier is invalid
+        """
+
         result = parse.urlparse(encoded_intent_identifier)
+        if result.scheme != "libra":
+            raise IntentIdentifierError(
+                f"Unknown intent identifier scheme {result.scheme} in {encoded_intent_identifier}"
+            )
+
         account_identifier = result.netloc
         params = parse.parse_qs(result.query)
 

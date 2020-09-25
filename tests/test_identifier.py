@@ -134,3 +134,7 @@ def test_intent_identifier_decode_errors():
     # currency code not exist
     with pytest.raises(IntentIdentifierError):
         IntentIdentifier.decode("libra://%s?am=2" % (enocded_addr_with_none_subaddr))
+
+    # scheme not match
+    with pytest.raises(IntentIdentifierError):
+        IntentIdentifier.decode("hello://%s?am=2&c=LBR" % (enocded_addr_with_none_subaddr))

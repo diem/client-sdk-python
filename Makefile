@@ -4,8 +4,6 @@
 init:
 	python3 -m venv ./venv
 
-	set -euo pipefail
-
 	./venv/bin/pip install --upgrade pip wheel setuptools
 	./venv/bin/pip install -r requirements.txt
 

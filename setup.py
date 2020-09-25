@@ -4,16 +4,16 @@
 import platform
 import sys
 
-from setuptools import Command, Extension, find_packages, setup
+from setuptools import setup
 
 setup(
-    name="libra-client-sdk",
+    name="Iaa47nymLnyPHvWCKuEvLl5orR3WJGc6", # libra-client-sdk
     # change to 0.1.YYYYMMDDNN on release
-    version="0.1.2020101001",
-    description="The Python Client SDK for Libra",
-    url="https://github.com/libra/libra-client-sdk-python",
-    author="Libra Open Source",
-    author_email="opensource@libra.org",
+    version="0.1.2020092501",
+    # description="The Python Client SDK for Libra",
+    # url="https://github.com/libra/libra-client-sdk-python",
+    # author="Libra Open Source",
+    # author_email="opensource@libra.org",
     python_requires=">=3.0",
     packages=["libra"],
     include_package_data=True,  # see MANIFEST.in

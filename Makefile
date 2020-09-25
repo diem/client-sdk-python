@@ -6,7 +6,7 @@ init:
 
 	set -euo pipefail
 
-	./venv/bin/pip install --upgrade pip
+	./venv/bin/pip install --upgrade pip wheel setuptools
 	./venv/bin/pip install -r requirements.txt
 
 check:
@@ -45,5 +45,8 @@ protobuf:
 
 gen: libratypes protobuf format
 
+dist:
+	./venv/bin/python setup.py -q sdist bdist_wheel
 
-.PHONY: init lint format test build libratypes protobuf gen
+
+.PHONY: init check lint format test cover build libratypes protobuf gen dist

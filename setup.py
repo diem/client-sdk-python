@@ -11,7 +11,10 @@ setup(
     # change to 0.1.YYYYMMDDNN on release
     version="0.1.2020101001",
     description="The Python Client SDK for Libra",
-    python_requires=">=3.7",
+    url="https://github.com/libra/libra-client-sdk-python",
+    author="Libra Open Source",
+    author_email="opensource@libra.org",
+    python_requires=">=3.0",
     packages=["libra"],
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,

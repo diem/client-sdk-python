@@ -149,6 +149,15 @@ class Client:
         params = [address, int(sequence), int(limit), bool(include_events)]
         return self.execute("get_account_transactions", params, _parse_list(lambda: Transaction()))
 
+    def get_transactions(
+        self,
+        start_version: int,
+        limit: int,
+        include_events: typing.Optional[bool] = None,
+    ) -> typing.List[Transaction]:
+        params = [int(start_version), int(limit), bool(include_events)]
+        return self.execute("get_transactions", params, _parse_list(lambda: Transaction()))
+
     def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[Event]:  # pyre-ignore
         params = [event_stream_key, int(start), int(limit)]
         return self.execute("get_events", params, _parse_list(lambda: Event()))

@@ -34,7 +34,7 @@ def encode_intent(encoded_account_identifier: str, currency_code: str, amount: i
     return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
 
 
-def decode_intent(encoded_intent_identifier: str) -> (str, str, int):
+def decode_intent(encoded_intent_identifier: str) -> typing.Tuple[(str, str, int)]:
     """
     Decode Libra intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
     1. account identifier

@@ -144,6 +144,18 @@ def test_get_account_transactions_with_events():
     assert len(txn.events) > 0
 
 
+def test_get_transactions():
+    client = testnet.create_client()
+    txns = client.get_transactions(1, 1)
+    assert txns is not None
+    assert isinstance(txns, list)
+
+    txn = txns[0]
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version == 1
+    assert txn.hash is not None
+
+
 def test_get_events():
     client = testnet.create_client()
     account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)

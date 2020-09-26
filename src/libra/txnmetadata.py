@@ -23,13 +23,15 @@ class Attest:
 
     metadata: libra_types.Metadata
     address: libra_types.AccountAddress
-    amount: serde_types.uint64
+    amount: serde_types.uint64  # pyre-ignore
 
     def lcs_serialize(self) -> bytes:
         return lcs.serialize(self, Attest)
 
 
-def travel_rule(off_chain_reference_id: str, address: libra_types.AccountAddress, amount: int) -> (bytes, bytes):
+def travel_rule(
+    off_chain_reference_id: str, address: libra_types.AccountAddress, amount: int
+) -> typing.Tuple[(bytes, bytes)]:
     """Create travel rule metadata bytes and signature message bytes.
 
     This is used for peer to peer transfer between 2 custodial accounts.
@@ -42,7 +44,7 @@ def travel_rule(off_chain_reference_id: str, address: libra_types.AccountAddress
     )
 
     # receiver_lcs_data = lcs(metadata, sender_address, amount) + "@@$$LIBRA_ATTEST$$@@" /*ASCII-encoded string*/
-    attest = Attest(metadata=metadata, address=address, amount=serde_types.uint64(amount))
+    attest = Attest(metadata=metadata, address=address, amount=serde_types.uint64(amount))  # pyre-ignore
     signing_msg = attest.lcs_serialize() + b"@@$$LIBRA_ATTEST$$@@"
 
     return (metadata.lcs_serialize(), signing_msg)
@@ -64,7 +66,7 @@ def general_metadata(
 
     metadata = libra_types.Metadata__GeneralMetadata(
         value=libra_types.GeneralMetadata__GeneralMetadataVersion0(
-            value=libra_types.GeneralMetadataV0(
+            value=libra_types.GeneralMetadataV0(  # pyre-ignore
                 from_subaddress=from_subaddress,
                 to_subaddress=to_subaddress,
                 referenced_event=serde_types.uint64(referenced_event) if referenced_event else None,
@@ -75,8 +77,8 @@ def general_metadata(
 
 
 def find_refund_reference_event(
-    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[libra_types.AccountAddress, str]
-) -> typing.Optional[jsonrpc.Event]:
+    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[libra_types.AccountAddress, str]  # pyre-ignore
+) -> typing.Optional[jsonrpc.Event]:  # pyre-ignore
     """Find refund reference event from given transaction
 
     The event can be used as reference is the "receivedpayment" event.
@@ -124,7 +126,7 @@ def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
 
         if isinstance(metadata, libra_types.Metadata__GeneralMetadata):
             if isinstance(metadata.value, libra_types.GeneralMetadata__GeneralMetadataVersion0):
-                gmv0 = metadata.value.value
+                gmv0 = metadata.value.value  # pyre-ignore
                 return general_metadata(gmv0.to_subaddress, gmv0.from_subaddress, event.sequence_number)
 
             raise InvalidEventMetadataForRefundError("unknown metadata type: {metadata}")

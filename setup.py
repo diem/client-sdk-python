@@ -5,10 +5,9 @@ import os
 from setuptools import setup
 
 
-
 setup(
     name="pylibra-beta", # libra-client-sdk
-    version="0.5.0.5.2020092602",
+    version="0.5.master",
     # description="The Python Client SDK for Libra",
     # url="https://github.com/libra/libra-client-sdk-python",
     # author="Libra Open Source",

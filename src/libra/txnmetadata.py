@@ -1,0 +1,134 @@
+# Copyright (c) The Libra Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+"""LIP-4 Transaction Metadata Utilities
+
+This module implements utility functions for application to create transaction metadata and metadata signature.
+See https://lip.libra.org/lip-4 for more details
+"""
+
+
+from dataclasses import dataclass
+import typing
+
+from . import libra_types, serde_types, lcs, jsonrpc, utils
+
+
+class InvalidEventMetadataForRefundError(Exception):
+    pass
+
+
+@dataclass
+class Attest:
+
+    metadata: libra_types.Metadata
+    address: libra_types.AccountAddress
+    amount: serde_types.uint64
+
+    def lcs_serialize(self) -> bytes:
+        return lcs.serialize(self, Attest)
+
+
+def travel_rule(off_chain_reference_id: str, address: libra_types.AccountAddress, amount: int) -> (bytes, bytes):
+    """Create travel rule metadata bytes and signature message bytes.
+
+    This is used for peer to peer transfer between 2 custodial accounts.
+    """
+
+    metadata = libra_types.Metadata__TravelRuleMetadata(
+        value=libra_types.TravelRuleMetadata__TravelRuleMetadataVersion0(
+            value=libra_types.TravelRuleMetadataV0(off_chain_reference_id=off_chain_reference_id)
+        )
+    )
+
+    # receiver_lcs_data = lcs(metadata, sender_address, amount) + "@@$$LIBRA_ATTEST$$@@" /*ASCII-encoded string*/
+    attest = Attest(metadata=metadata, address=address, amount=serde_types.uint64(amount))
+    signing_msg = attest.lcs_serialize() + b"@@$$LIBRA_ATTEST$$@@"
+
+    return (metadata.lcs_serialize(), signing_msg)
+
+
+def general_metadata(
+    from_subaddress: typing.Optional[bytes] = None,
+    to_subaddress: typing.Optional[bytes] = None,
+    referenced_event: typing.Optional[int] = None,
+) -> bytes:
+    """Create general metadata for peer to peer transaction script
+
+    Use this function to create metadata with from and to sub-addresses for peer to peer transfer
+    from custodial account to custodial account under travel rule threshold.
+
+    Give from_subaddress None for the case transferring from non-custodial to custodial account.
+    Give to_subaddress None for the case transferring from custodial to non-custodial account.
+    """
+
+    metadata = libra_types.Metadata__GeneralMetadata(
+        value=libra_types.GeneralMetadata__GeneralMetadataVersion0(
+            value=libra_types.GeneralMetadataV0(
+                from_subaddress=from_subaddress,
+                to_subaddress=to_subaddress,
+                referenced_event=serde_types.uint64(referenced_event) if referenced_event else None,
+            )
+        )
+    )
+    return metadata.lcs_serialize()
+
+
+def find_refund_reference_event(
+    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[libra_types.AccountAddress, str]
+) -> typing.Optional[jsonrpc.Event]:
+    """Find refund reference event from given transaction
+
+    The event can be used as reference is the "receivedpayment" event.
+    We also only return event that receiver address matches given reciever address, because
+    it is possible we may have mutliple receivers for one transaction in the future.
+
+    Returns None if given transaction is None or the event not found.
+    If this function returns an event, then you may call `refund_metadata_from_event` function
+    to create refund metadata for the refund transaction.
+    """
+
+    if txn is None:
+        return None
+
+    address = utils.account_address_hex(receiver)
+    for event in txn.events:
+        if event.data.type == "receivedpayment" and event.data.receiver == address:
+            return event
+
+    return None
+
+
+def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
+    """create refund metadat for the event
+
+    The given event should be the reference event for the refund, it should have metadata describes
+    the payment details.
+    May call `find_refund_reference_event` function to find reference event from a peer to peer transfer
+    transaction.
+
+    Returns empty bytes array if given event metadata is None or empty string, this is for the case
+    the peer to peer transaction is a non-custodial to non-custodial account, which does not require
+    metadata, hence the refund transaction should not have metadata too.
+
+    Raises InvalidEventMetadataForRefundError if metadata can't be decoded as
+    libra_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund metadata
+    """
+
+    if not event.data.metadata:
+        return b""
+
+    try:
+        metadata_bytes = bytes.fromhex(event.data.metadata)
+        metadata = libra_types.Metadata.lcs_deserialize(metadata_bytes)
+
+        if isinstance(metadata, libra_types.Metadata__GeneralMetadata):
+            if isinstance(metadata.value, libra_types.GeneralMetadata__GeneralMetadataVersion0):
+                gmv0 = metadata.value.value
+                return general_metadata(gmv0.to_subaddress, gmv0.from_subaddress, event.sequence_number)
+
+            raise InvalidEventMetadataForRefundError("unknown metadata type: {metadata}")
+
+        raise InvalidEventMetadataForRefundError(f"unknown metadata type: {metadata}")
+    except ValueError as e:
+        raise InvalidEventMetadataForRefundError(f"invalid event metadata for refund: {e}, event: {event}")

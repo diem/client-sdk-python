@@ -42,6 +42,10 @@ def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> 
     return bytes(typing.cast(typing.Iterable[int], addr.value)).hex()
 
 
+def sub_address(addr: str) -> bytes:
+    return bytes.fromhex(addr)
+
+
 def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:
     return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
 

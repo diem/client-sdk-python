@@ -51,11 +51,9 @@ version:
 
 dist:
 	rm -rf build dist
-	sed -i '.origin' 's/"master"/"$(shell git describe --tags | cut -c 2-15)"/' setup.py
-	./venv/bin/python setup.py -q sdist bdist_wheel
+	sed -i -e 's/"master"/"$(shell git describe --tags | cut -c 2-15)"/' setup.py
 	cat setup.py
-	git checkout setup.py
-	rm setup.py.origin
+	./venv/bin/python setup.py -q sdist bdist_wheel
 
 
 publish: dist

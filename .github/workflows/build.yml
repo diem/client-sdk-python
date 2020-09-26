@@ -25,4 +25,5 @@ jobs:
         make init
     - name: Test
       run: |
+        make dist
         make build

@@ -1,11 +1,10 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 import requests
 import typing
 
-from . import libra_types, auth_key, jsonrpc, utils, local_account
+from . import libra_types, jsonrpc, utils, local_account
 
 
 JSON_RPC_URL = "https://testnet.libra.org/v1"

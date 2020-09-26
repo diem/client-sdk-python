@@ -8,7 +8,7 @@ from setuptools import setup
 
 setup(
     name="pylibra-beta", # libra-client-sdk
-    version= os.getenv('LIBRA_CLIENT_SDK_VERSION', "0.5.master"),
+    version=os.getenv('LIBRA_CLIENT_SDK_VERSION', "0.5.master"),
     # description="The Python Client SDK for Libra",
     # url="https://github.com/libra/libra-client-sdk-python",
     # author="Libra Open Source",

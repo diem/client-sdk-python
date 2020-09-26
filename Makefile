@@ -10,6 +10,9 @@ init:
 check:
 	./venv/bin/pyre --search-path venv/lib/python3.8/site-packages check
 
+pylama:
+	./venv/bin/pylama src tests
+
 lint:
 	./venv/bin/python -m black --check src tests
 
@@ -18,7 +21,7 @@ format:
 
 test: format
 	./venv/bin/python setup.py develop
-	./venv/bin/pytest -W ignore::pytest.PytestDeprecationWarning --pylama tests/test_* -k "$(TEST)"
+	./venv/bin/pytest tests/test_* -k "$(TEST)"
 
 cover:
 	./venv/bin/python setup.py develop
@@ -57,4 +60,4 @@ publish: dist
 	./venv/bin/python3 -m twine upload dist/*
 
 
-.PHONY: init check lint format test cover build libratypes protobuf gen dist version
+.PHONY: init check lint format test cover build libratypes protobuf gen dist version pylama

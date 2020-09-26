@@ -12,8 +12,7 @@ import threading
 import typing
 
 from .. import libra_types, utils
-
-from .libra_jsonrpc_types_pb2 import *
+from . import libra_jsonrpc_types_pb2 as rpc
 
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
@@ -117,26 +116,26 @@ class Client:
     def get_metadata(
         self,
         version: typing.Optional[int] = None,
-    ) -> BlockMetadata:  # pyre-ignore
+    ) -> rpc.BlockMetadata:  # pyre-ignore
         params = [int(version)] if version else []
-        return self.execute("get_metadata", params, _parse_obj(lambda: BlockMetadata()))
+        return self.execute("get_metadata", params, _parse_obj(lambda: rpc.BlockMetadata()))
 
-    def get_currencies(self) -> typing.List[CurrencyInfo]:  # pyre-ignore
-        return self.execute("get_currencies", [], _parse_list(lambda: CurrencyInfo()))
+    def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:  # pyre-ignore
+        return self.execute("get_currencies", [], _parse_list(lambda: rpc.CurrencyInfo()))
 
-    def get_account(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> Account:  # pyre-ignore
+    def get_account(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> rpc.Account:  # pyre-ignore
         address = utils.account_address_hex(account_address)
-        return self.execute("get_account", [address], _parse_obj(lambda: Account()))
+        return self.execute("get_account", [address], _parse_obj(lambda: rpc.Account()))
 
     def get_account_transaction(
         self,
         account_address: typing.Union[libra_types.AccountAddress, str],
         sequence: int,
         include_events: typing.Optional[bool] = None,
-    ) -> Transaction:  # pyre-ignore
+    ) -> rpc.Transaction:  # pyre-ignore
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), bool(include_events)]
-        return self.execute("get_account_transaction", params, _parse_obj(lambda: Transaction()))
+        return self.execute("get_account_transaction", params, _parse_obj(lambda: rpc.Transaction()))
 
     def get_account_transactions(
         self,
@@ -144,37 +143,37 @@ class Client:
         sequence: int,
         limit: int,
         include_events: typing.Optional[bool] = None,
-    ) -> typing.List[Transaction]:
+    ) -> typing.List[rpc.Transaction]:
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), int(limit), bool(include_events)]
-        return self.execute("get_account_transactions", params, _parse_list(lambda: Transaction()))
+        return self.execute("get_account_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
     def get_transactions(
         self,
         start_version: int,
         limit: int,
         include_events: typing.Optional[bool] = None,
-    ) -> typing.List[Transaction]:
+    ) -> typing.List[rpc.Transaction]:
         params = [int(start_version), int(limit), bool(include_events)]
-        return self.execute("get_transactions", params, _parse_list(lambda: Transaction()))
+        return self.execute("get_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
-    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[Event]:  # pyre-ignore
+    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[rpc.Event]:  # pyre-ignore
         params = [event_stream_key, int(start), int(limit)]
-        return self.execute("get_events", params, _parse_list(lambda: Event()))
+        return self.execute("get_events", params, _parse_list(lambda: rpc.Event()))
 
-    def get_state_proof(self, version: int) -> StateProof:  # pyre-ignore
+    def get_state_proof(self, version: int) -> rpc.StateProof:  # pyre-ignore
         params = [int(version)]
-        return self.execute("get_state_proof", params, _parse_obj(lambda: StateProof()))
+        return self.execute("get_state_proof", params, _parse_obj(lambda: rpc.StateProof()))
 
     def get_account_state_with_proof(
         self,
         account_address: libra_types.AccountAddress,
         version: typing.Optional[int] = None,
         ledger_version: typing.Optional[int] = None,
-    ) -> AccountStateWithProof:  # pyre-ignore
+    ) -> rpc.AccountStateWithProof:  # pyre-ignore
         address = utils.account_address_hex(account_address)
         params = [address, version, ledger_version]
-        return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: AccountStateWithProof()))
+        return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof()))
 
     def submit(
         self,
@@ -188,7 +187,7 @@ class Client:
 
     def wait_for_transaction(
         self, txn: typing.Union[libra_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
-    ) -> Transaction:
+    ) -> rpc.Transaction:
         if isinstance(txn, str):
             txn_obj = libra_types.SignedTransaction.lcs_deserialize(bytes.fromhex(txn))
             return self.wait_for_transaction(txn_obj, timeout_secs)
@@ -209,7 +208,7 @@ class Client:
         txn_hash: str,
         timeout_secs: typing.Optional[float] = None,
         wait_duration_secs: typing.Optional[float] = None,
-    ) -> Transaction:
+    ) -> rpc.Transaction:
         max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
         while time.time() < max_wait:
             txn = self.get_account_transaction(address, seq)
@@ -222,7 +221,8 @@ class Client:
             state = self.get_last_known_state()
             if expiration_time_secs * 1_000_000 <= state.timestamp_usecs:
                 raise TransactionExpired(
-                    f"latest server ledger timestamp_usecs {state.timestamp_usecs}, transaction expires at {expiration_time_secs}"
+                    f"latest server ledger timestamp_usecs {state.timestamp_usecs}, "
+                    f"transaction expires at {expiration_time_secs}"
                 )
             time.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
 

@@ -114,14 +114,17 @@ class Client:
                 timestamp_usecs=timestamp_usecs,
             )
 
-    def get_metadata(self, version: typing.Optional[int] = None) -> BlockMetadata:
+    def get_metadata(
+        self,
+        version: typing.Optional[int] = None,
+    ) -> BlockMetadata:  # pyre-ignore
         params = [int(version)] if version else []
         return self.execute("get_metadata", params, _parse_obj(lambda: BlockMetadata()))
 
-    def get_currencies(self) -> typing.List[CurrencyInfo]:
+    def get_currencies(self) -> typing.List[CurrencyInfo]:  # pyre-ignore
         return self.execute("get_currencies", [], _parse_list(lambda: CurrencyInfo()))
 
-    def get_account(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> Account:
+    def get_account(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> Account:  # pyre-ignore
         address = utils.account_address_hex(account_address)
         return self.execute("get_account", [address], _parse_obj(lambda: Account()))
 
@@ -130,7 +133,7 @@ class Client:
         account_address: typing.Union[libra_types.AccountAddress, str],
         sequence: int,
         include_events: typing.Optional[bool] = None,
-    ) -> Transaction:
+    ) -> Transaction:  # pyre-ignore
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), bool(include_events)]
         return self.execute("get_account_transaction", params, _parse_obj(lambda: Transaction()))
@@ -146,11 +149,20 @@ class Client:
         params = [address, int(sequence), int(limit), bool(include_events)]
         return self.execute("get_account_transactions", params, _parse_list(lambda: Transaction()))
 
-    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[Event]:
+    def get_transactions(
+        self,
+        start_version: int,
+        limit: int,
+        include_events: typing.Optional[bool] = None,
+    ) -> typing.List[Transaction]:
+        params = [int(start_version), int(limit), bool(include_events)]
+        return self.execute("get_transactions", params, _parse_list(lambda: Transaction()))
+
+    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[Event]:  # pyre-ignore
         params = [event_stream_key, int(start), int(limit)]
         return self.execute("get_events", params, _parse_list(lambda: Event()))
 
-    def get_state_proof(self, version: int) -> StateProof:
+    def get_state_proof(self, version: int) -> StateProof:  # pyre-ignore
         params = [int(version)]
         return self.execute("get_state_proof", params, _parse_obj(lambda: StateProof()))
 
@@ -159,7 +171,7 @@ class Client:
         account_address: libra_types.AccountAddress,
         version: typing.Optional[int] = None,
         ledger_version: typing.Optional[int] = None,
-    ) -> AccountStateWithProof:
+    ) -> AccountStateWithProof:  # pyre-ignore
         address = utils.account_address_hex(account_address)
         params = [address, version, ledger_version]
         return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: AccountStateWithProof()))
@@ -219,13 +231,14 @@ class Client:
     def execute(self, *args, **kwargs):  # pyre-ignore
         return self._retry.execute(lambda: self.execute_without_retry(*args, **kwargs))
 
+    # pyre-ignore
     def execute_without_retry(
         self,
-        method,
-        params,
-        result_parser=None,
-        ignore_stale_response=None,
-    ):  # pyre-ignore
+        method: str,
+        params,  # pyre-ignore
+        result_parser=None,  # pyre-ignore
+        ignore_stale_response: typing.Optional[bool] = None,
+    ):
         request = {
             "jsonrpc": "2.0",
             "id": 1,

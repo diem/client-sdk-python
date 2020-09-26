@@ -9,8 +9,9 @@ from libra import (
     testnet,
     utils,
     InvalidAccountAddressError,
+    LocalAccount,
 )
-from .local_account import LocalAccount
+
 import numpy as np
 import time
 import pytest
@@ -73,9 +74,9 @@ def test_get_account_by_invalid_hex_encoded_account_address():
 
 
 def test_get_account_not_exist():
-    account = LocalAccount.gen()
+    local_account = LocalAccount.generate()
     client = testnet.create_client()
-    account = client.get_account(account.account_address())
+    account = client.get_account(local_account.account_address)
     assert account is None
 
 
@@ -144,6 +145,18 @@ def test_get_account_transactions_with_events():
     assert len(txn.events) > 0
 
 
+def test_get_transactions():
+    client = testnet.create_client()
+    txns = client.get_transactions(1, 1)
+    assert txns is not None
+    assert isinstance(txns, list)
+
+    txn = txns[0]
+    assert isinstance(txn, jsonrpc.Transaction)
+    assert txn.version == 1
+    assert txn.hash is not None
+
+
 def test_get_events():
     client = testnet.create_client()
     account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
@@ -208,8 +221,8 @@ def test_submit_create_child_vasp():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = LocalAccount(*faucet.gen_account())
-    child_vasp = LocalAccount.gen()
+    parent_vasp = faucet.gen_account()
+    child_vasp = LocalAccount.generate()
     signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
 
     client.submit(signed_txn)
@@ -230,8 +243,8 @@ def test_submit_create_child_vasp():
 def test_submit_failed():
     client = testnet.create_client()
 
-    parent_vasp = LocalAccount.gen()
-    child_vasp = LocalAccount.gen()
+    parent_vasp = LocalAccount.generate()
+    child_vasp = LocalAccount.generate()
     signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
 
     with pytest.raises(jsonrpc.JsonRpcError):
@@ -242,7 +255,7 @@ def test_wait_for_transaction_hash_mismatched_and_execution_failed():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = LocalAccount(*faucet.gen_account())
+    parent_vasp = faucet.gen_account()
     # parent vasp as child, invalid transaction
     signed_txn = create_child_vasp_txn(parent_vasp, parent_vasp)
     client.submit(signed_txn)
@@ -259,25 +272,25 @@ def test_wait_for_transaction_timeout_and_expire():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = LocalAccount(*faucet.gen_account())
+    parent_vasp = faucet.gen_account()
 
     with pytest.raises(jsonrpc.TransactionExpired):
-        client.wait_for_transaction2(parent_vasp.account_address(), 1, time.time() + 0.2, "hash")
+        client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 0.2, "hash")
 
     with pytest.raises(jsonrpc.WaitForTransactionTimeout):
-        client.wait_for_transaction2(parent_vasp.account_address(), 1, time.time() + 5, "hash", 0.1)
+        client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 5, "hash", 0.1)
 
 
 def create_child_vasp_txn(parent_vasp, child_vasp):
     script = stdlib.encode_create_child_vasp_account_script(
         coin_type=utils.currency_code("LBR"),
-        child_address=child_vasp.account_address(),
-        auth_key_prefix=child_vasp.authkey.prefix(),
+        child_address=child_vasp.account_address,
+        auth_key_prefix=child_vasp.auth_key.prefix(),
         add_all_currencies=False,
         child_initial_balance=1_000_000,
     )
     txn = libra_types.RawTransaction(
-        sender=parent_vasp.account_address(),
+        sender=parent_vasp.account_address,
         sequence_number=0,
         payload=libra_types.TransactionPayload__Script(script),
         max_gas_amount=1_000_000,
@@ -287,5 +300,4 @@ def create_child_vasp_txn(parent_vasp, child_vasp):
         chain_id=testnet.CHAIN_ID,
     )
 
-    signature = parent_vasp.private_key.sign(utils.raw_transaction_signing_msg(txn))
-    return utils.create_signed_transaction(txn, parent_vasp.public_key(), signature)
+    return parent_vasp.sign(txn)

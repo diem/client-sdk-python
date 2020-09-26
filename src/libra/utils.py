@@ -32,7 +32,7 @@ def account_address(addr: typing.Union[bytes, str]) -> libra_types.AccountAddres
             "account address bytes length should be {ACCOUNT_ADDRESS_LEN}, but got {len(addr)}"
         )
 
-    return libra_types.AccountAddress(value=tuple(serde_types.uint8(x) for x in addr))
+    return libra_types.AccountAddress(value=tuple(serde_types.uint8(x) for x in addr))  # pyre-ignore
 
 
 def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> str:
@@ -40,6 +40,10 @@ def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> 
         return account_address_hex(account_address(addr))
 
     return bytes(typing.cast(typing.Iterable[int], addr.value)).hex()
+
+
+def sub_address(addr: str) -> bytes:
+    return bytes.fromhex(addr)
 
 
 def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:

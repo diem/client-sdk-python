@@ -1,3 +1,5 @@
 /venv
 /src/*.egg-info
 .pyre
+/build
+/dist

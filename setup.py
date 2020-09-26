@@ -1,20 +1,18 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-import platform
-import sys
-
+import os
 from setuptools import setup
 
+
+
 setup(
-    name="Iaa47nymLnyPHvWCKuEvLl5orR3WJGc6", # libra-client-sdk
-    # change to 0.1.YYYYMMDDNN on release
-    version="0.1.2020092501",
+    name="pylibra-beta", # libra-client-sdk
+    version= os.getenv('LIBRA_CLIENT_SDK_VERSION', "0.5.master"),
     # description="The Python Client SDK for Libra",
     # url="https://github.com/libra/libra-client-sdk-python",
     # author="Libra Open Source",
-    # author_email="opensource@libra.org",
-    python_requires=">=3.0",
+    python_requires=">=3.7", # requires dataclasses
     packages=["libra"],
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,

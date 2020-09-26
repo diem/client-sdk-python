@@ -7,7 +7,7 @@ from setuptools import setup
 
 setup(
     name="pylibra-beta", # libra-client-sdk
-    version="v0.5.2020092604", # bump up version for release, format 0.X.YYYYMMDDNN
+    version="0.5.2020092604", # bump up version for release, format 0.X.YYYYMMDDNN
     # description="The Python Client SDK for Libra",
     # url="https://github.com/libra/libra-client-sdk-python",
     # author="Libra Open Source",

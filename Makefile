@@ -46,16 +46,10 @@ protobuf:
 
 gen: libratypes protobuf format
 
-version:
-	@echo $(shell git describe --tags | cut -c 2-15)
 
 dist:
 	rm -rf build dist
-	sed -i '.origin' 's/"master"/"$(shell git describe --tags | cut -c 2-15)"/' setup.py
 	./venv/bin/python setup.py -q sdist bdist_wheel
-	cat setup.py
-	git checkout setup.py
-	rm setup.py.origin
 
 
 publish: dist
@@ -63,4 +57,4 @@ publish: dist
 	./venv/bin/python3 -m twine upload dist/*
 
 
-.PHONY: init check lint format test cover build libratypes protobuf gen dist version pylama
+.PHONY: init check lint format test cover build libratypes protobuf gen dist pylama

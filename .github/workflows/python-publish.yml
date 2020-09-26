@@ -27,7 +27,5 @@ jobs:
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_PUBLISH_API_TOKEN }}
-      working-directory: python
       run: |
-        python setup.py sdist bdist_wheel
-        twine upload dist/*
+        make publish

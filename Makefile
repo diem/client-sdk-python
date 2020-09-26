@@ -43,8 +43,12 @@ protobuf:
 
 gen: libratypes protobuf format
 
+version:
+	@echo $(shell git describe --tags | cut -c 2-15)
+
 dist:
 	rm -rf build dist
+	LIBRA_CLIENT_SDK_VERSION="$(shell git describe --tags | cut -c 2-15)" \
 	./venv/bin/python setup.py -q sdist bdist_wheel
 
 
@@ -53,4 +57,4 @@ publish: dist
 	./venv/bin/python3 -m twine upload dist/*
 
 
-.PHONY: init check lint format test cover build libratypes protobuf gen dist
+.PHONY: init check lint format test cover build libratypes protobuf gen dist version

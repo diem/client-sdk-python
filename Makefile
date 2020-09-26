@@ -51,7 +51,7 @@ version:
 
 dist:
 	rm -rf build dist
-	LIBRA_CLIENT_SDK_VERSION="$(shell git describe --tags | cut -c 2-15)" \
+	sed -i origin 's/master/$(shell git describe --tags | cut -c 2-15)/' setup.py
 	./venv/bin/python setup.py -q sdist bdist_wheel
 
 

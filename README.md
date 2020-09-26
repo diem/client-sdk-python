@@ -52,3 +52,11 @@ TEST=<test file / test name> make test
 cd libra
 git pull origin master
 ```
+
+## Release a new version
+
+```
+git checkout <release version>
+git tag 0.x.YYYYMMDDNN
+git push origin --tags
+```

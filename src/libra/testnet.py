@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 import requests
 import typing
 
-from . import libra_types, auth_key, jsonrpc, utils
+from . import libra_types, auth_key, jsonrpc, utils, local_account
 
 
 JSON_RPC_URL = "https://testnet.libra.org/v1"
@@ -30,13 +30,12 @@ class Faucet:
         self._url = url or FAUCET_URL
         self._retry = retry or jsonrpc.Retry(5, 0.2, Exception)
 
-    def gen_account(self) -> typing.Tuple[(Ed25519PrivateKey, auth_key.AuthKey)]:
-        private_key = Ed25519PrivateKey.generate()
-        authkey = auth_key.create_from_public_key(private_key.public_key())
+    def gen_account(self) -> local_account.LocalAccount:
+        account = local_account.LocalAccount.generate()
 
-        self.mint(authkey.hex(), 1_000_000_000, "LBR")
+        self.mint(account.auth_key.hex(), 1_000_000_000, "LBR")
 
-        return (private_key, authkey)
+        return account
 
     def mint(self, *args, **kwargs):
         seq = self._retry.execute(lambda: self._mint_without_retry(*args, **kwargs))

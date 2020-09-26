@@ -6,7 +6,7 @@ from setuptools import setup
 setup(
     name="Iaa47nymLnyPHvWCKuEvLl5orR3WJGc6", # libra-client-sdk
     # change to 0.1.YYYYMMDDNN on release
-    version="0.1.2020092501",
+    version="0.1.2020092502",
     # description="The Python Client SDK for Libra",
     # url="https://github.com/libra/libra-client-sdk-python",
     # author="Libra Open Source",

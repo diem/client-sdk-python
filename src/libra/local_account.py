@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from . import (
-    auth_key,
     libra_types,
     utils,
 )
+
+from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 
 
@@ -24,12 +25,12 @@ class LocalAccount:
 
     private_key: Ed25519PrivateKey
 
-    def __init__(self, private_key: Ed25519PrivateKey) -> "LocalAccount":
+    def __init__(self, private_key: Ed25519PrivateKey) -> None:
         self.private_key = private_key
 
     @property
-    def auth_key(self) -> auth_key.AuthKey:
-        return auth_key.create_from_public_key(self.public_key)
+    def auth_key(self) -> AuthKey:
+        return AuthKey.from_public_key(self.public_key)
 
     @property
     def account_address(self) -> libra_types.AccountAddress:

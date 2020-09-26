@@ -10,7 +10,10 @@ init:
 check:
 	./venv/bin/pyre --search-path venv/lib/python3.8/site-packages check
 
-lint:
+pylama:
+	./venv/bin/pylama src tests
+
+lint: check
 	./venv/bin/python -m black --check src tests
 
 format:
@@ -18,7 +21,7 @@ format:
 
 test: format
 	./venv/bin/python setup.py develop
-	./venv/bin/pytest -W ignore::pytest.PytestDeprecationWarning --pylama tests/test_* -k "$(TEST)"
+	./venv/bin/pytest tests/test_* -k "$(TEST)"
 
 cover:
 	./venv/bin/python setup.py develop
@@ -48,8 +51,11 @@ version:
 
 dist:
 	rm -rf build dist
-	LIBRA_CLIENT_SDK_VERSION="$(shell git describe --tags | cut -c 2-15)" \
+	sed -i '.origin' 's/0.1.master/$(shell git describe --tags | cut -c 2-15)/' setup.py
 	./venv/bin/python setup.py -q sdist bdist_wheel
+	cat setup.py
+	git checkout setup.py
+	rm setup.py.origin
 
 
 publish: dist
@@ -57,4 +63,4 @@ publish: dist
 	./venv/bin/python3 -m twine upload dist/*
 
 
-.PHONY: init check lint format test cover build libratypes protobuf gen dist version
+.PHONY: init check lint format test cover build libratypes protobuf gen dist version pylama

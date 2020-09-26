@@ -72,7 +72,7 @@ def _decode_param(name, params, field, convert):
     try:
         return convert(value)
     except ValueError as e:
-        raise IntentIdentifierError(f"Can't decode {name}: {value}")
+        raise IntentIdentifierError(f"Can't decode {name}: {value}, error: {e}")
 
 
 def encode_account(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb") -> str:

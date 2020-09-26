@@ -25,40 +25,36 @@ class IntentIdentifierError(Exception):
     pass
 
 
-class IntentIdentifier:
-    @staticmethod
-    def encode(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
-        """
-        Encode account identifier string(encoded), currency code and amount into
-        Libra intent identifier (https://lip.libra.org/lip-5/)
-        """
+def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
+    """
+    Encode account identifier string(encoded), currency code and amount into
+    Libra intent identifier (https://lip.libra.org/lip-5/)
+    """
 
-        return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
+    return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
 
-    @staticmethod
-    def decode(encoded_intent_identifier: str) -> (str, str, int):
-        """
-        Decode Libra intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
-        1. account identifier
-        2. currency code
-        3. amount
 
-        IntentIdentifierError is raised if given identifier is invalid
-        """
+def decode_intent(encoded_intent_identifier: str) -> (str, str, int):
+    """
+    Decode Libra intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
+    1. account identifier
+    2. currency code
+    3. amount
 
-        result = parse.urlparse(encoded_intent_identifier)
-        if result.scheme != "libra":
-            raise IntentIdentifierError(
-                f"Unknown intent identifier scheme {result.scheme} in {encoded_intent_identifier}"
-            )
+    IntentIdentifierError is raised if given identifier is invalid
+    """
 
-        account_identifier = result.netloc
-        params = parse.parse_qs(result.query)
+    result = parse.urlparse(encoded_intent_identifier)
+    if result.scheme != "libra":
+        raise IntentIdentifierError(f"Unknown intent identifier scheme {result.scheme} in {encoded_intent_identifier}")
 
-        amount = _decode_param("amount", params, "am", lambda am: int(am))
-        currency_code = _decode_param("currency code", params, "c", lambda c: str(c))
+    account_identifier = result.netloc
+    params = parse.parse_qs(result.query)
 
-        return (account_identifier, currency_code, amount)
+    amount = _decode_param("amount", params, "am", lambda am: int(am))
+    currency_code = _decode_param("currency code", params, "c", lambda c: str(c))
+
+    return (account_identifier, currency_code, amount)
 
 
 def _decode_param(name, params, field, convert):
@@ -78,37 +74,34 @@ def _decode_param(name, params, field, convert):
         raise IntentIdentifierError(f"Can't decode {name}: {value}")
 
 
-# Class for encoding/decoding bech32 addresses
-class AccountIdentifier:
-    @staticmethod
-    def encode(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb") -> str:
-        """Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format"""
-        onchain_address_bytes = bytes.fromhex(onchain_addr)
-        subaddress_bytes = bytes.fromhex(subaddr) if subaddr else None
+def encode_account(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb") -> str:
+    """Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format"""
+    onchain_address_bytes = bytes.fromhex(onchain_addr)
+    subaddress_bytes = bytes.fromhex(subaddr) if subaddr else None
 
-        try:
-            encoded_address = bech32_address_encode(hrp, onchain_address_bytes, subaddress_bytes)
-        except Bech32Error as e:
-            raise ValueError(
-                f"Can't encode from "
-                f"onchain_addr: {onchain_addr}, "
-                f"subaddr: {subaddr}, "
-                f"hrp: {hrp}, got error: {e}"
-            )
-        return encoded_address
+    try:
+        encoded_address = bech32_address_encode(hrp, onchain_address_bytes, subaddress_bytes)
+    except Bech32Error as e:
+        raise ValueError(
+            f"Can't encode from "
+            f"onchain_addr: {onchain_addr}, "
+            f"subaddr: {subaddr}, "
+            f"hrp: {hrp}, got error: {e}"
+        )
+    return encoded_address
 
-    @staticmethod
-    def decode(encoded_address: str, hrp: str = "tlb") -> typing.Tuple[str, typing.Optional[str]]:
-        """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
-        try:
-            (_version, onchain_address_bytes, subaddress_bytes) = bech32_address_decode(hrp, encoded_address)
-        except Bech32Error as e:
-            raise ValueError(f"Can't decode from encoded str {encoded_address}, " f"got error: {e}")
 
-        # If subaddress is absent, subaddress_bytes is a list of 0
-        if subaddress_bytes != _LIBRA_ZERO_SUBADDRESS:
-            return (onchain_address_bytes.hex(), subaddress_bytes.hex())
-        return (onchain_address_bytes.hex(), None)
+def decode_account(encoded_address: str, hrp: str = "tlb") -> typing.Tuple[str, typing.Optional[str]]:
+    """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
+    try:
+        (_version, onchain_address_bytes, subaddress_bytes) = bech32_address_decode(hrp, encoded_address)
+    except Bech32Error as e:
+        raise ValueError(f"Can't decode from encoded str {encoded_address}, " f"got error: {e}")
+
+    # If subaddress is absent, subaddress_bytes is a list of 0
+    if subaddress_bytes != _LIBRA_ZERO_SUBADDRESS:
+        return (onchain_address_bytes.hex(), subaddress_bytes.hex())
+    return (onchain_address_bytes.hex(), None)
 
 
 ######################################################################################

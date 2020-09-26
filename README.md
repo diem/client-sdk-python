@@ -55,8 +55,11 @@ git pull origin master
 
 ## Release a new version
 
+* Update setup.py, bump up version
+* Commit and merge
+
 ```
-git checkout <release version>
-git tag 0.x.YYYYMMDDNN
+git checkout <releasse version>
+git tag v<release version>
 git push origin --tags
 ```

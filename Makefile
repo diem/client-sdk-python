@@ -13,7 +13,7 @@ check:
 pylama:
 	./venv/bin/pylama src tests
 
-lint:
+lint: check
 	./venv/bin/python -m black --check src tests
 
 format:

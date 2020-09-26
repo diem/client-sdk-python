@@ -12,10 +12,10 @@ JSON_RPC_URL = "https://testnet.libra.org/v1"
 FAUCET_URL = "https://testnet.libra.org/mint"
 CHAIN_ID = libra_types.ChainId(value=2)  # pyre-ignore
 
-DESIGNATED_DEALER_ADDRESS = utils.account_address("000000000000000000000000000000dd")
+DESIGNATED_DEALER_ADDRESS: libra_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
 
 
-def create_client():
+def create_client() -> jsonrpc.Client:
     return jsonrpc.Client(JSON_RPC_URL)
 
 

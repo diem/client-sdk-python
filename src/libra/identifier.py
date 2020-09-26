@@ -3,6 +3,7 @@
 
 import typing
 from urllib import parse
+from typing import List
 
 LBR = "lbr"  # lbr for mainnet
 TLB = "tlb"  # tlb for testnet
@@ -13,10 +14,10 @@ _BECH32_SEPARATOR = "1"
 _BECH32_CHECKSUM_CHAR_SIZE = 6
 
 # LIBRA constants
-_LIBRA_HRP = [LBR, TLB]
+_LIBRA_HRP: List[str] = [LBR, TLB]
 _LIBRA_ADDRESS_SIZE = 16  # in bytes
 _LIBRA_SUBADDRESS_SIZE = 8  # in bytes (for V1)
-_LIBRA_ZERO_SUBADDRESS = b"\0" * _LIBRA_SUBADDRESS_SIZE
+_LIBRA_ZERO_SUBADDRESS: bytes = b"\0" * _LIBRA_SUBADDRESS_SIZE
 _LIBRA_BECH32_VERSION = 1
 _LIBRA_BECH32_SIZE = 50  # in characters
 

@@ -81,6 +81,11 @@ class Retry:
 
 
 class Client:
+    """Libra JSON-RPC API client
+
+    [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
+    """
+
     def __init__(
         self,
         server_url: str,
@@ -96,12 +101,23 @@ class Client:
         self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
 
     def get_last_known_state(self) -> State:
+        """get last known server state
+
+        All JSON-RPC service response contains chain_id, latest ledger state version and
+        ledger state timestamp usecs.
+        Returns a state with all -1 values if the client never called server after initialized.
+        Last known state is used for tracking server response, making sure we won't hit stale
+        server.
+        """
+
         with self._lock:
             return copy.copy(self._last_known_server_state)
 
     def update_last_known_state(self, chain_id: int, version: int, timestamp_usecs: int) -> None:
         with self._lock:
             curr = self._last_known_server_state
+            if curr.chain_id != -1 and curr.chain_id != chain_id:
+                raise InvalidServerResponse(f"last known chain id {curr.chain_id}, " f"but got {chain_id}")
             if curr.version > version:
                 raise StaleResponseError(f"last known version {curr.version} > {version}")
             if curr.timestamp_usecs > timestamp_usecs:

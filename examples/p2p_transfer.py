@@ -49,17 +49,17 @@ def test_non_custodial_to_custodial():
     receiver_custodial = CustodialApp.create(faucet.gen_account())
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
 
-    receiver_account_id, currency, amount = identifier.decode_intent(intent_id)
-    receiver_address, sub_address = identifier.decode_account(receiver_account_id)
+    intent = identifier.decode_intent(intent_id, identifier.TLB)
 
     script = stdlib.encode_peer_to_peer_with_metadata_script(
-        currency=utils.currency_code(currency),
-        payee=utils.account_address(receiver_address),
-        amount=amount,
-        metadata=txnmetadata.general_metadata(None, utils.sub_address(sub_address)),
+        currency=utils.currency_code(intent.currency_code),
+        payee=utils.account_address(intent.account_address),
+        amount=intent.amount,
+        metadata=txnmetadata.general_metadata(None, intent.sub_address),
         metadata_signature=b'', # only travel rule metadata requires signature
     )
-    txn = create_transaction(sender, client.get_account_sequence(sender.account_address), script, currency)
+    txn = create_transaction(
+        sender, client.get_account_sequence(sender.account_address), script, intent.currency_code)
 
     signed_txn = sender.sign(txn)
     client.submit(signed_txn)

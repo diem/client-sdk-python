@@ -5,6 +5,8 @@ import typing
 from urllib import parse
 from typing import List
 
+from . import libra_types, utils
+
 LBR = "lbr"  # lbr for mainnet
 TLB = "tlb"  # tlb for testnet
 LIBRA_SUBADDRESS_SIZE = 8  # in bytes (for V1)
@@ -22,8 +24,33 @@ _LIBRA_BECH32_VERSION = 1
 _LIBRA_BECH32_SIZE = 50  # in characters
 
 
-class IntentIdentifierError(Exception):
+class InvalidIntentIdentifierError(Exception):
     pass
+
+
+class Intent:
+    """Intent is a struct hold data decoded from Libra Intent Identifier string"""
+
+    account_address: libra_types.AccountAddress
+    sub_address: bytes
+    currency_code: str
+    amount: int
+
+    def __init__(
+        self,
+        account_address: libra_types.AccountAddress,
+        sub_address: bytes,
+        currency_code: str,
+        amount: int,
+    ) -> None:
+        self.account_address = account_address
+        self.sub_address = sub_address
+        self.currency_code = currency_code
+        self.amount = amount
+
+    @property
+    def account_address_bytes(self):
+        return utils.account_address_bytes(self.account_address)
 
 
 def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
@@ -35,19 +62,21 @@ def encode_intent(encoded_account_identifier: str, currency_code: str, amount: i
     return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
 
 
-def decode_intent(encoded_intent_identifier: str) -> typing.Tuple[(str, str, int)]:
+def decode_intent(encoded_intent_identifier: str, hrp: str) -> Intent:
     """
     Decode Libra intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
-    1. account identifier
+    1. account identifier: account address & sub-address
     2. currency code
     3. amount
 
-    IntentIdentifierError is raised if given identifier is invalid
+    InvalidIntentIdentifierError is raised if given identifier is invalid
     """
 
     result = parse.urlparse(encoded_intent_identifier)
     if result.scheme != "libra":
-        raise IntentIdentifierError(f"Unknown intent identifier scheme {result.scheme} in {encoded_intent_identifier}")
+        raise InvalidIntentIdentifierError(
+            f"Unknown intent identifier scheme {result.scheme} " f"in {encoded_intent_identifier}"
+        )
 
     account_identifier = result.netloc
     params = parse.parse_qs(result.query)
@@ -55,30 +84,40 @@ def decode_intent(encoded_intent_identifier: str) -> typing.Tuple[(str, str, int
     amount = _decode_param("amount", params, "am", lambda am: int(am))
     currency_code = _decode_param("currency code", params, "c", lambda c: str(c))
 
-    return (account_identifier, currency_code, amount)
+    try:
+        account_address, sub_address = decode_account(account_identifier, hrp)
+    except ValueError as e:
+        raise InvalidIntentIdentifierError(f"decode account identifier failed: {e}:")
+
+    return Intent(
+        account_address=utils.account_address(account_address),
+        sub_address=sub_address,
+        currency_code=currency_code,
+        amount=amount,
+    )
 
 
 def _decode_param(name, params, field, convert):
     if field not in params:
-        raise IntentIdentifierError(f"Can't decode {name}: not found in params {params}")
+        raise InvalidIntentIdentifierError(f"Can't decode {name}: not found in params {params}")
 
     if not isinstance(params[field], list):
-        raise IntentIdentifierError(f"Can't decode {name}: unknown type {params}")
+        raise InvalidIntentIdentifierError(f"Can't decode {name}: unknown type {params}")
 
     if len(params[field]) != 1:
-        raise IntentIdentifierError(f"Can't decode {name}: too many values {params}")
+        raise InvalidIntentIdentifierError(f"Can't decode {name}: too many values {params}")
 
     value = params[field][0]
     try:
         return convert(value)
     except ValueError as e:
-        raise IntentIdentifierError(f"Can't decode {name}: {value}, error: {e}")
+        raise InvalidIntentIdentifierError(f"Can't decode {name}: {value}, error: {e}")
 
 
 def encode_account(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb") -> str:
     """Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format"""
-    onchain_address_bytes = bytes.fromhex(onchain_addr)
-    subaddress_bytes = bytes.fromhex(subaddr) if subaddr else None
+    onchain_address_bytes = utils.account_address_bytes(onchain_addr)
+    subaddress_bytes = utils.sub_address(subaddr) if subaddr else None
 
     try:
         encoded_address = bech32_address_encode(hrp, onchain_address_bytes, subaddress_bytes)
@@ -92,17 +131,20 @@ def encode_account(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp:
     return encoded_address
 
 
-def decode_account(encoded_address: str, hrp: str = "tlb") -> typing.Tuple[str, typing.Optional[str]]:
+def decode_account(
+    encoded_address: str, hrp: str = "tlb"
+) -> typing.Tuple[libra_types.AccountAddress, typing.Optional[bytes]]:
     """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
     try:
         (_version, onchain_address_bytes, subaddress_bytes) = bech32_address_decode(hrp, encoded_address)
     except Bech32Error as e:
         raise ValueError(f"Can't decode from encoded str {encoded_address}, " f"got error: {e}")
 
+    address = utils.account_address(onchain_address_bytes)
     # If subaddress is absent, subaddress_bytes is a list of 0
     if subaddress_bytes != LIBRA_ZERO_SUBADDRESS:
-        return (onchain_address_bytes.hex(), subaddress_bytes.hex())
-    return (onchain_address_bytes.hex(), None)
+        return (address, subaddress_bytes)
+    return (address, None)
 
 
 ######################################################################################

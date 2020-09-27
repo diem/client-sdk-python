@@ -25,7 +25,9 @@ class InvalidSubAddressError(Exception):
     pass
 
 
-def account_address(addr: typing.Union[bytes, str]) -> libra_types.AccountAddress:
+def account_address(addr: typing.Union[libra_types.AccountAddress, bytes, str]) -> libra_types.AccountAddress:
+    if isinstance(addr, libra_types.AccountAddress):
+        return addr
     if isinstance(addr, str):
         try:
             return account_address(bytes.fromhex(addr))
@@ -41,16 +43,22 @@ def account_address(addr: typing.Union[bytes, str]) -> libra_types.AccountAddres
 
 
 def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> str:
-    if isinstance(addr, str):
-        return account_address_hex(account_address(addr))
+    return account_address_bytes(addr).hex()
 
-    return bytes(typing.cast(typing.Iterable[int], addr.value)).hex()
+
+def account_address_bytes(addr: typing.Union[libra_types.AccountAddress, str]) -> bytes:
+    if isinstance(addr, str):
+        return account_address_bytes(account_address(addr))
+
+    return bytes(typing.cast(typing.Iterable[int], addr.value))
 
 
 def sub_address(addr: typing.Union[str, bytes]) -> bytes:
     ret = bytes.fromhex(addr) if isinstance(addr, str) else addr
     if len(ret) != SUB_ADDRESS_LEN:
-        raise InvalidSubAddressError(f"{addr} is an invalid sub-address, " f"sub-address is {SUB_ADDRESS_LEN} bytes")
+        raise InvalidSubAddressError(
+            f"{addr}(len={len(ret)}) is a valid sub-address, sub-address is {SUB_ADDRESS_LEN} bytes"
+        )
     return ret
 
 

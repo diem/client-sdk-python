@@ -36,6 +36,10 @@ def test_get_metadata_by_version():
     assert metadata.version == 1
     assert metadata.timestamp is not None
 
+    # this is unexpected, will be updated to return None later
+    with pytest.raises(jsonrpc.JsonRpcError):
+        metadata = client.get_metadata(1999999999999)
+
 
 def test_get_currencies():
     client = testnet.create_client()
@@ -80,6 +84,17 @@ def test_get_account_not_exist():
     assert account is None
 
 
+def test_get_account_sequence():
+    client = testnet.create_client()
+    seq = client.get_account_sequence(testnet.DESIGNATED_DEALER_ADDRESS)
+    assert isinstance(seq, int)
+    assert seq > 0
+
+    local = LocalAccount.generate()
+    with pytest.raises(jsonrpc.AccountNotFoundError):
+        client.get_account_sequence(local.account_address)
+
+
 def test_get_account_transaction():
     client = testnet.create_client()
     txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS, 0)
@@ -88,6 +103,12 @@ def test_get_account_transaction():
     assert txn.version > 0
     assert txn.hash is not None
     assert len(txn.events) == 0
+
+
+def test_get_account_transaction_not_exist():
+    client = testnet.create_client()
+    txn = client.get_account_transaction(utils.ROOT_ADDRESS, 9000000000000000)
+    assert txn is None
 
 
 def test_get_account_transaction_by_hex_encoded_account_address():
@@ -119,6 +140,12 @@ def test_get_account_transactions():
     assert txn.version > 0
     assert txn.hash is not None
     assert len(txn.events) == 0
+
+
+def test_get_account_transactions_not_exist():
+    client = testnet.create_client()
+    txn = client.get_account_transactions(utils.ROOT_ADDRESS, 9000000000000000, 1)
+    assert txn == []
 
 
 def test_get_account_transactions_by_hex_encoded_account_address():
@@ -296,7 +323,7 @@ def create_child_vasp_txn(parent_vasp, child_vasp):
         max_gas_amount=1_000_000,
         gas_unit_price=0,
         gas_currency_code="LBR",
-        expiration_timestamp_secs=np.uint64(time.time()) + 30,
+        expiration_timestamp_secs=int(time.time()) + 30,
         chain_id=testnet.CHAIN_ID,
     )
 

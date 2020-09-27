@@ -18,6 +18,11 @@ def test_travel_rule_metadata():
     )
 
 
+def test_new_general_metadata_for_nones():
+    ret = txnmetadata.general_metadata(None, None)
+    assert ret == b""
+
+
 def test_new_general_metadata_to_sub_address():
     sub_address = utils.sub_address("8f8b82153010a1bd")
     ret = txnmetadata.general_metadata(None, sub_address)

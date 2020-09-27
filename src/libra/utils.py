@@ -10,6 +10,7 @@ from . import libra_types, serde_types
 
 
 ACCOUNT_ADDRESS_LEN: int = 16
+SUB_ADDRESS_LEN: int = 8
 LIBRA_HASH_PREFIX: bytes = b"LIBRA::"
 ROOT_ADDRESS: str = "0000000000000000000000000a550c18"
 TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
@@ -17,6 +18,10 @@ CORE_CODE_ADDRESS: str = "00000000000000000000000000000001"
 
 
 class InvalidAccountAddressError(Exception):
+    pass
+
+
+class InvalidSubAddressError(Exception):
     pass
 
 
@@ -42,8 +47,11 @@ def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> 
     return bytes(typing.cast(typing.Iterable[int], addr.value)).hex()
 
 
-def sub_address(addr: str) -> bytes:
-    return bytes.fromhex(addr)
+def sub_address(addr: typing.Union[str, bytes]) -> bytes:
+    ret = bytes.fromhex(addr) if isinstance(addr, str) else addr
+    if len(ret) != SUB_ADDRESS_LEN:
+        raise InvalidSubAddressError(f"{addr} is an invalid sub-address, " f"sub-address is {SUB_ADDRESS_LEN} bytes")
+    return ret
 
 
 def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:

@@ -21,7 +21,7 @@ format:
 
 test: format
 	./venv/bin/python setup.py develop
-	./venv/bin/pytest tests/test_* -k "$(TEST)"
+	./venv/bin/pytest tests/test_* examples/* -k "$(TEST)"
 
 cover:
 	./venv/bin/python setup.py develop

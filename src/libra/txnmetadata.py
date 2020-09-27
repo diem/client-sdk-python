@@ -62,7 +62,12 @@ def general_metadata(
 
     Give from_subaddress None for the case transferring from non-custodial to custodial account.
     Give to_subaddress None for the case transferring from custodial to non-custodial account.
+
+    Returns empty bytes array if from_subaddress and to_subaddress both are None.
     """
+
+    if from_subaddress is None and to_subaddress is None:
+        return b""
 
     metadata = libra_types.Metadata__GeneralMetadata(
         value=libra_types.GeneralMetadata__GeneralMetadataVersion0(

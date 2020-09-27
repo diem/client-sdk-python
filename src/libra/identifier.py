@@ -7,6 +7,8 @@ from typing import List
 
 LBR = "lbr"  # lbr for mainnet
 TLB = "tlb"  # tlb for testnet
+LIBRA_SUBADDRESS_SIZE = 8  # in bytes (for V1)
+LIBRA_ZERO_SUBADDRESS: bytes = b"\0" * LIBRA_SUBADDRESS_SIZE
 
 # Bech32 constants
 _BECH32_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
@@ -16,8 +18,6 @@ _BECH32_CHECKSUM_CHAR_SIZE = 6
 # LIBRA constants
 _LIBRA_HRP: List[str] = [LBR, TLB]
 _LIBRA_ADDRESS_SIZE = 16  # in bytes
-_LIBRA_SUBADDRESS_SIZE = 8  # in bytes (for V1)
-_LIBRA_ZERO_SUBADDRESS: bytes = b"\0" * _LIBRA_SUBADDRESS_SIZE
 _LIBRA_BECH32_VERSION = 1
 _LIBRA_BECH32_SIZE = 50  # in characters
 
@@ -100,7 +100,7 @@ def decode_account(encoded_address: str, hrp: str = "tlb") -> typing.Tuple[str, 
         raise ValueError(f"Can't decode from encoded str {encoded_address}, " f"got error: {e}")
 
     # If subaddress is absent, subaddress_bytes is a list of 0
-    if subaddress_bytes != _LIBRA_ZERO_SUBADDRESS:
+    if subaddress_bytes != LIBRA_ZERO_SUBADDRESS:
         return (onchain_address_bytes.hex(), subaddress_bytes.hex())
     return (onchain_address_bytes.hex(), None)
 
@@ -139,13 +139,13 @@ def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typi
         raise Bech32Error(f"Address size should be {_LIBRA_ADDRESS_SIZE}, but got: {len(address_bytes)}")
 
     # only accept correct size for Libra subaddress (if set)
-    if subaddress_bytes is not None and len(subaddress_bytes) != _LIBRA_SUBADDRESS_SIZE:
-        raise Bech32Error(f"Subaddress size should be {_LIBRA_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}")
+    if subaddress_bytes is not None and len(subaddress_bytes) != LIBRA_SUBADDRESS_SIZE:
+        raise Bech32Error(f"Subaddress size should be {LIBRA_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}")
 
     encoding_version = _LIBRA_BECH32_VERSION
 
     # if subaddress has not been provided it's set to 8 zero bytes.
-    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else _LIBRA_ZERO_SUBADDRESS
+    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else LIBRA_ZERO_SUBADDRESS
     total_bytes = address_bytes + subaddress_final_bytes
 
     five_bit_data = _convertbits(total_bytes, 8, 5, True)
@@ -216,15 +216,15 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
 
     length_data = len(decoded_data)
     # extra check about the expected output (sub)address size in bytes
-    if length_data != _LIBRA_ADDRESS_SIZE + _LIBRA_SUBADDRESS_SIZE:
+    if length_data != _LIBRA_ADDRESS_SIZE + LIBRA_SUBADDRESS_SIZE:
         raise Bech32Error(
-            f"Expected {_LIBRA_ADDRESS_SIZE + _LIBRA_SUBADDRESS_SIZE} bytes after decoding, but got: {length_data}"
+            f"Expected {_LIBRA_ADDRESS_SIZE + LIBRA_SUBADDRESS_SIZE} bytes after decoding, but got: {length_data}"
         )
 
     return (
         address_version,
         bytes(decoded_data[:_LIBRA_ADDRESS_SIZE]),
-        bytes(decoded_data[-_LIBRA_SUBADDRESS_SIZE:]),
+        bytes(decoded_data[-LIBRA_SUBADDRESS_SIZE:]),
     )
 
 

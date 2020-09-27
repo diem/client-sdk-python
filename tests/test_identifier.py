@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from libra import identifier
+from libra import identifier, utils, InvalidSubAddressError, InvalidAccountAddressError
 
 
 test_onchain_address = "f72589b71ff4f8d139674a3f7369c69b"
@@ -35,24 +35,24 @@ def test_encode_addr_fail():
         identifier.encode_account(test_onchain_address, None, "btc")
 
     # wrong subadress (length should be 8 bytes)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidSubAddressError):
         identifier.encode_account(test_onchain_address, test_sub_address[:-2], "lbr")
 
     # wrong address (length should be 16 bytes)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidAccountAddressError):
         identifier.encode_account(test_onchain_address + "ff", test_sub_address[:-2], "lbr")
 
 
 def test_decode_addr_success():
     # test enocded_addr_with_none_subaddr
     addr, subaddr = identifier.decode_account(enocded_addr_with_none_subaddr, "lbr")
-    assert addr == test_onchain_address
+    assert utils.account_address_hex(addr) == test_onchain_address
     assert subaddr is None
 
     # test enocded_addr_with_subaddr
     addr, subaddr = identifier.decode_account(enocded_addr_with_subaddr, "lbr")
-    assert addr == test_onchain_address
-    assert subaddr == test_sub_address
+    assert utils.account_address_hex(addr) == test_onchain_address
+    assert subaddr.hex() == test_sub_address
 
 
 def test_decode_addr_fail():
@@ -108,33 +108,51 @@ def test_intent_identifier():
     intent_id = identifier.encode_intent(account_id, "LBR", 123)
     assert intent_id == "libra://%s?c=%s&am=%d" % (enocded_addr_with_none_subaddr, "LBR", 123)
 
-    decoded_account_id, currency_code, amount = identifier.decode_intent(intent_id)
-    assert decoded_account_id == account_id
-    assert currency_code == "LBR"
-    assert amount == 123
+    intent = identifier.decode_intent(intent_id, "lbr")
+    assert intent.account_address == utils.account_address(test_onchain_address)
+    assert intent.account_address_bytes.hex() == test_onchain_address
+    assert intent.sub_address is None
+    assert intent.currency_code == "LBR"
+    assert intent.amount == 123
+
+
+def test_intent_identifier_with_sub_address():
+    account_id = identifier.encode_account(test_onchain_address, test_sub_address, "lbr")
+    intent_id = identifier.encode_intent(account_id, "LBR", 123)
+    assert intent_id == "libra://%s?c=%s&am=%d" % (enocded_addr_with_subaddr, "LBR", 123)
+
+    intent = identifier.decode_intent(intent_id, "lbr")
+    assert intent.account_address_bytes.hex() == test_onchain_address
+    assert intent.sub_address == bytes.fromhex(test_sub_address)
+    assert intent.currency_code == "LBR"
+    assert intent.amount == 123
 
 
 def test_intent_identifier_decode_errors():
     # amount is not int
-    with pytest.raises(identifier.IntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=LBR&am=str" % (enocded_addr_with_none_subaddr))
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("libra://%s?c=LBR&am=str" % (enocded_addr_with_none_subaddr), "lbr")
 
     # amount not exist
-    with pytest.raises(identifier.IntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=LBR" % (enocded_addr_with_none_subaddr))
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("libra://%s?c=LBR" % (enocded_addr_with_none_subaddr), "lbr")
 
     # too many amount
-    with pytest.raises(identifier.IntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=LBR&am=2&am=3" % (enocded_addr_with_none_subaddr))
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("libra://%s?c=LBR&am=2&am=3" % (enocded_addr_with_none_subaddr), "lbr")
 
     # amount is none
-    with pytest.raises(identifier.IntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=LBR&am=" % (enocded_addr_with_none_subaddr))
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("libra://%s?c=LBR&am=" % (enocded_addr_with_none_subaddr), "lbr")
 
     # currency code not exist
-    with pytest.raises(identifier.IntentIdentifierError):
-        identifier.decode_intent("libra://%s?am=2" % (enocded_addr_with_none_subaddr))
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("libra://%s?am=2" % (enocded_addr_with_none_subaddr), "lbr")
 
     # scheme not match
-    with pytest.raises(identifier.IntentIdentifierError):
-        identifier.decode_intent("hello://%s?am=2&c=LBR" % (enocded_addr_with_none_subaddr))
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("hello://%s?am=2&c=LBR" % (enocded_addr_with_none_subaddr), "lbr")
+
+    # hrp not match
+    with pytest.raises(identifier.InvalidIntentIdentifierError):
+        identifier.decode_intent("libra://%s?am=2&c=LBR" % (enocded_addr_with_none_subaddr), "tlb")

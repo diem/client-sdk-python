@@ -53,6 +53,10 @@ class WaitForTransactionTimeout(Exception):
     pass
 
 
+class AccountNotFoundError(Exception):
+    pass
+
+
 @dataclasses.dataclass
 class State:
     chain_id: int
@@ -81,6 +85,11 @@ class Retry:
 
 
 class Client:
+    """Libra JSON-RPC API client
+
+    [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
+    """
+
     def __init__(
         self,
         server_url: str,
@@ -96,12 +105,29 @@ class Client:
         self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
 
     def get_last_known_state(self) -> State:
+        """get last known server state
+
+        All JSON-RPC service response contains chain_id, latest ledger state version and
+        ledger state timestamp usecs.
+        Returns a state with all -1 values if the client never called server after initialized.
+        Last known state is used for tracking server response, making sure we won't hit stale
+        server.
+        """
+
         with self._lock:
             return copy.copy(self._last_known_server_state)
 
     def update_last_known_state(self, chain_id: int, version: int, timestamp_usecs: int) -> None:
+        """update last known server state
+
+        Raises InvalidServerResponse if given chain_id mismatches with previous value
+        Raises StaleResponseError if version or timestamp_usecs is less than previous values
+        """
+
         with self._lock:
             curr = self._last_known_server_state
+            if curr.chain_id != -1 and curr.chain_id != chain_id:
+                raise InvalidServerResponse(f"last known chain id {curr.chain_id}, " f"but got {chain_id}")
             if curr.version > version:
                 raise StaleResponseError(f"last known version {curr.version} > {version}")
             if curr.timestamp_usecs > timestamp_usecs:
@@ -116,23 +142,61 @@ class Client:
     def get_metadata(
         self,
         version: typing.Optional[int] = None,
-    ) -> rpc.BlockMetadata:  # pyre-ignore
+    ) -> typing.Optional[rpc.BlockMetadata]:  # pyre-ignore
+        """get block metadata
+
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_metadata.md)
+        """
+
         params = [int(version)] if version else []
         return self.execute("get_metadata", params, _parse_obj(lambda: rpc.BlockMetadata()))
 
     def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:  # pyre-ignore
+        """get currencies
+
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_currencies.md)
+        """
+
         return self.execute("get_currencies", [], _parse_list(lambda: rpc.CurrencyInfo()))
 
-    def get_account(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> rpc.Account:  # pyre-ignore
+    def get_account(
+        self, account_address: typing.Union[libra_types.AccountAddress, str]
+    ) -> typing.Optional[rpc.Account]:  # pyre-ignore
+        """get on-chain account information
+
+        Returns None if account not found
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account.md)
+        """
+
         address = utils.account_address_hex(account_address)
         return self.execute("get_account", [address], _parse_obj(lambda: rpc.Account()))
+
+    def get_account_sequence(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> int:
+        """get on-chain account sequence number
+
+        Calls get_account to find on-chain account information and return it's sequence.
+        Raises AccountNotFoundError if get_account returns None
+        """
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f"account not found by address: {hex}")
+
+        return int(account.sequence_number)
 
     def get_account_transaction(
         self,
         account_address: typing.Union[libra_types.AccountAddress, str],
         sequence: int,
         include_events: typing.Optional[bool] = None,
-    ) -> rpc.Transaction:  # pyre-ignore
+    ) -> typing.Optional[rpc.Transaction]:  # pyre-ignore
+        """get on-chain account transaction by sequence number
+
+        Returns None if transaction is not found
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account_transaction.md)
+        """
+
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), bool(include_events)]
         return self.execute("get_account_transaction", params, _parse_obj(lambda: rpc.Transaction()))
@@ -144,6 +208,12 @@ class Client:
         limit: int,
         include_events: typing.Optional[bool] = None,
     ) -> typing.List[rpc.Transaction]:
+        """get on-chain account transactions by start sequence number and limit size
+
+        Returns empty list if no transactions found
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account_transactions.md)
+        """
+
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), int(limit), bool(include_events)]
         return self.execute("get_account_transactions", params, _parse_list(lambda: rpc.Transaction()))
@@ -154,10 +224,22 @@ class Client:
         limit: int,
         include_events: typing.Optional[bool] = None,
     ) -> typing.List[rpc.Transaction]:
+        """get transactions
+
+        Returns empty list if no transactions found
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_transactions.md)
+        """
+
         params = [int(start_version), int(limit), bool(include_events)]
         return self.execute("get_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
     def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[rpc.Event]:  # pyre-ignore
+        """get events
+
+        Returns empty list if no events found
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_events.md)
+        """
+
         params = [event_stream_key, int(start), int(limit)]
         return self.execute("get_events", params, _parse_list(lambda: rpc.Event()))
 
@@ -180,6 +262,17 @@ class Client:
         txn: typing.Union[libra_types.SignedTransaction, str],
         raise_stale_response: typing.Optional[typing.Union[bool]] = None,
     ) -> None:
+        """submit signed transaction
+
+        Different with all other get methods, this method ignores StaleResponseError by default.
+        Because submitted transaction can be synced successfully even with a stale version server.
+        Retry submit may end with an error.
+
+        Pass in `raise_stale_response=True` to raise StaleResponseError and handle it by yourself.
+
+        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_submit.md)
+        """
+
         if isinstance(txn, libra_types.SignedTransaction):
             return self.submit(txn.lcs_serialize().hex())
 
@@ -188,6 +281,19 @@ class Client:
     def wait_for_transaction(
         self, txn: typing.Union[libra_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
     ) -> rpc.Transaction:
+        """wait for transaction executed
+
+        Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+        Raises TransactionExpired if server responses new block timestamp is after signed transaction
+        expiration_timestamp_secs.
+        Raises TransactionExecutionFailed if found transaction and it's vm_status (execution result)
+        is not success.
+        Raises TransactionHashMismatchError if found transaction by account address and sequence
+        number, but the transaction hash does not match the transactoin hash given in parameter.
+        This means the executed transaction is from another process (which submitted transaction
+        with same account address and sequence).
+        """
+
         if isinstance(txn, str):
             txn_obj = libra_types.SignedTransaction.lcs_deserialize(bytes.fromhex(txn))
             return self.wait_for_transaction(txn_obj, timeout_secs)
@@ -209,9 +315,22 @@ class Client:
         timeout_secs: typing.Optional[float] = None,
         wait_duration_secs: typing.Optional[float] = None,
     ) -> rpc.Transaction:
+        """wait for transaction executed
+
+        Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+        Raises TransactionExpired if server responses new block timestamp is after signed transaction
+        expiration_timestamp_secs.
+        Raises TransactionExecutionFailed if found transaction and it's vm_status (execution result)
+        is not success.
+        Raises TransactionHashMismatchError if found transaction by account address and sequence
+        number, but the transaction hash does not match the transactoin hash given in parameter.
+        This means the executed transaction is from another process (which submitted transaction
+        with same account address and sequence).
+        """
+
         max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
         while time.time() < max_wait:
-            txn = self.get_account_transaction(address, seq)
+            txn = self.get_account_transaction(address, seq, True)
             if txn is not None:
                 if txn.hash != txn_hash:
                     raise TransactionHashMismatchError(f"expected hash {txn_hash}, but got {txn.hash}")
@@ -229,6 +348,12 @@ class Client:
         raise WaitForTransactionTimeout()
 
     def execute(self, *args, **kwargs):  # pyre-ignore
+        """execute JSON-RPC method call
+
+        This method handles StableResponseError with retry.
+        Should only be called by get methods.
+        """
+
         return self._retry.execute(lambda: self.execute_without_retry(*args, **kwargs))
 
     # pyre-ignore
@@ -239,6 +364,20 @@ class Client:
         result_parser=None,  # pyre-ignore
         ignore_stale_response: typing.Optional[bool] = None,
     ):
+        """execute JSON-RPC method call without retry any error.
+
+
+        Raises InvalidServerResponse if server response does not match
+        [JSON-RPC SPEC 2.0](https://www.jsonrpc.org/specification), or response result can't be parsed.
+
+        Raises StaleResponseError if ignore_stale_response is True, otherwise ignores it and continue.
+
+        Raises JsonRpcError if server JSON-RPC response with error object.
+
+        Raises NetworkError if send http request failed, or received server response status is not 200.
+        Raises
+        """
+
         request = {
             "jsonrpc": "2.0",
             "id": 1,

@@ -15,6 +15,7 @@ from .client import (
     TransactionExecutionFailed,
     TransactionExpired,
     WaitForTransactionTimeout,
+    AccountNotFoundError,
 )
 from .libra_jsonrpc_types_pb2 import (
     Amount,

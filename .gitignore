@@ -3,3 +3,4 @@
 .pyre
 /build
 /dist
+__pycache__

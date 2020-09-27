@@ -25,7 +25,7 @@ class AuthKey:
         return utils.account_address(self.data[-utils.ACCOUNT_ADDRESS_LEN :])
 
     def prefix(self) -> bytes:
-        return self.data[-utils.ACCOUNT_ADDRESS_LEN :]
+        return self.data[: -utils.ACCOUNT_ADDRESS_LEN]
 
     def hex(self) -> str:
         return self.data.hex()

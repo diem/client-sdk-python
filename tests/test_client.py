@@ -16,6 +16,11 @@ def test_update_last_known_state():
     assert client.get_last_known_state().version == 2
     assert client.get_last_known_state().timestamp_usecs == 2
 
+    # chain id mismatch will raise invalid server response instead of
+    # stale response error
+    with pytest.raises(jsonrpc.InvalidServerResponse):
+        client.update_last_known_state(1, 1, 1)
+
     with pytest.raises(jsonrpc.StaleResponseError):
         client.update_last_known_state(2, 1, 2)
     with pytest.raises(jsonrpc.StaleResponseError):
@@ -28,8 +33,8 @@ def test_update_last_known_state():
     assert client.get_last_known_state().version == 2
     assert client.get_last_known_state().timestamp_usecs == 2
 
-    client.update_last_known_state(3, 3, 3)
-    assert client.get_last_known_state().chain_id == 3
+    client.update_last_known_state(2, 3, 3)
+    assert client.get_last_known_state().chain_id == 2
     assert client.get_last_known_state().version == 3
     assert client.get_last_known_state().timestamp_usecs == 3
 

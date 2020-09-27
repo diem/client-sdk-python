@@ -265,6 +265,8 @@ def test_submit_create_child_vasp():
     assert executed_txn is not None
     assert isinstance(executed_txn, jsonrpc.Transaction)
     assert executed_txn.vm_status.type == "executed"
+    # should include events
+    assert len(executed_txn.events) > 0
 
 
 def test_submit_failed():

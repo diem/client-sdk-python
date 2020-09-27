@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import time, secrets, typing
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from libra import (
     identifier,
     jsonrpc,
@@ -29,6 +30,8 @@ class CustodialApp:
     _children: typing.List[LocalAccount]
     _users: typing.List[str]
 
+    compliance_key: typing.Optional[Ed25519PrivateKey]
+
     def __init__(
             self,
             parent_vasp: LocalAccount,
@@ -40,8 +43,9 @@ class CustodialApp:
         self._children = []
         self._users = []
 
-    def add_child_vasp(self):
+    def add_child_vasp(self) -> jsonrpc.Transaction:
         child_vasp = LocalAccount.generate()
+        self._children.append(child_vasp)
         txn = self.create_transaction(
             self._parent_vasp,
             stdlib.encode_create_child_vasp_account_script(
@@ -49,13 +53,24 @@ class CustodialApp:
                 child_address=child_vasp.account_address,
                 auth_key_prefix=child_vasp.auth_key.prefix(),
                 add_all_currencies=False,
-                child_initial_balance=1_000_000,
+                child_initial_balance=100_000_000,
             ),
             "LBR"
         )
 
-        self.submit_and_wait(self._parent_vasp.sign(txn))
-        self._children.append(child_vasp)
+        return self.submit_and_wait(self._parent_vasp.sign(txn))
+
+    def init_compliance_keys(self) -> jsonrpc.Transaction:
+        self.compliance_key = Ed25519PrivateKey.generate()
+        txn = self.create_transaction(
+            self._parent_vasp,
+            stdlib.encode_rotate_dual_attestation_info_script(
+                new_url=b"http://helloworld.org",
+                new_key=utils.public_key_bytes(self.compliance_key.public_key())
+            ),
+            "LBR"
+        )
+        return self.submit_and_wait(self._parent_vasp.sign(txn))
 
     def add_user(self):
         self._users.append(secrets.token_hex(identifier.LIBRA_SUBADDRESS_SIZE))
@@ -76,11 +91,6 @@ class CustodialApp:
 
     def available_child_vasp(self) -> LocalAccount:
         return self._children[0]
-
-    def submit_and_wait_child_vasp_transaction(self, script, currency):
-        child = self._children[0]
-        txn = self.create_transaction(child, script, currency)
-        return self.submit_and_wait(child.sign(txn))
 
     def submit_and_wait(
         self,

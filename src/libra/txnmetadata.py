@@ -22,7 +22,7 @@ class InvalidEventMetadataForRefundError(Exception):
 class Attest:
 
     metadata: libra_types.Metadata
-    address: libra_types.AccountAddress
+    sender_address: libra_types.AccountAddress
     amount: serde_types.uint64  # pyre-ignore
 
     def lcs_serialize(self) -> bytes:
@@ -30,7 +30,7 @@ class Attest:
 
 
 def travel_rule(
-    off_chain_reference_id: str, address: libra_types.AccountAddress, amount: int
+    off_chain_reference_id: str, sender_address: libra_types.AccountAddress, amount: int
 ) -> typing.Tuple[(bytes, bytes)]:
     """Create travel rule metadata bytes and signature message bytes.
 
@@ -44,7 +44,7 @@ def travel_rule(
     )
 
     # receiver_lcs_data = lcs(metadata, sender_address, amount) + "@@$$LIBRA_ATTEST$$@@" /*ASCII-encoded string*/
-    attest = Attest(metadata=metadata, address=address, amount=serde_types.uint64(amount))  # pyre-ignore
+    attest = Attest(metadata=metadata, sender_address=sender_address, amount=serde_types.uint64(amount))  # pyre-ignore
     signing_msg = attest.lcs_serialize() + b"@@$$LIBRA_ATTEST$$@@"
 
     return (metadata.lcs_serialize(), signing_msg)

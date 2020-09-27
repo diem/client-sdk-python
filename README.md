@@ -18,6 +18,14 @@ Python client sdk library for the Libra.
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
 - `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
 
+## Examples
+
+You can find all of the example code under the [`examples`](./examples/) directory:
+
+* [All Types Peer To Peer Transfer](./examples/p2p_transfer.py)
+* [Intent Identifier](./examples/p2p_transfer.py#52)
+* [Refund](./examples/refund.py)
+
 
 ## Documentation
 

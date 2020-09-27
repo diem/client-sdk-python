@@ -2,7 +2,7 @@ This file is a checklist of requirement & technical details for a Libra client S
 
 # Basics
 
-- [ ] module structure:
+- [x] module structure:
   - libra
     - LibraClient: JSON-RPC APIs interface, should support application to do easy mock / stub development.
     - jsonrpc: jsonrpc client interface, include plain data classes / structs defined in Libra JSON-RPC SPEC document.
@@ -18,37 +18,37 @@ This file is a checklist of requirement & technical details for a Libra client S
 - [ ] JSON-RPC 2.0 Spec:
   - spec version validation.
   - batch requests and responses handling.
-- [ ] JSON-RPC client error handling should distinguish the following 3 type errors:
+- [x] JSON-RPC client error handling should distinguish the following 3 type errors:
   - Transport layer error, e.g. HTTP call failure.
   - JSON-RPC protocol error: e.g. server responds to non json data, or can't be parsed into [Libra JSON-RPC SPEC][1] defined data structure, or missing result & error field.
   - JSON-RPC error: error returned from server.
 - [x] https.
 - [ ] Client connection pool.
-- [ ] Handle stale responses:
+- [x] Handle stale responses:
   - [x] client tracks latest server response block version and timestamp, raise error when received server response contains stale version / timestamp.
     - [x] last known blockchain version >= response version: when connecting to a cluster of fullnodes, it is possible some fullnodes are behind the head couple versions.
     - [x] last known blockchain timestamp >= response timestamp.
   - [x] parse and use libra_chain_id, libra_ledger_version and libra_ledger_tiemstamp in the JSONRPC response.
-- [ ] Parsing and gen Libra Account Identifier (see [LIP-5][2])
+- [x] Parsing and gen Libra Account Identifier (see [LIP-5][2])
   - bech32 addresses/subaddresses support
-- [ ] language specific standard release publish: e.g. java maven central repo, python pip
+- [x] language specific standard release publish: e.g. java maven central repo, python pip
 - [x] Multi-network: initialize Client with chain id, JSON-RPC server URL
 - [x] Handle unsigned int64 data type properly
-- [ ] Validate server chain id: client should be initialized with chain id and validate server response chain id is the same.
+- [x] Validate server chain id: client should be initialized with chain id and validate server response chain id is the same.
 - [x] Validate input parameters, e.g. invalid account address: "kkk". Should return / raise InvalidArgumentError.
 - [ ] Send request with "client sdk name / version" as HTTP User-Agent: this is for server to recognize client sdk version, so that server can block a specific client version if we found unacceptable bugs.
 
 # [LIP-4][7] support
 
-- [ ] Non-custodial to custodial transaction
-- [ ] Custodial to non-custodial transaction
-- [ ] Custodial to Custodial transaction
-- [ ] Refund
+- [x] Non-custodial to custodial transaction
+- [x] Custodial to non-custodial transaction
+- [x] Custodial to Custodial transaction
+- [x] Refund
 
 # [LIP-5][2] support
 
-- [ ] Encode and decode account identifier
-- [ ] Encode and decode intent identifier
+- [x] Encode and decode account identifier
+- [x] Encode and decode intent identifier
 
 # Read from Blockchain
 
@@ -68,7 +68,7 @@ This file is a checklist of requirement & technical details for a Libra client S
 # Submit Transaction
 
 - [x] Submit [p2p transfer][3] transaction
-- [ ] Submit other [Move Stdlib scripts][4]
+- [x] Submit other [Move Stdlib scripts][4]
 - [x] waitForTransaction(accountAddress, sequence, transcationHash, expirationTimeSec, timeout):
   - for given signed transaction sender address, sequence number, expiration time (or 5 sec timeout) to wait and validate execution result is executed, otherwise return/raise an error / flag to tell it is not executed.
   - when signedTransactionHash validation failed, it should return / raise TransactionSequenceNumberConflictError
@@ -87,8 +87,8 @@ See [doc][5] for above concepts.
 
 # Examples
 
-- [ ] [p2p transfer examples](https://github.com/libra/lip/blob/master/lips/lip-4.md#transaction-examples)
-- [ ] refund p2p transfer example
+- [x] [p2p transfer examples](https://github.com/libra/lip/blob/master/lips/lip-4.md#transaction-examples)
+- [x] refund p2p transfer example
 - [ ] create childVASP example
 - [ ] Intent identifier encoding, decoding example
 

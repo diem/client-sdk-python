@@ -173,7 +173,7 @@ class Client:
 
     def get_account_sequence(
         self, account_address: typing.Union[libra_types.AccountAddress, str]
-    ) -> int:  # pyre-ignore
+    ) -> int:
         """get on-chain account sequence number
 
         Calls get_account to find on-chain account information and return it's sequence.
@@ -332,7 +332,7 @@ class Client:
 
         max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
         while time.time() < max_wait:
-            txn = self.get_account_transaction(address, seq)
+            txn = self.get_account_transaction(address, seq, True)
             if txn is not None:
                 if txn.hash != txn_hash:
                     raise TransactionHashMismatchError(f"expected hash {txn_hash}, but got {txn.hash}")

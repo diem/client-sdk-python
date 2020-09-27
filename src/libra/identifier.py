@@ -32,14 +32,14 @@ class Intent:
     """Intent is a struct hold data decoded from Libra Intent Identifier string"""
 
     account_address: libra_types.AccountAddress
-    sub_address: bytes
+    sub_address: typing.Optional[bytes]
     currency_code: str
     amount: int
 
     def __init__(
         self,
         account_address: libra_types.AccountAddress,
-        sub_address: bytes,
+        sub_address: typing.Optional[bytes],
         currency_code: str,
         amount: int,
     ) -> None:

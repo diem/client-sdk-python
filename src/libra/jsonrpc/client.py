@@ -171,9 +171,7 @@ class Client:
         address = utils.account_address_hex(account_address)
         return self.execute("get_account", [address], _parse_obj(lambda: rpc.Account()))
 
-    def get_account_sequence(
-        self, account_address: typing.Union[libra_types.AccountAddress, str]
-    ) -> int:
+    def get_account_sequence(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> int:
         """get on-chain account sequence number
 
         Calls get_account to find on-chain account information and return it's sequence.

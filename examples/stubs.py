@@ -44,14 +44,14 @@ class CustodialApp:
         child_vasp = LocalAccount.generate()
         txn = self.create_transaction(
             self._parent_vasp,
-            self.get_sequence_number(self._parent_vasp),
             stdlib.encode_create_child_vasp_account_script(
                 coin_type=utils.currency_code("LBR"),
                 child_address=child_vasp.account_address,
                 auth_key_prefix=child_vasp.auth_key.prefix(),
                 add_all_currencies=False,
                 child_initial_balance=1_000_000,
-            )
+            ),
+            "LBR"
         )
 
         self.submit_and_wait(self._parent_vasp.sign(txn))
@@ -59,9 +59,6 @@ class CustodialApp:
 
     def add_user(self):
         self._users.append(secrets.token_hex(identifier.LIBRA_SUBADDRESS_SIZE))
-
-    def user_sub_address(self, index: int) -> bytes:
-        return utils.sub_address(self.users[index])
 
     def payment(self, user_id: int, amount: int) -> str:
         account_id = identifier.encode_account(
@@ -71,6 +68,20 @@ class CustodialApp:
         )
         return identifier.encode_intent(account_id, "LBR", amount)
 
+    def find_user_sub_address_by_id(self, user_id: int) -> bytes:
+        return utils.sub_address(self._users[user_id])
+
+    def get_sequence_number(self, account: LocalAccount) -> int:
+        return self._client.get_account_sequence(account.account_address)
+
+    def available_child_vasp(self) -> LocalAccount:
+        return self._children[0]
+
+    def submit_and_wait_child_vasp_transaction(self, script, currency):
+        child = self._children[0]
+        txn = self.create_transaction(child, script, currency)
+        return self.submit_and_wait(child.sign(txn))
+
     def submit_and_wait(
         self,
         txn: typing.Union[libra_types.SignedTransaction, str],
@@ -78,10 +89,8 @@ class CustodialApp:
         self._client.submit(txn)
         return self._client.wait_for_transaction(txn)
 
-    def get_sequence_number(self, account: LocalAccount) -> int:
-        return self._client.get_account_sequence(account.account_address)
-
-    def create_transaction(self, sender, sender_account_sequence, script, currency="LBR"):
+    def create_transaction(self, sender, script, currency) -> libra_types.RawTransaction:
+        sender_account_sequence = self.get_sequence_number(sender)
         return libra_types.RawTransaction(
             sender=sender.account_address,
             sequence_number=sender_account_sequence,

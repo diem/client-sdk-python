@@ -23,7 +23,6 @@ jobs:
     - name: Install dependencies
       run: |
         make init
-    - name: Test
+    - name: Test Dist
       run: |
         make dist
-        make build

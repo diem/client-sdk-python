@@ -7,3 +7,4 @@ pylama
 black
 pyre-check
 pytest-cov
+mypy-protobuf

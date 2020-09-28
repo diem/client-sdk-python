@@ -21,7 +21,7 @@ setup(
     packages=["libra"],
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,
-    install_requires=["requests>=2.19", "cryptography>=3.1", "numpy>=1.18", "protobuf>=3.12.4"],
+    install_requires=["requests>=2.20.0", "cryptography>=2.8", "numpy>=1.18", "protobuf>=3.12.4"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.
         "setuptools>=18.0",

@@ -121,6 +121,7 @@ class Client:
         """update last known server state
 
         Raises InvalidServerResponse if given chain_id mismatches with previous value
+
         Raises StaleResponseError if version or timestamp_usecs is less than previous values
         """
 
@@ -194,6 +195,7 @@ class Client:
         """get on-chain account transaction by sequence number
 
         Returns None if transaction is not found
+
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account_transaction.md)
         """
 
@@ -211,6 +213,7 @@ class Client:
         """get on-chain account transactions by start sequence number and limit size
 
         Returns empty list if no transactions found
+
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account_transactions.md)
         """
 
@@ -227,6 +230,7 @@ class Client:
         """get transactions
 
         Returns empty list if no transactions found
+
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_transactions.md)
         """
 
@@ -237,6 +241,7 @@ class Client:
         """get events
 
         Returns empty list if no events found
+
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_events.md)
         """
 
@@ -284,10 +289,13 @@ class Client:
         """wait for transaction executed
 
         Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
         Raises TransactionExpired if server responses new block timestamp is after signed transaction
         expiration_timestamp_secs.
+
         Raises TransactionExecutionFailed if found transaction and it's vm_status (execution result)
         is not success.
+
         Raises TransactionHashMismatchError if found transaction by account address and sequence
         number, but the transaction hash does not match the transactoin hash given in parameter.
         This means the executed transaction is from another process (which submitted transaction
@@ -318,10 +326,13 @@ class Client:
         """wait for transaction executed
 
         Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
         Raises TransactionExpired if server responses new block timestamp is after signed transaction
         expiration_timestamp_secs.
+
         Raises TransactionExecutionFailed if found transaction and it's vm_status (execution result)
         is not success.
+
         Raises TransactionHashMismatchError if found transaction by account address and sequence
         number, but the transaction hash does not match the transactoin hash given in parameter.
         This means the executed transaction is from another process (which submitted transaction
@@ -375,7 +386,6 @@ class Client:
         Raises JsonRpcError if server JSON-RPC response with error object.
 
         Raises NetworkError if send http request failed, or received server response status is not 200.
-        Raises
         """
 
         request = {

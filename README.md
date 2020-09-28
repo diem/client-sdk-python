@@ -12,7 +12,7 @@ Python client sdk library for the Libra.
 - `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
 - `libra_types`: generated code, Libra on-chain data structure types for encoding and decoding [LCS](https://libra.github.io/libra/libra_canonical_serialization/index.html) data.
 - `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
-  - `AuthKey` | `auth_key`: auth key utils
+- `AuthKey` | `auth_key`: auth key utils
 - `identifier`: Libra Account Identifier and Libra Intent Identifier. [LIP-5](https://lip.libra.org/lip-5/)
 - `txnmetadata`: utils for creating peer to peer transaction metadata. [LIP-4](https://lip.libra.org/lip-4/)
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.

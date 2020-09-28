@@ -5,7 +5,7 @@ init:
 	python3 -m venv ./venv
 
 	./venv/bin/pip install --upgrade pip wheel setuptools
-	./venv/bin/pip install -r requirements.txt
+	./venv/bin/pip install -r requirements.txt --use-feature=2020-resolver
 
 check:
 	./venv/bin/pyre --search-path venv/lib/python3.8/site-packages check
@@ -42,7 +42,10 @@ libratypes:
 
 protobuf:
 	mkdir -p src/libra/jsonrpc
-	protoc -Isrc --python_out=src/libra/jsonrpc src/libra-jsonrpc-types.proto
+	protoc --plugin=protoc-gen-mypy=venv/bin/protoc-gen-mypy \
+		-Isrc --python_out=src/libra/jsonrpc --mypy_out=src/libra/jsonrpc \
+		src/libra-jsonrpc-types.proto
+
 
 gen: libratypes protobuf format
 

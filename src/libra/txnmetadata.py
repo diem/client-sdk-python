@@ -1,6 +1,7 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+
 """LIP-4 Transaction Metadata Utilities
 
 This module implements utility functions for application to create transaction metadata and metadata signature.
@@ -82,8 +83,8 @@ def general_metadata(
 
 
 def find_refund_reference_event(
-    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[libra_types.AccountAddress, str]  # pyre-ignore
-) -> typing.Optional[jsonrpc.Event]:  # pyre-ignore
+    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[libra_types.AccountAddress, str]
+) -> typing.Optional[jsonrpc.Event]:
     """Find refund reference event from given transaction
 
     The event can be used as reference is the "receivedpayment" event.

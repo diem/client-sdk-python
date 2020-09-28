@@ -1,6 +1,5 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-# pyre-strict
 
 
 import time
@@ -143,7 +142,7 @@ class Client:
     def get_metadata(
         self,
         version: typing.Optional[int] = None,
-    ) -> typing.Optional[rpc.BlockMetadata]:  # pyre-ignore
+    ) -> typing.Optional[rpc.BlockMetadata]:
         """get block metadata
 
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_metadata.md)
@@ -152,7 +151,7 @@ class Client:
         params = [int(version)] if version else []
         return self.execute("get_metadata", params, _parse_obj(lambda: rpc.BlockMetadata()))
 
-    def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:  # pyre-ignore
+    def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:
         """get currencies
 
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_currencies.md)
@@ -162,7 +161,7 @@ class Client:
 
     def get_account(
         self, account_address: typing.Union[libra_types.AccountAddress, str]
-    ) -> typing.Optional[rpc.Account]:  # pyre-ignore
+    ) -> typing.Optional[rpc.Account]:
         """get on-chain account information
 
         Returns None if account not found
@@ -191,7 +190,7 @@ class Client:
         account_address: typing.Union[libra_types.AccountAddress, str],
         sequence: int,
         include_events: typing.Optional[bool] = None,
-    ) -> typing.Optional[rpc.Transaction]:  # pyre-ignore
+    ) -> typing.Optional[rpc.Transaction]:
         """get on-chain account transaction by sequence number
 
         Returns None if transaction is not found
@@ -237,7 +236,7 @@ class Client:
         params = [int(start_version), int(limit), bool(include_events)]
         return self.execute("get_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
-    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[rpc.Event]:  # pyre-ignore
+    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[rpc.Event]:
         """get events
 
         Returns empty list if no events found
@@ -248,7 +247,7 @@ class Client:
         params = [event_stream_key, int(start), int(limit)]
         return self.execute("get_events", params, _parse_list(lambda: rpc.Event()))
 
-    def get_state_proof(self, version: int) -> rpc.StateProof:  # pyre-ignore
+    def get_state_proof(self, version: int) -> rpc.StateProof:
         params = [int(version)]
         return self.execute("get_state_proof", params, _parse_obj(lambda: rpc.StateProof()))
 
@@ -257,7 +256,7 @@ class Client:
         account_address: libra_types.AccountAddress,
         version: typing.Optional[int] = None,
         ledger_version: typing.Optional[int] = None,
-    ) -> rpc.AccountStateWithProof:  # pyre-ignore
+    ) -> rpc.AccountStateWithProof:
         address = utils.account_address_hex(account_address)
         params = [address, version, ledger_version]
         return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof()))

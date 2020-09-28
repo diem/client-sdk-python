@@ -49,7 +49,7 @@ class Intent:
         self.amount = amount
 
     @property
-    def account_address_bytes(self):
+    def account_address_bytes(self) -> bytes:
         return utils.account_address_bytes(self.account_address)
 
 
@@ -97,7 +97,7 @@ def decode_intent(encoded_intent_identifier: str, hrp: str) -> Intent:
     )
 
 
-def _decode_param(name, params, field, convert):
+def _decode_param(name, params, field, convert):  # pyre-ignore
     if field not in params:
         raise InvalidIntentIdentifierError(f"Can't decode {name}: not found in params {params}")
 

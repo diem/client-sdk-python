@@ -10,8 +10,8 @@ from typing import get_type_hints
 from libra import serde_types as st
 from libra import serde_binary as sb
 
-MAX_LENGTH: int = (1 << 31) - 1
-MAX_U32: int = (1 << 32) - 1
+MAX_LENGTH = (1 << 31) - 1
+MAX_U32 = (1 << 32) - 1
 MAX_CONTAINER_DEPTH = 500
 
 
@@ -64,7 +64,7 @@ def _decode_variant_index(content: bytes) -> typing.Tuple[int, bytes]:
     return _decode_uleb128_as_u32(content)
 
 
-def _check_that_key_slices_are_increasing(key1: bytes, key2: bytes) -> None:
+def _check_that_key_slices_are_increasing(key1: bytes, key2: bytes):
     if key1 >= key2:
         raise st.DeserializationError("Serialized keys in a map must be ordered by increasing lexicographic order")
 

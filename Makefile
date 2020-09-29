@@ -59,5 +59,7 @@ publish: dist
 	./venv/bin/pip install --upgrade twine
 	./venv/bin/python3 -m twine upload dist/*
 
+tagrelease:
+	git tag "v$(shell cat setup.py | grep version | cut -c 14-27)"
 
 .PHONY: init check lint format test cover build libratypes protobuf gen dist pylama

@@ -69,6 +69,6 @@ git pull origin master
 
 ```
 git checkout <releasse version>
-git tag v<release version>
+make tagrelease
 git push origin --tags
 ```

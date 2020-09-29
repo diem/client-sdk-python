@@ -10,7 +10,7 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="pylibra-beta", # libra-client-sdk
-    version="0.5.2020092801", # bump up version for release, format 0.X.YYYYMMDDNN
+    version="0.5.2020092901", # bump up version for release, format 0.X.YYYYMMDDNN
     description="The Python Client SDK for Libra",
     long_description=long_description,
     long_description_content_type='text/markdown',

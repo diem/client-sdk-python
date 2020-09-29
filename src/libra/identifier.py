@@ -1,6 +1,12 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""LIP-5 Libra Account Identifier and Intent Identifier Utilities.
+
+See https://lip.libra.org/lip-5 for more details
+"""
+
+
 import typing
 from urllib import parse
 from typing import List

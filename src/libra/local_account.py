@@ -1,6 +1,12 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""Provides LocalAccount class for holding local account private key.
+
+LocalAccount provides operations we need for creating auth key, account address and signing
+raw transaction.
+"""
+
 from . import (
     libra_types,
     utils,

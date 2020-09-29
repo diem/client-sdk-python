@@ -357,21 +357,30 @@ class Client:
 
         raise WaitForTransactionTimeout()
 
-    def execute(self, *args, **kwargs):  # pyre-ignore
+    # pyre-ignore
+    def execute(
+        self,
+        method: str,
+        params: typing.List[typing.Any], # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] =None,  # pyre-ignore
+        ignore_stale_response: typing.Optional[bool] = None,
+    ):
         """execute JSON-RPC method call
 
         This method handles StableResponseError with retry.
         Should only be called by get methods.
         """
 
-        return self._retry.execute(lambda: self.execute_without_retry(*args, **kwargs))
+        return self._retry.execute(
+            lambda: self.execute_without_retry(method, params, result_parser, ignore_stale_response)
+        )
 
     # pyre-ignore
     def execute_without_retry(
         self,
         method: str,
-        params,  # pyre-ignore
-        result_parser=None,  # pyre-ignore
+        params: typing.List[typing.Any], # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] =None,  # pyre-ignore
         ignore_stale_response: typing.Optional[bool] = None,
     ):
         """execute JSON-RPC method call without retry any error.

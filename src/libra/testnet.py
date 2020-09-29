@@ -48,8 +48,8 @@ class Faucet:
 
         return account
 
-    def mint(self, *args, **kwargs): #pyre-ignore
-        seq = self._retry.execute(lambda: self._mint_without_retry(*args, **kwargs))
+    def mint(self, authkey: str, amount: int, currency_code: str) -> None:
+        seq = self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code))
         self._retry.execute(lambda: self._wait_for_account_seq(seq))
 
     def _wait_for_account_seq(self, seq: int) -> None:

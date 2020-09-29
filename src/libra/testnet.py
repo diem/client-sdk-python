@@ -1,24 +1,36 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""Provides utilities for working with Libra Testnet.
+
+
+"""
+
 import requests
 import typing
 
-from . import libra_types, jsonrpc, utils, local_account
+from . import libra_types, jsonrpc, utils, local_account, serde_types
 
 
 JSON_RPC_URL = "https://testnet.libra.org/v1"
 FAUCET_URL = "https://testnet.libra.org/mint"
-CHAIN_ID = libra_types.ChainId(value=2)  # pyre-ignore
+CHAIN_ID = libra_types.ChainId(value=serde_types.uint8(2))  # pyre-ignore
 
 DESIGNATED_DEALER_ADDRESS: libra_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
 
 
 def create_client() -> jsonrpc.Client:
+    """create a jsonrpc.Client connects to Testnet public full node cluster"""
+
     return jsonrpc.Client(JSON_RPC_URL)
 
 
 class Faucet:
+    """Faucet service is a proxy server to mint coins for your test account on Testnet
+
+    See https://github.com/libra/libra/blob/master/json-rpc/docs/service_testnet_faucet.md for more details
+    """
+
     def __init__(
         self,
         client: jsonrpc.Client,

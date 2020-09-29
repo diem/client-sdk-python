@@ -1,6 +1,8 @@
 # Copyright (c) The Libra Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""Provides AuthKey class for holding Libra authentication key and generating account address, prefix from it."""
+
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from . import utils, libra_types
 

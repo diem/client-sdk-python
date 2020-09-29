@@ -361,8 +361,8 @@ class Client:
     def execute(
         self,
         method: str,
-        params: typing.List[typing.Any], # pyre-ignore
-        result_parser: typing.Optional[typing.Callable] =None,  # pyre-ignore
+        params: typing.List[typing.Any],  # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
         ignore_stale_response: typing.Optional[bool] = None,
     ):
         """execute JSON-RPC method call
@@ -379,8 +379,8 @@ class Client:
     def execute_without_retry(
         self,
         method: str,
-        params: typing.List[typing.Any], # pyre-ignore
-        result_parser: typing.Optional[typing.Callable] =None,  # pyre-ignore
+        params: typing.List[typing.Any],  # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
         ignore_stale_response: typing.Optional[bool] = None,
     ):
         """execute JSON-RPC method call without retry any error.

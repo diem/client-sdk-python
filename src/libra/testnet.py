@@ -23,7 +23,7 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import libra_types, jsonrpc, utils, local_account, serde_types
+from . import libra_types, jsonrpc, utils, local_account, serde_types, auth_key
 
 
 JSON_RPC_URL = "https://testnet.libra.org/v1"
@@ -63,8 +63,21 @@ class Faucet:
         return account
 
     def mint(self, authkey: str, amount: int, currency_code: str) -> None:
+        self._retry.execute(lambda: self._mint_with_validation(authkey, amount, currency_code))
+
+    def _mint_with_validation(self, authkey: str, amount: int, currency_code: str) -> None:
         seq = self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code))
         self._retry.execute(lambda: self._wait_for_account_seq(seq))
+        self._validate_mint_result(authkey, amount, currency_code)
+
+    def _validate_mint_result(self, authkey: str, amount: int, currency_code: str) -> None:
+        account_address = auth_key.AuthKey(bytes.fromhex(authkey)).account_address()
+        account = self._client.get_account(account_address)
+        if account is not None:
+            balance = next(iter([b for b in account.balances if b.currency == currency_code]), None)
+
+        if balance is None or balance.amount < amount:
+            raise Exception("mint failed, please retry")
 
     def _wait_for_account_seq(self, seq: int) -> None:
         seq_num = self._client.get_account_sequence(DESIGNATED_DEALER_ADDRESS)

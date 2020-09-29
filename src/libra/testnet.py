@@ -3,6 +3,20 @@
 
 """Provides utilities for working with Libra Testnet.
 
+```python
+
+from libra import testnet, LocalAccount
+
+# create client connects to testnet
+client = testnet.create_client()
+
+# create faucet for minting coins for your testing account
+faucet = testnet.Faucet(client)
+
+# create a local account and mint some coins for it
+account: LocalAccount = faucet.gen_account()
+
+```
 
 """
 

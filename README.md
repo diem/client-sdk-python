@@ -42,21 +42,23 @@ You can find more examples under the [`examples`](./examples/) directory:
 * [Intent Identifier](./examples/p2p_transfer.py#52)
 * [Refund](./examples/refund.py)
 
-
-## Documentation
-
-TODO
-
-## Bugs/Requests
-
-Please use the [GitHub issue tracker](https://github.com/libra/libra-client-sdk-python/issues) to submit bugs or request features.
-
 ## Download
 
 ```
 pip install libra-client-sdk
 ```
 
+## Documentation
+
+After installed package:
+
+```bash
+python -m pydoc libra
+```
+
+## Bugs/Requests
+
+Please use the [GitHub issue tracker](https://github.com/libra/libra-client-sdk-python/issues) to submit bugs or request features.
 
 ## Build & Test Pylibra
 

@@ -3,12 +3,17 @@
 Python client sdk library for the Libra.
 
 
-## Packages Overview
+## Modules Overview
 
 > SPEC = specification
+
 > LIP-X = Libra Improvement Protocol
 
-* `jsonrpc`: libra JSON-RPC APIs client and API response types. [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
+Root module name: `libra`
+
+Sub-modules:
+
+- `jsonrpc`: libra JSON-RPC APIs client and API response types. [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
 - `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
 - `libra_types`: generated code, Libra on-chain data structure types for encoding and decoding [LCS](https://libra.github.io/libra/libra_canonical_serialization/index.html) data.
 - `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
@@ -20,7 +25,18 @@ Python client sdk library for the Libra.
 
 ## Examples
 
-You can find all of the example code under the [`examples`](./examples/) directory:
+```python3
+
+>>> from libra import jsonrpc, testnet
+>>> client = jsonrpc.Client(testnet.JSON_RPC_URL)
+>>> client.get_metadata()
+version: 3300304
+timestamp: 1601492912847973
+chain_id: 2
+
+```
+
+You can find more examples under the [`examples`](./examples/) directory:
 
 * [All Types Peer To Peer Transfer](./examples/p2p_transfer.py)
 * [Intent Identifier](./examples/p2p_transfer.py#52)

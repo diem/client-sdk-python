@@ -11,7 +11,7 @@ class ScriptCall:
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__AddCurrencyToAccount(ScriptCall):
     """# Summary
     Adds a zero `Currency` balance to the sending `account`.
@@ -49,7 +49,7 @@ class ScriptCall__AddCurrencyToAccount(ScriptCall):
     currency: libra_types.TypeTag
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__AddRecoveryRotationCapability(ScriptCall):
     """# Summary
     Stores the sending accounts ability to rotate its authentication key with a designated recovery
@@ -97,7 +97,7 @@ class ScriptCall__AddRecoveryRotationCapability(ScriptCall):
     recovery_address: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__AddToScriptAllowList(ScriptCall):
     """# Summary
     Adds a script hash to the transaction allowlist.
@@ -138,7 +138,7 @@ class ScriptCall__AddToScriptAllowList(ScriptCall):
     sliding_nonce: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__AddValidatorAndReconfigure(ScriptCall):
     """# Summary
     Adds a validator account to the validator set, and triggers a
@@ -191,7 +191,7 @@ class ScriptCall__AddValidatorAndReconfigure(ScriptCall):
     validator_address: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__Burn(ScriptCall):
     """# Summary
     Burns all coins held in the preburn resource at the specified
@@ -251,7 +251,7 @@ class ScriptCall__Burn(ScriptCall):
     preburn_address: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__BurnTxnFees(ScriptCall):
     """# Summary
     Burns the transaction fees collected in the `CoinType` currency so that the
@@ -295,7 +295,7 @@ class ScriptCall__BurnTxnFees(ScriptCall):
     coin_type: libra_types.TypeTag
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CancelBurn(ScriptCall):
     """# Summary
     Cancels and returns all coins held in the preburn area under
@@ -348,7 +348,7 @@ class ScriptCall__CancelBurn(ScriptCall):
     preburn_address: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CreateChildVaspAccount(ScriptCall):
     """# Summary
     Creates a Child VASP account with its parent being the sending account of the transaction.
@@ -412,7 +412,7 @@ class ScriptCall__CreateChildVaspAccount(ScriptCall):
     child_initial_balance: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CreateDesignatedDealer(ScriptCall):
     """# Summary
     Creates a Designated Dealer account with the provided information, and initializes it with
@@ -466,7 +466,7 @@ class ScriptCall__CreateDesignatedDealer(ScriptCall):
     add_all_currencies: st.bool
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CreateParentVaspAccount(ScriptCall):
     """# Summary
     Creates a Parent VASP account with the specified human name.
@@ -518,7 +518,7 @@ class ScriptCall__CreateParentVaspAccount(ScriptCall):
     add_all_currencies: st.bool
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CreateRecoveryAddress(ScriptCall):
     """# Summary
     Initializes the sending account as a recovery address that may be used by
@@ -556,7 +556,7 @@ class ScriptCall__CreateRecoveryAddress(ScriptCall):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CreateValidatorAccount(ScriptCall):
     """# Summary
     Creates a Validator account.
@@ -588,6 +588,7 @@ class ScriptCall__CreateValidatorAccount(ScriptCall):
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | The sending account is not the Libra Root account or Treasury Compliance account           |
     | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ELIBRA_ROOT`            | The sending account is not the Libra Root account.                                         |
     | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
 
@@ -607,7 +608,7 @@ class ScriptCall__CreateValidatorAccount(ScriptCall):
     human_name: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__CreateValidatorOperatorAccount(ScriptCall):
     """# Summary
     Creates a Validator Operator account.
@@ -636,6 +637,7 @@ class ScriptCall__CreateValidatorOperatorAccount(ScriptCall):
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | The sending account is not the Libra Root account or Treasury Compliance account           |
     | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ELIBRA_ROOT`            | The sending account is not the Libra Root account.                                         |
     | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
 
@@ -655,7 +657,7 @@ class ScriptCall__CreateValidatorOperatorAccount(ScriptCall):
     human_name: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__FreezeAccount(ScriptCall):
     """# Summary
     Freezes the account at `address`.
@@ -706,7 +708,7 @@ class ScriptCall__FreezeAccount(ScriptCall):
     to_freeze_account: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__MintLbr(ScriptCall):
     """# Summary
     Mints LBR from the sending account's constituent coins by depositing in the
@@ -754,7 +756,7 @@ class ScriptCall__MintLbr(ScriptCall):
     amount_lbr: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__PeerToPeerWithMetadata(ScriptCall):
     """# Summary
     Transfers a given number of coins in a specified currency from one account to another.
@@ -817,7 +819,7 @@ class ScriptCall__PeerToPeerWithMetadata(ScriptCall):
     metadata_signature: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__Preburn(ScriptCall):
     """# Summary
     Moves a specified number of coins in a given currency from the account's
@@ -868,7 +870,7 @@ class ScriptCall__Preburn(ScriptCall):
     amount: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__PublishSharedEd25519PublicKey(ScriptCall):
     """# Summary
     Rotates the authentication key of the sending account to the
@@ -903,7 +905,7 @@ class ScriptCall__PublishSharedEd25519PublicKey(ScriptCall):
     public_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RegisterValidatorConfig(ScriptCall):
     """# Summary
     Updates a validator's configuration.
@@ -951,7 +953,7 @@ class ScriptCall__RegisterValidatorConfig(ScriptCall):
     fullnode_network_addresses: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RemoveValidatorAndReconfigure(ScriptCall):
     """# Summary
     This script removes a validator account from the validator set, and triggers a reconfiguration
@@ -1000,7 +1002,7 @@ class ScriptCall__RemoveValidatorAndReconfigure(ScriptCall):
     validator_address: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RotateAuthenticationKey(ScriptCall):
     """# Summary
     Rotates the transaction sender's authentication key to the supplied new authentication key.
@@ -1034,7 +1036,7 @@ class ScriptCall__RotateAuthenticationKey(ScriptCall):
     new_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RotateAuthenticationKeyWithNonce(ScriptCall):
     """# Summary
     Rotates the sender's authentication key to the supplied new authentication key.
@@ -1074,7 +1076,7 @@ class ScriptCall__RotateAuthenticationKeyWithNonce(ScriptCall):
     new_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RotateAuthenticationKeyWithNonceAdmin(ScriptCall):
     """# Summary
     Rotates the specified account's authentication key to the supplied new authentication key.
@@ -1114,7 +1116,7 @@ class ScriptCall__RotateAuthenticationKeyWithNonceAdmin(ScriptCall):
     new_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RotateAuthenticationKeyWithRecoveryAddress(ScriptCall):
     """# Summary
     Rotates the authentication key of a specified account that is part of a recovery address to a
@@ -1157,7 +1159,7 @@ class ScriptCall__RotateAuthenticationKeyWithRecoveryAddress(ScriptCall):
     new_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RotateDualAttestationInfo(ScriptCall):
     """# Summary
     Updates the url used for off-chain communication, and the public key used to verify dual
@@ -1203,7 +1205,7 @@ class ScriptCall__RotateDualAttestationInfo(ScriptCall):
     new_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__RotateSharedEd25519PublicKey(ScriptCall):
     """# Summary
     Rotates the authentication key in a `SharedEd25519PublicKey`.
@@ -1237,7 +1239,7 @@ class ScriptCall__RotateSharedEd25519PublicKey(ScriptCall):
     public_key: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__SetValidatorConfigAndReconfigure(ScriptCall):
     """# Summary
     Updates a validator's configuration, and triggers a reconfiguration of the system to update the
@@ -1284,7 +1286,7 @@ class ScriptCall__SetValidatorConfigAndReconfigure(ScriptCall):
     fullnode_network_addresses: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__SetValidatorOperator(ScriptCall):
     """# Summary
     Sets the validator operator for a validator in the validator's configuration resource "locally"
@@ -1332,7 +1334,7 @@ class ScriptCall__SetValidatorOperator(ScriptCall):
     operator_account: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__SetValidatorOperatorWithNonceAdmin(ScriptCall):
     """# Summary
     Sets the validator operator for a validator in the validator's configuration resource "locally"
@@ -1386,7 +1388,7 @@ class ScriptCall__SetValidatorOperatorWithNonceAdmin(ScriptCall):
     operator_account: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__TieredMint(ScriptCall):
     """# Summary
     Mints a specified number of coins in a currency to a Designated Dealer.
@@ -1450,7 +1452,7 @@ class ScriptCall__TieredMint(ScriptCall):
     tier_index: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__UnfreezeAccount(ScriptCall):
     """# Summary
     Unfreezes the account at `address`.
@@ -1492,7 +1494,7 @@ class ScriptCall__UnfreezeAccount(ScriptCall):
     to_unfreeze_account: libra_types.AccountAddress
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__UnmintLbr(ScriptCall):
     """# Summary
     Withdraws a specified amount of LBR from the transaction sender's account, and unstaples the
@@ -1537,7 +1539,7 @@ class ScriptCall__UnmintLbr(ScriptCall):
     amount_lbr: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__UpdateDualAttestationLimit(ScriptCall):
     """# Summary
     Update the dual attestation limit on-chain.
@@ -1574,7 +1576,7 @@ class ScriptCall__UpdateDualAttestationLimit(ScriptCall):
     new_micro_lbr_limit: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__UpdateExchangeRate(ScriptCall):
     """# Summary
     Update the rough on-chain exchange rate between a specified currency and LBR (as a conversion
@@ -1619,7 +1621,7 @@ class ScriptCall__UpdateExchangeRate(ScriptCall):
     new_exchange_rate_denominator: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__UpdateLibraVersion(ScriptCall):
     """# Summary
     Updates the Libra major version that is stored on-chain and is used by the VM.
@@ -1654,7 +1656,7 @@ class ScriptCall__UpdateLibraVersion(ScriptCall):
     major: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScriptCall__UpdateMintingAbility(ScriptCall):
     """# Summary
     Script to allow or disallow minting of new coins in a specified currency.
@@ -2342,6 +2344,7 @@ def encode_create_validator_account_script(
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | The sending account is not the Libra Root account or Treasury Compliance account           |
     | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ELIBRA_ROOT`            | The sending account is not the Libra Root account.                                         |
     | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
 
@@ -2396,6 +2399,7 @@ def encode_create_validator_operator_account_script(
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
     | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | The sending account is not the Libra Root account or Treasury Compliance account           |
     | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ELIBRA_ROOT`            | The sending account is not the Libra Root account.                                         |
     | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
 

@@ -5,7 +5,7 @@ from libra import serde_types as st
 from libra import lcs
 
 
-@dataclass
+@dataclass(frozen=True)
 class AccessPath:
     address: "AccountAddress"
     path: bytes
@@ -21,7 +21,7 @@ class AccessPath:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class AccountAddress:
     value: typing.Tuple[
         st.uint8,
@@ -53,7 +53,7 @@ class AccountAddress:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class BlockMetadata:
     id: "HashValue"
     round: st.uint64
@@ -72,7 +72,7 @@ class BlockMetadata:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class ChainId:
     value: st.uint8
 
@@ -87,7 +87,7 @@ class ChainId:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class ChangeSet:
     write_set: "WriteSet"
     events: typing.Sequence["ContractEvent"]
@@ -117,7 +117,7 @@ class ContractEvent:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class ContractEvent__V0(ContractEvent):
     INDEX = 0  # type: int
     value: "ContractEventV0"
@@ -128,7 +128,7 @@ ContractEvent.VARIANTS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class ContractEventV0:
     key: "EventKey"
     sequence_number: st.uint64
@@ -146,7 +146,7 @@ class ContractEventV0:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class Ed25519PublicKey:
     value: bytes
 
@@ -161,7 +161,7 @@ class Ed25519PublicKey:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class Ed25519Signature:
     value: bytes
 
@@ -176,7 +176,7 @@ class Ed25519Signature:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class EventKey:
     value: bytes
 
@@ -205,7 +205,7 @@ class GeneralMetadata:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class GeneralMetadata__GeneralMetadataVersion0(GeneralMetadata):
     INDEX = 0  # type: int
     value: "GeneralMetadataV0"
@@ -216,7 +216,7 @@ GeneralMetadata.VARIANTS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class GeneralMetadataV0:
     to_subaddress: typing.Optional[bytes]
     from_subaddress: typing.Optional[bytes]
@@ -233,7 +233,7 @@ class GeneralMetadataV0:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class HashValue:
     value: bytes
 
@@ -248,7 +248,7 @@ class HashValue:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class Identifier:
     value: str
 
@@ -277,25 +277,25 @@ class Metadata:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class Metadata__Undefined(Metadata):
     INDEX = 0  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Metadata__GeneralMetadata(Metadata):
     INDEX = 1  # type: int
     value: "GeneralMetadata"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Metadata__TravelRuleMetadata(Metadata):
     INDEX = 2  # type: int
     value: "TravelRuleMetadata"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Metadata__UnstructuredBytesMetadata(Metadata):
     INDEX = 3  # type: int
     value: "UnstructuredBytesMetadata"
@@ -309,7 +309,7 @@ Metadata.VARIANTS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Module:
     code: bytes
 
@@ -324,7 +324,7 @@ class Module:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class MultiEd25519PublicKey:
     value: bytes
 
@@ -339,7 +339,7 @@ class MultiEd25519PublicKey:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class MultiEd25519Signature:
     value: bytes
 
@@ -354,7 +354,7 @@ class MultiEd25519Signature:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class RawTransaction:
     sender: "AccountAddress"
     sequence_number: st.uint64
@@ -376,7 +376,7 @@ class RawTransaction:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class Script:
     code: bytes
     ty_args: typing.Sequence["TypeTag"]
@@ -393,7 +393,7 @@ class Script:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class SignedTransaction:
     raw_txn: "RawTransaction"
     authenticator: "TransactionAuthenticator"
@@ -409,7 +409,7 @@ class SignedTransaction:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class StructTag:
     address: "AccountAddress"
     module: "Identifier"
@@ -441,19 +441,19 @@ class Transaction:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class Transaction__UserTransaction(Transaction):
     INDEX = 0  # type: int
     value: "SignedTransaction"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Transaction__GenesisTransaction(Transaction):
     INDEX = 1  # type: int
     value: "WriteSetPayload"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Transaction__BlockMetadata(Transaction):
     INDEX = 2  # type: int
     value: "BlockMetadata"
@@ -480,37 +480,37 @@ class TransactionArgument:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionArgument__U8(TransactionArgument):
     INDEX = 0  # type: int
     value: st.uint8
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionArgument__U64(TransactionArgument):
     INDEX = 1  # type: int
     value: st.uint64
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionArgument__U128(TransactionArgument):
     INDEX = 2  # type: int
     value: st.uint128
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionArgument__Address(TransactionArgument):
     INDEX = 3  # type: int
     value: "AccountAddress"
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionArgument__U8Vector(TransactionArgument):
     INDEX = 4  # type: int
     value: bytes
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionArgument__Bool(TransactionArgument):
     INDEX = 5  # type: int
     value: st.bool
@@ -540,14 +540,14 @@ class TransactionAuthenticator:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionAuthenticator__Ed25519(TransactionAuthenticator):
     INDEX = 0  # type: int
     public_key: "Ed25519PublicKey"
     signature: "Ed25519Signature"
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionAuthenticator__MultiEd25519(TransactionAuthenticator):
     INDEX = 1  # type: int
     public_key: "MultiEd25519PublicKey"
@@ -574,19 +574,19 @@ class TransactionPayload:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionPayload__WriteSet(TransactionPayload):
     INDEX = 0  # type: int
     value: "WriteSetPayload"
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionPayload__Script(TransactionPayload):
     INDEX = 1  # type: int
     value: "Script"
 
 
-@dataclass
+@dataclass(frozen=True)
 class TransactionPayload__Module(TransactionPayload):
     INDEX = 2  # type: int
     value: "Module"
@@ -613,7 +613,7 @@ class TravelRuleMetadata:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class TravelRuleMetadata__TravelRuleMetadataVersion0(TravelRuleMetadata):
     INDEX = 0  # type: int
     value: "TravelRuleMetadataV0"
@@ -624,7 +624,7 @@ TravelRuleMetadata.VARIANTS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class TravelRuleMetadataV0:
     off_chain_reference_id: typing.Optional[str]
 
@@ -653,49 +653,49 @@ class TypeTag:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__Bool(TypeTag):
     INDEX = 0  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__U8(TypeTag):
     INDEX = 1  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__U64(TypeTag):
     INDEX = 2  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__U128(TypeTag):
     INDEX = 3  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__Address(TypeTag):
     INDEX = 4  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__Signer(TypeTag):
     INDEX = 5  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__Vector(TypeTag):
     INDEX = 6  # type: int
     value: "TypeTag"
 
 
-@dataclass
+@dataclass(frozen=True)
 class TypeTag__Struct(TypeTag):
     INDEX = 7  # type: int
     value: "StructTag"
@@ -713,7 +713,7 @@ TypeTag.VARIANTS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class UnstructuredBytesMetadata:
     metadata: typing.Optional[bytes]
 
@@ -742,13 +742,13 @@ class WriteOp:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class WriteOp__Deletion(WriteOp):
     INDEX = 0  # type: int
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class WriteOp__Value(WriteOp):
     INDEX = 1  # type: int
     value: bytes
@@ -760,7 +760,7 @@ WriteOp.VARIANTS = [
 ]
 
 
-@dataclass
+@dataclass(frozen=True)
 class WriteSet:
     value: "WriteSetMut"
 
@@ -775,7 +775,7 @@ class WriteSet:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class WriteSetMut:
     write_set: typing.Sequence[typing.Tuple["AccessPath", "WriteOp"]]
 
@@ -804,13 +804,13 @@ class WriteSetPayload:
         return v
 
 
-@dataclass
+@dataclass(frozen=True)
 class WriteSetPayload__Direct(WriteSetPayload):
     INDEX = 0  # type: int
     value: "ChangeSet"
 
 
-@dataclass
+@dataclass(frozen=True)
 class WriteSetPayload__Script(WriteSetPayload):
     INDEX = 1  # type: int
     execute_as: "AccountAddress"

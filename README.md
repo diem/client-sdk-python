@@ -1,6 +1,6 @@
 # libra-client-sdk-python
 
-Python client sdk library for the Libra.
+`libra-client-sdk-python` is the official Libra Client SDK for Python.
 
 
 ## Modules Overview
@@ -50,7 +50,7 @@ pip install libra-client-sdk
 
 ## Documentation
 
-After installed package:
+After installing the package:
 
 ```bash
 python -m pydoc libra

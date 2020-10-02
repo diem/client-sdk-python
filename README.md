@@ -1,6 +1,4 @@
-# libra-client-sdk-python
-
-`libra-client-sdk-python` is the official Libra Client SDK for Python.
+# The official Libra Client SDK for Python.
 
 
 ## Modules Overview

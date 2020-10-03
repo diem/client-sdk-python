@@ -55,11 +55,11 @@ def test_get_currencies():
 
 def test_get_account():
     client = testnet.create_client()
-    account = client.get_account(utils.account_address(utils.TREASURY_ADDRESS))
+    account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
-    assert account.role.type == "unknown"
+    assert account.role.type == jsonrpc.ACCOUNT_ROLE_DESIGNATED_DEALER
 
 
 def test_get_account_by_hex_encoded_account_address():
@@ -68,7 +68,7 @@ def test_get_account_by_hex_encoded_account_address():
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
-    assert account.role.type == "unknown"
+    assert account.role.type == jsonrpc.ACCOUNT_ROLE_UNKNOWN
 
 
 def test_get_account_by_invalid_hex_encoded_account_address():
@@ -195,7 +195,7 @@ def test_get_events():
     assert isinstance(event, jsonrpc.Event)
     assert event.key == account.sent_events_key
     assert event.data is not None
-    assert event.data.type == "sentpayment"
+    assert event.data.type == jsonrpc.EVENT_DATA_SENT_PAYMENT
 
 
 def test_get_state_proof():
@@ -257,14 +257,14 @@ def test_submit_create_child_vasp():
     executed_txn = client.wait_for_transaction(signed_txn)
     assert executed_txn is not None
     assert isinstance(executed_txn, jsonrpc.Transaction)
-    assert executed_txn.vm_status.type == "executed"
+    assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
 
     # wait for transaction by signed txn hex string
     signed_txn_hex = signed_txn.lcs_serialize().hex()
     executed_txn = client.wait_for_transaction(signed_txn_hex)
     assert executed_txn is not None
     assert isinstance(executed_txn, jsonrpc.Transaction)
-    assert executed_txn.vm_status.type == "executed"
+    assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
     # should include events
     assert len(executed_txn.events) > 0
 

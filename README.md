@@ -36,8 +36,9 @@ chain_id: 2
 
 You can find more examples under the [`examples`](./examples/) directory:
 
+* [Create Child VASP account](./examples/create_child_vasp.py)
 * [All Types Peer To Peer Transfer](./examples/p2p_transfer.py)
-* [Intent Identifier](./examples/p2p_transfer.py#52)
+* [Intent Identifier](./examples/intent_identifier.py)
 * [Refund](./examples/refund.py)
 
 ## Download

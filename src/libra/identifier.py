@@ -120,7 +120,11 @@ def _decode_param(name, params, field, convert):  # pyre-ignore
         raise InvalidIntentIdentifierError(f"Can't decode {name}: {value}, error: {e}")
 
 
-def encode_account(onchain_addr: str, subaddr: typing.Optional[str] = None, hrp: str = "tlb") -> str:
+def encode_account(
+    onchain_addr: typing.Union[libra_types.AccountAddress, str],
+    subaddr: typing.Optional[typing.Union[str, bytes]] = None,
+    hrp: str = "tlb",
+) -> str:
     """Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format"""
     onchain_address_bytes = utils.account_address_bytes(onchain_addr)
     subaddress_bytes = utils.sub_address(subaddr) if subaddr else None

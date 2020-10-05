@@ -19,12 +19,13 @@ lint: check
 format:
 	./venv/bin/python -m black src tests
 
-test: format
+install:
 	./venv/bin/python setup.py develop
+
+test: format install
 	./venv/bin/pytest tests/test_* examples/* -k "$(TEST)"
 
-cover:
-	./venv/bin/python setup.py develop
+cover: install
 	./venv/bin/pytest --cov-report html --cov=src tests
 
 build: lint test
@@ -46,7 +47,6 @@ protobuf:
 		-Isrc --python_out=src/libra/jsonrpc --mypy_out=src/libra/jsonrpc \
 		src/libra-jsonrpc-types.proto
 
-
 gen: libratypes protobuf format
 
 
@@ -62,4 +62,5 @@ publish: dist
 tagrelease:
 	git tag "v$(shell cat setup.py | grep version | cut -c 14-27)"
 
-.PHONY: init check lint format test cover build libratypes protobuf gen dist pylama
+
+.PHONY: init check lint format install test cover build libratypes protobuf gen dist pylama

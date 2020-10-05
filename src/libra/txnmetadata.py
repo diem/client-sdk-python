@@ -132,7 +132,7 @@ def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
 
         if isinstance(metadata, libra_types.Metadata__GeneralMetadata):
             if isinstance(metadata.value, libra_types.GeneralMetadata__GeneralMetadataVersion0):
-                gmv0 = metadata.value.value  # pyre-ignore
+                gmv0 = metadata.value.value
                 return general_metadata(gmv0.to_subaddress, gmv0.from_subaddress, event.sequence_number)
 
             raise InvalidEventMetadataForRefundError("unknown metadata type: {metadata}")

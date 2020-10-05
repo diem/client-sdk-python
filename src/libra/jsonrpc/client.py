@@ -12,6 +12,7 @@ import typing
 
 from .. import libra_types, utils
 from . import libra_jsonrpc_types_pb2 as rpc
+from . import constants
 
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
@@ -344,7 +345,7 @@ class Client:
             if txn is not None:
                 if txn.hash != txn_hash:
                     raise TransactionHashMismatchError(f"expected hash {txn_hash}, but got {txn.hash}")
-                if txn.vm_status.type != "executed":
+                if txn.vm_status.type != constants.VM_STATUS_EXECUTED:
                     raise TransactionExecutionFailed(f"VM status: {txn.vm_status}")
                 return txn
             state = self.get_last_known_state()

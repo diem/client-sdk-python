@@ -37,6 +37,7 @@ This file is a checklist of requirement & technical details for a Libra client S
 - [x] Validate server chain id: client should be initialized with chain id and validate server response chain id is the same.
 - [x] Validate input parameters, e.g. invalid account address: "kkk". Should return / raise InvalidArgumentError.
 - [ ] Send request with "client sdk name / version" as HTTP User-Agent: this is for server to recognize client sdk version, so that server can block a specific client version if we found unacceptable bugs.
+- [x] Decode transaction script bytes
 
 # [LIP-4][7] support
 
@@ -89,8 +90,8 @@ See [doc][5] for above concepts.
 
 - [x] [p2p transfer examples](https://github.com/libra/lip/blob/master/lips/lip-4.md#transaction-examples)
 - [x] refund p2p transfer example
-- [ ] create childVASP example
-- [ ] Intent identifier encoding, decoding example
+- [x] create childVASP example
+- [x] Intent identifier encoding, decoding example
 
 # Nice to have
 

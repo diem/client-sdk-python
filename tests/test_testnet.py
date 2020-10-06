@@ -171,6 +171,11 @@ def test_get_account_transactions_with_events():
     assert isinstance(txn, jsonrpc.Transaction)
     assert len(txn.events) > 0
 
+    script_call = utils.decode_transaction_script(txn)
+    assert type(script_call).__name__ == "ScriptCall__PeerToPeerWithMetadata"
+    assert script_call.amount == 1_000_000
+    assert utils.currency_code(script_call.currency) == "LBR"
+
 
 def test_get_transactions():
     client = testnet.create_client()

@@ -30,9 +30,7 @@ def test_encode_addr_success():
 
     # accept AccountAddress and bytes sub-address as params too
     enocded_addr = identifier.encode_account(
-        utils.account_address(test_onchain_address),
-        utils.sub_address(test_sub_address),
-        "lbr"
+        utils.account_address(test_onchain_address), utils.sub_address(test_sub_address), "lbr"
     )
     assert enocded_addr == enocded_addr_with_subaddr
 

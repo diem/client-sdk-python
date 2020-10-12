@@ -7,6 +7,7 @@ from google.protobuf.descriptor import (
 
 from google.protobuf.internal.containers import (
     RepeatedCompositeFieldContainer as google___protobuf___internal___containers___RepeatedCompositeFieldContainer,
+    RepeatedScalarFieldContainer as google___protobuf___internal___containers___RepeatedScalarFieldContainer,
 )
 
 from google.protobuf.message import (
@@ -207,7 +208,6 @@ class EventData(google___protobuf___message___Message):
     sender: typing___Text = ...
     receiver: typing___Text = ...
     metadata: typing___Text = ...
-    write_set: typing___Text = ...
     epoch: builtin___int = ...
     round: builtin___int = ...
     proposer: typing___Text = ...
@@ -216,6 +216,9 @@ class EventData(google___protobuf___message___Message):
     new_compliance_public_key: typing___Text = ...
     new_base_url: typing___Text = ...
     time_rotated_seconds: builtin___int = ...
+    created_address: typing___Text = ...
+    role_id: builtin___int = ...
+    committed_timestamp_secs: builtin___int = ...
     @property
     def amount(self) -> type___Amount: ...
     def __init__(
@@ -229,7 +232,6 @@ class EventData(google___protobuf___message___Message):
         sender: typing___Optional[typing___Text] = None,
         receiver: typing___Optional[typing___Text] = None,
         metadata: typing___Optional[typing___Text] = None,
-        write_set: typing___Optional[typing___Text] = None,
         epoch: typing___Optional[builtin___int] = None,
         round: typing___Optional[builtin___int] = None,
         proposer: typing___Optional[typing___Text] = None,
@@ -238,6 +240,9 @@ class EventData(google___protobuf___message___Message):
         new_compliance_public_key: typing___Optional[typing___Text] = None,
         new_base_url: typing___Optional[typing___Text] = None,
         time_rotated_seconds: typing___Optional[builtin___int] = None,
+        created_address: typing___Optional[typing___Text] = None,
+        role_id: typing___Optional[builtin___int] = None,
+        committed_timestamp_secs: typing___Optional[builtin___int] = None,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions___Literal["amount", b"amount"]) -> builtin___bool: ...
     def ClearField(
@@ -245,6 +250,10 @@ class EventData(google___protobuf___message___Message):
         field_name: typing_extensions___Literal[
             "amount",
             b"amount",
+            "committed_timestamp_secs",
+            b"committed_timestamp_secs",
+            "created_address",
+            b"created_address",
             "currency_code",
             b"currency_code",
             "destination_address",
@@ -267,6 +276,8 @@ class EventData(google___protobuf___message___Message):
             b"proposer",
             "receiver",
             b"receiver",
+            "role_id",
+            b"role_id",
             "round",
             b"round",
             "sender",
@@ -275,33 +286,50 @@ class EventData(google___protobuf___message___Message):
             b"time_rotated_seconds",
             "type",
             b"type",
-            "write_set",
-            b"write_set",
         ],
     ) -> None: ...
 
 type___EventData = EventData
 
-class BlockMetadata(google___protobuf___message___Message):
+class Metadata(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     version: builtin___int = ...
     timestamp: builtin___int = ...
     chain_id: builtin___int = ...
+    script_hash_allow_list: google___protobuf___internal___containers___RepeatedScalarFieldContainer[
+        typing___Text
+    ] = ...
+    module_publishing_allowed: builtin___bool = ...
+    libra_version: builtin___int = ...
     def __init__(
         self,
         *,
         version: typing___Optional[builtin___int] = None,
         timestamp: typing___Optional[builtin___int] = None,
         chain_id: typing___Optional[builtin___int] = None,
+        script_hash_allow_list: typing___Optional[typing___Iterable[typing___Text]] = None,
+        module_publishing_allowed: typing___Optional[builtin___bool] = None,
+        libra_version: typing___Optional[builtin___int] = None,
     ) -> None: ...
     def ClearField(
         self,
         field_name: typing_extensions___Literal[
-            "chain_id", b"chain_id", "timestamp", b"timestamp", "version", b"version"
+            "chain_id",
+            b"chain_id",
+            "libra_version",
+            b"libra_version",
+            "module_publishing_allowed",
+            b"module_publishing_allowed",
+            "script_hash_allow_list",
+            b"script_hash_allow_list",
+            "timestamp",
+            b"timestamp",
+            "version",
+            b"version",
         ],
     ) -> None: ...
 
-type___BlockMetadata = BlockMetadata
+type___Metadata = Metadata
 
 class Transaction(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
@@ -464,30 +492,36 @@ type___TransactionData = TransactionData
 class Script(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     type: typing___Text = ...
+    code: typing___Text = ...
+    arguments: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
+    type_arguments: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
     receiver: typing___Text = ...
     amount: builtin___int = ...
     currency: typing___Text = ...
     metadata: typing___Text = ...
     metadata_signature: typing___Text = ...
-    auth_key_prefix: typing___Text = ...
     def __init__(
         self,
         *,
         type: typing___Optional[typing___Text] = None,
+        code: typing___Optional[typing___Text] = None,
+        arguments: typing___Optional[typing___Iterable[typing___Text]] = None,
+        type_arguments: typing___Optional[typing___Iterable[typing___Text]] = None,
         receiver: typing___Optional[typing___Text] = None,
         amount: typing___Optional[builtin___int] = None,
         currency: typing___Optional[typing___Text] = None,
         metadata: typing___Optional[typing___Text] = None,
         metadata_signature: typing___Optional[typing___Text] = None,
-        auth_key_prefix: typing___Optional[typing___Text] = None,
     ) -> None: ...
     def ClearField(
         self,
         field_name: typing_extensions___Literal[
             "amount",
             b"amount",
-            "auth_key_prefix",
-            b"auth_key_prefix",
+            "arguments",
+            b"arguments",
+            "code",
+            b"code",
             "currency",
             b"currency",
             "metadata",
@@ -498,6 +532,8 @@ class Script(google___protobuf___message___Message):
             b"receiver",
             "type",
             b"type",
+            "type_arguments",
+            b"type_arguments",
         ],
     ) -> None: ...
 

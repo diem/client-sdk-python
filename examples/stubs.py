@@ -49,13 +49,13 @@ class CustodialApp:
         txn = self.create_transaction(
             self._parent_vasp,
             stdlib.encode_create_child_vasp_account_script(
-                coin_type=utils.currency_code("LBR"),
+                coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
                 child_address=child_vasp.account_address,
                 auth_key_prefix=child_vasp.auth_key.prefix(),
                 add_all_currencies=False,
                 child_initial_balance=100_000_000,
             ),
-            "LBR"
+            testnet.TEST_CURRENCY_CODE
         )
 
         return self.submit_and_wait(self._parent_vasp.sign(txn))
@@ -68,7 +68,7 @@ class CustodialApp:
                 new_url=b"http://helloworld.org",
                 new_key=utils.public_key_bytes(self.compliance_key.public_key())
             ),
-            "LBR"
+            testnet.TEST_CURRENCY_CODE
         )
         return self.submit_and_wait(self._parent_vasp.sign(txn))
 
@@ -81,7 +81,7 @@ class CustodialApp:
             self._users[user_id],
             identifier.TLB  # testnet HRP
         )
-        return identifier.encode_intent(account_id, "LBR", amount)
+        return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
 
     def find_user_sub_address_by_id(self, user_id: int) -> bytes:
         return utils.sub_address(self._users[user_id])

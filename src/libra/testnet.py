@@ -31,6 +31,7 @@ FAUCET_URL = "https://testnet.libra.org/mint"
 CHAIN_ID = libra_types.ChainId(value=serde_types.uint8(2))  # pyre-ignore
 
 DESIGNATED_DEALER_ADDRESS: libra_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
+TEST_CURRENCY_CODE: str = "Coin1"
 
 
 def create_client() -> jsonrpc.Client:
@@ -54,11 +55,12 @@ class Faucet:
         self._client: jsonrpc.Client = client
         self._url: str = url or FAUCET_URL
         self._retry: jsonrpc.Retry = retry or jsonrpc.Retry(5, 0.2, Exception)
+        self._session: requests.Session = requests.Session()
 
-    def gen_account(self) -> local_account.LocalAccount:
+    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE) -> local_account.LocalAccount:
         account = local_account.LocalAccount.generate()
 
-        self.mint(account.auth_key.hex(), 1_000_000_000, "LBR")
+        self.mint(account.auth_key.hex(), 1_000_000_000, currency_code)
 
         return account
 
@@ -85,8 +87,7 @@ class Faucet:
             raise Exception(f"sequence number {seq_num} < {seq}")
 
     def _mint_without_retry(self, authkey: str, amount: int, currency_code: str) -> int:
-        session = requests.Session()
-        response = session.post(
+        response = self._session.post(
             FAUCET_URL,
             params={
                 "amount": amount,

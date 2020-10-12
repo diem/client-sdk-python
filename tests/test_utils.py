@@ -39,11 +39,11 @@ def test_sub_address():
 
 
 def test_currency_code():
-    ccode = utils.currency_code("LBR")
+    ccode = utils.currency_code("Coin1")
     assert isinstance(ccode, libra_types.TypeTag)
 
     code = utils.currency_code(ccode)
-    assert code == "LBR"
+    assert code == "Coin1"
 
     with pytest.raises(TypeError):
         utils.currency_code(False)

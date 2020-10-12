@@ -32,13 +32,13 @@ EVENT_DATA_TO_LBR_EXCHANGE_RATE_UPDATE: str = "to_lbr_exchange_rate_update"
 EVENT_DATA_PREBURN: str = "preburn"
 EVENT_DATA_RECEIVED_PAYMENT: str = "receivedpayment"
 EVENT_DATA_SENT_PAYMENT: str = "sentpayment"
-EVENT_DATA_UPGRADE: str = "upgrade"
 EVENT_DATA_NEW_EPOCH: str = "newepoch"
 EVENT_DATA_NEW_BLOCK: str = "newblock"
 EVENT_DATA_RECEIVED_MINT: str = "receivedmint"
 EVENT_DATA_COMPLIANCE_KEY_ROTATION: str = "compliancekeyrotation"
 EVENT_DATA_BASE_URL_ROTATION: str = "baseurlrotation"
 EVENT_DATA_CREATE_ACCOUNT: str = "createaccount"
+EVENT_DATA_ADMIN_TRANSACTION: str = "admintransaction"
 
 
 # VMStatus#type field values
@@ -54,3 +54,8 @@ TRANSACTION_DATA_BLOCK_METADATA: str = "blockmetadata"
 TRANSACTION_DATA_WRITE_SET: str = "writeset"
 TRANSACTION_DATA_USER: str = "user"
 TRANSACTION_DATA_UNKNOWN: str = "unknown"
+
+
+# Script#type field values, only set unknown type here,
+# other types, plese see https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
+SCRIPT_UNKNOWN: str = "unknown"

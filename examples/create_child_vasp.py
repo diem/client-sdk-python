@@ -21,7 +21,7 @@ def test_create_child_vasp():
     seq_num = client.get_account_sequence(parent_vasp.account_address)
 
     child_vasp = LocalAccount.generate()
-    currency = "LBR"
+    currency = testnet.TEST_CURRENCY_CODE
     raw_txn = libra_types.RawTransaction(
         sender=parent_vasp.account_address,
         sequence_number=seq_num,

@@ -21,7 +21,7 @@ def test_get_metadata():
     client = testnet.create_client()
     metadata = client.get_metadata()
     assert metadata is not None
-    assert isinstance(metadata, jsonrpc.BlockMetadata)
+    assert isinstance(metadata, jsonrpc.Metadata)
     assert metadata.chain_id == testnet.CHAIN_ID.value
     assert metadata.version is not None
     assert metadata.timestamp is not None
@@ -31,7 +31,7 @@ def test_get_metadata_by_version():
     client = testnet.create_client()
     metadata = client.get_metadata(1)
     assert metadata is not None
-    assert isinstance(metadata, jsonrpc.BlockMetadata)
+    assert isinstance(metadata, jsonrpc.Metadata)
     assert metadata.chain_id == testnet.CHAIN_ID.value
     assert metadata.version == 1
     assert metadata.timestamp is not None
@@ -48,7 +48,7 @@ def test_get_currencies():
     assert isinstance(currencies, list)
     assert len(currencies) > 0
 
-    lbr = next(filter(lambda curr: curr.code == "LBR", currencies))
+    lbr = next(filter(lambda curr: curr.code == testnet.TEST_CURRENCY_CODE, currencies))
     assert lbr is not None
     assert isinstance(lbr, jsonrpc.CurrencyInfo)
 
@@ -173,8 +173,9 @@ def test_get_account_transactions_with_events():
 
     script_call = utils.decode_transaction_script(txn)
     assert type(script_call).__name__ == "ScriptCall__PeerToPeerWithMetadata"
-    assert script_call.amount == 1_000_000
-    assert utils.currency_code(script_call.currency) == "LBR"
+    assert script_call.amount > 0
+    currency_code = utils.currency_code(script_call.currency)
+    assert currency_code in ["LBR", "Coin1"]
 
 
 def test_get_transactions():
@@ -317,7 +318,7 @@ def test_wait_for_transaction_timeout_and_expire():
 
 def create_child_vasp_txn(parent_vasp, child_vasp):
     script = stdlib.encode_create_child_vasp_account_script(
-        coin_type=utils.currency_code("LBR"),
+        coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
         child_address=child_vasp.account_address,
         auth_key_prefix=child_vasp.auth_key.prefix(),
         add_all_currencies=False,
@@ -329,7 +330,7 @@ def create_child_vasp_txn(parent_vasp, child_vasp):
         payload=libra_types.TransactionPayload__Script(script),
         max_gas_amount=1_000_000,
         gas_unit_price=0,
-        gas_currency_code="LBR",
+        gas_currency_code=testnet.TEST_CURRENCY_CODE,
         expiration_timestamp_secs=int(time.time()) + 30,
         chain_id=testnet.CHAIN_ID,
     )

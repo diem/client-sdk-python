@@ -86,10 +86,6 @@ message EventData {
   // hex-encoded bytes
   string metadata = 8;
 
-  // upgrade event only
-  // hex-encoded bytes
-  string write_set = 9 [json_name="write_set"];
-
   // newepoch event only
   uint64 epoch = 10;
 
@@ -108,16 +104,61 @@ message EventData {
   string new_compliance_public_key = 15 [json_name="new_compliance_public_key"];
 
   // baseurlrotation event only
-  string new_base_url = 17 [json_name="new_base_url"];
+  string new_base_url = 16 [json_name="new_base_url"];
 
   // compliancekeyrotation and baseurlrotation events
-  uint64 time_rotated_seconds = 16 [json_name="time_rotated_seconds"];
+  uint64 time_rotated_seconds = 17 [json_name="time_rotated_seconds"];
+
+  /**
+   * createaccount event field.
+   * Hex-encoded account address bytes of the created account.
+   */
+  string created_address = 18 [json_name="created_address"];
+  /**
+   * createaccount event field.
+   * Role id of the created account, see [LIP-2](https://lip.libra.org/lip-2/#move-implementation)
+   * for more details
+   */
+  uint64 role_id = 19 [json_name="role_id"];
+
+  /**
+   * admintransaction event field.
+   * The block time when this transaction is committed.
+   * It is created by validators.
+   */
+  uint64 committed_timestamp_secs = 20 [json_name="committed_timestamp_secs"];
 }
 
-message BlockMetadata {
+message Metadata {
+  /**
+   * The block (ledger) version
+   */
   uint64 version = 1;
+  /**
+   * The block (ledger) timestamp, unit is microsecond
+   */
   uint64 timestamp = 2;
-  uint32 chain_id = 3;
+  /**
+   * Chain ID of the Libra network
+   */
+  uint32 chain_id = 3 [json_name="chain_id"];
+
+  /**
+   * List of allowed scripts hex-encoded hash bytes, server may not return this field
+   * if the allow list not found in on chain configuration.
+   */
+  repeated string script_hash_allow_list = 4 [json_name="script_hash_allow_list"];
+
+  /**
+   * True for allowing publishing customized script, server may not return this field
+   * if the flag not found in on chain configuration.
+   */
+  bool module_publishing_allowed = 5 [json_name="module_publishing_allowed"];
+
+  /**
+   * Libra chain major version number.
+   */
+  uint64 libra_version = 6 [json_name="libra_version"];
 }
 
 message Transaction {
@@ -170,22 +211,61 @@ message TransactionData {
 }
 
 message Script {
+  /**
+   * Name of the script code, see https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
+   * Type is set as "unknown" if script code can't be recognized, or transaction payload is not a script.
+   * It is possible server side does not know the code and the code is valid.
+   */
   string type = 1;
-  // peer_to_peer_transaction and mint_transaction
-  // hex-encoded bytes
-  string receiver = 2;
-  uint64 amount = 3;
-  string currency = 4;
 
-  // peer_to_peer_transaction only
-  // hex-encoded bytes
-  string metadata = 5;
-  // hex-encoded bytes
-  string metadata_signature = 6 [json_name="metadata_signature"];
+  /**
+   * Hex-encoded compiled move script bytes.
+   */
+  string code = 2;
+  /**
+   * List of string value of the script arguments. Contains type information.
+   * Argument value to string formatting:
+   * - u8 value `12` => "{U8: 12}"
+   * - u64 value `12244` => "{U64: 12244}"
+   * - u128 value `12244` => "{U128: 12244}"
+   * - boolean value `true` => "{BOOL: true}"
+   * - Account address value => "{ADDRESS: <hex-encoded account address bytes>}"
+   * - List<u8> value => "{U8Vector:: 0x<hex-encoded bytes>}"
+   */
+  repeated string arguments = 3;
+  /**
+   * List of type arguments, converted into string.
+   */
+  repeated string type_arguments = 4 [json_name="type_arguments"];
 
-  // mint_transaction only
-  // hex-encoded bytes
-  string auth_key_prefix = 7 [json_name="auth_key_prefix"];
+  /**
+   * The followings are legacy fields only for peer_to_peer_with_metadata script.
+   */
+
+  /**
+   * hex-encoded receiver account address bytes
+   */
+  string receiver = 5;
+
+  /**
+   * peer to peer transfer amount.
+   */
+  uint64 amount = 6;
+  /**
+   * peer to peer transfer currency code.
+   */
+  string currency = 7;
+
+  /**
+   * Metadata of the transaction, LCS serialized hex-encoded string.
+   * See [LIP-4](https://lip.libra.org/lip-4/) for more details.
+   */
+  string metadata = 8;
+  /**
+   * Hex-encoded metadata signature, use this to validate metadata.
+   * See [LIP-4](https://lip.libra.org/lip-4/) for more details.
+   */
+  string metadata_signature = 9 [json_name="metadata_signature"];
 }
 
 message CurrencyInfo {
@@ -231,5 +311,3 @@ message AccountStateProof {
   // hex-encoded lcs bytes
   string transaction_info_to_account_proof = 3 [json_name="transaction_info_to_account_proof"];
 }
-
-

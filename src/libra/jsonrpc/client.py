@@ -143,14 +143,14 @@ class Client:
     def get_metadata(
         self,
         version: typing.Optional[int] = None,
-    ) -> typing.Optional[rpc.BlockMetadata]:
+    ) -> typing.Optional[rpc.Metadata]:
         """get block metadata
 
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_metadata.md)
         """
 
         params = [int(version)] if version else []
-        return self.execute("get_metadata", params, _parse_obj(lambda: rpc.BlockMetadata()))
+        return self.execute("get_metadata", params, _parse_obj(lambda: rpc.Metadata()))
 
     def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:
         """get currencies
@@ -430,7 +430,7 @@ class Client:
 
             raise InvalidServerResponse(f"No error or result in response: {response.text}")
         except requests.RequestException as e:
-            raise NetworkError(f"Error in connecting to Full Node: {e}\nPlease retry...")
+            raise NetworkError(f"Error in connecting to server: {e}\nPlease retry...")
         except ValueError as e:
             raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
         except parser.ParseError as e:

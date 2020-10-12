@@ -37,7 +37,7 @@ from .client import (
 )
 from .libra_jsonrpc_types_pb2 import (
     Amount,
-    BlockMetadata,
+    Metadata,
     CurrencyInfo,
     Account,
     AccountRole,
@@ -66,13 +66,13 @@ from .constants import (
     EVENT_DATA_PREBURN,
     EVENT_DATA_RECEIVED_PAYMENT,
     EVENT_DATA_SENT_PAYMENT,
-    EVENT_DATA_UPGRADE,
     EVENT_DATA_NEW_EPOCH,
     EVENT_DATA_NEW_BLOCK,
     EVENT_DATA_RECEIVED_MINT,
     EVENT_DATA_COMPLIANCE_KEY_ROTATION,
     EVENT_DATA_BASE_URL_ROTATION,
     EVENT_DATA_CREATE_ACCOUNT,
+    EVENT_DATA_ADMIN_TRANSACTION,
     # VMStatus#type field values
     VM_STATUS_EXECUTED,
     VM_STATUS_OUT_OF_GAS,
@@ -84,4 +84,7 @@ from .constants import (
     TRANSACTION_DATA_WRITE_SET,
     TRANSACTION_DATA_USER,
     TRANSACTION_DATA_UNKNOWN,
+    # Script#type field values, only set unknown type here,
+    # other types, plese see https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
+    SCRIPT_UNKNOWN,
 )

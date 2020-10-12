@@ -27,14 +27,14 @@ def test_non_custodial_to_non_custodial():
     amount = 1_000_000
 
     script = stdlib.encode_peer_to_peer_with_metadata_script(
-        currency=utils.currency_code("LBR"),
+        currency=utils.currency_code(testnet.TEST_CURRENCY_CODE),
         payee=receiver.account_address,
         amount=amount,
         metadata=b'', # no requirement for metadata and metadata signature
         metadata_signature=b'',
     )
     seq_num = client.get_account_sequence(sender.account_address)
-    txn = create_transaction(sender, seq_num, script)
+    txn = create_transaction(sender, seq_num, script, testnet.TEST_CURRENCY_CODE)
 
     signed_txn = sender.sign(txn)
     client.submit(signed_txn)
@@ -78,7 +78,7 @@ def test_custodial_to_non_custodial():
     receiver = faucet.gen_account()
 
     amount = 1_000_000
-    currency_code = "LBR"
+    currency_code = testnet.TEST_CURRENCY_CODE
 
     script = stdlib.encode_peer_to_peer_with_metadata_script(
         currency=utils.currency_code(currency_code),
@@ -169,7 +169,7 @@ def test_custodial_to_custodial_above_threshold():
     assert executed_txn is not None
 
 
-def create_transaction(sender, sender_account_sequence, script, currency="LBR"):
+def create_transaction(sender, sender_account_sequence, script, currency):
     return libra_types.RawTransaction(
         sender=sender.account_address,
         sequence_number=sender_account_sequence,

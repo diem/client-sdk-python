@@ -62,5 +62,9 @@ publish: dist
 tagrelease:
 	git tag "v$(shell cat setup.py | grep version | cut -c 14-27)"
 
+docs: init install
+	rm -rf docs
+	./venv/bin/python3 -m pdoc libra --html -o docs
 
-.PHONY: init check lint format install test cover build libratypes protobuf gen dist pylama
+
+.PHONY: init check lint format install test cover build libratypes protobuf gen dist pylama docs

@@ -10,7 +10,7 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="libra-client-sdk",
-    version="0.5.2020100601", # bump up version for release, format 0.X.YYYYMMDDNN
+    version="0.4.2020101301", # bump up version for release, format 0.X.YYYYMMDDNN
     description="The Python Client SDK for Libra",
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -19,12 +19,13 @@ setup(
     # author="Libra Open Source",
     python_requires=">=3.7", # requires dataclasses
     packages=["libra"],
+    package_data={"": ["src/libra/jsonrpc/*.pyi"]},
+    package_dir={"": "src"},
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,
     install_requires=["requests>=2.20.0", "cryptography>=2.8", "numpy>=1.18", "protobuf>=3.12.4"],
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.
         "setuptools>=18.0",
-    ],
-    package_dir={"": "src/"},
+    ]
 )

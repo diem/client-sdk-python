@@ -1,6 +1,6 @@
 /venv
-/src/*.egg-info
 .pyre
 /build
 /dist
 __pycache__
+/src/libra_client_sdk.egg-info

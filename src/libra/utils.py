@@ -89,8 +89,8 @@ def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:
     return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
 
 
-def currency_code(code: typing.Union[str, libra_types.TypeTag]) -> typing.Union[str, libra_types.TypeTag]:
-    """converts currency code between string and libra_types.TypeTag"""
+def currency_code(code: str) -> libra_types.TypeTag:
+    """converts currency code string to libra_types.TypeTag"""
 
     if isinstance(code, str):
         return libra_types.TypeTag__Struct(
@@ -101,6 +101,13 @@ def currency_code(code: typing.Union[str, libra_types.TypeTag]) -> typing.Union[
                 type_params=[],
             )
         )
+
+    raise TypeError(f"unknown currency code type: {code}")
+
+
+def type_tag_to_str(code: libra_types.TypeTag) -> str:
+    """converts currency code TypeTag into string"""
+
     if isinstance(code, libra_types.TypeTag__Struct):
         return code.value.name.value
 

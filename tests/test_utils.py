@@ -42,11 +42,14 @@ def test_currency_code():
     ccode = utils.currency_code("Coin1")
     assert isinstance(ccode, libra_types.TypeTag)
 
-    code = utils.currency_code(ccode)
+    code = utils.type_tag_to_str(ccode)
     assert code == "Coin1"
 
     with pytest.raises(TypeError):
         utils.currency_code(False)
+
+    with pytest.raises(TypeError):
+        utils.type_tag_to_str(False)
 
 
 def test_decode_transaction_script():

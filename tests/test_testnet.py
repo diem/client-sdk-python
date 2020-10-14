@@ -174,7 +174,7 @@ def test_get_account_transactions_with_events():
     script_call = utils.decode_transaction_script(txn)
     assert type(script_call).__name__ == "ScriptCall__PeerToPeerWithMetadata"
     assert script_call.amount > 0
-    currency_code = utils.currency_code(script_call.currency)
+    currency_code = utils.type_tag_to_str(script_call.currency)
     assert currency_code in ["LBR", "Coin1"]
 
 

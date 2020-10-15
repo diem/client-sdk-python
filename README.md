@@ -41,6 +41,8 @@ You can find more examples under the [`examples`](./examples/) directory:
 * [Intent Identifier](./examples/intent_identifier.py)
 * [Refund](./examples/refund.py)
 
+Note: `make test` runs all examples too, see the Makefile for details.
+
 ## Download
 
 ```
@@ -59,7 +61,7 @@ python -m pydoc libra
 
 Please use the [GitHub issue tracker](https://github.com/libra/libra-client-sdk-python/issues) to submit bugs or request features.
 
-## Build & Test Pylibra
+## Build & Test
 
 ```
 make init

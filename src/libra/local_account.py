@@ -19,7 +19,12 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 class LocalAccount:
     """LocalAccount is like a wallet account
 
-    This is handy class for creating tests for your application, but may not ideal for production code.
+    WARN: This is handy class for creating tests for your application, but may not ideal for your
+    production code, because it uses a specific implementaion of ed25519 and requires loading your
+    private key into memory and hand over to code from external.
+    You should always choose more secure way to handle your private key
+    (e.g. https://en.wikipedia.org/wiki/Hardware_security_module) in production and do not give
+    your private key to any code from external if possible.
     """
 
     @staticmethod

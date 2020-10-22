@@ -379,6 +379,36 @@ class Transaction(google___protobuf___message___Message):
 
 type___Transaction = Transaction
 
+class MoveAbortExplaination(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    category: typing___Text = ...
+    category_description: typing___Text = ...
+    reason: typing___Text = ...
+    reason_description: typing___Text = ...
+    def __init__(
+        self,
+        *,
+        category: typing___Optional[typing___Text] = None,
+        category_description: typing___Optional[typing___Text] = None,
+        reason: typing___Optional[typing___Text] = None,
+        reason_description: typing___Optional[typing___Text] = None,
+    ) -> None: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions___Literal[
+            "category",
+            b"category",
+            "category_description",
+            b"category_description",
+            "reason",
+            b"reason",
+            "reason_description",
+            b"reason_description",
+        ],
+    ) -> None: ...
+
+type___MoveAbortExplaination = MoveAbortExplaination
+
 class VMStatus(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
     type: typing___Text = ...
@@ -386,6 +416,8 @@ class VMStatus(google___protobuf___message___Message):
     abort_code: builtin___int = ...
     function_index: builtin___int = ...
     code_offset: builtin___int = ...
+    @property
+    def explanation(self) -> type___MoveAbortExplaination: ...
     def __init__(
         self,
         *,
@@ -394,7 +426,9 @@ class VMStatus(google___protobuf___message___Message):
         abort_code: typing___Optional[builtin___int] = None,
         function_index: typing___Optional[builtin___int] = None,
         code_offset: typing___Optional[builtin___int] = None,
+        explanation: typing___Optional[type___MoveAbortExplaination] = None,
     ) -> None: ...
+    def HasField(self, field_name: typing_extensions___Literal["explanation", b"explanation"]) -> builtin___bool: ...
     def ClearField(
         self,
         field_name: typing_extensions___Literal[
@@ -402,6 +436,8 @@ class VMStatus(google___protobuf___message___Message):
             b"abort_code",
             "code_offset",
             b"code_offset",
+            "explanation",
+            b"explanation",
             "function_index",
             b"function_index",
             "location",

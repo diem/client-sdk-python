@@ -60,7 +60,7 @@ class Faucet:
     def gen_account(self, currency_code: str = TEST_CURRENCY_CODE) -> local_account.LocalAccount:
         account = local_account.LocalAccount.generate()
 
-        self.mint(account.auth_key.hex(), 1_000_000_000, currency_code)
+        self.mint(account.auth_key.hex(), 5_000_000_000, currency_code)
 
         return account
 

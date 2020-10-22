@@ -3,11 +3,9 @@
 
 syntax = "proto3";
 
-// Go lang generator uses this package name as generated file package name
-// so we have to use a long name to make sure we create a clean package name.
-package librajsonrpctypes;
-option go_package = "github.com/libra/librajsonrpctypes";
-option java_package = "org.libra.jsonrpctypes";
+package jsonrpc;
+option go_package = "github.com/libra/jsonrpc";
+option java_package = "org.libra.jsonrpc";
 option java_outer_classname = "JsonRpc";
 
 message Amount {
@@ -172,6 +170,13 @@ message Transaction {
   uint64 gas_used = 7 [json_name="gas_used"];
 }
 
+message MoveAbortExplaination {
+  string category = 1;
+  string category_description = 2 [json_name="category_description"];
+  string reason = 3;
+  string reason_description = 4 [json_name="reason_description"];
+}
+
 
 message VMStatus {
   string type = 1;
@@ -184,6 +189,9 @@ message VMStatus {
   // execution_failure only
   uint32 function_index = 4 [json_name="function_index"];
   uint32 code_offset = 5 [json_name="code_offset"];
+
+  // move_abort only
+  MoveAbortExplaination explanation = 6;
 }
 
 message TransactionData {

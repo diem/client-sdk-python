@@ -15,11 +15,11 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='libra-jsonrpc-types.proto',
-  package='librajsonrpctypes',
+  package='jsonrpc',
   syntax='proto3',
-  serialized_options=b'\n\026org.libra.jsonrpctypesB\007JsonRpcZ\"github.com/libra/librajsonrpctypes',
+  serialized_options=b'\n\021org.libra.jsonrpcB\007JsonRpcZ\030github.com/libra/jsonrpc',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19libra-jsonrpc-types.proto\x12\x11librajsonrpctypes\"*\n\x06\x41mount\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x02 \x01(\t\"\xf7\x03\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12+\n\x08\x62\x61lances\x18\x02 \x03(\x0b\x32\x19.librajsonrpctypes.Amount\x12(\n\x0fsequence_number\x18\x03 \x01(\x04R\x0fsequence_number\x12.\n\x12\x61uthentication_key\x18\x04 \x01(\tR\x12\x61uthentication_key\x12(\n\x0fsent_events_key\x18\x05 \x01(\tR\x0fsent_events_key\x12\x30\n\x13received_events_key\x18\x06 \x01(\tR\x13received_events_key\x12L\n!delegated_key_rotation_capability\x18\x07 \x01(\x08R!delegated_key_rotation_capability\x12H\n\x1f\x64\x65legated_withdrawal_capability\x18\x08 \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\x32\n\tis_frozen\x18\t \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12,\n\x04role\x18\n \x01(\x0b\x32\x1e.librajsonrpctypes.AccountRole\"\x96\x04\n\x0b\x41\x63\x63ountRole\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x30\n\x13parent_vasp_address\x18\x02 \x01(\tR\x13parent_vasp_address\x12\x1e\n\nhuman_name\x18\x03 \x01(\tR\nhuman_name\x12\x1a\n\x08\x62\x61se_url\x18\x04 \x01(\tR\x08\x62\x61se_url\x12(\n\x0f\x65xpiration_time\x18\x05 \x01(\x04R\x0f\x65xpiration_time\x12&\n\x0e\x63ompliance_key\x18\x06 \x01(\tR\x0e\x63ompliance_key\x12N\n\"compliance_key_rotation_events_key\x18\x07 \x01(\tR\"compliance_key_rotation_events_key\x12\x42\n\x1c\x62\x61se_url_rotation_events_key\x18\x08 \x01(\tR\x1c\x62\x61se_url_rotation_events_key\x12\"\n\x0cnum_children\x18\t \x01(\x04R\x0cnum_children\x12:\n\x18received_mint_events_key\x18\n \x01(\tR\x18received_mint_events_key\x12\x45\n\x10preburn_balances\x18\x0b \x03(\x0b\x32\x19.librajsonrpctypes.AmountR\x10preburn_balances\"\x9c\x01\n\x05\x45vent\x12\x0b\n\x03key\x18\x01 \x01(\t\x12(\n\x0fsequence_number\x18\x02 \x01(\x04R\x0fsequence_number\x12\x30\n\x13transaction_version\x18\x03 \x01(\x04R\x13transaction_version\x12*\n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x1c.librajsonrpctypes.EventData\"\xa2\x05\n\tEventData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12)\n\x06\x61mount\x18\x02 \x01(\x0b\x32\x19.librajsonrpctypes.Amount\x12(\n\x0fpreburn_address\x18\x03 \x01(\tR\x0fpreburn_address\x12$\n\rcurrency_code\x18\x04 \x01(\tR\rcurrency_code\x12:\n\x18new_to_lbr_exchange_rate\x18\x05 \x01(\x02R\x18new_to_lbr_exchange_rate\x12\x0e\n\x06sender\x18\x06 \x01(\t\x12\x10\n\x08receiver\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12\r\n\x05\x65poch\x18\n \x01(\x04\x12\r\n\x05round\x18\x0b \x01(\x04\x12\x10\n\x08proposer\x18\x0c \x01(\t\x12$\n\rproposed_time\x18\r \x01(\x04R\rproposed_time\x12\x30\n\x13\x64\x65stination_address\x18\x0e \x01(\tR\x13\x64\x65stination_address\x12<\n\x19new_compliance_public_key\x18\x0f \x01(\tR\x19new_compliance_public_key\x12\"\n\x0cnew_base_url\x18\x10 \x01(\tR\x0cnew_base_url\x12\x32\n\x14time_rotated_seconds\x18\x11 \x01(\x04R\x14time_rotated_seconds\x12(\n\x0f\x63reated_address\x18\x12 \x01(\tR\x0f\x63reated_address\x12\x18\n\x07role_id\x18\x13 \x01(\x04R\x07role_id\x12:\n\x18\x63ommitted_timestamp_secs\x18\x14 \x01(\x04R\x18\x63ommitted_timestamp_secs\"\xe6\x01\n\x08Metadata\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12\x1a\n\x08\x63hain_id\x18\x03 \x01(\rR\x08\x63hain_id\x12\x36\n\x16script_hash_allow_list\x18\x04 \x03(\tR\x16script_hash_allow_list\x12<\n\x19module_publishing_allowed\x18\x05 \x01(\x08R\x19module_publishing_allowed\x12$\n\rlibra_version\x18\x06 \x01(\x04R\rlibra_version\"\xf5\x01\n\x0bTransaction\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x37\n\x0btransaction\x18\x02 \x01(\x0b\x32\".librajsonrpctypes.TransactionData\x12\x0c\n\x04hash\x18\x03 \x01(\t\x12\r\n\x05\x62ytes\x18\x04 \x01(\t\x12(\n\x06\x65vents\x18\x05 \x03(\x0b\x32\x18.librajsonrpctypes.Event\x12\x39\n\tvm_status\x18\x06 \x01(\x0b\x32\x1b.librajsonrpctypes.VMStatusR\tvm_status\x12\x1a\n\x08gas_used\x18\x07 \x01(\x04R\x08gas_used\"\x94\x01\n\x08VMStatus\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08location\x18\x02 \x01(\t\x12\x1e\n\nabort_code\x18\x03 \x01(\x04R\nabort_code\x12&\n\x0e\x66unction_index\x18\x04 \x01(\rR\x0e\x66unction_index\x12 \n\x0b\x63ode_offset\x18\x05 \x01(\rR\x0b\x63ode_offset\"\xa1\x04\n\x0fTransactionData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12(\n\x0ftimestamp_usecs\x18\x02 \x01(\x04R\x0ftimestamp_usecs\x12\x0e\n\x06sender\x18\x03 \x01(\t\x12*\n\x10signature_scheme\x18\x04 \x01(\tR\x10signature_scheme\x12\x11\n\tsignature\x18\x05 \x01(\t\x12\x1e\n\npublic_key\x18\x06 \x01(\tR\npublic_key\x12(\n\x0fsequence_number\x18\x07 \x01(\x04R\x0fsequence_number\x12\x1a\n\x08\x63hain_id\x18\x08 \x01(\rR\x08\x63hain_id\x12&\n\x0emax_gas_amount\x18\t \x01(\x04R\x0emax_gas_amount\x12&\n\x0egas_unit_price\x18\n \x01(\x04R\x0egas_unit_price\x12\"\n\x0cgas_currency\x18\x0b \x01(\tR\x0cgas_currency\x12<\n\x19\x65xpiration_timestamp_secs\x18\x0c \x01(\x04R\x19\x65xpiration_timestamp_secs\x12 \n\x0bscript_hash\x18\r \x01(\tR\x0bscript_hash\x12\"\n\x0cscript_bytes\x18\x0e \x01(\tR\x0cscript_bytes\x12)\n\x06script\x18\x0f \x01(\x0b\x32\x19.librajsonrpctypes.Script\"\xd5\x01\n\x06Script\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x03(\t\x12&\n\x0etype_arguments\x18\x04 \x03(\tR\x0etype_arguments\x12\x10\n\x08receiver\x18\x05 \x01(\t\x12\x0e\n\x06\x61mount\x18\x06 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12.\n\x12metadata_signature\x18\t \x01(\tR\x12metadata_signature\"\xa8\x03\n\x0c\x43urrencyInfo\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\x12&\n\x0escaling_factor\x18\x02 \x01(\x04R\x0escaling_factor\x12(\n\x0f\x66ractional_part\x18\x03 \x01(\x04R\x0f\x66ractional_part\x12\x32\n\x14to_lbr_exchange_rate\x18\x04 \x01(\x02R\x14to_lbr_exchange_rate\x12(\n\x0fmint_events_key\x18\x05 \x01(\tR\x0fmint_events_key\x12(\n\x0f\x62urn_events_key\x18\x06 \x01(\tR\x0f\x62urn_events_key\x12.\n\x12preburn_events_key\x18\x07 \x01(\tR\x12preburn_events_key\x12\x36\n\x16\x63\x61ncel_burn_events_key\x18\x08 \x01(\tR\x16\x63\x61ncel_burn_events_key\x12H\n\x1f\x65xchange_rate_update_events_key\x18\t \x01(\tR\x1f\x65xchange_rate_update_events_key\"\xba\x01\n\nStateProof\x12@\n\x1bledger_info_with_signatures\x18\x01 \x01(\tR\x1bledger_info_with_signatures\x12.\n\x12\x65poch_change_proof\x18\x02 \x01(\tR\x12\x65poch_change_proof\x12:\n\x18ledger_consistency_proof\x18\x03 \x01(\tR\x18ledger_consistency_proof\"k\n\x15\x41\x63\x63ountStateWithProof\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x0c\n\x04\x62lob\x18\x02 \x01(\t\x12\x33\n\x05proof\x18\x03 \x01(\x0b\x32$.librajsonrpctypes.AccountStateProof\"\xe3\x01\n\x11\x41\x63\x63ountStateProof\x12T\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\tR%ledger_info_to_transaction_info_proof\x12*\n\x10transaction_info\x18\x02 \x01(\tR\x10transaction_info\x12L\n!transaction_info_to_account_proof\x18\x03 \x01(\tR!transaction_info_to_account_proofBE\n\x16org.libra.jsonrpctypesB\x07JsonRpcZ\"github.com/libra/librajsonrpctypesb\x06proto3'
+  serialized_pb=b'\n\x19libra-jsonrpc-types.proto\x12\x07jsonrpc\"*\n\x06\x41mount\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x02 \x01(\t\"\xe3\x03\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12!\n\x08\x62\x61lances\x18\x02 \x03(\x0b\x32\x0f.jsonrpc.Amount\x12(\n\x0fsequence_number\x18\x03 \x01(\x04R\x0fsequence_number\x12.\n\x12\x61uthentication_key\x18\x04 \x01(\tR\x12\x61uthentication_key\x12(\n\x0fsent_events_key\x18\x05 \x01(\tR\x0fsent_events_key\x12\x30\n\x13received_events_key\x18\x06 \x01(\tR\x13received_events_key\x12L\n!delegated_key_rotation_capability\x18\x07 \x01(\x08R!delegated_key_rotation_capability\x12H\n\x1f\x64\x65legated_withdrawal_capability\x18\x08 \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\x32\n\tis_frozen\x18\t \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\"\n\x04role\x18\n \x01(\x0b\x32\x14.jsonrpc.AccountRole\"\x8c\x04\n\x0b\x41\x63\x63ountRole\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x30\n\x13parent_vasp_address\x18\x02 \x01(\tR\x13parent_vasp_address\x12\x1e\n\nhuman_name\x18\x03 \x01(\tR\nhuman_name\x12\x1a\n\x08\x62\x61se_url\x18\x04 \x01(\tR\x08\x62\x61se_url\x12(\n\x0f\x65xpiration_time\x18\x05 \x01(\x04R\x0f\x65xpiration_time\x12&\n\x0e\x63ompliance_key\x18\x06 \x01(\tR\x0e\x63ompliance_key\x12N\n\"compliance_key_rotation_events_key\x18\x07 \x01(\tR\"compliance_key_rotation_events_key\x12\x42\n\x1c\x62\x61se_url_rotation_events_key\x18\x08 \x01(\tR\x1c\x62\x61se_url_rotation_events_key\x12\"\n\x0cnum_children\x18\t \x01(\x04R\x0cnum_children\x12:\n\x18received_mint_events_key\x18\n \x01(\tR\x18received_mint_events_key\x12;\n\x10preburn_balances\x18\x0b \x03(\x0b\x32\x0f.jsonrpc.AmountR\x10preburn_balances\"\x92\x01\n\x05\x45vent\x12\x0b\n\x03key\x18\x01 \x01(\t\x12(\n\x0fsequence_number\x18\x02 \x01(\x04R\x0fsequence_number\x12\x30\n\x13transaction_version\x18\x03 \x01(\x04R\x13transaction_version\x12 \n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x12.jsonrpc.EventData\"\x98\x05\n\tEventData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x1f\n\x06\x61mount\x18\x02 \x01(\x0b\x32\x0f.jsonrpc.Amount\x12(\n\x0fpreburn_address\x18\x03 \x01(\tR\x0fpreburn_address\x12$\n\rcurrency_code\x18\x04 \x01(\tR\rcurrency_code\x12:\n\x18new_to_lbr_exchange_rate\x18\x05 \x01(\x02R\x18new_to_lbr_exchange_rate\x12\x0e\n\x06sender\x18\x06 \x01(\t\x12\x10\n\x08receiver\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12\r\n\x05\x65poch\x18\n \x01(\x04\x12\r\n\x05round\x18\x0b \x01(\x04\x12\x10\n\x08proposer\x18\x0c \x01(\t\x12$\n\rproposed_time\x18\r \x01(\x04R\rproposed_time\x12\x30\n\x13\x64\x65stination_address\x18\x0e \x01(\tR\x13\x64\x65stination_address\x12<\n\x19new_compliance_public_key\x18\x0f \x01(\tR\x19new_compliance_public_key\x12\"\n\x0cnew_base_url\x18\x10 \x01(\tR\x0cnew_base_url\x12\x32\n\x14time_rotated_seconds\x18\x11 \x01(\x04R\x14time_rotated_seconds\x12(\n\x0f\x63reated_address\x18\x12 \x01(\tR\x0f\x63reated_address\x12\x18\n\x07role_id\x18\x13 \x01(\x04R\x07role_id\x12:\n\x18\x63ommitted_timestamp_secs\x18\x14 \x01(\x04R\x18\x63ommitted_timestamp_secs\"\xe6\x01\n\x08Metadata\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12\x1a\n\x08\x63hain_id\x18\x03 \x01(\rR\x08\x63hain_id\x12\x36\n\x16script_hash_allow_list\x18\x04 \x03(\tR\x16script_hash_allow_list\x12<\n\x19module_publishing_allowed\x18\x05 \x01(\x08R\x19module_publishing_allowed\x12$\n\rlibra_version\x18\x06 \x01(\x04R\rlibra_version\"\xd7\x01\n\x0bTransaction\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12-\n\x0btransaction\x18\x02 \x01(\x0b\x32\x18.jsonrpc.TransactionData\x12\x0c\n\x04hash\x18\x03 \x01(\t\x12\r\n\x05\x62ytes\x18\x04 \x01(\t\x12\x1e\n\x06\x65vents\x18\x05 \x03(\x0b\x32\x0e.jsonrpc.Event\x12/\n\tvm_status\x18\x06 \x01(\x0b\x32\x11.jsonrpc.VMStatusR\tvm_status\x12\x1a\n\x08gas_used\x18\x07 \x01(\x04R\x08gas_used\"\x9d\x01\n\x15MoveAbortExplaination\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x32\n\x14\x63\x61tegory_description\x18\x02 \x01(\tR\x14\x63\x61tegory_description\x12\x0e\n\x06reason\x18\x03 \x01(\t\x12.\n\x12reason_description\x18\x04 \x01(\tR\x12reason_description\"\xc9\x01\n\x08VMStatus\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08location\x18\x02 \x01(\t\x12\x1e\n\nabort_code\x18\x03 \x01(\x04R\nabort_code\x12&\n\x0e\x66unction_index\x18\x04 \x01(\rR\x0e\x66unction_index\x12 \n\x0b\x63ode_offset\x18\x05 \x01(\rR\x0b\x63ode_offset\x12\x33\n\x0b\x65xplanation\x18\x06 \x01(\x0b\x32\x1e.jsonrpc.MoveAbortExplaination\"\x97\x04\n\x0fTransactionData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12(\n\x0ftimestamp_usecs\x18\x02 \x01(\x04R\x0ftimestamp_usecs\x12\x0e\n\x06sender\x18\x03 \x01(\t\x12*\n\x10signature_scheme\x18\x04 \x01(\tR\x10signature_scheme\x12\x11\n\tsignature\x18\x05 \x01(\t\x12\x1e\n\npublic_key\x18\x06 \x01(\tR\npublic_key\x12(\n\x0fsequence_number\x18\x07 \x01(\x04R\x0fsequence_number\x12\x1a\n\x08\x63hain_id\x18\x08 \x01(\rR\x08\x63hain_id\x12&\n\x0emax_gas_amount\x18\t \x01(\x04R\x0emax_gas_amount\x12&\n\x0egas_unit_price\x18\n \x01(\x04R\x0egas_unit_price\x12\"\n\x0cgas_currency\x18\x0b \x01(\tR\x0cgas_currency\x12<\n\x19\x65xpiration_timestamp_secs\x18\x0c \x01(\x04R\x19\x65xpiration_timestamp_secs\x12 \n\x0bscript_hash\x18\r \x01(\tR\x0bscript_hash\x12\"\n\x0cscript_bytes\x18\x0e \x01(\tR\x0cscript_bytes\x12\x1f\n\x06script\x18\x0f \x01(\x0b\x32\x0f.jsonrpc.Script\"\xd5\x01\n\x06Script\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x03(\t\x12&\n\x0etype_arguments\x18\x04 \x03(\tR\x0etype_arguments\x12\x10\n\x08receiver\x18\x05 \x01(\t\x12\x0e\n\x06\x61mount\x18\x06 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12.\n\x12metadata_signature\x18\t \x01(\tR\x12metadata_signature\"\xa8\x03\n\x0c\x43urrencyInfo\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\x12&\n\x0escaling_factor\x18\x02 \x01(\x04R\x0escaling_factor\x12(\n\x0f\x66ractional_part\x18\x03 \x01(\x04R\x0f\x66ractional_part\x12\x32\n\x14to_lbr_exchange_rate\x18\x04 \x01(\x02R\x14to_lbr_exchange_rate\x12(\n\x0fmint_events_key\x18\x05 \x01(\tR\x0fmint_events_key\x12(\n\x0f\x62urn_events_key\x18\x06 \x01(\tR\x0f\x62urn_events_key\x12.\n\x12preburn_events_key\x18\x07 \x01(\tR\x12preburn_events_key\x12\x36\n\x16\x63\x61ncel_burn_events_key\x18\x08 \x01(\tR\x16\x63\x61ncel_burn_events_key\x12H\n\x1f\x65xchange_rate_update_events_key\x18\t \x01(\tR\x1f\x65xchange_rate_update_events_key\"\xba\x01\n\nStateProof\x12@\n\x1bledger_info_with_signatures\x18\x01 \x01(\tR\x1bledger_info_with_signatures\x12.\n\x12\x65poch_change_proof\x18\x02 \x01(\tR\x12\x65poch_change_proof\x12:\n\x18ledger_consistency_proof\x18\x03 \x01(\tR\x18ledger_consistency_proof\"a\n\x15\x41\x63\x63ountStateWithProof\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x0c\n\x04\x62lob\x18\x02 \x01(\t\x12)\n\x05proof\x18\x03 \x01(\x0b\x32\x1a.jsonrpc.AccountStateProof\"\xe3\x01\n\x11\x41\x63\x63ountStateProof\x12T\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\tR%ledger_info_to_transaction_info_proof\x12*\n\x10transaction_info\x18\x02 \x01(\tR\x10transaction_info\x12L\n!transaction_info_to_account_proof\x18\x03 \x01(\tR!transaction_info_to_account_proofB6\n\x11org.libra.jsonrpcB\x07JsonRpcZ\x18github.com/libra/jsonrpcb\x06proto3'
 )
 
 
@@ -27,21 +27,21 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 
 _AMOUNT = _descriptor.Descriptor(
   name='Amount',
-  full_name='librajsonrpctypes.Amount',
+  full_name='jsonrpc.Amount',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='amount', full_name='librajsonrpctypes.Amount.amount', index=0,
+      name='amount', full_name='jsonrpc.Amount.amount', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='currency', full_name='librajsonrpctypes.Amount.currency', index=1,
+      name='currency', full_name='jsonrpc.Amount.currency', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -59,84 +59,84 @@ _AMOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=48,
-  serialized_end=90,
+  serialized_start=38,
+  serialized_end=80,
 )
 
 
 _ACCOUNT = _descriptor.Descriptor(
   name='Account',
-  full_name='librajsonrpctypes.Account',
+  full_name='jsonrpc.Account',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='address', full_name='librajsonrpctypes.Account.address', index=0,
+      name='address', full_name='jsonrpc.Account.address', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='balances', full_name='librajsonrpctypes.Account.balances', index=1,
+      name='balances', full_name='jsonrpc.Account.balances', index=1,
       number=2, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sequence_number', full_name='librajsonrpctypes.Account.sequence_number', index=2,
+      name='sequence_number', full_name='jsonrpc.Account.sequence_number', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='sequence_number', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='authentication_key', full_name='librajsonrpctypes.Account.authentication_key', index=3,
+      name='authentication_key', full_name='jsonrpc.Account.authentication_key', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='authentication_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sent_events_key', full_name='librajsonrpctypes.Account.sent_events_key', index=4,
+      name='sent_events_key', full_name='jsonrpc.Account.sent_events_key', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='sent_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='received_events_key', full_name='librajsonrpctypes.Account.received_events_key', index=5,
+      name='received_events_key', full_name='jsonrpc.Account.received_events_key', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='received_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='delegated_key_rotation_capability', full_name='librajsonrpctypes.Account.delegated_key_rotation_capability', index=6,
+      name='delegated_key_rotation_capability', full_name='jsonrpc.Account.delegated_key_rotation_capability', index=6,
       number=7, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='delegated_key_rotation_capability', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='delegated_withdrawal_capability', full_name='librajsonrpctypes.Account.delegated_withdrawal_capability', index=7,
+      name='delegated_withdrawal_capability', full_name='jsonrpc.Account.delegated_withdrawal_capability', index=7,
       number=8, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='delegated_withdrawal_capability', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='is_frozen', full_name='librajsonrpctypes.Account.is_frozen', index=8,
+      name='is_frozen', full_name='jsonrpc.Account.is_frozen', index=8,
       number=9, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='delegated_withdrawal_capability', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='role', full_name='librajsonrpctypes.Account.role', index=9,
+      name='role', full_name='jsonrpc.Account.role', index=9,
       number=10, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -154,91 +154,91 @@ _ACCOUNT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=93,
-  serialized_end=596,
+  serialized_start=83,
+  serialized_end=566,
 )
 
 
 _ACCOUNTROLE = _descriptor.Descriptor(
   name='AccountRole',
-  full_name='librajsonrpctypes.AccountRole',
+  full_name='jsonrpc.AccountRole',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='librajsonrpctypes.AccountRole.type', index=0,
+      name='type', full_name='jsonrpc.AccountRole.type', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='parent_vasp_address', full_name='librajsonrpctypes.AccountRole.parent_vasp_address', index=1,
+      name='parent_vasp_address', full_name='jsonrpc.AccountRole.parent_vasp_address', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='parent_vasp_address', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='human_name', full_name='librajsonrpctypes.AccountRole.human_name', index=2,
+      name='human_name', full_name='jsonrpc.AccountRole.human_name', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='human_name', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='base_url', full_name='librajsonrpctypes.AccountRole.base_url', index=3,
+      name='base_url', full_name='jsonrpc.AccountRole.base_url', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='base_url', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='expiration_time', full_name='librajsonrpctypes.AccountRole.expiration_time', index=4,
+      name='expiration_time', full_name='jsonrpc.AccountRole.expiration_time', index=4,
       number=5, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='expiration_time', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='compliance_key', full_name='librajsonrpctypes.AccountRole.compliance_key', index=5,
+      name='compliance_key', full_name='jsonrpc.AccountRole.compliance_key', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='compliance_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='compliance_key_rotation_events_key', full_name='librajsonrpctypes.AccountRole.compliance_key_rotation_events_key', index=6,
+      name='compliance_key_rotation_events_key', full_name='jsonrpc.AccountRole.compliance_key_rotation_events_key', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='compliance_key_rotation_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='base_url_rotation_events_key', full_name='librajsonrpctypes.AccountRole.base_url_rotation_events_key', index=7,
+      name='base_url_rotation_events_key', full_name='jsonrpc.AccountRole.base_url_rotation_events_key', index=7,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='base_url_rotation_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='num_children', full_name='librajsonrpctypes.AccountRole.num_children', index=8,
+      name='num_children', full_name='jsonrpc.AccountRole.num_children', index=8,
       number=9, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='num_children', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='received_mint_events_key', full_name='librajsonrpctypes.AccountRole.received_mint_events_key', index=9,
+      name='received_mint_events_key', full_name='jsonrpc.AccountRole.received_mint_events_key', index=9,
       number=10, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='received_mint_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='preburn_balances', full_name='librajsonrpctypes.AccountRole.preburn_balances', index=10,
+      name='preburn_balances', full_name='jsonrpc.AccountRole.preburn_balances', index=10,
       number=11, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
@@ -256,42 +256,42 @@ _ACCOUNTROLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=599,
-  serialized_end=1133,
+  serialized_start=569,
+  serialized_end=1093,
 )
 
 
 _EVENT = _descriptor.Descriptor(
   name='Event',
-  full_name='librajsonrpctypes.Event',
+  full_name='jsonrpc.Event',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='key', full_name='librajsonrpctypes.Event.key', index=0,
+      name='key', full_name='jsonrpc.Event.key', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sequence_number', full_name='librajsonrpctypes.Event.sequence_number', index=1,
+      name='sequence_number', full_name='jsonrpc.Event.sequence_number', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='sequence_number', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='transaction_version', full_name='librajsonrpctypes.Event.transaction_version', index=2,
+      name='transaction_version', full_name='jsonrpc.Event.transaction_version', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='transaction_version', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='data', full_name='librajsonrpctypes.Event.data', index=3,
+      name='data', full_name='jsonrpc.Event.data', index=3,
       number=4, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -309,147 +309,147 @@ _EVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1136,
-  serialized_end=1292,
+  serialized_start=1096,
+  serialized_end=1242,
 )
 
 
 _EVENTDATA = _descriptor.Descriptor(
   name='EventData',
-  full_name='librajsonrpctypes.EventData',
+  full_name='jsonrpc.EventData',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='librajsonrpctypes.EventData.type', index=0,
+      name='type', full_name='jsonrpc.EventData.type', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='amount', full_name='librajsonrpctypes.EventData.amount', index=1,
+      name='amount', full_name='jsonrpc.EventData.amount', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='preburn_address', full_name='librajsonrpctypes.EventData.preburn_address', index=2,
+      name='preburn_address', full_name='jsonrpc.EventData.preburn_address', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='preburn_address', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='currency_code', full_name='librajsonrpctypes.EventData.currency_code', index=3,
+      name='currency_code', full_name='jsonrpc.EventData.currency_code', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='currency_code', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='new_to_lbr_exchange_rate', full_name='librajsonrpctypes.EventData.new_to_lbr_exchange_rate', index=4,
+      name='new_to_lbr_exchange_rate', full_name='jsonrpc.EventData.new_to_lbr_exchange_rate', index=4,
       number=5, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='new_to_lbr_exchange_rate', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sender', full_name='librajsonrpctypes.EventData.sender', index=5,
+      name='sender', full_name='jsonrpc.EventData.sender', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='receiver', full_name='librajsonrpctypes.EventData.receiver', index=6,
+      name='receiver', full_name='jsonrpc.EventData.receiver', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='metadata', full_name='librajsonrpctypes.EventData.metadata', index=7,
+      name='metadata', full_name='jsonrpc.EventData.metadata', index=7,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='epoch', full_name='librajsonrpctypes.EventData.epoch', index=8,
+      name='epoch', full_name='jsonrpc.EventData.epoch', index=8,
       number=10, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='round', full_name='librajsonrpctypes.EventData.round', index=9,
+      name='round', full_name='jsonrpc.EventData.round', index=9,
       number=11, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='proposer', full_name='librajsonrpctypes.EventData.proposer', index=10,
+      name='proposer', full_name='jsonrpc.EventData.proposer', index=10,
       number=12, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='proposed_time', full_name='librajsonrpctypes.EventData.proposed_time', index=11,
+      name='proposed_time', full_name='jsonrpc.EventData.proposed_time', index=11,
       number=13, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='proposed_time', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='destination_address', full_name='librajsonrpctypes.EventData.destination_address', index=12,
+      name='destination_address', full_name='jsonrpc.EventData.destination_address', index=12,
       number=14, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='destination_address', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='new_compliance_public_key', full_name='librajsonrpctypes.EventData.new_compliance_public_key', index=13,
+      name='new_compliance_public_key', full_name='jsonrpc.EventData.new_compliance_public_key', index=13,
       number=15, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='new_compliance_public_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='new_base_url', full_name='librajsonrpctypes.EventData.new_base_url', index=14,
+      name='new_base_url', full_name='jsonrpc.EventData.new_base_url', index=14,
       number=16, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='new_base_url', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='time_rotated_seconds', full_name='librajsonrpctypes.EventData.time_rotated_seconds', index=15,
+      name='time_rotated_seconds', full_name='jsonrpc.EventData.time_rotated_seconds', index=15,
       number=17, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='time_rotated_seconds', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='created_address', full_name='librajsonrpctypes.EventData.created_address', index=16,
+      name='created_address', full_name='jsonrpc.EventData.created_address', index=16,
       number=18, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='created_address', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='role_id', full_name='librajsonrpctypes.EventData.role_id', index=17,
+      name='role_id', full_name='jsonrpc.EventData.role_id', index=17,
       number=19, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='role_id', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='committed_timestamp_secs', full_name='librajsonrpctypes.EventData.committed_timestamp_secs', index=18,
+      name='committed_timestamp_secs', full_name='jsonrpc.EventData.committed_timestamp_secs', index=18,
       number=20, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -467,56 +467,56 @@ _EVENTDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1295,
-  serialized_end=1969,
+  serialized_start=1245,
+  serialized_end=1909,
 )
 
 
 _METADATA = _descriptor.Descriptor(
   name='Metadata',
-  full_name='librajsonrpctypes.Metadata',
+  full_name='jsonrpc.Metadata',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='version', full_name='librajsonrpctypes.Metadata.version', index=0,
+      name='version', full_name='jsonrpc.Metadata.version', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='timestamp', full_name='librajsonrpctypes.Metadata.timestamp', index=1,
+      name='timestamp', full_name='jsonrpc.Metadata.timestamp', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='chain_id', full_name='librajsonrpctypes.Metadata.chain_id', index=2,
+      name='chain_id', full_name='jsonrpc.Metadata.chain_id', index=2,
       number=3, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='chain_id', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='script_hash_allow_list', full_name='librajsonrpctypes.Metadata.script_hash_allow_list', index=3,
+      name='script_hash_allow_list', full_name='jsonrpc.Metadata.script_hash_allow_list', index=3,
       number=4, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='script_hash_allow_list', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='module_publishing_allowed', full_name='librajsonrpctypes.Metadata.module_publishing_allowed', index=4,
+      name='module_publishing_allowed', full_name='jsonrpc.Metadata.module_publishing_allowed', index=4,
       number=5, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='module_publishing_allowed', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='libra_version', full_name='librajsonrpctypes.Metadata.libra_version', index=5,
+      name='libra_version', full_name='jsonrpc.Metadata.libra_version', index=5,
       number=6, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -534,63 +534,63 @@ _METADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1972,
-  serialized_end=2202,
+  serialized_start=1912,
+  serialized_end=2142,
 )
 
 
 _TRANSACTION = _descriptor.Descriptor(
   name='Transaction',
-  full_name='librajsonrpctypes.Transaction',
+  full_name='jsonrpc.Transaction',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='version', full_name='librajsonrpctypes.Transaction.version', index=0,
+      name='version', full_name='jsonrpc.Transaction.version', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='transaction', full_name='librajsonrpctypes.Transaction.transaction', index=1,
+      name='transaction', full_name='jsonrpc.Transaction.transaction', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='hash', full_name='librajsonrpctypes.Transaction.hash', index=2,
+      name='hash', full_name='jsonrpc.Transaction.hash', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='bytes', full_name='librajsonrpctypes.Transaction.bytes', index=3,
+      name='bytes', full_name='jsonrpc.Transaction.bytes', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='events', full_name='librajsonrpctypes.Transaction.events', index=4,
+      name='events', full_name='jsonrpc.Transaction.events', index=4,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='vm_status', full_name='librajsonrpctypes.Transaction.vm_status', index=5,
+      name='vm_status', full_name='jsonrpc.Transaction.vm_status', index=5,
       number=6, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='vm_status', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='gas_used', full_name='librajsonrpctypes.Transaction.gas_used', index=6,
+      name='gas_used', full_name='jsonrpc.Transaction.gas_used', index=6,
       number=7, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -608,54 +608,47 @@ _TRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2205,
-  serialized_end=2450,
+  serialized_start=2145,
+  serialized_end=2360,
 )
 
 
-_VMSTATUS = _descriptor.Descriptor(
-  name='VMStatus',
-  full_name='librajsonrpctypes.VMStatus',
+_MOVEABORTEXPLAINATION = _descriptor.Descriptor(
+  name='MoveAbortExplaination',
+  full_name='jsonrpc.MoveAbortExplaination',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='librajsonrpctypes.VMStatus.type', index=0,
+      name='category', full_name='jsonrpc.MoveAbortExplaination.category', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='location', full_name='librajsonrpctypes.VMStatus.location', index=1,
+      name='category_description', full_name='jsonrpc.MoveAbortExplaination.category_description', index=1,
       number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='category_description', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='reason', full_name='jsonrpc.MoveAbortExplaination.reason', index=2,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='abort_code', full_name='librajsonrpctypes.VMStatus.abort_code', index=2,
-      number=3, type=4, cpp_type=4, label=1,
-      has_default_value=False, default_value=0,
+      name='reason_description', full_name='jsonrpc.MoveAbortExplaination.reason_description', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, json_name='abort_code', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='function_index', full_name='librajsonrpctypes.VMStatus.function_index', index=3,
-      number=4, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, json_name='function_index', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='code_offset', full_name='librajsonrpctypes.VMStatus.code_offset', index=4,
-      number=5, type=13, cpp_type=3, label=1,
-      has_default_value=False, default_value=0,
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, json_name='code_offset', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=None, json_name='reason_description', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -668,119 +661,186 @@ _VMSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2453,
-  serialized_end=2601,
+  serialized_start=2363,
+  serialized_end=2520,
 )
 
 
-_TRANSACTIONDATA = _descriptor.Descriptor(
-  name='TransactionData',
-  full_name='librajsonrpctypes.TransactionData',
+_VMSTATUS = _descriptor.Descriptor(
+  name='VMStatus',
+  full_name='jsonrpc.VMStatus',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='librajsonrpctypes.TransactionData.type', index=0,
+      name='type', full_name='jsonrpc.VMStatus.type', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='timestamp_usecs', full_name='librajsonrpctypes.TransactionData.timestamp_usecs', index=1,
+      name='location', full_name='jsonrpc.VMStatus.location', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='abort_code', full_name='jsonrpc.VMStatus.abort_code', index=2,
+      number=3, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='abort_code', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='function_index', full_name='jsonrpc.VMStatus.function_index', index=3,
+      number=4, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='function_index', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='code_offset', full_name='jsonrpc.VMStatus.code_offset', index=4,
+      number=5, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='code_offset', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='explanation', full_name='jsonrpc.VMStatus.explanation', index=5,
+      number=6, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=2523,
+  serialized_end=2724,
+)
+
+
+_TRANSACTIONDATA = _descriptor.Descriptor(
+  name='TransactionData',
+  full_name='jsonrpc.TransactionData',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='type', full_name='jsonrpc.TransactionData.type', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='timestamp_usecs', full_name='jsonrpc.TransactionData.timestamp_usecs', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='timestamp_usecs', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sender', full_name='librajsonrpctypes.TransactionData.sender', index=2,
+      name='sender', full_name='jsonrpc.TransactionData.sender', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='signature_scheme', full_name='librajsonrpctypes.TransactionData.signature_scheme', index=3,
+      name='signature_scheme', full_name='jsonrpc.TransactionData.signature_scheme', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='signature_scheme', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='signature', full_name='librajsonrpctypes.TransactionData.signature', index=4,
+      name='signature', full_name='jsonrpc.TransactionData.signature', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='public_key', full_name='librajsonrpctypes.TransactionData.public_key', index=5,
+      name='public_key', full_name='jsonrpc.TransactionData.public_key', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='public_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='sequence_number', full_name='librajsonrpctypes.TransactionData.sequence_number', index=6,
+      name='sequence_number', full_name='jsonrpc.TransactionData.sequence_number', index=6,
       number=7, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='sequence_number', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='chain_id', full_name='librajsonrpctypes.TransactionData.chain_id', index=7,
+      name='chain_id', full_name='jsonrpc.TransactionData.chain_id', index=7,
       number=8, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='chain_id', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='max_gas_amount', full_name='librajsonrpctypes.TransactionData.max_gas_amount', index=8,
+      name='max_gas_amount', full_name='jsonrpc.TransactionData.max_gas_amount', index=8,
       number=9, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='max_gas_amount', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='gas_unit_price', full_name='librajsonrpctypes.TransactionData.gas_unit_price', index=9,
+      name='gas_unit_price', full_name='jsonrpc.TransactionData.gas_unit_price', index=9,
       number=10, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='gas_unit_price', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='gas_currency', full_name='librajsonrpctypes.TransactionData.gas_currency', index=10,
+      name='gas_currency', full_name='jsonrpc.TransactionData.gas_currency', index=10,
       number=11, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='gas_currency', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='expiration_timestamp_secs', full_name='librajsonrpctypes.TransactionData.expiration_timestamp_secs', index=11,
+      name='expiration_timestamp_secs', full_name='jsonrpc.TransactionData.expiration_timestamp_secs', index=11,
       number=12, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='expiration_timestamp_secs', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='script_hash', full_name='librajsonrpctypes.TransactionData.script_hash', index=12,
+      name='script_hash', full_name='jsonrpc.TransactionData.script_hash', index=12,
       number=13, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='script_hash', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='script_bytes', full_name='librajsonrpctypes.TransactionData.script_bytes', index=13,
+      name='script_bytes', full_name='jsonrpc.TransactionData.script_bytes', index=13,
       number=14, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='script_bytes', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='script', full_name='librajsonrpctypes.TransactionData.script', index=14,
+      name='script', full_name='jsonrpc.TransactionData.script', index=14,
       number=15, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -798,77 +858,77 @@ _TRANSACTIONDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2604,
-  serialized_end=3149,
+  serialized_start=2727,
+  serialized_end=3262,
 )
 
 
 _SCRIPT = _descriptor.Descriptor(
   name='Script',
-  full_name='librajsonrpctypes.Script',
+  full_name='jsonrpc.Script',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='type', full_name='librajsonrpctypes.Script.type', index=0,
+      name='type', full_name='jsonrpc.Script.type', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='code', full_name='librajsonrpctypes.Script.code', index=1,
+      name='code', full_name='jsonrpc.Script.code', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='arguments', full_name='librajsonrpctypes.Script.arguments', index=2,
+      name='arguments', full_name='jsonrpc.Script.arguments', index=2,
       number=3, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='type_arguments', full_name='librajsonrpctypes.Script.type_arguments', index=3,
+      name='type_arguments', full_name='jsonrpc.Script.type_arguments', index=3,
       number=4, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='type_arguments', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='receiver', full_name='librajsonrpctypes.Script.receiver', index=4,
+      name='receiver', full_name='jsonrpc.Script.receiver', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='amount', full_name='librajsonrpctypes.Script.amount', index=5,
+      name='amount', full_name='jsonrpc.Script.amount', index=5,
       number=6, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='currency', full_name='librajsonrpctypes.Script.currency', index=6,
+      name='currency', full_name='jsonrpc.Script.currency', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='metadata', full_name='librajsonrpctypes.Script.metadata', index=7,
+      name='metadata', full_name='jsonrpc.Script.metadata', index=7,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='metadata_signature', full_name='librajsonrpctypes.Script.metadata_signature', index=8,
+      name='metadata_signature', full_name='jsonrpc.Script.metadata_signature', index=8,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -886,77 +946,77 @@ _SCRIPT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3152,
-  serialized_end=3365,
+  serialized_start=3265,
+  serialized_end=3478,
 )
 
 
 _CURRENCYINFO = _descriptor.Descriptor(
   name='CurrencyInfo',
-  full_name='librajsonrpctypes.CurrencyInfo',
+  full_name='jsonrpc.CurrencyInfo',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='code', full_name='librajsonrpctypes.CurrencyInfo.code', index=0,
+      name='code', full_name='jsonrpc.CurrencyInfo.code', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='scaling_factor', full_name='librajsonrpctypes.CurrencyInfo.scaling_factor', index=1,
+      name='scaling_factor', full_name='jsonrpc.CurrencyInfo.scaling_factor', index=1,
       number=2, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='scaling_factor', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='fractional_part', full_name='librajsonrpctypes.CurrencyInfo.fractional_part', index=2,
+      name='fractional_part', full_name='jsonrpc.CurrencyInfo.fractional_part', index=2,
       number=3, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='fractional_part', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='to_lbr_exchange_rate', full_name='librajsonrpctypes.CurrencyInfo.to_lbr_exchange_rate', index=3,
+      name='to_lbr_exchange_rate', full_name='jsonrpc.CurrencyInfo.to_lbr_exchange_rate', index=3,
       number=4, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='to_lbr_exchange_rate', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='mint_events_key', full_name='librajsonrpctypes.CurrencyInfo.mint_events_key', index=4,
+      name='mint_events_key', full_name='jsonrpc.CurrencyInfo.mint_events_key', index=4,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='mint_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='burn_events_key', full_name='librajsonrpctypes.CurrencyInfo.burn_events_key', index=5,
+      name='burn_events_key', full_name='jsonrpc.CurrencyInfo.burn_events_key', index=5,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='burn_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='preburn_events_key', full_name='librajsonrpctypes.CurrencyInfo.preburn_events_key', index=6,
+      name='preburn_events_key', full_name='jsonrpc.CurrencyInfo.preburn_events_key', index=6,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='preburn_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='cancel_burn_events_key', full_name='librajsonrpctypes.CurrencyInfo.cancel_burn_events_key', index=7,
+      name='cancel_burn_events_key', full_name='jsonrpc.CurrencyInfo.cancel_burn_events_key', index=7,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='cancel_burn_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='exchange_rate_update_events_key', full_name='librajsonrpctypes.CurrencyInfo.exchange_rate_update_events_key', index=8,
+      name='exchange_rate_update_events_key', full_name='jsonrpc.CurrencyInfo.exchange_rate_update_events_key', index=8,
       number=9, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -974,35 +1034,35 @@ _CURRENCYINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3368,
-  serialized_end=3792,
+  serialized_start=3481,
+  serialized_end=3905,
 )
 
 
 _STATEPROOF = _descriptor.Descriptor(
   name='StateProof',
-  full_name='librajsonrpctypes.StateProof',
+  full_name='jsonrpc.StateProof',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ledger_info_with_signatures', full_name='librajsonrpctypes.StateProof.ledger_info_with_signatures', index=0,
+      name='ledger_info_with_signatures', full_name='jsonrpc.StateProof.ledger_info_with_signatures', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='ledger_info_with_signatures', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='epoch_change_proof', full_name='librajsonrpctypes.StateProof.epoch_change_proof', index=1,
+      name='epoch_change_proof', full_name='jsonrpc.StateProof.epoch_change_proof', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='epoch_change_proof', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='ledger_consistency_proof', full_name='librajsonrpctypes.StateProof.ledger_consistency_proof', index=2,
+      name='ledger_consistency_proof', full_name='jsonrpc.StateProof.ledger_consistency_proof', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -1020,35 +1080,35 @@ _STATEPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3795,
-  serialized_end=3981,
+  serialized_start=3908,
+  serialized_end=4094,
 )
 
 
 _ACCOUNTSTATEWITHPROOF = _descriptor.Descriptor(
   name='AccountStateWithProof',
-  full_name='librajsonrpctypes.AccountStateWithProof',
+  full_name='jsonrpc.AccountStateWithProof',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='version', full_name='librajsonrpctypes.AccountStateWithProof.version', index=0,
+      name='version', full_name='jsonrpc.AccountStateWithProof.version', index=0,
       number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='blob', full_name='librajsonrpctypes.AccountStateWithProof.blob', index=1,
+      name='blob', full_name='jsonrpc.AccountStateWithProof.blob', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='proof', full_name='librajsonrpctypes.AccountStateWithProof.proof', index=2,
+      name='proof', full_name='jsonrpc.AccountStateWithProof.proof', index=2,
       number=3, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -1066,35 +1126,35 @@ _ACCOUNTSTATEWITHPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3983,
-  serialized_end=4090,
+  serialized_start=4096,
+  serialized_end=4193,
 )
 
 
 _ACCOUNTSTATEPROOF = _descriptor.Descriptor(
   name='AccountStateProof',
-  full_name='librajsonrpctypes.AccountStateProof',
+  full_name='jsonrpc.AccountStateProof',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ledger_info_to_transaction_info_proof', full_name='librajsonrpctypes.AccountStateProof.ledger_info_to_transaction_info_proof', index=0,
+      name='ledger_info_to_transaction_info_proof', full_name='jsonrpc.AccountStateProof.ledger_info_to_transaction_info_proof', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='ledger_info_to_transaction_info_proof', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='transaction_info', full_name='librajsonrpctypes.AccountStateProof.transaction_info', index=1,
+      name='transaction_info', full_name='jsonrpc.AccountStateProof.transaction_info', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='transaction_info', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='transaction_info_to_account_proof', full_name='librajsonrpctypes.AccountStateProof.transaction_info_to_account_proof', index=2,
+      name='transaction_info_to_account_proof', full_name='jsonrpc.AccountStateProof.transaction_info_to_account_proof', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -1112,8 +1172,8 @@ _ACCOUNTSTATEPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4093,
-  serialized_end=4320,
+  serialized_start=4196,
+  serialized_end=4423,
 )
 
 _ACCOUNT.fields_by_name['balances'].message_type = _AMOUNT
@@ -1124,6 +1184,7 @@ _EVENTDATA.fields_by_name['amount'].message_type = _AMOUNT
 _TRANSACTION.fields_by_name['transaction'].message_type = _TRANSACTIONDATA
 _TRANSACTION.fields_by_name['events'].message_type = _EVENT
 _TRANSACTION.fields_by_name['vm_status'].message_type = _VMSTATUS
+_VMSTATUS.fields_by_name['explanation'].message_type = _MOVEABORTEXPLAINATION
 _TRANSACTIONDATA.fields_by_name['script'].message_type = _SCRIPT
 _ACCOUNTSTATEWITHPROOF.fields_by_name['proof'].message_type = _ACCOUNTSTATEPROOF
 DESCRIPTOR.message_types_by_name['Amount'] = _AMOUNT
@@ -1133,6 +1194,7 @@ DESCRIPTOR.message_types_by_name['Event'] = _EVENT
 DESCRIPTOR.message_types_by_name['EventData'] = _EVENTDATA
 DESCRIPTOR.message_types_by_name['Metadata'] = _METADATA
 DESCRIPTOR.message_types_by_name['Transaction'] = _TRANSACTION
+DESCRIPTOR.message_types_by_name['MoveAbortExplaination'] = _MOVEABORTEXPLAINATION
 DESCRIPTOR.message_types_by_name['VMStatus'] = _VMSTATUS
 DESCRIPTOR.message_types_by_name['TransactionData'] = _TRANSACTIONDATA
 DESCRIPTOR.message_types_by_name['Script'] = _SCRIPT
@@ -1145,98 +1207,105 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 Amount = _reflection.GeneratedProtocolMessageType('Amount', (_message.Message,), {
   'DESCRIPTOR' : _AMOUNT,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.Amount)
+  # @@protoc_insertion_point(class_scope:jsonrpc.Amount)
   })
 _sym_db.RegisterMessage(Amount)
 
 Account = _reflection.GeneratedProtocolMessageType('Account', (_message.Message,), {
   'DESCRIPTOR' : _ACCOUNT,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.Account)
+  # @@protoc_insertion_point(class_scope:jsonrpc.Account)
   })
 _sym_db.RegisterMessage(Account)
 
 AccountRole = _reflection.GeneratedProtocolMessageType('AccountRole', (_message.Message,), {
   'DESCRIPTOR' : _ACCOUNTROLE,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.AccountRole)
+  # @@protoc_insertion_point(class_scope:jsonrpc.AccountRole)
   })
 _sym_db.RegisterMessage(AccountRole)
 
 Event = _reflection.GeneratedProtocolMessageType('Event', (_message.Message,), {
   'DESCRIPTOR' : _EVENT,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.Event)
+  # @@protoc_insertion_point(class_scope:jsonrpc.Event)
   })
 _sym_db.RegisterMessage(Event)
 
 EventData = _reflection.GeneratedProtocolMessageType('EventData', (_message.Message,), {
   'DESCRIPTOR' : _EVENTDATA,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.EventData)
+  # @@protoc_insertion_point(class_scope:jsonrpc.EventData)
   })
 _sym_db.RegisterMessage(EventData)
 
 Metadata = _reflection.GeneratedProtocolMessageType('Metadata', (_message.Message,), {
   'DESCRIPTOR' : _METADATA,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.Metadata)
+  # @@protoc_insertion_point(class_scope:jsonrpc.Metadata)
   })
 _sym_db.RegisterMessage(Metadata)
 
 Transaction = _reflection.GeneratedProtocolMessageType('Transaction', (_message.Message,), {
   'DESCRIPTOR' : _TRANSACTION,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.Transaction)
+  # @@protoc_insertion_point(class_scope:jsonrpc.Transaction)
   })
 _sym_db.RegisterMessage(Transaction)
+
+MoveAbortExplaination = _reflection.GeneratedProtocolMessageType('MoveAbortExplaination', (_message.Message,), {
+  'DESCRIPTOR' : _MOVEABORTEXPLAINATION,
+  '__module__' : 'libra_jsonrpc_types_pb2'
+  # @@protoc_insertion_point(class_scope:jsonrpc.MoveAbortExplaination)
+  })
+_sym_db.RegisterMessage(MoveAbortExplaination)
 
 VMStatus = _reflection.GeneratedProtocolMessageType('VMStatus', (_message.Message,), {
   'DESCRIPTOR' : _VMSTATUS,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.VMStatus)
+  # @@protoc_insertion_point(class_scope:jsonrpc.VMStatus)
   })
 _sym_db.RegisterMessage(VMStatus)
 
 TransactionData = _reflection.GeneratedProtocolMessageType('TransactionData', (_message.Message,), {
   'DESCRIPTOR' : _TRANSACTIONDATA,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.TransactionData)
+  # @@protoc_insertion_point(class_scope:jsonrpc.TransactionData)
   })
 _sym_db.RegisterMessage(TransactionData)
 
 Script = _reflection.GeneratedProtocolMessageType('Script', (_message.Message,), {
   'DESCRIPTOR' : _SCRIPT,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.Script)
+  # @@protoc_insertion_point(class_scope:jsonrpc.Script)
   })
 _sym_db.RegisterMessage(Script)
 
 CurrencyInfo = _reflection.GeneratedProtocolMessageType('CurrencyInfo', (_message.Message,), {
   'DESCRIPTOR' : _CURRENCYINFO,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.CurrencyInfo)
+  # @@protoc_insertion_point(class_scope:jsonrpc.CurrencyInfo)
   })
 _sym_db.RegisterMessage(CurrencyInfo)
 
 StateProof = _reflection.GeneratedProtocolMessageType('StateProof', (_message.Message,), {
   'DESCRIPTOR' : _STATEPROOF,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.StateProof)
+  # @@protoc_insertion_point(class_scope:jsonrpc.StateProof)
   })
 _sym_db.RegisterMessage(StateProof)
 
 AccountStateWithProof = _reflection.GeneratedProtocolMessageType('AccountStateWithProof', (_message.Message,), {
   'DESCRIPTOR' : _ACCOUNTSTATEWITHPROOF,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.AccountStateWithProof)
+  # @@protoc_insertion_point(class_scope:jsonrpc.AccountStateWithProof)
   })
 _sym_db.RegisterMessage(AccountStateWithProof)
 
 AccountStateProof = _reflection.GeneratedProtocolMessageType('AccountStateProof', (_message.Message,), {
   'DESCRIPTOR' : _ACCOUNTSTATEPROOF,
   '__module__' : 'libra_jsonrpc_types_pb2'
-  # @@protoc_insertion_point(class_scope:librajsonrpctypes.AccountStateProof)
+  # @@protoc_insertion_point(class_scope:jsonrpc.AccountStateProof)
   })
 _sym_db.RegisterMessage(AccountStateProof)
 

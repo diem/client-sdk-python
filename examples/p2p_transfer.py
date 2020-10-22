@@ -137,7 +137,7 @@ def test_custodial_to_custodial_above_threshold():
     receiver_custodial = CustodialApp.create(faucet.gen_account())
     receiver_custodial.init_compliance_keys()
 
-    intent_id = receiver_custodial.payment(user_id=0, amount=40_000_000)
+    intent_id = receiver_custodial.payment(user_id=0, amount=2_000_000_000)
 
     intent = identifier.decode_intent(intent_id, identifier.TLB)
 

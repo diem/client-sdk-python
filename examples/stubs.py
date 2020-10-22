@@ -53,7 +53,7 @@ class CustodialApp:
                 child_address=child_vasp.account_address,
                 auth_key_prefix=child_vasp.auth_key.prefix(),
                 add_all_currencies=False,
-                child_initial_balance=100_000_000,
+                child_initial_balance=2_000_000_000,
             ),
             testnet.TEST_CURRENCY_CODE
         )

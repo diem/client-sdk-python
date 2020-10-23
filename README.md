@@ -20,6 +20,7 @@ Sub-modules:
 - `txnmetadata`: utils for creating peer to peer transaction metadata. [LIP-4](https://lip.libra.org/lip-4/)
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
 - `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
+- `chain_ids`: list of static chain ids
 
 ## Examples
 

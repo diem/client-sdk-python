@@ -316,7 +316,47 @@ def test_wait_for_transaction_timeout_and_expire():
         client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 5, "hash", 0.1)
 
 
-def create_child_vasp_txn(parent_vasp, child_vasp):
+def test_get_parent_vasp_account():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+
+    parent_vasp = faucet.gen_account()
+    child_vasp = LocalAccount.generate()
+    signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
+
+    client.submit(signed_txn)
+    client.wait_for_transaction(signed_txn)
+
+    account = client.get_parent_vasp_account(child_vasp.account_address)
+
+    expected_address = utils.account_address_hex(parent_vasp.account_address)
+    assert account.address == expected_address
+
+    account = client.get_parent_vasp_account(parent_vasp.account_address)
+    assert account.address == expected_address
+
+
+def test_get_parent_vasp_account_not_found():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+
+    parent_vasp = LocalAccount.generate()
+
+    with pytest.raises(jsonrpc.AccountNotFoundError):
+        client.get_parent_vasp_account(parent_vasp.account_address)
+
+
+def test_get_parent_vasp_account_with_non_vasp_account_address():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+
+    with pytest.raises(ValueError):
+        client.get_parent_vasp_account(utils.TREASURY_ADDRESS)
+
+
+def create_child_vasp_txn(
+    parent_vasp: LocalAccount, child_vasp: LocalAccount, seq: int = 0
+) -> libra_types.RawTransaction:
     script = stdlib.encode_create_child_vasp_account_script(
         coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
         child_address=child_vasp.account_address,
@@ -324,15 +364,20 @@ def create_child_vasp_txn(parent_vasp, child_vasp):
         add_all_currencies=False,
         child_initial_balance=1_000_000,
     )
-    txn = libra_types.RawTransaction(
-        sender=parent_vasp.account_address,
-        sequence_number=0,
+
+    return parent_vasp.sign(create_transaction(parent_vasp, script, seq))
+
+
+def create_transaction(
+    sender: LocalAccount, script: libra_types.Script, seq: int, currency=testnet.TEST_CURRENCY_CODE
+) -> libra_types.RawTransaction:
+    return libra_types.RawTransaction(
+        sender=sender.account_address,
+        sequence_number=seq,
         payload=libra_types.TransactionPayload__Script(script),
         max_gas_amount=1_000_000,
         gas_unit_price=0,
-        gas_currency_code=testnet.TEST_CURRENCY_CODE,
+        gas_currency_code=currency,
         expiration_timestamp_secs=int(time.time()) + 30,
         chain_id=testnet.CHAIN_ID,
     )
-
-    return parent_vasp.sign(txn)

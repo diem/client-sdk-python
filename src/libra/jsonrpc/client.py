@@ -104,6 +104,50 @@ class Client:
         self._lock = threading.Lock()
         self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
 
+    # high level functions
+
+    def get_parent_vasp_account(
+        self, vasp_account_address: typing.Union[libra_types.AccountAddress, str]
+    ) -> rpc.Account:
+        """get parent_vasp account
+
+        accepts child/parent vasp account address, returns parent vasp account
+
+        raise ValueError if given account address is not ChildVASP or ParentVASP account
+        address
+        raise AccountNotFoundError if no account found by given account address, or
+        could not find the account by the parent_vasp_address found in ChildVASP account.
+        """
+
+        account = self.get_account(vasp_account_address)
+        if account is None:
+            hex = utils.account_address_hex(vasp_account_address)
+            raise AccountNotFoundError(f"account not found by address: {hex}")
+
+        if account.role.type == constants.ACCOUNT_ROLE_PARENT_VASP:
+            return account
+        if account.role.type == constants.ACCOUNT_ROLE_CHILD_VASP:
+            return self.get_parent_vasp_account(account.role.parent_vasp_address)
+
+        hex = utils.account_address_hex(vasp_account_address)
+        raise ValueError(f"given account address({hex}) is not a VASP account: {account}")
+
+    def get_account_sequence(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> int:
+        """get on-chain account sequence number
+
+        Calls get_account to find on-chain account information and return it's sequence.
+        Raises AccountNotFoundError if get_account returns None
+        """
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f"account not found by address: {hex}")
+
+        return int(account.sequence_number)
+
+    # low level functions
+
     def get_last_known_state(self) -> State:
         """get last known server state
 
@@ -171,20 +215,6 @@ class Client:
 
         address = utils.account_address_hex(account_address)
         return self.execute("get_account", [address], _parse_obj(lambda: rpc.Account()))
-
-    def get_account_sequence(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> int:
-        """get on-chain account sequence number
-
-        Calls get_account to find on-chain account information and return it's sequence.
-        Raises AccountNotFoundError if get_account returns None
-        """
-
-        account = self.get_account(account_address)
-        if account is None:
-            hex = utils.account_address_hex(account_address)
-            raise AccountNotFoundError(f"account not found by address: {hex}")
-
-        return int(account.sequence_number)
 
     def get_account_transaction(
         self,

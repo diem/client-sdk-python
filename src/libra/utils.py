@@ -11,7 +11,7 @@ import typing
 from . import libra_types, serde_types, jsonrpc, stdlib
 
 
-ACCOUNT_ADDRESS_LEN: int = 16
+ACCOUNT_ADDRESS_LEN: int = libra_types.AccountAddress.LENGTH
 SUB_ADDRESS_LEN: int = 8
 LIBRA_HASH_PREFIX: bytes = b"LIBRA::"
 ROOT_ADDRESS: str = "0000000000000000000000000a550c18"
@@ -35,18 +35,13 @@ def account_address(addr: typing.Union[libra_types.AccountAddress, bytes, str]) 
 
     if isinstance(addr, libra_types.AccountAddress):
         return addr
-    if isinstance(addr, str):
-        try:
-            return account_address(bytes.fromhex(addr))
-        except ValueError as e:
-            raise InvalidAccountAddressError(e)
 
-    if len(addr) != ACCOUNT_ADDRESS_LEN:
-        raise InvalidAccountAddressError(
-            "account address bytes length should be {ACCOUNT_ADDRESS_LEN}, but got {len(addr)}"
-        )
-
-    return libra_types.AccountAddress(value=tuple(serde_types.uint8(x) for x in addr))  # pyre-ignore
+    try:
+        if isinstance(addr, str):
+            return libra_types.AccountAddress.from_hex(addr)
+        return libra_types.AccountAddress.from_bytes(addr)
+    except ValueError as e:
+        raise InvalidAccountAddressError(e)
 
 
 def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> str:
@@ -65,7 +60,7 @@ def account_address_bytes(addr: typing.Union[libra_types.AccountAddress, str]) -
     if isinstance(addr, str):
         return account_address_bytes(account_address(addr))
 
-    return bytes(typing.cast(typing.Iterable[int], addr.value))
+    return addr.to_bytes()
 
 
 def sub_address(addr: typing.Union[str, bytes]) -> bytes:

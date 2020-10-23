@@ -52,12 +52,12 @@ def test_encode_addr_fail():
 def test_decode_addr_success():
     # test enocded_addr_with_none_subaddr
     addr, subaddr = identifier.decode_account(enocded_addr_with_none_subaddr, "lbr")
-    assert utils.account_address_hex(addr) == test_onchain_address
+    assert addr.to_hex() == test_onchain_address
     assert subaddr is None
 
     # test enocded_addr_with_subaddr
     addr, subaddr = identifier.decode_account(enocded_addr_with_subaddr, "lbr")
-    assert utils.account_address_hex(addr) == test_onchain_address
+    assert addr.to_hex() == test_onchain_address
     assert subaddr.hex() == test_sub_address
 
 

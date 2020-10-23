@@ -56,7 +56,7 @@ class Intent:
 
     @property
     def account_address_bytes(self) -> bytes:
-        return utils.account_address_bytes(self.account_address)
+        return self.account_address.to_bytes()
 
 
 def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -> str:

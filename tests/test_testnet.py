@@ -113,7 +113,7 @@ def test_get_account_transaction_not_exist():
 
 def test_get_account_transaction_by_hex_encoded_account_address():
     client = testnet.create_client()
-    txn = client.get_account_transaction(utils.account_address_hex(testnet.DESIGNATED_DEALER_ADDRESS), 0)
+    txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS.to_hex(), 0)
     assert txn is not None
     assert isinstance(txn, jsonrpc.Transaction)
     assert txn.version > 0
@@ -150,7 +150,7 @@ def test_get_account_transactions_not_exist():
 
 def test_get_account_transactions_by_hex_encoded_account_address():
     client = testnet.create_client()
-    txns = client.get_account_transactions(utils.account_address_hex(testnet.DESIGNATED_DEALER_ADDRESS), 0, 1)
+    txns = client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS.to_hex(), 0, 1)
     assert txns is not None
     assert isinstance(txns, list)
 

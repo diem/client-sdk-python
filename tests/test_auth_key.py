@@ -11,4 +11,4 @@ def test_new_auth_key_from_public_key():
     auth_key = AuthKey.from_public_key(public_key)
     assert auth_key.hex() == "459c77a38803bd53f3adee52703810e3a74fd7c46952c497e75afb0a7932586d"
     assert auth_key.prefix().hex() == "459c77a38803bd53f3adee52703810e3"
-    assert utils.account_address_hex(auth_key.account_address()) == "a74fd7c46952c497e75afb0a7932586d"
+    assert auth_key.account_address().to_hex() == "a74fd7c46952c497e75afb0a7932586d"

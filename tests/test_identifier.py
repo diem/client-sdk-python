@@ -15,6 +15,10 @@ enocded_addr_with_none_subaddr = "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqqfl
 enocded_addr_with_subaddr = "lbr1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4usw5p72t"
 
 
+def test_identifier_hrps():
+    assert identifier.HRPS == {1: "lbr", 2: "tlb", 3: "tlb", 4: "tlb", 19: "plb"}
+
+
 def test_encode_addr_success():
     # test with none sub_address
     enocded_addr = identifier.encode_account(test_onchain_address, None, "lbr")

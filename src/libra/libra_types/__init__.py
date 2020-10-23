@@ -98,6 +98,16 @@ class BlockMetadata:
 class ChainId:
     value: st.uint8
 
+    # TODO: generate the following 2 methods instead of hardcode
+    # when regen this file, add these to methods back before we can generate them.
+
+    @staticmethod
+    def from_int(id: int) -> "ChainId":
+        return ChainId(value=st.uint8(id))
+
+    def to_int(self) -> int:
+        return int(self.value)
+
     def lcs_serialize(self) -> bytes:
         return lcs.serialize(self, ChainId)
 

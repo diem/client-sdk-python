@@ -23,12 +23,12 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import libra_types, jsonrpc, utils, local_account, serde_types, auth_key
+from . import libra_types, jsonrpc, utils, local_account, serde_types, auth_key, chain_ids
 
 
-JSON_RPC_URL = "https://testnet.libra.org/v1"
-FAUCET_URL = "https://testnet.libra.org/mint"
-CHAIN_ID = libra_types.ChainId(value=serde_types.uint8(2))  # pyre-ignore
+JSON_RPC_URL: str = "https://testnet.libra.org/v1"
+FAUCET_URL: str = "https://testnet.libra.org/mint"
+CHAIN_ID: libra_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: libra_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
 TEST_CURRENCY_CODE: str = "Coin1"

@@ -4,6 +4,15 @@
 """LIP-5 Libra Account Identifier and Intent Identifier Utilities.
 
 See https://lip.libra.org/lip-5 for more details
+
+```python
+
+from libra import chain_ids, identifier
+
+# print hrp for premainnet by premainnet chain id
+print(identifier.HRPS[chain_ids.PREMAINNET.to_int()])
+```
+
 """
 
 
@@ -11,10 +20,20 @@ import typing
 from urllib import parse
 from typing import List
 
-from . import libra_types, utils
+from . import libra_types, utils, chain_ids
 
 LBR = "lbr"  # lbr for mainnet
 TLB = "tlb"  # tlb for testnet
+PLB = "plb"  # plb for premainnet
+
+HRPS: typing.Dict[int, str] = {
+    chain_ids.MAINNET.to_int(): LBR,
+    chain_ids.TESTNET.to_int(): TLB,
+    chain_ids.DEVNET.to_int(): TLB,
+    chain_ids.TESTING.to_int(): TLB,
+    chain_ids.PREMAINNET.to_int(): PLB,
+}
+
 LIBRA_SUBADDRESS_SIZE = 8  # in bytes (for V1)
 LIBRA_ZERO_SUBADDRESS: bytes = b"\0" * LIBRA_SUBADDRESS_SIZE
 

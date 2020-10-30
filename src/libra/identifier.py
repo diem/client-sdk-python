@@ -141,10 +141,11 @@ def _decode_param(name, params, field, convert):  # pyre-ignore
 
 def encode_account(
     onchain_addr: typing.Union[libra_types.AccountAddress, str],
-    subaddr: typing.Optional[typing.Union[str, bytes]] = None,
-    hrp: str = "tlb",
+    subaddr: typing.Union[str, bytes, None],
+    hrp: str,
 ) -> str:
     """Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format"""
+
     onchain_address_bytes = utils.account_address_bytes(onchain_addr)
     subaddress_bytes = utils.sub_address(subaddr) if subaddr else None
 
@@ -160,9 +161,7 @@ def encode_account(
     return encoded_address
 
 
-def decode_account(
-    encoded_address: str, hrp: str = "tlb"
-) -> typing.Tuple[libra_types.AccountAddress, typing.Optional[bytes]]:
+def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[libra_types.AccountAddress, typing.Optional[bytes]]:
     """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
     try:
         (_version, onchain_address_bytes, subaddress_bytes) = bech32_address_decode(hrp, encoded_address)

@@ -90,7 +90,7 @@ def test_decode_addr_fail():
     # fail to decode mixed case per BIP 173
     mixedcase_encoded_address = "LbR1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4usw5P72T"  # some uppercase
     with pytest.raises(ValueError):
-        identifier.decode_account(mixedcase_encoded_address)
+        identifier.decode_account(mixedcase_encoded_address, "lbr")
 
     # fail to decode shorter payload
     short_encoded_address = "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv"  # sample 23 bytes encoded

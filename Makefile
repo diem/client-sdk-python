@@ -39,7 +39,8 @@ libratypes:
 		--serde-package-name libra \
 		--libra-package-name libra \
 		--target-source-dir src/libra \
-		"libra/language/stdlib/compiled/transaction_scripts/abi"
+		--with-custom-libra-code libra-types-ext/*.py \
+		-- "libra/language/stdlib/compiled/transaction_scripts/abi"
 
 protobuf:
 	mkdir -p src/libra/jsonrpc

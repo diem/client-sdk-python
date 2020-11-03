@@ -87,24 +87,14 @@ def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:
 def currency_code(code: str) -> libra_types.TypeTag:
     """converts currency code string to libra_types.TypeTag"""
 
-    if isinstance(code, str):
-        return libra_types.TypeTag__Struct(
-            value=libra_types.StructTag(
-                address=account_address(CORE_CODE_ADDRESS),
-                module=libra_types.Identifier(code),
-                name=libra_types.Identifier(code),
-                type_params=[],
-            )
-        )
-
-    raise TypeError(f"unknown currency code type: {code}")
+    return libra_types.TypeTag.from_currency_code(code)
 
 
 def type_tag_to_str(code: libra_types.TypeTag) -> str:
     """converts currency code TypeTag into string"""
 
     if isinstance(code, libra_types.TypeTag__Struct):
-        return code.value.name.value
+        return code.to_currency_code()
 
     raise TypeError(f"unknown currency code type: {code}")
 
@@ -114,13 +104,7 @@ def create_signed_transaction(
 ) -> libra_types.SignedTransaction:
     """create single signed `libra_types.SignedTransaction`"""
 
-    return libra_types.SignedTransaction(
-        raw_txn=txn,
-        authenticator=libra_types.TransactionAuthenticator__Ed25519(
-            public_key=libra_types.Ed25519PublicKey(value=public_key),
-            signature=libra_types.Ed25519Signature(value=signature),
-        ),
-    )
+    return libra_types.SignedTransaction.from_raw_txn_and_ed25519_key(txn, public_key, signature)
 
 
 def raw_transaction_signing_msg(txn: libra_types.RawTransaction) -> bytes:

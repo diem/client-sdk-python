@@ -98,16 +98,6 @@ class BlockMetadata:
 class ChainId:
     value: st.uint8
 
-    # TODO: generate the following 2 methods instead of hardcode
-    # when regen this file, add these to methods back before we can generate them.
-
-    @staticmethod
-    def from_int(id: int) -> "ChainId":
-        return ChainId(value=st.uint8(id))
-
-    def to_int(self) -> int:
-        return int(self.value)
-
     def lcs_serialize(self) -> bytes:
         return lcs.serialize(self, ChainId)
 
@@ -117,6 +107,13 @@ class ChainId:
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
+
+    @staticmethod
+    def from_int(id: int) -> "ChainId":
+        return ChainId(value=st.uint8(id))
+
+    def to_int(self) -> int:
+        return int(self.value)
 
 
 @dataclass(frozen=True)
@@ -440,6 +437,16 @@ class SignedTransaction:
             raise st.DeserializationError("Some input bytes were not read")
         return v
 
+    @staticmethod
+    def from_raw_txn_and_ed25519_key(txn: RawTransaction, public_key: bytes, signature: bytes) -> "SignedTransaction":
+        return SignedTransaction(
+            raw_txn=txn,
+            authenticator=TransactionAuthenticator__Ed25519(
+                public_key=Ed25519PublicKey(value=public_key),
+                signature=Ed25519Signature(value=signature),
+            ),
+        )
+
 
 @dataclass(frozen=True)
 class StructTag:
@@ -683,6 +690,28 @@ class TypeTag:
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
+
+    CORE_CODE_ADDRESS: AccountAddress = AccountAddress.from_hex("00000000000000000000000000000001")
+
+    @staticmethod
+    def from_currency_code(code: str) -> "TypeTag":
+        if isinstance(code, str):
+            return TypeTag__Struct(
+                value=StructTag(
+                    address=TypeTag.CORE_CODE_ADDRESS,
+                    module=Identifier(code),
+                    name=Identifier(code),
+                    type_params=[],
+                )
+            )
+
+        raise TypeError(f"unknown currency code type: {code}")
+
+    def to_currency_code(self) -> str:
+        if isinstance(self, TypeTag__Struct):
+            return self.value.name.value
+
+        raise TypeError(f"unknown currency code type: {self}")
 
 
 @dataclass(frozen=True)

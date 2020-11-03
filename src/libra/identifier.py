@@ -43,7 +43,7 @@ _BECH32_SEPARATOR = "1"
 _BECH32_CHECKSUM_CHAR_SIZE = 6
 
 # LIBRA constants
-_LIBRA_HRP: List[str] = [LBR, TLB]
+_LIBRA_HRP: List[str] = [LBR, TLB, PLB]
 _LIBRA_ADDRESS_SIZE = 16  # in bytes
 _LIBRA_BECH32_VERSION = 1
 _LIBRA_BECH32_SIZE = 50  # in characters
@@ -197,12 +197,6 @@ def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typi
     Returns:
         Bech32 encoded address
     """
-    # check correct hrp
-    if hrp not in _LIBRA_HRP:
-        raise Bech32Error(
-            f"Wrong Libra address Bech32 human readable part (prefix): expected "
-            f"{_LIBRA_HRP[0]} for mainnet or {_LIBRA_HRP[1]} for testnet, but {hrp} was provided"
-        )
 
     # only accept correct size for Libra address
     if len(address_bytes) != _LIBRA_ADDRESS_SIZE:
@@ -242,13 +236,6 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
     if bech32 != bech32.lower() and bech32 != bech32.upper():
         raise Bech32Error(f"Mixed case Bech32 addresses are not allowed, got: {bech32}")
     bech32 = bech32.lower()
-
-    # check expected hrp
-    if expected_hrp not in _LIBRA_HRP:
-        raise Bech32Error(
-            f'Wrong Libra address Bech32 human readable part (prefix): expected "{LBR}" '
-            f'for mainnet or "{TLB}" for testnet but got "{bech32[:3]}"'
-        )
 
     if bech32[:3] != expected_hrp:
         raise Bech32Error(

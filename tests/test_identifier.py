@@ -40,10 +40,6 @@ def test_encode_addr_success():
 
 
 def test_encode_addr_fail():
-    # wrong hrp
-    with pytest.raises(ValueError):
-        identifier.encode_account(test_onchain_address, None, "btc")
-
     # wrong subadress (length should be 8 bytes)
     with pytest.raises(InvalidSubAddressError):
         identifier.encode_account(test_onchain_address, test_sub_address[:-2], "lbr")

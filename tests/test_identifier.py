@@ -61,6 +61,14 @@ def test_decode_addr_success():
     assert subaddr.hex() == test_sub_address
 
 
+def test_encode_decode_with_random_hrp():
+    # test with none sub_address
+    id = identifier.encode_account(test_onchain_address, None, "abc")
+    addr, sub = identifier.decode_account(id, "abc")
+    assert addr.to_hex() == test_onchain_address
+    assert sub is None
+
+
 def test_decode_addr_fail():
     # fail to decode invalid hrp
     invalid_hrp_encoded_address = "btc1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4usw5p72t"

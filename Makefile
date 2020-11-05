@@ -45,8 +45,8 @@ libratypes:
 protobuf:
 	mkdir -p src/libra/jsonrpc
 	protoc --plugin=protoc-gen-mypy=venv/bin/protoc-gen-mypy \
-		-Isrc --python_out=src/libra/jsonrpc --mypy_out=src/libra/jsonrpc \
-		src/libra-jsonrpc-types.proto
+		-Ilibra/json-rpc/types/src/proto --python_out=src/libra/jsonrpc --mypy_out=src/libra/jsonrpc \
+		jsonrpc.proto
 
 gen: libratypes protobuf format
 

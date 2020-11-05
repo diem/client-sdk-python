@@ -35,7 +35,7 @@ from .client import (
     WaitForTransactionTimeout,
     AccountNotFoundError,
 )
-from .libra_jsonrpc_types_pb2 import (
+from .jsonrpc_pb2 import (
     Amount,
     Metadata,
     CurrencyInfo,

@@ -11,7 +11,7 @@ import threading
 import typing
 
 from .. import libra_types, utils
-from . import libra_jsonrpc_types_pb2 as rpc
+from . import jsonrpc_pb2 as rpc
 from . import constants
 
 

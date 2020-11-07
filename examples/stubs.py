@@ -28,7 +28,7 @@ class CustodialApp:
     _parent_vasp: LocalAccount
     _client: jsonrpc.Client
     _children: typing.List[LocalAccount]
-    _users: typing.List[str]
+    _users: typing.List[bytes]
 
     compliance_key: typing.Optional[Ed25519PrivateKey]
 
@@ -73,7 +73,7 @@ class CustodialApp:
         return self.submit_and_wait(self._parent_vasp.sign(txn))
 
     def add_user(self):
-        self._users.append(secrets.token_hex(identifier.LIBRA_SUBADDRESS_SIZE))
+        self._users.append(identifier.gen_subaddress())
 
     def payment(self, user_id: int, amount: int) -> str:
         account_id = identifier.encode_account(
@@ -83,8 +83,9 @@ class CustodialApp:
         )
         return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
 
+    # TODO: change to generate sub address for user when needed
     def find_user_sub_address_by_id(self, user_id: int) -> bytes:
-        return utils.sub_address(self._users[user_id])
+        return self._users[user_id]
 
     def get_sequence_number(self, account: LocalAccount) -> int:
         return self._client.get_account_sequence(account.account_address)

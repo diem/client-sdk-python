@@ -1,5 +1,6 @@
 # The official Libra Client SDK for Python.
 
+[Documentation](https://developers.libra.org/docs/python-client-sdk-docs/libra/)
 
 ## Modules Overview
 
@@ -48,14 +49,6 @@ Note: `make test` runs all examples too, see the Makefile for details.
 
 ```
 pip install libra-client-sdk
-```
-
-## Documentation
-
-After installing the package:
-
-```bash
-python -m pydoc libra
 ```
 
 ## Bugs/Requests

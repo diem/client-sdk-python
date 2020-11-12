@@ -232,14 +232,6 @@ def test_get_account_state_with_proof():
     assert state_proof.version == client.get_last_known_state().version
 
 
-def test_get_account_state_with_proof_with_version():
-    client = testnet.create_client()
-    ret = client.get_account_state_with_proof(testnet.DESIGNATED_DEALER_ADDRESS, 3, 4)
-    assert ret is not None
-    assert isinstance(ret, jsonrpc.AccountStateWithProof)
-    assert ret.version == 3
-
-
 def test_handle_stale_response_error():
     client = testnet.create_client()
     last = client.get_metadata().version

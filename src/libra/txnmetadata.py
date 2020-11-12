@@ -32,7 +32,7 @@ class Attest:
 
 def travel_rule(
     off_chain_reference_id: str, sender_address: libra_types.AccountAddress, amount: int
-) -> typing.Tuple[(bytes, bytes)]:
+) -> typing.Tuple[bytes, bytes]:
     """Create travel rule metadata bytes and signature message bytes.
 
     This is used for peer to peer transfer between 2 custodial accounts.

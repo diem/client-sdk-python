@@ -24,7 +24,6 @@ class CustodialApp:
         c.add_user()
         return c
 
-
     _parent_vasp: LocalAccount
     _client: jsonrpc.Client
     _children: typing.List[LocalAccount]
@@ -33,8 +32,8 @@ class CustodialApp:
     compliance_key: typing.Optional[Ed25519PrivateKey]
 
     def __init__(
-            self,
-            parent_vasp: LocalAccount,
+        self,
+        parent_vasp: LocalAccount,
     ) -> None:
         self._parent_vasp = parent_vasp
         # a custodial application runs with its own client
@@ -55,7 +54,7 @@ class CustodialApp:
                 add_all_currencies=False,
                 child_initial_balance=2_000_000_000,
             ),
-            testnet.TEST_CURRENCY_CODE
+            testnet.TEST_CURRENCY_CODE,
         )
 
         return self.submit_and_wait(self._parent_vasp.sign(txn))
@@ -65,10 +64,9 @@ class CustodialApp:
         txn = self.create_transaction(
             self._parent_vasp,
             stdlib.encode_rotate_dual_attestation_info_script(
-                new_url=b"http://helloworld.org",
-                new_key=utils.public_key_bytes(self.compliance_key.public_key())
+                new_url=b"http://helloworld.org", new_key=utils.public_key_bytes(self.compliance_key.public_key())
             ),
-            testnet.TEST_CURRENCY_CODE
+            testnet.TEST_CURRENCY_CODE,
         )
         return self.submit_and_wait(self._parent_vasp.sign(txn))
 
@@ -77,9 +75,7 @@ class CustodialApp:
 
     def payment(self, user_id: int, amount: int) -> str:
         account_id = identifier.encode_account(
-            self._children[0].account_address,
-            self._users[user_id],
-            identifier.TLB  # testnet HRP
+            self._children[0].account_address, self._users[user_id], identifier.TLB  # testnet HRP
         )
         return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
 

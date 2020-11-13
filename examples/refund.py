@@ -28,9 +28,8 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
         currency=utils.currency_code(intent.currency_code),
         payee=receiver_address,
         amount=intent.amount,
-        metadata=txnmetadata.general_metadata(
-            sender_custodial.find_user_sub_address_by_id(0), intent.sub_address),
-        metadata_signature=b'', # only travel rule metadata requires signature
+        metadata=txnmetadata.general_metadata(sender_custodial.find_user_sub_address_by_id(0), intent.sub_address),
+        metadata_signature=b"",  # only travel rule metadata requires signature
     )
 
     sender = sender_custodial.available_child_vasp()
@@ -56,7 +55,7 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
         payee=refund_receiver_address,
         amount=amount,
         metadata=metadata,
-        metadata_signature=b'', # only travel rule metadata requires signature
+        metadata_signature=b"",  # only travel rule metadata requires signature
     )
 
     # receiver is sender of refund txn

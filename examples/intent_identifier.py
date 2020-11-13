@@ -4,11 +4,7 @@
 
 import secrets
 
-from libra import (
-    identifier,
-    utils,
-    LocalAccount
-)
+from libra import identifier, utils, LocalAccount
 
 
 def test_intent_identifier():
@@ -18,9 +14,7 @@ def test_intent_identifier():
     amount = 10_000_000
 
     account_id = identifier.encode_account(
-        child_vasp_address,
-        utils.sub_address(user_sub_address),
-        identifier.TLB  # testnet HRP
+        child_vasp_address, utils.sub_address(user_sub_address), identifier.TLB  # testnet HRP
     )
     intent_id = identifier.encode_intent(account_id, currency_code, amount)
 

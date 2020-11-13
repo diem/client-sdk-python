@@ -30,8 +30,8 @@ def test_non_custodial_to_non_custodial():
         currency=utils.currency_code(testnet.TEST_CURRENCY_CODE),
         payee=receiver.account_address,
         amount=amount,
-        metadata=b'', # no requirement for metadata and metadata signature
-        metadata_signature=b'',
+        metadata=b"",  # no requirement for metadata and metadata signature
+        metadata_signature=b"",
     )
     seq_num = client.get_account_sequence(sender.account_address)
     txn = create_transaction(sender, seq_num, script, testnet.TEST_CURRENCY_CODE)
@@ -58,7 +58,7 @@ def test_non_custodial_to_custodial():
         payee=utils.account_address(intent.account_address),
         amount=intent.amount,
         metadata=txnmetadata.general_metadata(None, intent.sub_address),
-        metadata_signature=b'', # only travel rule metadata requires signature
+        metadata_signature=b"",  # only travel rule metadata requires signature
     )
     seq_num = client.get_account_sequence(sender.account_address)
     txn = create_transaction(sender, seq_num, script, intent.currency_code)
@@ -67,7 +67,6 @@ def test_non_custodial_to_custodial():
     client.submit(signed_txn)
     executed_txn = client.wait_for_transaction(signed_txn)
     assert executed_txn is not None
-
 
 
 def test_custodial_to_non_custodial():
@@ -84,9 +83,8 @@ def test_custodial_to_non_custodial():
         currency=utils.currency_code(currency_code),
         payee=utils.account_address(receiver.account_address),
         amount=amount,
-        metadata=txnmetadata.general_metadata(
-            sender_custodial.find_user_sub_address_by_id(0), None),
-        metadata_signature=b'', # only travel rule metadata requires signature
+        metadata=txnmetadata.general_metadata(sender_custodial.find_user_sub_address_by_id(0), None),
+        metadata_signature=b"",  # only travel rule metadata requires signature
     )
 
     sender = sender_custodial.available_child_vasp()
@@ -114,9 +112,8 @@ def test_custodial_to_custodial_under_threshold():
         currency=utils.currency_code(intent.currency_code),
         payee=utils.account_address(intent.account_address),
         amount=intent.amount,
-        metadata=txnmetadata.general_metadata(
-            sender_custodial.find_user_sub_address_by_id(0), intent.sub_address),
-        metadata_signature=b'', # only travel rule metadata requires signature
+        metadata=txnmetadata.general_metadata(sender_custodial.find_user_sub_address_by_id(0), intent.sub_address),
+        metadata_signature=b"",  # only travel rule metadata requires signature
     )
 
     sender = sender_custodial.available_child_vasp()
@@ -145,9 +142,7 @@ def test_custodial_to_custodial_above_threshold():
     # sender & receiver communicate by off chain APIs
     off_chain_reference_id = "32323abc"
     metadata, metadata_signing_msg = txnmetadata.travel_rule(
-        off_chain_reference_id,
-        sender.account_address,
-        intent.amount
+        off_chain_reference_id, sender.account_address, intent.amount
     )
     metadata_signature = receiver_custodial.compliance_key.sign(metadata_signing_msg)
 

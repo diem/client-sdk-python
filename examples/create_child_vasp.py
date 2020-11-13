@@ -32,7 +32,8 @@ def test_create_child_vasp():
                 auth_key_prefix=child_vasp.auth_key.prefix(),
                 add_all_currencies=False,
                 child_initial_balance=100_000_000,
-            )),
+            )
+        ),
         max_gas_amount=1_000_000,
         gas_unit_price=0,
         gas_currency_code=currency,

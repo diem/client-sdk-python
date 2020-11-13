@@ -8,7 +8,7 @@ init:
 	./venv/bin/pip install -r requirements.txt --use-feature=2020-resolver
 
 check:
-	./venv/bin/pyre --search-path venv/lib/python3.8/site-packages check
+	./venv/bin/pyre --search-path venv/lib/python3.9/site-packages check
 
 pylama:
 	./venv/bin/pylama src tests
@@ -17,7 +17,7 @@ lint: check
 	./venv/bin/python -m black --check src tests
 
 format:
-	./venv/bin/python -m black src tests
+	./venv/bin/python -m black src tests examples
 
 install:
 	./venv/bin/python setup.py develop

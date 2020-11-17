@@ -24,6 +24,8 @@ from .client import (
     Client,
     State,
     Retry,
+    RequestStrategy,
+    RequestWithBackups,
     # Exceptions
     JsonRpcError,
     NetworkError,

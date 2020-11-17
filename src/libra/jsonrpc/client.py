@@ -9,6 +9,8 @@ import google.protobuf.json_format as parser
 import requests
 import threading
 import typing
+import random, queue
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
 from .. import libra_types, utils
 from . import jsonrpc_pb2 as rpc
@@ -84,6 +86,88 @@ class Retry:
                     raise e
 
 
+class RequestStrategy:
+    """RequestStrategy base class
+
+    It implements the simplest strategy: direct send http request
+    """
+
+    def send_request(
+        self, client: "Client", request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    ) -> typing.Dict[str, typing.Any]:
+        return client._send_http_request(client._url, request, ignore_stale_response)
+
+
+class RequestWithBackups(RequestStrategy):
+    """RequestWithBackups implements strategies for primary-backup model.
+
+    First we send same request to primary and one of random picked backup urls in parallel.
+    Then we have 2 different strategies for how we handle responses:
+
+    1. first success: return first completed success response.
+    2. fallback: wait for primary response completed, if it failed, fallback to backup response.
+
+    Default is first success strategy, passing fallback=True in constructor to enable fallback strategy.
+
+    Errors cause failures:
+
+    1. http request error
+    2. http response error
+    3. response body is not json
+    4. StaleResponseError: this is included for making sure we always prefer to pick non-stale response.
+
+    Initialize Client:
+
+    ```python
+    from concurrent.futures import ThreadPoolExecutor
+    from libra import jsonrpc
+
+    # This controls how many concurrent requests we can sent. It is shared for all jsonrpc.Client requests.
+    executor = ThreadPoolExecutor(5)
+    jsonrpc.Client(
+        <primary-json-rpc-server-url>
+        rs=jsonrpc.RequestWithBackups(backups=[<backup-json-rpc-server-url>...], executor=executor),
+    )
+    ```
+    """
+
+    def __init__(
+        self,
+        backups: typing.List[str],
+        executor: ThreadPoolExecutor,
+        fallback: bool = False,
+    ) -> None:
+        self._backups = backups
+        self._executor = executor
+        self._fallback = fallback
+
+    def send_request(
+        self, client: "Client", request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    ) -> typing.Dict[str, typing.Any]:
+        primary = self._executor.submit(client._send_http_request, client._url, request, ignore_stale_response)
+        backup = self._executor.submit(
+            client._send_http_request, random.choice(self._backups), request, ignore_stale_response
+        )
+
+        if self._fallback:
+            return self._fallback_to_backup(primary, backup)
+        return self._first_success(primary, backup)
+
+    def _fallback_to_backup(self, primary: Future, backup: Future) -> typing.Dict[str, typing.Any]:
+        try:
+            return primary.result()
+        except Exception as e:
+            return backup.result()
+
+    def _first_success(self, primary: Future, backup: Future) -> typing.Dict[str, typing.Any]:
+        futures = as_completed({primary, backup})
+        first = next(futures)
+        try:
+            return first.result()
+        except Exception:
+            return next(futures).result()
+
+
 class Client:
     """Libra JSON-RPC API client
 
@@ -96,6 +180,7 @@ class Client:
         session: typing.Optional[requests.Session] = None,
         timeout: typing.Optional[typing.Tuple[float, float]] = None,
         retry: typing.Optional[Retry] = None,
+        rs: typing.Optional[RequestStrategy] = None,
     ) -> None:
         self._url: str = server_url
         self._session: requests.Session = session or requests.Session()
@@ -103,6 +188,7 @@ class Client:
         self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
         self._lock = threading.Lock()
         self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
+        self._rs: RequestStrategy = rs or RequestStrategy()
 
     # high level functions
 
@@ -434,21 +520,7 @@ class Client:
             "params": params or [],
         }
         try:
-            response = self._session.post(self._url, json=request, timeout=self._timeout)
-            response.raise_for_status()
-            json = response.json()
-
-            # check stable response before check jsonrpc error
-            try:
-                self.update_last_known_state(
-                    json.get("libra_chain_id"),
-                    json.get("libra_ledger_version"),
-                    json.get("libra_ledger_timestampusec"),
-                )
-            except StaleResponseError as e:
-                if not ignore_stale_response:
-                    raise e
-
+            json = self._rs.send_request(self, request, ignore_stale_response or False)
             if "error" in json:
                 err = json["error"]
                 raise JsonRpcError(f"{err}")
@@ -458,13 +530,37 @@ class Client:
                     return result_parser(json["result"])
                 return
 
-            raise InvalidServerResponse(f"No error or result in response: {response.text}")
+            raise InvalidServerResponse(f"No error or result in response: {json}")
         except requests.RequestException as e:
             raise NetworkError(f"Error in connecting to server: {e}\nPlease retry...")
+        except parser.ParseError as e:
+            raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
+
+    def _send_http_request(
+        self,
+        url: str,
+        request: typing.Dict[str, typing.Any],
+        ignore_stale_response: bool,
+    ) -> typing.Dict[str, typing.Any]:
+        response = self._session.post(url, json=request, timeout=self._timeout)
+        response.raise_for_status()
+        try:
+            json = response.json()
         except ValueError as e:
             raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
-        except parser.ParseError as e:
-            raise InvalidServerResponse(f"Parse result failed: {e}, response: {response.text}")
+
+        # check stable response before check jsonrpc error
+        try:
+            self.update_last_known_state(
+                json.get("libra_chain_id"),
+                json.get("libra_ledger_version"),
+                json.get("libra_ledger_timestampusec"),
+            )
+        except StaleResponseError as e:
+            if not ignore_stale_response:
+                raise e
+
+        return json
 
 
 def _parse_obj(factory):  # pyre-ignore

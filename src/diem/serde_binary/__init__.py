@@ -13,7 +13,7 @@ import io
 import typing
 from typing import get_type_hints
 
-from libra import serde_types as st
+from diem import serde_types as st
 
 
 @dataclasses.dataclass

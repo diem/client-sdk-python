@@ -1,8 +1,8 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from libra import utils, txnmetadata, jsonrpc, libra_types
+from diem import utils, txnmetadata, jsonrpc, diem_types
 
 
 def test_travel_rule_metadata():
@@ -79,7 +79,7 @@ def test_refund_metadata_from_event():
     ret = txnmetadata.refund_metadata_from_event(event)
     assert ret is not None
 
-    gm = libra_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
+    gm = diem_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
     assert gm is not None
     assert gm.value.value.from_subaddress.hex() == to_sub_address
     assert gm.value.value.to_subaddress.hex() == from_sub_address
@@ -101,7 +101,7 @@ def test_refund_metadata_from_event_that_has_from_subaddress():
     ret = txnmetadata.refund_metadata_from_event(event)
     assert ret is not None
 
-    gm = libra_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
+    gm = diem_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
     assert gm is not None
     assert gm.value.value.from_subaddress is None
     assert gm.value.value.to_subaddress.hex() == from_sub_address
@@ -123,7 +123,7 @@ def test_refund_metadata_from_event_that_has_to_subaddress():
     ret = txnmetadata.refund_metadata_from_event(event)
     assert ret is not None
 
-    gm = libra_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
+    gm = diem_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
     assert gm is not None
     assert gm.value.value.from_subaddress.hex() == to_sub_address
     assert gm.value.value.to_subaddress is None

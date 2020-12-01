@@ -1,4 +1,4 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 """Provides LocalAccount class for holding local account private key.
@@ -8,7 +8,7 @@ raw transaction.
 """
 
 from . import (
-    libra_types,
+    diem_types,
     utils,
 )
 
@@ -44,7 +44,7 @@ class LocalAccount:
         return AuthKey.from_public_key(self.public_key)
 
     @property
-    def account_address(self) -> libra_types.AccountAddress:
+    def account_address(self) -> diem_types.AccountAddress:
         return self.auth_key.account_address()
 
     @property
@@ -55,7 +55,7 @@ class LocalAccount:
     def public_key(self) -> Ed25519PublicKey:
         return self.private_key.public_key()
 
-    def sign(self, txn: libra_types.RawTransaction) -> libra_types.SignedTransaction:
+    def sign(self, txn: diem_types.RawTransaction) -> diem_types.SignedTransaction:
         """Create signed transaction for given raw transaction"""
 
         signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))

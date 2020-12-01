@@ -1,8 +1,8 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
-from libra import jsonrpc, testnet
+from diem import jsonrpc, testnet
 from concurrent.futures import ThreadPoolExecutor
 import pytest, time
 

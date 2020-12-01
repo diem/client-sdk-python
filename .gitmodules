@@ -1,3 +1,0 @@
-[submodule "libra"]
-	path = libra
-	url = git@github.com:libra/libra.git

@@ -1,4 +1,4 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
@@ -12,7 +12,7 @@ See https://lip.libra.org/lip-4 for more details
 from dataclasses import dataclass
 import typing
 
-from . import libra_types, serde_types, lcs, jsonrpc, utils
+from . import diem_types, serde_types, lcs, jsonrpc, utils
 
 
 class InvalidEventMetadataForRefundError(Exception):
@@ -22,8 +22,8 @@ class InvalidEventMetadataForRefundError(Exception):
 @dataclass
 class Attest:
 
-    metadata: libra_types.Metadata
-    sender_address: libra_types.AccountAddress
+    metadata: diem_types.Metadata
+    sender_address: diem_types.AccountAddress
     amount: serde_types.uint64  # pyre-ignore
 
     def lcs_serialize(self) -> bytes:
@@ -31,16 +31,16 @@ class Attest:
 
 
 def travel_rule(
-    off_chain_reference_id: str, sender_address: libra_types.AccountAddress, amount: int
+    off_chain_reference_id: str, sender_address: diem_types.AccountAddress, amount: int
 ) -> typing.Tuple[bytes, bytes]:
     """Create travel rule metadata bytes and signature message bytes.
 
     This is used for peer to peer transfer between 2 custodial accounts.
     """
 
-    metadata = libra_types.Metadata__TravelRuleMetadata(
-        value=libra_types.TravelRuleMetadata__TravelRuleMetadataVersion0(
-            value=libra_types.TravelRuleMetadataV0(off_chain_reference_id=off_chain_reference_id)
+    metadata = diem_types.Metadata__TravelRuleMetadata(
+        value=diem_types.TravelRuleMetadata__TravelRuleMetadataVersion0(
+            value=diem_types.TravelRuleMetadataV0(off_chain_reference_id=off_chain_reference_id)
         )
     )
 
@@ -70,9 +70,9 @@ def general_metadata(
     if from_subaddress is None and to_subaddress is None:
         return b""
 
-    metadata = libra_types.Metadata__GeneralMetadata(
-        value=libra_types.GeneralMetadata__GeneralMetadataVersion0(
-            value=libra_types.GeneralMetadataV0(  # pyre-ignore
+    metadata = diem_types.Metadata__GeneralMetadata(
+        value=diem_types.GeneralMetadata__GeneralMetadataVersion0(
+            value=diem_types.GeneralMetadataV0(  # pyre-ignore
                 from_subaddress=from_subaddress,
                 to_subaddress=to_subaddress,
                 referenced_event=serde_types.uint64(referenced_event) if referenced_event else None,
@@ -83,7 +83,7 @@ def general_metadata(
 
 
 def find_refund_reference_event(
-    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[libra_types.AccountAddress, str]
+    txn: typing.Optional[jsonrpc.Transaction], receiver: typing.Union[diem_types.AccountAddress, str]
 ) -> typing.Optional[jsonrpc.Event]:
     """Find refund reference event from given transaction
 
@@ -120,7 +120,7 @@ def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
     metadata, hence the refund transaction should not have metadata too.
 
     Raises InvalidEventMetadataForRefundError if metadata can't be decoded as
-    libra_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund metadata
+    diem_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund metadata
     """
 
     if not event.data.metadata:
@@ -128,10 +128,10 @@ def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
 
     try:
         metadata_bytes = bytes.fromhex(event.data.metadata)
-        metadata = libra_types.Metadata.lcs_deserialize(metadata_bytes)
+        metadata = diem_types.Metadata.lcs_deserialize(metadata_bytes)
 
-        if isinstance(metadata, libra_types.Metadata__GeneralMetadata):
-            if isinstance(metadata.value, libra_types.GeneralMetadata__GeneralMetadataVersion0):
+        if isinstance(metadata, diem_types.Metadata__GeneralMetadata):
+            if isinstance(metadata.value, diem_types.GeneralMetadata__GeneralMetadataVersion0):
                 gmv0 = metadata.value.value
                 return general_metadata(gmv0.to_subaddress, gmv0.from_subaddress, event.sequence_number)
 

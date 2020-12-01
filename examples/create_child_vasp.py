@@ -1,11 +1,11 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
 import time
 
-from libra import (
-    libra_types,
+from diem import (
+    diem_types,
     stdlib,
     testnet,
     utils,
@@ -22,10 +22,10 @@ def test_create_child_vasp():
 
     child_vasp = LocalAccount.generate()
     currency = testnet.TEST_CURRENCY_CODE
-    raw_txn = libra_types.RawTransaction(
+    raw_txn = diem_types.RawTransaction(
         sender=parent_vasp.account_address,
         sequence_number=seq_num,
-        payload=libra_types.TransactionPayload__Script(
+        payload=diem_types.TransactionPayload__Script(
             stdlib.encode_create_child_vasp_account_script(
                 coin_type=utils.currency_code(currency),
                 child_address=child_vasp.account_address,

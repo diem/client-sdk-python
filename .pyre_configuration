@@ -7,12 +7,12 @@
   "taint_models_path": "./venv/lib/pyre_check/taint",
   "typeshed": "./venv/lib/pyre_check/typeshed",
   "ignore_all_errors": [
-    "src/libra/jsonrpc/jsonrpc_pb2.py",
-    "src/libra/lcs",
-    "src/libra/libra_types",
-    "src/libra/serde_binary",
-    "src/libra/serde_types",
-    "src/libra/stdlib",
+    "src/diem/jsonrpc/jsonrpc_pb2.py",
+    "src/diem/lcs",
+    "src/diem/diem_types",
+    "src/diem/serde_binary",
+    "src/diem/serde_types",
+    "src/diem/stdlib",
     "venv"
   ]
 }

@@ -1,10 +1,10 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
 import secrets
 
-from libra import identifier, utils, LocalAccount
+from diem import identifier, utils, LocalAccount
 
 
 def test_intent_identifier():
@@ -18,4 +18,4 @@ def test_intent_identifier():
     )
     intent_id = identifier.encode_intent(account_id, currency_code, amount)
 
-    assert intent_id == "libra://tlb1p6uu2pwv9zvzalcw3wurlppqahjg895qjqd9gsrc5pe4ul?c=Coin1&am=10000000"
+    assert intent_id == "diem://tlb1p6uu2pwv9zvzalcw3wurlppqahjg895qjqd9gsrc5pe4ul?c=Coin1&am=10000000"

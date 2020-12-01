@@ -1,9 +1,9 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 """Defines constants for enum type values
 
-See the following Libra JSON-RPC response type documents for more details:
+See the following Diem JSON-RPC response type documents for more details:
 
 * https://github.com/libra/libra/blob/master/json-rpc/docs/type_account.md#type-account
 * https://github.com/libra/libra/blob/master/json-rpc/docs/type_event.md#event-data

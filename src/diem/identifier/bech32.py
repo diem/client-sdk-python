@@ -1,35 +1,35 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 ######################################################################################
 
-# Bech32 implementation for Libra human readable addresses based on
+# Bech32 implementation for Diem human readable addresses based on
 # Bitcoin's segwit python lib https://github.com/fiatjaf/bech32 modified to support the
-# requirements of Libra (sub)address and versioning specs.
+# requirements of Diem (sub)address and versioning specs.
 
 import typing
 
-from .subaddress import LIBRA_SUBADDRESS_SIZE, LIBRA_ZERO_SUBADDRESS
+from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS
 
 # Bech32 constants
 _BECH32_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 _BECH32_SEPARATOR = "1"
 _BECH32_CHECKSUM_CHAR_SIZE = 6
 
-# LIBRA constants
-_LIBRA_ADDRESS_SIZE = 16  # in bytes
-_LIBRA_BECH32_VERSION = 1
-_LIBRA_BECH32_SIZE = 50  # in characters
+# DIEM constants
+_DIEM_ADDRESS_SIZE = 16  # in bytes
+_DIEM_BECH32_VERSION = 1
+_DIEM_BECH32_SIZE = 50  # in characters
 
 
 class Bech32Error(Exception):
-    """ Represents an error when creating a Libra address. """
+    """ Represents an error when creating a Diem address. """
 
     pass
 
 
 def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typing.Optional[bytes]) -> str:
-    """Encode a Libra address (and sub-address if provided).
+    """Encode a Diem address (and sub-address if provided).
     Args:
         hrp: Bech32 human readable part
         address_bytes: on-chain account address (16 bytes)
@@ -38,18 +38,18 @@ def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typi
         Bech32 encoded address
     """
 
-    # only accept correct size for Libra address
-    if len(address_bytes) != _LIBRA_ADDRESS_SIZE:
-        raise Bech32Error(f"Address size should be {_LIBRA_ADDRESS_SIZE}, but got: {len(address_bytes)}")
+    # only accept correct size for Diem address
+    if len(address_bytes) != _DIEM_ADDRESS_SIZE:
+        raise Bech32Error(f"Address size should be {_DIEM_ADDRESS_SIZE}, but got: {len(address_bytes)}")
 
-    # only accept correct size for Libra subaddress (if set)
-    if subaddress_bytes is not None and len(subaddress_bytes) != LIBRA_SUBADDRESS_SIZE:
-        raise Bech32Error(f"Subaddress size should be {LIBRA_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}")
+    # only accept correct size for Diem subaddress (if set)
+    if subaddress_bytes is not None and len(subaddress_bytes) != DIEM_SUBADDRESS_SIZE:
+        raise Bech32Error(f"Subaddress size should be {DIEM_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}")
 
-    encoding_version = _LIBRA_BECH32_VERSION
+    encoding_version = _DIEM_BECH32_VERSION
 
     # if subaddress has not been provided it's set to 8 zero bytes.
-    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else LIBRA_ZERO_SUBADDRESS
+    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else DIEM_ZERO_SUBADDRESS
     total_bytes = address_bytes + subaddress_final_bytes
 
     five_bit_data = _convertbits(total_bytes, 8, 5, True)
@@ -60,7 +60,7 @@ def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typi
 
 
 def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, bytes, bytes]:
-    """Validate a Bech32 Libra address Bech32 string, and split between version, address and sub-address.
+    """Validate a Bech32 Diem address Bech32 string, and split between version, address and sub-address.
     Args:
         expected_hrp: expected Bech32 human readable part (lbr or tlb)
         bech32: Bech32 encoded address
@@ -69,8 +69,8 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
     """
     len_bech32 = len(bech32)
     # check expected length
-    if len_bech32 != _LIBRA_BECH32_SIZE:
-        raise Bech32Error(f"Bech32 size should be {_LIBRA_BECH32_SIZE}, but it is: {len_bech32}")
+    if len_bech32 != _DIEM_BECH32_SIZE:
+        raise Bech32Error(f"Bech32 size should be {_DIEM_BECH32_SIZE}, but it is: {len_bech32}")
 
     # do not allow mixed case per BIP 173
     if bech32 != bech32.lower() and bech32 != bech32.upper():
@@ -79,7 +79,7 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
 
     if bech32[:3] != expected_hrp:
         raise Bech32Error(
-            f'Wrong Libra address Bech32 human readable part (prefix): requested "{expected_hrp}" but '
+            f'Wrong Diem address Bech32 human readable part (prefix): requested "{expected_hrp}" but '
             f'got "{bech32[:3]}"'
         )
 
@@ -95,8 +95,8 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
     # version is defined by the index of the Bech32 character after separator
     address_version = _BECH32_CHARSET.find(bech32[4])
     # check valid version
-    if address_version != _LIBRA_BECH32_VERSION:
-        raise Bech32Error(f"Version mismatch. Expected {_LIBRA_BECH32_VERSION}, " f"but received {address_version}")
+    if address_version != _DIEM_BECH32_VERSION:
+        raise Bech32Error(f"Version mismatch. Expected {_DIEM_BECH32_VERSION}, " f"but received {address_version}")
 
     # we've already checked that all characters are in the correct alphabet,
     # thus, this will always succeed
@@ -113,15 +113,15 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
 
     length_data = len(decoded_data)
     # extra check about the expected output (sub)address size in bytes
-    if length_data != _LIBRA_ADDRESS_SIZE + LIBRA_SUBADDRESS_SIZE:
+    if length_data != _DIEM_ADDRESS_SIZE + DIEM_SUBADDRESS_SIZE:
         raise Bech32Error(
-            f"Expected {_LIBRA_ADDRESS_SIZE + LIBRA_SUBADDRESS_SIZE} bytes after decoding, but got: {length_data}"
+            f"Expected {_DIEM_ADDRESS_SIZE + DIEM_SUBADDRESS_SIZE} bytes after decoding, but got: {length_data}"
         )
 
     return (
         address_version,
-        bytes(decoded_data[:_LIBRA_ADDRESS_SIZE]),
-        bytes(decoded_data[-LIBRA_SUBADDRESS_SIZE:]),
+        bytes(decoded_data[:_DIEM_ADDRESS_SIZE]),
+        bytes(decoded_data[-DIEM_SUBADDRESS_SIZE:]),
     )
 
 

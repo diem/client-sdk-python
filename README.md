@@ -1,3 +1,5 @@
+> **Note to readers:** On December 1, 2020, the Libra Association was renamed to Diem Association. The project repos are in the process of being migrated. All projects will remain available for use here until the migration to a new GitHub Organization is complete.
+
 # The official Libra Client SDK for Python.
 
 [Documentation](https://developers.libra.org/docs/python-client-sdk-docs/libra/)
@@ -53,7 +55,7 @@ pip install libra-client-sdk
 
 ## Bugs/Requests
 
-Please use the [GitHub issue tracker](https://github.com/libra/libra-client-sdk-python/issues) to submit bugs or request features.
+Please use the [GitHub issue tracker](https://github.com/libra/client-sdk-python/issues) to submit bugs or request features.
 
 ## Build & Test
 

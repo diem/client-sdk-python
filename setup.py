@@ -9,7 +9,7 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name="diem-client-sdk",
+    name="diem",
     version="0.6.2020120201", # bump up version for release, format 0.X.YYYYMMDDNN
     description="The Python Client SDK for Diem",
     long_description=long_description,

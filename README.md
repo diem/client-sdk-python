@@ -20,7 +20,7 @@ Sub-modules:
 - `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
 - `AuthKey` | `auth_key`: auth key utils
 - `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)
-- `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.libra.org/dip-4/)
+- `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.diem.org/dip-4/)
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
 - `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
 - `chain_ids`: list of static chain ids

@@ -1,10 +1,10 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
-from libra import (
+from diem import (
     jsonrpc,
-    libra_types,
+    diem_types,
     stdlib,
     testnet,
     utils,
@@ -348,7 +348,7 @@ def test_get_parent_vasp_account_with_non_vasp_account_address():
 
 def create_child_vasp_txn(
     parent_vasp: LocalAccount, child_vasp: LocalAccount, seq: int = 0
-) -> libra_types.RawTransaction:
+) -> diem_types.RawTransaction:
     script = stdlib.encode_create_child_vasp_account_script(
         coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
         child_address=child_vasp.account_address,
@@ -361,12 +361,12 @@ def create_child_vasp_txn(
 
 
 def create_transaction(
-    sender: LocalAccount, script: libra_types.Script, seq: int, currency=testnet.TEST_CURRENCY_CODE
-) -> libra_types.RawTransaction:
-    return libra_types.RawTransaction(
+    sender: LocalAccount, script: diem_types.Script, seq: int, currency=testnet.TEST_CURRENCY_CODE
+) -> diem_types.RawTransaction:
+    return diem_types.RawTransaction(
         sender=sender.account_address,
         sequence_number=seq,
-        payload=libra_types.TransactionPayload__Script(script),
+        payload=diem_types.TransactionPayload__Script(script),
         max_gas_amount=1_000_000,
         gas_unit_price=0,
         gas_currency_code=currency,

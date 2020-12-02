@@ -1,4 +1,4 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
@@ -12,7 +12,7 @@ import typing
 import random, queue
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
-from .. import libra_types, utils
+from .. import diem_types, utils
 from . import jsonrpc_pb2 as rpc
 from . import constants
 
@@ -120,7 +120,7 @@ class RequestWithBackups(RequestStrategy):
 
     ```python
     from concurrent.futures import ThreadPoolExecutor
-    from libra import jsonrpc
+    from diem import jsonrpc
 
     # This controls how many concurrent requests we can sent. It is shared for all jsonrpc.Client requests.
     executor = ThreadPoolExecutor(5)
@@ -169,7 +169,7 @@ class RequestWithBackups(RequestStrategy):
 
 
 class Client:
-    """Libra JSON-RPC API client
+    """Diem JSON-RPC API client
 
     [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
     """
@@ -193,7 +193,7 @@ class Client:
     # high level functions
 
     def get_parent_vasp_account(
-        self, vasp_account_address: typing.Union[libra_types.AccountAddress, str]
+        self, vasp_account_address: typing.Union[diem_types.AccountAddress, str]
     ) -> rpc.Account:
         """get parent_vasp account
 
@@ -218,7 +218,7 @@ class Client:
         hex = utils.account_address_hex(vasp_account_address)
         raise ValueError(f"given account address({hex}) is not a VASP account: {account}")
 
-    def get_account_sequence(self, account_address: typing.Union[libra_types.AccountAddress, str]) -> int:
+    def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> int:
         """get on-chain account sequence number
 
         Calls get_account to find on-chain account information and return it's sequence.
@@ -291,7 +291,7 @@ class Client:
         return self.execute("get_currencies", [], _parse_list(lambda: rpc.CurrencyInfo()))
 
     def get_account(
-        self, account_address: typing.Union[libra_types.AccountAddress, str]
+        self, account_address: typing.Union[diem_types.AccountAddress, str]
     ) -> typing.Optional[rpc.Account]:
         """get on-chain account information
 
@@ -304,7 +304,7 @@ class Client:
 
     def get_account_transaction(
         self,
-        account_address: typing.Union[libra_types.AccountAddress, str],
+        account_address: typing.Union[diem_types.AccountAddress, str],
         sequence: int,
         include_events: typing.Optional[bool] = None,
     ) -> typing.Optional[rpc.Transaction]:
@@ -321,7 +321,7 @@ class Client:
 
     def get_account_transactions(
         self,
-        account_address: typing.Union[libra_types.AccountAddress, str],
+        account_address: typing.Union[diem_types.AccountAddress, str],
         sequence: int,
         limit: int,
         include_events: typing.Optional[bool] = None,
@@ -370,7 +370,7 @@ class Client:
 
     def get_account_state_with_proof(
         self,
-        account_address: libra_types.AccountAddress,
+        account_address: diem_types.AccountAddress,
         version: typing.Optional[int] = None,
         ledger_version: typing.Optional[int] = None,
     ) -> rpc.AccountStateWithProof:
@@ -380,7 +380,7 @@ class Client:
 
     def submit(
         self,
-        txn: typing.Union[libra_types.SignedTransaction, str],
+        txn: typing.Union[diem_types.SignedTransaction, str],
         raise_stale_response: typing.Optional[typing.Union[bool]] = None,
     ) -> None:
         """submit signed transaction
@@ -394,13 +394,13 @@ class Client:
         See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_submit.md)
         """
 
-        if isinstance(txn, libra_types.SignedTransaction):
+        if isinstance(txn, diem_types.SignedTransaction):
             return self.submit(txn.lcs_serialize().hex())
 
         self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=not raise_stale_response)
 
     def wait_for_transaction(
-        self, txn: typing.Union[libra_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
+        self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
     ) -> rpc.Transaction:
         """wait for transaction executed
 
@@ -419,7 +419,7 @@ class Client:
         """
 
         if isinstance(txn, str):
-            txn_obj = libra_types.SignedTransaction.lcs_deserialize(bytes.fromhex(txn))
+            txn_obj = diem_types.SignedTransaction.lcs_deserialize(bytes.fromhex(txn))
             return self.wait_for_transaction(txn_obj, timeout_secs)
 
         return self.wait_for_transaction2(
@@ -432,7 +432,7 @@ class Client:
 
     def wait_for_transaction2(
         self,
-        address: libra_types.AccountAddress,
+        address: diem_types.AccountAddress,
         seq: int,
         expiration_time_secs: int,
         txn_hash: str,

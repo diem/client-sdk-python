@@ -1,8 +1,8 @@
 # pyre-strict
 from dataclasses import dataclass
 import typing
-from libra import serde_types as st
-from libra import libra_types
+from diem import serde_types as st
+from diem import diem_types
 
 
 class ScriptCall:
@@ -46,7 +46,7 @@ class ScriptCall__AddCurrencyToAccount(ScriptCall):
     * `Script::peer_to_peer_with_metadata`
     """
 
-    currency: libra_types.TypeTag
+    currency: diem_types.TypeTag
 
 
 @dataclass(frozen=True)
@@ -94,7 +94,7 @@ class ScriptCall__AddRecoveryRotationCapability(ScriptCall):
     * `Script::rotate_authentication_key_with_recovery_address`
     """
 
-    recovery_address: libra_types.AccountAddress
+    recovery_address: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -193,7 +193,7 @@ class ScriptCall__AddValidatorAndReconfigure(ScriptCall):
 
     sliding_nonce: st.uint64
     validator_name: bytes
-    validator_address: libra_types.AccountAddress
+    validator_address: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -252,9 +252,9 @@ class ScriptCall__Burn(ScriptCall):
     * `Script::preburn`
     """
 
-    token: libra_types.TypeTag
+    token: diem_types.TypeTag
     sliding_nonce: st.uint64
-    preburn_address: libra_types.AccountAddress
+    preburn_address: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -298,7 +298,7 @@ class ScriptCall__BurnTxnFees(ScriptCall):
     * `Script::cancel_burn`
     """
 
-    coin_type: libra_types.TypeTag
+    coin_type: diem_types.TypeTag
 
 
 @dataclass(frozen=True)
@@ -352,8 +352,8 @@ class ScriptCall__CancelBurn(ScriptCall):
     * `Script::preburn`
     """
 
-    token: libra_types.TypeTag
-    preburn_address: libra_types.AccountAddress
+    token: diem_types.TypeTag
+    preburn_address: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -415,8 +415,8 @@ class ScriptCall__CreateChildVaspAccount(ScriptCall):
     * `Script::create_recovery_address`
     """
 
-    coin_type: libra_types.TypeTag
-    child_address: libra_types.AccountAddress
+    coin_type: diem_types.TypeTag
+    child_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     add_all_currencies: st.bool
     child_initial_balance: st.uint64
@@ -470,9 +470,9 @@ class ScriptCall__CreateDesignatedDealer(ScriptCall):
     * `Script::rotate_dual_attestation_info`
     """
 
-    currency: libra_types.TypeTag
+    currency: diem_types.TypeTag
     sliding_nonce: st.uint64
-    addr: libra_types.AccountAddress
+    addr: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
     add_all_currencies: st.bool
@@ -524,9 +524,9 @@ class ScriptCall__CreateParentVaspAccount(ScriptCall):
     * `Script::rotate_dual_attestation_info`
     """
 
-    coin_type: libra_types.TypeTag
+    coin_type: diem_types.TypeTag
     sliding_nonce: st.uint64
-    new_account_address: libra_types.AccountAddress
+    new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
     add_all_currencies: st.bool
@@ -618,7 +618,7 @@ class ScriptCall__CreateValidatorAccount(ScriptCall):
     """
 
     sliding_nonce: st.uint64
-    new_account_address: libra_types.AccountAddress
+    new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
 
@@ -668,7 +668,7 @@ class ScriptCall__CreateValidatorOperatorAccount(ScriptCall):
     """
 
     sliding_nonce: st.uint64
-    new_account_address: libra_types.AccountAddress
+    new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
 
@@ -723,7 +723,7 @@ class ScriptCall__FreezeAccount(ScriptCall):
     """
 
     sliding_nonce: st.uint64
-    to_freeze_account: libra_types.AccountAddress
+    to_freeze_account: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -746,7 +746,7 @@ class ScriptCall__PeerToPeerWithMetadata(ScriptCall):
     `DualAttestation::get_cur_microlibra_limit` LBR and `payer` and `payee` are distinct VASPs.
     However, a transaction sender can opt in to dual attestation even when it is not required
     (e.g., a DesignatedDealer -> VASP payment) by providing a non-empty `metadata_signature`.
-    Standardized `metadata` LCS format can be found in `libra_types::transaction::metadata::Metadata`.
+    Standardized `metadata` LCS format can be found in `diem_types::transaction::metadata::Metadata`.
 
     ## Events
     Successful execution of this script emits two events:
@@ -782,8 +782,8 @@ class ScriptCall__PeerToPeerWithMetadata(ScriptCall):
     * `Script::add_currency_to_account`
     """
 
-    currency: libra_types.TypeTag
-    payee: libra_types.AccountAddress
+    currency: diem_types.TypeTag
+    payee: diem_types.AccountAddress
     amount: st.uint64
     metadata: bytes
     metadata_signature: bytes
@@ -836,7 +836,7 @@ class ScriptCall__Preburn(ScriptCall):
     * `Script::burn_txn_fees`
     """
 
-    token: libra_types.TypeTag
+    token: diem_types.TypeTag
     amount: st.uint64
 
 
@@ -917,7 +917,7 @@ class ScriptCall__RegisterValidatorConfig(ScriptCall):
     * `Script::set_validator_config_and_reconfigure`
     """
 
-    validator_account: libra_types.AccountAddress
+    validator_account: diem_types.AccountAddress
     consensus_pubkey: bytes
     validator_network_addresses: bytes
     fullnode_network_addresses: bytes
@@ -973,7 +973,7 @@ class ScriptCall__RemoveValidatorAndReconfigure(ScriptCall):
 
     sliding_nonce: st.uint64
     validator_name: bytes
-    validator_address: libra_types.AccountAddress
+    validator_address: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -1130,8 +1130,8 @@ class ScriptCall__RotateAuthenticationKeyWithRecoveryAddress(ScriptCall):
     * `Script::rotate_authentication_key_with_nonce_admin`
     """
 
-    recovery_address: libra_types.AccountAddress
-    to_recover: libra_types.AccountAddress
+    recovery_address: diem_types.AccountAddress
+    to_recover: diem_types.AccountAddress
     new_key: bytes
 
 
@@ -1258,7 +1258,7 @@ class ScriptCall__SetValidatorConfigAndReconfigure(ScriptCall):
     * `Script::register_validator_config`
     """
 
-    validator_account: libra_types.AccountAddress
+    validator_account: diem_types.AccountAddress
     consensus_pubkey: bytes
     validator_network_addresses: bytes
     fullnode_network_addresses: bytes
@@ -1309,7 +1309,7 @@ class ScriptCall__SetValidatorOperator(ScriptCall):
     """
 
     operator_name: bytes
-    operator_account: libra_types.AccountAddress
+    operator_account: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -1365,7 +1365,7 @@ class ScriptCall__SetValidatorOperatorWithNonceAdmin(ScriptCall):
 
     sliding_nonce: st.uint64
     operator_name: bytes
-    operator_account: libra_types.AccountAddress
+    operator_account: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -1428,9 +1428,9 @@ class ScriptCall__TieredMint(ScriptCall):
     * `Script::rotate_dual_attestation_info`
     """
 
-    coin_type: libra_types.TypeTag
+    coin_type: diem_types.TypeTag
     sliding_nonce: st.uint64
-    designated_dealer_address: libra_types.AccountAddress
+    designated_dealer_address: diem_types.AccountAddress
     mint_amount: st.uint64
     tier_index: st.uint64
 
@@ -1475,7 +1475,7 @@ class ScriptCall__UnfreezeAccount(ScriptCall):
     """
 
     sliding_nonce: st.uint64
-    to_unfreeze_account: libra_types.AccountAddress
+    to_unfreeze_account: diem_types.AccountAddress
 
 
 @dataclass(frozen=True)
@@ -1557,7 +1557,7 @@ class ScriptCall__UpdateExchangeRate(ScriptCall):
     * `Scripts::update_minting_ability`
     """
 
-    currency: libra_types.TypeTag
+    currency: diem_types.TypeTag
     sliding_nonce: st.uint64
     new_exchange_rate_numerator: st.uint64
     new_exchange_rate_denominator: st.uint64
@@ -1632,11 +1632,11 @@ class ScriptCall__UpdateMintingAbility(ScriptCall):
     * `Scripts::update_exchange_rate`
     """
 
-    currency: libra_types.TypeTag
+    currency: diem_types.TypeTag
     allow_minting: st.bool
 
 
-from libra.libra_types import (
+from diem.diem_types import (
     Script,
     TypeTag,
     AccountAddress,
@@ -2458,7 +2458,7 @@ def encode_peer_to_peer_with_metadata_script(
     `DualAttestation::get_cur_microlibra_limit` LBR and `payer` and `payee` are distinct VASPs.
     However, a transaction sender can opt in to dual attestation even when it is not required
     (e.g., a DesignatedDealer -> VASP payment) by providing a non-empty `metadata_signature`.
-    Standardized `metadata` LCS format can be found in `libra_types::transaction::metadata::Metadata`.
+    Standardized `metadata` LCS format can be found in `diem_types::transaction::metadata::Metadata`.
 
     ## Events
     Successful execution of this script emits two events:

@@ -1,8 +1,8 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 import pytest
-from libra import identifier, utils, InvalidSubAddressError, InvalidAccountAddressError
+from diem import identifier, utils, InvalidSubAddressError, InvalidAccountAddressError
 
 
 test_onchain_address = "f72589b71ff4f8d139674a3f7369c69b"
@@ -120,7 +120,7 @@ def test_decode_addr_fail():
 def test_intent_identifier():
     account_id = identifier.encode_account(test_onchain_address, None, "lbr")
     intent_id = identifier.encode_intent(account_id, "Coin1", 123)
-    assert intent_id == "libra://%s?c=%s&am=%d" % (enocded_addr_with_none_subaddr, "Coin1", 123)
+    assert intent_id == "diem://%s?c=%s&am=%d" % (enocded_addr_with_none_subaddr, "Coin1", 123)
 
     intent = identifier.decode_intent(intent_id, "lbr")
     assert intent.account_address == utils.account_address(test_onchain_address)
@@ -133,7 +133,7 @@ def test_intent_identifier():
 def test_intent_identifier_with_sub_address():
     account_id = identifier.encode_account(test_onchain_address, test_sub_address, "lbr")
     intent_id = identifier.encode_intent(account_id, "Coin1", 123)
-    assert intent_id == "libra://%s?c=%s&am=%d" % (enocded_addr_with_subaddr, "Coin1", 123)
+    assert intent_id == "diem://%s?c=%s&am=%d" % (enocded_addr_with_subaddr, "Coin1", 123)
 
     intent = identifier.decode_intent(intent_id, "lbr")
     assert intent.account_address_bytes.hex() == test_onchain_address
@@ -145,23 +145,23 @@ def test_intent_identifier_with_sub_address():
 def test_intent_identifier_decode_errors():
     # amount is not int
     with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=Coin1&am=str" % (enocded_addr_with_none_subaddr), "lbr")
+        identifier.decode_intent("diem://%s?c=Coin1&am=str" % (enocded_addr_with_none_subaddr), "lbr")
 
     # amount not exist
     with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=Coin1" % (enocded_addr_with_none_subaddr), "lbr")
+        identifier.decode_intent("diem://%s?c=Coin1" % (enocded_addr_with_none_subaddr), "lbr")
 
     # too many amount
     with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=Coin1&am=2&am=3" % (enocded_addr_with_none_subaddr), "lbr")
+        identifier.decode_intent("diem://%s?c=Coin1&am=2&am=3" % (enocded_addr_with_none_subaddr), "lbr")
 
     # amount is none
     with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("libra://%s?c=Coin1&am=" % (enocded_addr_with_none_subaddr), "lbr")
+        identifier.decode_intent("diem://%s?c=Coin1&am=" % (enocded_addr_with_none_subaddr), "lbr")
 
     # currency code not exist
     with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("libra://%s?am=2" % (enocded_addr_with_none_subaddr), "lbr")
+        identifier.decode_intent("diem://%s?am=2" % (enocded_addr_with_none_subaddr), "lbr")
 
     # scheme not match
     with pytest.raises(identifier.InvalidIntentIdentifierError):
@@ -169,4 +169,4 @@ def test_intent_identifier_decode_errors():
 
     # hrp not match
     with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("libra://%s?am=2&c=Coin1" % (enocded_addr_with_none_subaddr), "tlb")
+        identifier.decode_intent("diem://%s?am=2&c=Coin1" % (enocded_addr_with_none_subaddr), "tlb")

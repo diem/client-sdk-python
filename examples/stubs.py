@@ -1,12 +1,12 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 import time, secrets, typing
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from libra import (
+from diem import (
     identifier,
     jsonrpc,
-    libra_types,
+    diem_types,
     stdlib,
     testnet,
     utils,
@@ -91,17 +91,17 @@ class CustodialApp:
 
     def submit_and_wait(
         self,
-        txn: typing.Union[libra_types.SignedTransaction, str],
+        txn: typing.Union[diem_types.SignedTransaction, str],
     ) -> jsonrpc.Transaction:
         self._client.submit(txn)
         return self._client.wait_for_transaction(txn)
 
-    def create_transaction(self, sender, script, currency) -> libra_types.RawTransaction:
+    def create_transaction(self, sender, script, currency) -> diem_types.RawTransaction:
         sender_account_sequence = self.get_sequence_number(sender)
-        return libra_types.RawTransaction(
+        return diem_types.RawTransaction(
             sender=sender.account_address,
             sequence_number=sender_account_sequence,
-            payload=libra_types.TransactionPayload__Script(script),
+            payload=diem_types.TransactionPayload__Script(script),
             max_gas_amount=1_000_000,
             gas_unit_price=0,
             gas_currency_code=currency,

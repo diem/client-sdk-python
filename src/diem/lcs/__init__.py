@@ -8,8 +8,8 @@ import typing
 from copy import copy
 from typing import get_type_hints
 
-from libra import serde_types as st
-from libra import serde_binary as sb
+from diem import serde_types as st
+from diem import serde_binary as sb
 
 MAX_LENGTH = (1 << 31) - 1
 MAX_U32 = (1 << 32) - 1

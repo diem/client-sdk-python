@@ -1,11 +1,11 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Provides utilities for working with Libra Testnet.
+"""Provides utilities for working with Diem Testnet.
 
 ```python
 
-from libra import testnet, LocalAccount
+from diem import testnet, LocalAccount
 
 # create client connects to testnet
 client = testnet.create_client()
@@ -23,14 +23,14 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import libra_types, jsonrpc, utils, local_account, serde_types, auth_key, chain_ids, lcs
+from . import diem_types, jsonrpc, utils, local_account, serde_types, auth_key, chain_ids, lcs
 
 
 JSON_RPC_URL: str = "https://testnet.libra.org/v1"
 FAUCET_URL: str = "https://testnet.libra.org/mint"
-CHAIN_ID: libra_types.ChainId = chain_ids.TESTNET
+CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
-DESIGNATED_DEALER_ADDRESS: libra_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
+DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
 TEST_CURRENCY_CODE: str = "Coin1"
 
 
@@ -81,5 +81,5 @@ class Faucet:
         length = de.deserialize_len()
 
         for i in range(length):
-            txn = de.deserialize_any(libra_types.SignedTransaction)
+            txn = de.deserialize_any(diem_types.SignedTransaction)
             self._client.wait_for_transaction(txn)

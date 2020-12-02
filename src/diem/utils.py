@@ -1,4 +1,4 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 """Utilities for data type converting, construction and hashing."""
@@ -8,12 +8,12 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 import hashlib
 import typing
 
-from . import libra_types, serde_types, jsonrpc, stdlib
+from . import diem_types, serde_types, jsonrpc, stdlib
 
 
-ACCOUNT_ADDRESS_LEN: int = libra_types.AccountAddress.LENGTH
+ACCOUNT_ADDRESS_LEN: int = diem_types.AccountAddress.LENGTH
 SUB_ADDRESS_LEN: int = 8
-LIBRA_HASH_PREFIX: bytes = b"LIBRA::"
+DIEM_HASH_PREFIX: bytes = b"LIBRA::"
 ROOT_ADDRESS: str = "0000000000000000000000000a550c18"
 TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
 CORE_CODE_ADDRESS: str = "00000000000000000000000000000001"
@@ -27,25 +27,25 @@ class InvalidSubAddressError(Exception):
     pass
 
 
-def account_address(addr: typing.Union[libra_types.AccountAddress, bytes, str]) -> libra_types.AccountAddress:
-    """convert an account address from hex-encoded or bytes into `libra_types.AccountAddress`
+def account_address(addr: typing.Union[diem_types.AccountAddress, bytes, str]) -> diem_types.AccountAddress:
+    """convert an account address from hex-encoded or bytes into `diem_types.AccountAddress`
 
-    Returns given address if it is `libra_types.AccountAddress` already
+    Returns given address if it is `diem_types.AccountAddress` already
     """
 
-    if isinstance(addr, libra_types.AccountAddress):
+    if isinstance(addr, diem_types.AccountAddress):
         return addr
 
     try:
         if isinstance(addr, str):
-            return libra_types.AccountAddress.from_hex(addr)
-        return libra_types.AccountAddress.from_bytes(addr)
+            return diem_types.AccountAddress.from_hex(addr)
+        return diem_types.AccountAddress.from_bytes(addr)
     except ValueError as e:
         raise InvalidAccountAddressError(e)
 
 
-def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> str:
-    """convert `libra_types.AccountAddress` into hex-encoded string
+def account_address_hex(addr: typing.Union[diem_types.AccountAddress, str]) -> str:
+    """convert `diem_types.AccountAddress` into hex-encoded string
 
     This function converts given parameter into account address bytes first, then convert bytes
     into hex-encoded string
@@ -54,8 +54,8 @@ def account_address_hex(addr: typing.Union[libra_types.AccountAddress, str]) -> 
     return account_address_bytes(addr).hex()
 
 
-def account_address_bytes(addr: typing.Union[libra_types.AccountAddress, str]) -> bytes:
-    """convert `libra_types.AccountAddress` or hex-encoded account address into bytes"""
+def account_address_bytes(addr: typing.Union[diem_types.AccountAddress, str]) -> bytes:
+    """convert `diem_types.AccountAddress` or hex-encoded account address into bytes"""
 
     if isinstance(addr, str):
         return account_address_bytes(account_address(addr))
@@ -84,47 +84,47 @@ def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:
     return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
 
 
-def currency_code(code: str) -> libra_types.TypeTag:
-    """converts currency code string to libra_types.TypeTag"""
+def currency_code(code: str) -> diem_types.TypeTag:
+    """converts currency code string to diem_types.TypeTag"""
 
-    return libra_types.TypeTag.from_currency_code(code)
+    return diem_types.TypeTag.from_currency_code(code)
 
 
-def type_tag_to_str(code: libra_types.TypeTag) -> str:
+def type_tag_to_str(code: diem_types.TypeTag) -> str:
     """converts currency code TypeTag into string"""
 
-    if isinstance(code, libra_types.TypeTag__Struct):
+    if isinstance(code, diem_types.TypeTag__Struct):
         return code.to_currency_code()
 
     raise TypeError(f"unknown currency code type: {code}")
 
 
 def create_signed_transaction(
-    txn: libra_types.RawTransaction, public_key: bytes, signature: bytes
-) -> libra_types.SignedTransaction:
-    """create single signed `libra_types.SignedTransaction`"""
+    txn: diem_types.RawTransaction, public_key: bytes, signature: bytes
+) -> diem_types.SignedTransaction:
+    """create single signed `diem_types.SignedTransaction`"""
 
-    return libra_types.SignedTransaction.from_raw_txn_and_ed25519_key(txn, public_key, signature)
-
-
-def raw_transaction_signing_msg(txn: libra_types.RawTransaction) -> bytes:
-    """create signing message from given `libra_types.RawTransaction`"""
-
-    return libra_hash_seed(b"RawTransaction") + txn.lcs_serialize()
+    return diem_types.SignedTransaction.from_raw_txn_and_ed25519_key(txn, public_key, signature)
 
 
-def transaction_hash(txn: libra_types.SignedTransaction) -> str:
-    """create transaction hash from given `libra_types.SignedTransaction`
+def raw_transaction_signing_msg(txn: diem_types.RawTransaction) -> bytes:
+    """create signing message from given `diem_types.RawTransaction`"""
 
-    This hash string matches jsonrpc.Transaction#hash returned from Libra JSON-RPC API.
+    return diem_hash_seed(b"RawTransaction") + txn.lcs_serialize()
+
+
+def transaction_hash(txn: diem_types.SignedTransaction) -> str:
+    """create transaction hash from given `diem_types.SignedTransaction`
+
+    This hash string matches jsonrpc.Transaction#hash returned from Diem JSON-RPC API.
     """
 
-    user_txn = libra_types.Transaction__UserTransaction(value=txn)
-    return hash(libra_hash_seed(b"Transaction"), user_txn.lcs_serialize()).hex()
+    user_txn = diem_types.Transaction__UserTransaction(value=txn)
+    return hash(diem_hash_seed(b"Transaction"), user_txn.lcs_serialize()).hex()
 
 
-def libra_hash_seed(typ: bytes) -> bytes:
-    return hash(LIBRA_HASH_PREFIX, typ)
+def diem_hash_seed(typ: bytes) -> bytes:
+    return hash(DIEM_HASH_PREFIX, typ)
 
 
 def hash(b1: bytes, b2: bytes) -> bytes:
@@ -140,14 +140,14 @@ def decode_transaction_script(
 ) -> stdlib.ScriptCall:
     """decode jsonrpc.Transaction#transaction#script_bytes
 
-    Returns `stdlib.ScriptCall`, which is same object we created for `libra_types.RawTransaction`
+    Returns `stdlib.ScriptCall`, which is same object we created for `diem_types.RawTransaction`
     payload.
     You can find out script type by checking it's class name: `type(script_call).__name__`.
-    See libra.stdlib documentation for more details.
+    See diem.stdlib documentation for more details.
     """
 
     if isinstance(txn, str):
-        script = libra_types.Script.lcs_deserialize(bytes.fromhex(txn))
+        script = diem_types.Script.lcs_deserialize(bytes.fromhex(txn))
         return stdlib.decode_script(script)
     if isinstance(txn, jsonrpc.Transaction):
         return decode_transaction_script(txn.transaction.script_bytes)

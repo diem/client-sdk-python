@@ -1,4 +1,4 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 init:
@@ -30,25 +30,25 @@ cover: install
 
 build: lint test
 
-libratypes:
-	(cd libra && cargo build -p transaction-builder-generator)
-	"libra/target/debug/generate-transaction-builders" \
+diemtypes:
+	(cd diem && cargo build -p transaction-builder-generator)
+	"diem/target/debug/generate-transaction-builders" \
 		--language python3 \
 		--module-name stdlib \
-		--with-libra-types "libra/testsuite/generate-format/tests/staged/libra.yaml" \
-		--serde-package-name libra \
-		--libra-package-name libra \
-		--target-source-dir src/libra \
-		--with-custom-libra-code libra-types-ext/*.py \
-		-- "libra/language/stdlib/compiled/transaction_scripts/abi"
+		--with-libra-types "diem/testsuite/generate-format/tests/staged/libra.yaml" \
+		--serde-package-name diem \
+		--libra-package-name diem \
+		--target-source-dir src/diem \
+		--with-custom-libra-code diem-types-ext/*.py \
+		-- "diem/language/stdlib/compiled/transaction_scripts/abi"
 
 protobuf:
-	mkdir -p src/libra/jsonrpc
+	mkdir -p src/diem/jsonrpc
 	protoc --plugin=protoc-gen-mypy=venv/bin/protoc-gen-mypy \
-		-Ilibra/json-rpc/types/src/proto --python_out=src/libra/jsonrpc --mypy_out=src/libra/jsonrpc \
+		-Idiem/json-rpc/types/src/proto --python_out=src/diem/jsonrpc --mypy_out=src/diem/jsonrpc \
 		jsonrpc.proto
 
-gen: libratypes protobuf format
+gen: diemtypes protobuf format
 
 
 dist:
@@ -65,7 +65,7 @@ tagrelease:
 
 docs: init install
 	rm -rf docs
-	./venv/bin/python3 -m pdoc libra --html -o docs
+	./venv/bin/python3 -m pdoc diem --html -o docs
 
 
-.PHONY: init check lint format install test cover build libratypes protobuf gen dist pylama docs
+.PHONY: init check lint format install test cover build diemtypes protobuf gen dist pylama docs

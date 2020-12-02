@@ -1,13 +1,13 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""LIP-5 Libra Account Identifier and Intent Identifier Utilities.
+"""DIP-5 Diem Account Identifier and Intent Identifier Utilities.
 
-See https://lip.libra.org/lip-5 for more details
+See https://dip.diem.com/dip-5 for more details
 
 ```python
 
-from libra import chain_ids, identifier
+from diem import chain_ids, identifier
 
 # print hrp for premainnet by premainnet chain id
 print(identifier.HRPS[chain_ids.PREMAINNET.to_int()])
@@ -21,10 +21,10 @@ from urllib import parse
 from typing import List
 
 from . import bech32
-from .. import libra_types, utils, chain_ids
+from .. import diem_types, utils, chain_ids
 
 from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
-from .subaddress import LIBRA_SUBADDRESS_SIZE, LIBRA_ZERO_SUBADDRESS, gen_subaddress
+from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
 
 LBR = "lbr"  # lbr for mainnet
 TLB = "tlb"  # tlb for testnet
@@ -44,16 +44,16 @@ class InvalidIntentIdentifierError(Exception):
 
 
 class Intent:
-    """Intent is a struct hold data decoded from Libra Intent Identifier string"""
+    """Intent is a struct hold data decoded from Diem Intent Identifier string"""
 
-    account_address: libra_types.AccountAddress
+    account_address: diem_types.AccountAddress
     sub_address: typing.Optional[bytes]
     currency_code: str
     amount: int
 
     def __init__(
         self,
-        account_address: libra_types.AccountAddress,
+        account_address: diem_types.AccountAddress,
         sub_address: typing.Optional[bytes],
         currency_code: str,
         amount: int,
@@ -71,15 +71,15 @@ class Intent:
 def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
     """
     Encode account identifier string(encoded), currency code and amount into
-    Libra intent identifier (https://lip.libra.org/lip-5/)
+    Diem intent identifier (https://dip.diem.com/dip-5/)
     """
 
-    return "libra://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
+    return "diem://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
 
 
 def decode_intent(encoded_intent_identifier: str, hrp: str) -> Intent:
     """
-    Decode Libra intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
+    Decode Diem intent identifier (https://dip.diem.com/dip-5/) int 3 parts:
     1. account identifier: account address & sub-address
     2. currency code
     3. amount
@@ -88,7 +88,7 @@ def decode_intent(encoded_intent_identifier: str, hrp: str) -> Intent:
     """
 
     result = parse.urlparse(encoded_intent_identifier)
-    if result.scheme != "libra":
+    if result.scheme != "diem":
         raise InvalidIntentIdentifierError(
             f"Unknown intent identifier scheme {result.scheme} " f"in {encoded_intent_identifier}"
         )
@@ -130,7 +130,7 @@ def _decode_param(name, params, field, convert):  # pyre-ignore
 
 
 def encode_account(
-    onchain_addr: typing.Union[libra_types.AccountAddress, str],
+    onchain_addr: typing.Union[diem_types.AccountAddress, str],
     subaddr: typing.Union[str, bytes, None],
     hrp: str,
 ) -> str:
@@ -151,7 +151,7 @@ def encode_account(
     return encoded_address
 
 
-def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[libra_types.AccountAddress, typing.Optional[bytes]]:
+def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
     """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
     try:
         (_version, onchain_address_bytes, subaddress_bytes) = bech32.bech32_address_decode(hrp, encoded_address)
@@ -160,6 +160,6 @@ def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[libra_types.A
 
     address = utils.account_address(onchain_address_bytes)
     # If subaddress is absent, subaddress_bytes is a list of 0
-    if subaddress_bytes != LIBRA_ZERO_SUBADDRESS:
+    if subaddress_bytes != DIEM_ZERO_SUBADDRESS:
         return (address, subaddress_bytes)
     return (address, None)

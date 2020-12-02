@@ -1,14 +1,14 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""Provides AuthKey class for holding Libra authentication key and generating account address, prefix from it."""
+"""Provides AuthKey class for holding Diem authentication key and generating account address, prefix from it."""
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from . import utils, libra_types
+from . import utils, diem_types
 
 
 class AuthKey:
-    """Libra Authentication Key
+    """Diem Authentication Key
 
     Wraps authentication key bytes, derives account address and authentication key prefix.
     """
@@ -23,7 +23,7 @@ class AuthKey:
     def __init__(self, data: bytes) -> None:
         self.data = data
 
-    def account_address(self) -> libra_types.AccountAddress:
+    def account_address(self) -> diem_types.AccountAddress:
         return utils.account_address(self.data[-utils.ACCOUNT_ADDRESS_LEN :])
 
     def prefix(self) -> bytes:

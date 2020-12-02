@@ -1,26 +1,26 @@
 > **Note to readers:** On December 1, 2020, the Libra Association was renamed to Diem Association. The project repos are in the process of being migrated. All projects will remain available for use here until the migration to a new GitHub Organization is complete.
 
-# The official Libra Client SDK for Python.
+# The official Diem Client SDK for Python.
 
-[Documentation](https://developers.libra.org/docs/python-client-sdk-docs/libra/)
+[Documentation](https://developers.diem.com/docs/python-client-sdk-docs)
 
 ## Modules Overview
 
 > SPEC = specification
 
-> LIP-X = Libra Improvement Protocol
+> DIP-X = Diem Improvement Protocol
 
-Root module name: `libra`
+Root module name: `diem`
 
 Sub-modules:
 
-- `jsonrpc`: libra JSON-RPC APIs client and API response types. [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
+- `jsonrpc`: diem JSON-RPC APIs client and API response types. [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
 - `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
-- `libra_types`: generated code, Libra on-chain data structure types for encoding and decoding [LCS](https://libra.github.io/libra/libra_canonical_serialization/index.html) data.
+- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [LCS](https://libra.github.io/libra/lcs/index.html) data.
 - `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
 - `AuthKey` | `auth_key`: auth key utils
-- `identifier`: Libra Account Identifier and Libra Intent Identifier. [LIP-5](https://lip.libra.org/lip-5/)
-- `txnmetadata`: utils for creating peer to peer transaction metadata. [LIP-4](https://lip.libra.org/lip-4/)
+- `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)
+- `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.libra.org/dip-4/)
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
 - `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
 - `chain_ids`: list of static chain ids
@@ -29,7 +29,7 @@ Sub-modules:
 
 ```python3
 
->>> from libra import jsonrpc, testnet
+>>> from diem import jsonrpc, testnet
 >>> client = jsonrpc.Client(testnet.JSON_RPC_URL)
 >>> client.get_metadata()
 version: 3300304
@@ -50,7 +50,7 @@ Note: `make test` runs all examples too, see the Makefile for details.
 ## Download
 
 ```
-pip install libra-client-sdk
+pip install diem-client-sdk
 ```
 
 ## Bugs/Requests

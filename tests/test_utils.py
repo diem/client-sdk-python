@@ -1,8 +1,8 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 
-from libra import libra_types, utils, InvalidAccountAddressError, InvalidSubAddressError, jsonrpc
+from diem import diem_types, utils, InvalidAccountAddressError, InvalidSubAddressError, jsonrpc
 
 import pytest
 
@@ -40,7 +40,7 @@ def test_sub_address():
 
 def test_currency_code():
     ccode = utils.currency_code("Coin1")
-    assert isinstance(ccode, libra_types.TypeTag)
+    assert isinstance(ccode, diem_types.TypeTag)
 
     code = utils.type_tag_to_str(ccode)
     assert code == "Coin1"

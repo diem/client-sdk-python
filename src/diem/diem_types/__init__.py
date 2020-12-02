@@ -1,8 +1,8 @@
 # pyre-strict
 from dataclasses import dataclass
 import typing
-from libra import serde_types as st
-from libra import lcs
+from diem import serde_types as st
+from diem import lcs
 
 
 @dataclass(frozen=True)

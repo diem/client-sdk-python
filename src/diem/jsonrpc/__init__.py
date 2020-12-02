@@ -1,13 +1,13 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-""" This package provides a client for connecting to Libra JSON-RPC Service API
+""" This package provides a client for connecting to Diem JSON-RPC Service API
 
-Create a client connect to Libra Testnet and calls get_metadata API:
+Create a client connect to Diem Testnet and calls get_metadata API:
 
 ```python3
 
->>> from libra import jsonrpc, testnet
+>>> from diem import jsonrpc, testnet
 >>> client = jsonrpc.Client(testnet.JSON_RPC_URL)
 >>> client.get_metadata()
 version: 3300304
@@ -16,7 +16,7 @@ chain_id: 2
 
 ```
 
-See [Libra JSON-RPC API SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md) for more details
+See [Diem JSON-RPC API SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md) for more details
 
 """
 

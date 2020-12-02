@@ -3,4 +3,7 @@
 /build
 /dist
 __pycache__
-/src/libra_client_sdk.egg-info
+/src/diem_client_sdk.egg-info
+
+# JetBrains IDEs configuration
+.idea

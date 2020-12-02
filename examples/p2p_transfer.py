@@ -1,12 +1,12 @@
-# Copyright (c) The Libra Core Contributors
+# Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
 import time, secrets, typing
 
-from libra import (
+from diem import (
     identifier,
     jsonrpc,
-    libra_types,
+    diem_types,
     stdlib,
     testnet,
     txnmetadata,
@@ -165,10 +165,10 @@ def test_custodial_to_custodial_above_threshold():
 
 
 def create_transaction(sender, sender_account_sequence, script, currency):
-    return libra_types.RawTransaction(
+    return diem_types.RawTransaction(
         sender=sender.account_address,
         sequence_number=sender_account_sequence,
-        payload=libra_types.TransactionPayload__Script(script),
+        payload=diem_types.TransactionPayload__Script(script),
         max_gas_amount=1_000_000,
         gas_unit_price=0,
         gas_currency_code=currency,

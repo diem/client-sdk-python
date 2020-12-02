@@ -26,8 +26,8 @@ import typing
 from . import diem_types, jsonrpc, utils, local_account, serde_types, auth_key, chain_ids, lcs
 
 
-JSON_RPC_URL: str = "https://testnet.libra.org/v1"
-FAUCET_URL: str = "https://testnet.libra.org/mint"
+JSON_RPC_URL: str = "https://testnet.diem.com/v1"
+FAUCET_URL: str = "https://testnet.diem.com/mint"
 CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")

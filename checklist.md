@@ -13,8 +13,8 @@ This file is a checklist of requirement & technical details for a Diem client SD
     - utils:
       - signing
       - sha3 hashing, address parsing and converting, hex encoding / decoding
-      - [LIP-4] transaction metadata
-      - [LIP-5] intent identifier, account identifier
+      - [DIP-4] transaction metadata
+      - [DIP-5] intent identifier, account identifier
 - [ ] JSON-RPC 2.0 Spec:
   - spec version validation.
   - batch requests and responses handling.
@@ -29,7 +29,7 @@ This file is a checklist of requirement & technical details for a Diem client SD
     - [x] last known blockchain version >= response version: when connecting to a cluster of fullnodes, it is possible some fullnodes are behind the head couple versions.
     - [x] last known blockchain timestamp >= response timestamp.
   - [x] parse and use libra_chain_id, libra_ledger_version and libra_ledger_tiemstamp in the JSONRPC response.
-- [x] Parsing and gen Diem Account Identifier (see [LIP-5][2])
+- [x] Parsing and gen Diem Account Identifier (see [DIP-5][2])
   - bech32 addresses/subaddresses support
 - [x] language specific standard release publish: e.g. java maven central repo, python pip
 - [x] Multi-network: initialize Client with chain id, JSON-RPC server URL
@@ -39,14 +39,14 @@ This file is a checklist of requirement & technical details for a Diem client SD
 - [ ] Send request with "client sdk name / version" as HTTP User-Agent: this is for server to recognize client sdk version, so that server can block a specific client version if we found unacceptable bugs.
 - [x] Decode transaction script bytes
 
-# [LIP-4][7] support
+# [DIP-4][7] support
 
 - [x] Non-custodial to custodial transaction
 - [x] Custodial to non-custodial transaction
 - [x] Custodial to Custodial transaction
 - [x] Refund
 
-# [LIP-5][2] support
+# [DIP-5][2] support
 
 - [x] Encode and decode account identifier
 - [x] Encode and decode intent identifier
@@ -88,7 +88,7 @@ See [doc][5] for above concepts.
 
 # Examples
 
-- [x] [p2p transfer examples](https://github.com/libra/lip/blob/master/lips/lip-4.md#transaction-examples)
+- [x] [p2p transfer examples](https://github.com/libra/dip/blob/master/dips/dip-4.md#transaction-examples)
 - [x] refund p2p transfer example
 - [x] create childVASP example
 - [x] Intent identifier encoding, decoding example
@@ -99,9 +99,9 @@ See [doc][5] for above concepts.
 - [ ] CLI connects to testnet for trying out features.
 
 [1]: https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md "Diem JSON-RPC SPEC"
-[2]: https://github.com/libra/lip/blob/master/lips/lip-5.md "LIP-5"
+[2]: https://github.com/libra/dip/blob/master/dips/dip-5.md "DIP-5"
 [3]: https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/peer_to_peer_with_metadata.md "P2P Transafer"
 [4]: https://github.com/libra/libra/tree/master/language/stdlib/transaction_scripts/doc "Move Stdlib scripts"
 [5]: https://github.com/libra/libra/blob/master/client/libra-dev/README.md "Diem Client Dev Doc"
 [6]: https://github.com/libra/libra/blob/master/json-rpc/docs/service_testnet_faucet.md "Faucet service"
-[7]: https://github.com/libra/lip/blob/master/lips/lip-4.md "Transaction Metadata Specification"
+[7]: https://github.com/libra/dip/blob/master/dips/dip-4.md "Transaction Metadata Specification"

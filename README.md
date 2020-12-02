@@ -8,7 +8,7 @@
 
 > SPEC = specification
 
-> LIP-X = Diem Improvement Protocol
+> DIP-X = Diem Improvement Protocol
 
 Root module name: `diem`
 
@@ -16,11 +16,11 @@ Sub-modules:
 
 - `jsonrpc`: diem JSON-RPC APIs client and API response types. [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
 - `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
-- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [LCS](https://libra.github.io/libra/libra_canonical_serialization/index.html) data.
+- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [LCS](https://libra.github.io/libra/lcs/index.html) data.
 - `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
 - `AuthKey` | `auth_key`: auth key utils
-- `identifier`: Diem Account Identifier and Diem Intent Identifier. [LIP-5](https://lip.libra.org/lip-5/)
-- `txnmetadata`: utils for creating peer to peer transaction metadata. [LIP-4](https://lip.libra.org/lip-4/)
+- `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)
+- `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.libra.org/dip-4/)
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
 - `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
 - `chain_ids`: list of static chain ids

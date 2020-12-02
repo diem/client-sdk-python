@@ -1,9 +1,9 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-"""LIP-5 Diem Account Identifier and Intent Identifier Utilities.
+"""DIP-5 Diem Account Identifier and Intent Identifier Utilities.
 
-See https://lip.libra.org/lip-5 for more details
+See https://dip.diem.com/dip-5 for more details
 
 ```python
 
@@ -71,7 +71,7 @@ class Intent:
 def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
     """
     Encode account identifier string(encoded), currency code and amount into
-    Diem intent identifier (https://lip.libra.org/lip-5/)
+    Diem intent identifier (https://dip.diem.com/dip-5/)
     """
 
     return "diem://%s?c=%s&am=%d" % (encoded_account_identifier, currency_code, amount)
@@ -79,7 +79,7 @@ def encode_intent(encoded_account_identifier: str, currency_code: str, amount: i
 
 def decode_intent(encoded_intent_identifier: str, hrp: str) -> Intent:
     """
-    Decode Diem intent identifier (https://lip.libra.org/lip-5/) int 3 parts:
+    Decode Diem intent identifier (https://dip.diem.com/dip-5/) int 3 parts:
     1. account identifier: account address & sub-address
     2. currency code
     3. amount

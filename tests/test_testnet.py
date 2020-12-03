@@ -346,6 +346,42 @@ def test_get_parent_vasp_account_with_non_vasp_account_address():
         client.get_parent_vasp_account(utils.TREASURY_ADDRESS)
 
 
+def test_gen_vasp_account():
+    account = testnet.gen_vasp_account("http://hello.com")
+    child_vasp = testnet.gen_child_vasp(account)
+
+    client = testnet.create_client()
+    assert client.get_account(account.account_address).role.type == "parent_vasp"
+    assert client.get_account(child_vasp.account_address).role.type == "child_vasp"
+
+
+def test_get_base_url_and_compliance_key():
+    client = testnet.create_client()
+
+    parent_vasp = testnet.gen_vasp_account("http://hello.com")
+    child_vasp = testnet.gen_child_vasp(parent_vasp)
+
+    base_url, key = client.get_base_url_and_compliance_key(child_vasp.account_address)
+    assert base_url == "http://hello.com"
+    assert utils.public_key_bytes(key) == parent_vasp.compliance_public_key_bytes
+    base_url, key = client.get_base_url_and_compliance_key(parent_vasp.account_address)
+    assert base_url == "http://hello.com"
+    assert utils.public_key_bytes(key) == parent_vasp.compliance_public_key_bytes
+
+
+def test_account_not_found_error_when_get_base_url_and_compliance_key_for_invalid_account():
+    client = testnet.create_client()
+    account = LocalAccount.generate()
+    with pytest.raises(jsonrpc.AccountNotFoundError):
+        client.get_base_url_and_compliance_key(account.account_address)
+
+
+def test_value_error_when_get_base_url_and_compliance_key_for_account_has_no_base_url():
+    client = testnet.create_client()
+    with pytest.raises(ValueError):
+        client.get_base_url_and_compliance_key(utils.TREASURY_ADDRESS)
+
+
 def create_child_vasp_txn(
     parent_vasp: LocalAccount, child_vasp: LocalAccount, seq: int = 0
 ) -> diem_types.RawTransaction:

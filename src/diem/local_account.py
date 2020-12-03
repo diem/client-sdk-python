@@ -35,9 +35,11 @@ class LocalAccount:
         return LocalAccount(private_key)
 
     private_key: Ed25519PrivateKey
+    compliance_key: Ed25519PrivateKey
 
     def __init__(self, private_key: Ed25519PrivateKey) -> None:
         self.private_key = private_key
+        self.compliance_key = Ed25519PrivateKey.generate()
 
     @property
     def auth_key(self) -> AuthKey:
@@ -54,6 +56,10 @@ class LocalAccount:
     @property
     def public_key(self) -> Ed25519PublicKey:
         return self.private_key.public_key()
+
+    @property
+    def compliance_public_key_bytes(self) -> bytes:
+        return utils.public_key_bytes(self.compliance_key.public_key())
 
     def sign(self, txn: diem_types.RawTransaction) -> diem_types.SignedTransaction:
         """Create signed transaction for given raw transaction"""

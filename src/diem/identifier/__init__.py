@@ -57,15 +57,21 @@ class Intent:
         sub_address: typing.Optional[bytes],
         currency_code: str,
         amount: int,
+        hrp: str,
     ) -> None:
         self.account_address = account_address
         self.sub_address = sub_address
         self.currency_code = currency_code
         self.amount = amount
+        self.hrp = hrp
 
     @property
     def account_address_bytes(self) -> bytes:
         return self.account_address.to_bytes()
+
+    @property
+    def account_id(self) -> str:
+        return encode_account(self.account_address, self.sub_address, self.hrp)
 
 
 def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -> str:
@@ -109,6 +115,7 @@ def decode_intent(encoded_intent_identifier: str, hrp: str) -> Intent:
         sub_address=sub_address,
         currency_code=currency_code,
         amount=amount,
+        hrp=hrp,
     )
 
 

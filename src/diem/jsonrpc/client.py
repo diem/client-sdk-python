@@ -11,6 +11,7 @@ import threading
 import typing
 import random, queue
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .. import diem_types, utils
 from . import jsonrpc_pb2 as rpc
@@ -55,7 +56,7 @@ class WaitForTransactionTimeout(Exception):
     pass
 
 
-class AccountNotFoundError(Exception):
+class AccountNotFoundError(ValueError):
     pass
 
 
@@ -205,10 +206,7 @@ class Client:
         could not find the account by the parent_vasp_address found in ChildVASP account.
         """
 
-        account = self.get_account(vasp_account_address)
-        if account is None:
-            hex = utils.account_address_hex(vasp_account_address)
-            raise AccountNotFoundError(f"account not found by address: {hex}")
+        account = self.must_get_account(vasp_account_address)
 
         if account.role.type == constants.ACCOUNT_ROLE_PARENT_VASP:
             return account
@@ -217,6 +215,33 @@ class Client:
 
         hex = utils.account_address_hex(vasp_account_address)
         raise ValueError(f"given account address({hex}) is not a VASP account: {account}")
+
+    def get_base_url_and_compliance_key(
+        self, account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -> typing.Tuple[str, Ed25519PublicKey]:
+        """get base_url and compliance key
+
+        ParentVASP or Designated Dealer account role has base_url and compliance key setup, which
+        are used for offchain API communication.
+        """
+        account = self.must_get_account(account_address)
+
+        if account.role.compliance_key and account.role.base_url:
+            key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(account.role.compliance_key))
+            return (account.role.base_url, key)
+        if account.role.parent_vasp_address:
+            return self.get_base_url_and_compliance_key(account.role.parent_vasp_address)
+
+        raise ValueError(f"could not find base_url and compliance_key from account: {account}")
+
+    def must_get_account(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> rpc.Account:
+        """must_get_account raises AccountNotFoundError if account could not be found by given address"""
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f"account not found by address: {hex}")
+        return account
 
     def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> int:
         """get on-chain account sequence number

@@ -155,3 +155,10 @@ def decode_transaction_script(
         return decode_transaction_script(txn.script_bytes)
 
     raise TypeError(f"unknown transaction type: {txn}")
+
+
+def balance(account: jsonrpc.Account, currency: str) -> int:
+    for b in account.balances:
+        if b.currency == currency:
+            return b.amount
+    return 0

@@ -129,6 +129,8 @@ def test_intent_identifier():
     assert intent.currency_code == "Coin1"
     assert intent.amount == 123
 
+    assert account_id == intent.account_id
+
 
 def test_intent_identifier_with_sub_address():
     account_id = identifier.encode_account(test_onchain_address, test_sub_address, "lbr")

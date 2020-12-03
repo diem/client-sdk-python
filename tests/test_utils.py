@@ -71,3 +71,15 @@ def test_decode_transaction_script():
 
     with pytest.raises(TypeError):
         utils.decode_transaction_script(False)
+
+
+def test_balance():
+    account = jsonrpc.Account(
+        balances=[
+            jsonrpc.Amount(amount=32, currency="Coin1"),
+            jsonrpc.Amount(amount=33, currency="Coin2"),
+        ]
+    )
+    assert utils.balance(account, "Coin1") == 32
+    assert utils.balance(account, "Coin2") == 33
+    assert utils.balance(account, "unknown") == 0

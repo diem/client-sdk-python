@@ -23,7 +23,7 @@ install:
 	./venv/bin/python setup.py develop
 
 test: format install
-	./venv/bin/pytest tests/test_* examples/* -k "$(TEST)"
+	./venv/bin/pytest tests/test_* examples/* -k "$(TEST)" -vv
 
 cover: install
 	./venv/bin/pytest --cov-report html --cov=src tests

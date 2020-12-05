@@ -1,17 +1,15 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-import time, secrets, typing
+import time
 
 from diem import (
     identifier,
-    jsonrpc,
     diem_types,
     stdlib,
     testnet,
     txnmetadata,
     utils,
-    LocalAccount,
 )
 
 from .stubs import CustodialApp

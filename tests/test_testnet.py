@@ -12,7 +12,6 @@ from diem import (
     LocalAccount,
 )
 
-import numpy as np
 import time
 import pytest
 
@@ -330,8 +329,6 @@ def test_get_parent_vasp_account():
 
 def test_get_parent_vasp_account_not_found():
     client = testnet.create_client()
-    faucet = testnet.Faucet(client)
-
     parent_vasp = LocalAccount.generate()
 
     with pytest.raises(jsonrpc.AccountNotFoundError):
@@ -340,7 +337,6 @@ def test_get_parent_vasp_account_not_found():
 
 def test_get_parent_vasp_account_with_non_vasp_account_address():
     client = testnet.create_client()
-    faucet = testnet.Faucet(client)
 
     with pytest.raises(ValueError):
         client.get_parent_vasp_account(utils.TREASURY_ADDRESS)

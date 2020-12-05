@@ -13,9 +13,6 @@ See the following Diem JSON-RPC response type documents for more details:
 
 """
 
-import typing
-
-
 # AccountRole#type field values
 ACCOUNT_ROLE_UNKNOWN: str = "unknown"
 ACCOUNT_ROLE_CHILD_VASP: str = "child_vasp"

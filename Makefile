@@ -7,11 +7,11 @@ init:
 	./venv/bin/pip install --upgrade pip wheel setuptools
 	./venv/bin/pip install -r requirements.txt --use-feature=2020-resolver
 
-check:
+check: pylama
 	./venv/bin/pyre --search-path venv/lib/python3.9/site-packages check
 
 pylama:
-	./venv/bin/pylama src tests
+	./venv/bin/pylama src tests examples
 
 lint: check
 	./venv/bin/python -m black --check src tests

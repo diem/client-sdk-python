@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem import jsonrpc, testnet
+from diem import jsonrpc
 from concurrent.futures import ThreadPoolExecutor
 import pytest, time
 
@@ -105,7 +105,7 @@ def test_raises_error_if_primary_and_backup_both_failed():
 def gen_metadata_response(client, fail=None, snap=None):
     def send_request(url, request, ignore_stale_response):
         if fail == url:
-            raise StaleResponseError("error")
+            raise jsonrpc.StaleResponseError("error")
 
         if snap == url:
             time.sleep(0.1)

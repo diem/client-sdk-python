@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import secrets
-
-from diem import identifier, utils, LocalAccount
+from diem import identifier, utils
 
 
 def test_intent_identifier():

@@ -9,7 +9,7 @@ import google.protobuf.json_format as parser
 import requests
 import threading
 import typing
-import random, queue
+import random
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
@@ -157,7 +157,7 @@ class RequestWithBackups(RequestStrategy):
     def _fallback_to_backup(self, primary: Future, backup: Future) -> typing.Dict[str, typing.Any]:
         try:
             return primary.result()
-        except Exception as e:
+        except Exception:
             return backup.result()
 
     def _first_success(self, primary: Future, backup: Future) -> typing.Dict[str, typing.Any]:

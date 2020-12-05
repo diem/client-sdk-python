@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from diem import utils, AuthKey
+from diem import AuthKey
 
 
 def test_new_auth_key_from_public_key():

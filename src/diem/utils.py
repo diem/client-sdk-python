@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 import hashlib
 import typing
 
-from . import diem_types, serde_types, jsonrpc, stdlib
+from . import diem_types, jsonrpc, stdlib
 
 
 ACCOUNT_ADDRESS_LEN: int = diem_types.AccountAddress.LENGTH

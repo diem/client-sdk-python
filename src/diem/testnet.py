@@ -23,7 +23,7 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing, time
 
-from . import diem_types, jsonrpc, utils, local_account, serde_types, auth_key, chain_ids, lcs, stdlib, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, lcs, stdlib, LocalAccount
 
 
 JSON_RPC_URL: str = "https://testnet.diem.com/v1"

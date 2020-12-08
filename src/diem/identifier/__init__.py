@@ -26,16 +26,16 @@ from .. import diem_types, utils, chain_ids
 from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
 from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
 
-LBR = "lbr"  # lbr for mainnet
-TLB = "tlb"  # tlb for testnet
-PLB = "plb"  # plb for premainnet
+XDX = "xdx"  # xdx for mainnet
+TDX = "tdx"  # tdx for testnet
+PDX = "pdx"  # pdx for premainnet
 
 HRPS: typing.Dict[int, str] = {
-    chain_ids.MAINNET.to_int(): LBR,
-    chain_ids.TESTNET.to_int(): TLB,
-    chain_ids.DEVNET.to_int(): TLB,
-    chain_ids.TESTING.to_int(): TLB,
-    chain_ids.PREMAINNET.to_int(): PLB,
+    chain_ids.MAINNET.to_int(): XDX,
+    chain_ids.TESTNET.to_int(): TDX,
+    chain_ids.DEVNET.to_int(): TDX,
+    chain_ids.TESTING.to_int(): TDX,
+    chain_ids.PREMAINNET.to_int(): PDX,
 }
 
 

@@ -75,7 +75,7 @@ class CustodialApp:
 
     def payment(self, user_id: int, amount: int) -> str:
         account_id = identifier.encode_account(
-            self._children[0].account_address, self._users[user_id], identifier.TLB  # testnet HRP
+            self._children[0].account_address, self._users[user_id], identifier.TDX  # testnet HRP
         )
         return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
 

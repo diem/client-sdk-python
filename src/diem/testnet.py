@@ -51,10 +51,10 @@ def gen_vasp_account(base_url: str) -> LocalAccount:
     return account
 
 
-def gen_account() -> LocalAccount:
+def gen_account(dd_account: bool = False) -> LocalAccount:
     """generates a Testnet onchain account"""
 
-    return Faucet(create_client()).gen_account()
+    return Faucet(create_client()).gen_account(dd_account=dd_account)
 
 
 def gen_child_vasp(
@@ -113,15 +113,15 @@ class Faucet:
         self._retry: jsonrpc.Retry = retry or jsonrpc.Retry(5, 0.2, Exception)
         self._session: requests.Session = requests.Session()
 
-    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE) -> LocalAccount:
+    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE, dd_account: bool = False) -> LocalAccount:
         account = LocalAccount.generate()
-        self.mint(account.auth_key.hex(), 100_000_000_000, currency_code)
+        self.mint(account.auth_key.hex(), 100_000_000_000, currency_code, dd_account)
         return account
 
-    def mint(self, authkey: str, amount: int, currency_code: str) -> None:
-        self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code))
+    def mint(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
+        self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code, dd_account))
 
-    def _mint_without_retry(self, authkey: str, amount: int, currency_code: str) -> None:
+    def _mint_without_retry(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
         response = self._session.post(
             FAUCET_URL,
             params={
@@ -129,6 +129,7 @@ class Faucet:
                 "auth_key": authkey,
                 "currency_code": currency_code,
                 "return_txns": "true",
+                "is_designated_dealer": "true" if dd_account else "false",
             },
         )
         response.raise_for_status()

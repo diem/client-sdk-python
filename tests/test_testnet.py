@@ -379,6 +379,13 @@ def test_value_error_when_get_base_url_and_compliance_key_for_account_has_no_bas
         client.get_base_url_and_compliance_key(utils.TREASURY_ADDRESS)
 
 
+def test_gen_dd_account():
+    account = testnet.gen_account(dd_account=True)
+    client = testnet.create_client()
+    onchain_account = client.get_account(account.account_address)
+    assert onchain_account.role.type == "designated_dealer"
+
+
 def create_child_vasp_txn(
     parent_vasp: LocalAccount, child_vasp: LocalAccount, seq: int = 0
 ) -> diem_types.RawTransaction:

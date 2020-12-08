@@ -28,7 +28,7 @@ This file is a checklist of requirement & technical details for a Diem client SD
   - [x] client tracks latest server response block version and timestamp, raise error when received server response contains stale version / timestamp.
     - [x] last known blockchain version >= response version: when connecting to a cluster of fullnodes, it is possible some fullnodes are behind the head couple versions.
     - [x] last known blockchain timestamp >= response timestamp.
-  - [x] parse and use libra_chain_id, libra_ledger_version and libra_ledger_tiemstamp in the JSONRPC response.
+  - [x] parse and use diem_chain_id, diem_ledger_version and diem_ledger_tiemstamp in the JSONRPC response.
 - [x] Parsing and gen Diem Account Identifier (see [DIP-5][2])
   - bech32 addresses/subaddresses support
 - [x] language specific standard release publish: e.g. java maven central repo, python pip

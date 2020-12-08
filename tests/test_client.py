@@ -115,9 +115,9 @@ def gen_metadata_response(client, fail=None, snap=None):
             "jsonrpc": "2.0",
             "id": 1,
             "result": {"script_hash_allow_list": [url]},
-            "libra_chain_id": state.chain_id,
-            "libra_ledger_timestampusec": state.timestamp_usecs,
-            "libra_ledger_version": state.version,
+            "diem_chain_id": state.chain_id,
+            "diem_ledger_timestampusec": state.timestamp_usecs,
+            "diem_ledger_version": state.version,
         }
 
     return send_request

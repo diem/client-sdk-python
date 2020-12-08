@@ -577,9 +577,9 @@ class Client:
         # check stable response before check jsonrpc error
         try:
             self.update_last_known_state(
-                json.get("libra_chain_id"),
-                json.get("libra_ledger_version"),
-                json.get("libra_ledger_timestampusec"),
+                json.get("diem_chain_id"),
+                json.get("diem_ledger_version"),
+                json.get("diem_ledger_timestampusec"),
             )
         except StaleResponseError as e:
             if not ignore_stale_response:

@@ -122,7 +122,9 @@ def test_get_account_transaction_by_hex_encoded_account_address():
 
 def test_get_account_transaction_include_events():
     client = testnet.create_client()
-    txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS, 0, include_events=True)
+    account = testnet.gen_vasp_account("http://baseurl")
+
+    txn = client.get_account_transaction(account.account_address, 0, include_events=True)
     assert txn is not None
     assert isinstance(txn, jsonrpc.Transaction)
     assert len(txn.events) > 0
@@ -162,7 +164,8 @@ def test_get_account_transactions_by_hex_encoded_account_address():
 
 def test_get_account_transactions_with_events():
     client = testnet.create_client()
-    txns = client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS, 0, 1, include_events=True)
+    account = testnet.gen_vasp_account("url")
+    txns = client.get_account_transactions(account.account_address, 0, 1, include_events=True)
     assert txns is not None
     assert isinstance(txns, list)
 
@@ -171,10 +174,8 @@ def test_get_account_transactions_with_events():
     assert len(txn.events) > 0
 
     script_call = utils.decode_transaction_script(txn)
-    assert type(script_call).__name__ == "ScriptCall__PeerToPeerWithMetadata"
-    assert script_call.amount > 0
-    currency_code = utils.type_tag_to_str(script_call.currency)
-    assert currency_code in ["LBR", "Coin1"]
+    assert type(script_call).__name__ == "ScriptCall__RotateDualAttestationInfo"
+    assert script_call.new_url == b"url"
 
 
 def test_get_transactions():

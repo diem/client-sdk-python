@@ -31,7 +31,7 @@ FAUCET_URL: str = "https://testnet.diem.com/mint"
 CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
-TEST_CURRENCY_CODE: str = "Coin1"
+TEST_CURRENCY_CODE: str = "XUS"
 
 
 def create_client() -> jsonrpc.Client:

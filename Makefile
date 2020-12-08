@@ -35,11 +35,11 @@ diemtypes:
 	"diem/target/debug/generate-transaction-builders" \
 		--language python3 \
 		--module-name stdlib \
-		--with-libra-types "diem/testsuite/generate-format/tests/staged/libra.yaml" \
+		--with-diem-types "diem/testsuite/generate-format/tests/staged/diem.yaml" \
 		--serde-package-name diem \
-		--libra-package-name diem \
+		--diem-package-name diem \
 		--target-source-dir src/diem \
-		--with-custom-libra-code diem-types-ext/*.py \
+		--with-custom-diem-code diem-types-ext/*.py \
 		-- "diem/language/stdlib/compiled/transaction_scripts/abi"
 
 protobuf:

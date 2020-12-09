@@ -29,6 +29,7 @@ from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddre
 XDX = "xdx"  # xdx for mainnet
 TDX = "tdx"  # tdx for testnet
 PDX = "pdx"  # pdx for premainnet
+DDX = "ddx"  # ddx for dry-run mainnet
 
 HRPS: typing.Dict[int, str] = {
     chain_ids.MAINNET.to_int(): XDX,

@@ -15,7 +15,7 @@ setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     license="Apache-2.0",
-    url="https://github.com/libra/client-sdk-python",
+    url="https://github.com/diem/client-sdk-python",
     # author="Diem Open Source",
     python_requires=">=3.7", # requires dataclasses
     packages=["diem"],

@@ -5,7 +5,7 @@
 """LIP-4 Transaction Metadata Utilities
 
 This module implements utility functions for application to create transaction metadata and metadata signature.
-See https://lip.libra.org/lip-4 for more details
+See https://dip.diem.com/dip-4 for more details
 """
 
 

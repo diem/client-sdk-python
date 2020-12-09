@@ -99,7 +99,7 @@ def exec_txn(sender: LocalAccount, script: diem_types.Script) -> jsonrpc.Transac
 class Faucet:
     """Faucet service is a proxy server to mint coins for your test account on Testnet
 
-    See https://github.com/libra/libra/blob/master/json-rpc/docs/service_testnet_faucet.md for more details
+    See https://github.com/diem/diem/blob/master/json-rpc/docs/service_testnet_faucet.md for more details
     """
 
     def __init__(

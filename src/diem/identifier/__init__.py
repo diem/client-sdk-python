@@ -26,17 +26,17 @@ from .. import diem_types, utils, chain_ids
 from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
 from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
 
-XDX = "xdx"  # xdx for mainnet
-TDX = "tdx"  # tdx for testnet
-PDX = "pdx"  # pdx for premainnet
-DDX = "ddx"  # ddx for dry-run mainnet
+DM = "dm"  # mainnet
+TDM = "tdm"  # testnet
+PDM = "pdm"  # premainnet
+DDM = "ddm"  # dry-run mainnet
 
 HRPS: typing.Dict[int, str] = {
-    chain_ids.MAINNET.to_int(): XDX,
-    chain_ids.TESTNET.to_int(): TDX,
-    chain_ids.DEVNET.to_int(): TDX,
-    chain_ids.TESTING.to_int(): TDX,
-    chain_ids.PREMAINNET.to_int(): PDX,
+    chain_ids.MAINNET.to_int(): DM,
+    chain_ids.TESTNET.to_int(): TDM,
+    chain_ids.DEVNET.to_int(): TDM,
+    chain_ids.TESTING.to_int(): TDM,
+    chain_ids.PREMAINNET.to_int(): PDM,
 }
 
 

@@ -19,8 +19,7 @@ _BECH32_CHECKSUM_CHAR_SIZE = 6
 # DIEM constants
 _DIEM_ADDRESS_SIZE = 16  # in bytes
 _DIEM_BECH32_VERSION = 1
-_DIEM_BECH32_SIZE = 50  # in characters
-
+_DIEM_BECH32_SIZE = [50, 49]  # in characters
 
 class Bech32Error(Exception):
     """ Represents an error when creating a Diem address. """
@@ -68,39 +67,41 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
         A tuple consisiting of the Bech32 version (int), address (16 bytes), subaddress (8 bytes)
     """
     len_bech32 = len(bech32)
+    len_hrp = len(expected_hrp)
+
     # check expected length
-    if len_bech32 != _DIEM_BECH32_SIZE:
+    if len_bech32 not in _DIEM_BECH32_SIZE:
         raise Bech32Error(f"Bech32 size should be {_DIEM_BECH32_SIZE}, but it is: {len_bech32}")
 
     # do not allow mixed case per BIP 173
     if bech32 != bech32.lower() and bech32 != bech32.upper():
         raise Bech32Error(f"Mixed case Bech32 addresses are not allowed, got: {bech32}")
-    bech32 = bech32.lower()
 
-    if bech32[:3] != expected_hrp:
+    bech32 = bech32.lower()
+    hrp = bech32[:len_hrp]
+
+    if hrp != expected_hrp:
         raise Bech32Error(
-            f'Wrong Diem address Bech32 human readable part (prefix): requested "{expected_hrp}" but '
-            f'got "{bech32[:3]}"'
+            f'Wrong Diem address Bech32 human readable part (prefix): requested "{expected_hrp}" but ' f'got "{hrp}"'
         )
 
     # check separator
-    if bech32[3] != _BECH32_SEPARATOR:
-        raise Bech32Error(f"Non-expected Bech32 separator: {bech32[3]}")
+    if bech32[len_hrp] != _BECH32_SEPARATOR:
+        raise Bech32Error(f"Non-expected Bech32 separator: {bech32[len_hrp]}")
 
     # check characters after separator in Bech32 alphabet
-    if not all(x in _BECH32_CHARSET for x in bech32[4:]):
+    if not all(x in _BECH32_CHARSET for x in bech32[len_hrp + 1 :]):
         raise Bech32Error(f"Invalid Bech32 characters detected: {bech32}")
-    hrp = bech32[:3]
 
     # version is defined by the index of the Bech32 character after separator
-    address_version = _BECH32_CHARSET.find(bech32[4])
+    address_version = _BECH32_CHARSET.find(bech32[len_hrp + 1])
     # check valid version
     if address_version != _DIEM_BECH32_VERSION:
         raise Bech32Error(f"Version mismatch. Expected {_DIEM_BECH32_VERSION}, " f"but received {address_version}")
 
     # we've already checked that all characters are in the correct alphabet,
     # thus, this will always succeed
-    data = [_BECH32_CHARSET.find(x) for x in bech32[5:]]
+    data = [_BECH32_CHARSET.find(x) for x in bech32[len_hrp + 2 :]]
 
     # check Bech32 checksum
     if not _bech32_verify_checksum(hrp, [address_version] + data):

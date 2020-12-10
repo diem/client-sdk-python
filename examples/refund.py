@@ -21,7 +21,7 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
 
     # create a payment transaction
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
-    intent = identifier.decode_intent(intent_id, identifier.TDX)
+    intent = identifier.decode_intent(intent_id, identifier.TDM)
 
     receiver_address = utils.account_address(intent.account_address)
     script = stdlib.encode_peer_to_peer_with_metadata_script(

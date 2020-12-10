@@ -10,12 +10,12 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="diem",
-    version="0.6.2020120202", # bump up version for release, format 0.X.YYYYMMDDNN
+    version="1.0.0",
     description="The Python Client SDK for Diem",
     long_description=long_description,
     long_description_content_type='text/markdown',
     license="Apache-2.0",
-    url="https://github.com/libra/client-sdk-python",
+    url="https://github.com/diem/client-sdk-python",
     # author="Diem Open Source",
     python_requires=">=3.7", # requires dataclasses
     packages=["diem"],

@@ -49,7 +49,7 @@ def test_non_custodial_to_custodial():
 
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
 
-    intent = identifier.decode_intent(intent_id, identifier.TLB)
+    intent = identifier.decode_intent(intent_id, identifier.TDM)
 
     script = stdlib.encode_peer_to_peer_with_metadata_script(
         currency=utils.currency_code(intent.currency_code),
@@ -104,7 +104,7 @@ def test_custodial_to_custodial_under_threshold():
 
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
 
-    intent = identifier.decode_intent(intent_id, identifier.TLB)
+    intent = identifier.decode_intent(intent_id, identifier.TDM)
 
     script = stdlib.encode_peer_to_peer_with_metadata_script(
         currency=utils.currency_code(intent.currency_code),
@@ -134,7 +134,7 @@ def test_custodial_to_custodial_above_threshold():
 
     intent_id = receiver_custodial.payment(user_id=0, amount=2_000_000_000)
 
-    intent = identifier.decode_intent(intent_id, identifier.TLB)
+    intent = identifier.decode_intent(intent_id, identifier.TDM)
 
     sender = sender_custodial.available_child_vasp()
     # sender & receiver communicate by off chain APIs

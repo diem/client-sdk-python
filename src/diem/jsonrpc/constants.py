@@ -5,10 +5,10 @@
 
 See the following Diem JSON-RPC response type documents for more details:
 
-* https://github.com/libra/libra/blob/master/json-rpc/docs/type_account.md#type-account
-* https://github.com/libra/libra/blob/master/json-rpc/docs/type_event.md#event-data
-* https://github.com/libra/libra/blob/master/json-rpc/docs/type_transaction.md#type-vmstatus
-* https://github.com/libra/libra/blob/master/json-rpc/docs/type_transaction.md#type-transactiondata
+* https://github.com/diem/diem/blob/master/json-rpc/docs/type_account.md#type-account
+* https://github.com/diem/diem/blob/master/json-rpc/docs/type_event.md#event-data
+* https://github.com/diem/diem/blob/master/json-rpc/docs/type_transaction.md#type-vmstatus
+* https://github.com/diem/diem/blob/master/json-rpc/docs/type_transaction.md#type-transactiondata
 
 
 """
@@ -25,7 +25,7 @@ EVENT_DATA_UNKNOWN: str = "unknown"
 EVENT_DATA_BURN: str = "burn"
 EVENT_DATA_CANCEL_BURN: str = "cancelburn"
 EVENT_DATA_MINT: str = "mint"
-EVENT_DATA_TO_LBR_EXCHANGE_RATE_UPDATE: str = "to_lbr_exchange_rate_update"
+EVENT_DATA_TO_XDX_EXCHANGE_RATE_UPDATE: str = "to_xdx_exchange_rate_update"
 EVENT_DATA_PREBURN: str = "preburn"
 EVENT_DATA_RECEIVED_PAYMENT: str = "receivedpayment"
 EVENT_DATA_SENT_PAYMENT: str = "sentpayment"
@@ -54,5 +54,5 @@ TRANSACTION_DATA_UNKNOWN: str = "unknown"
 
 
 # Script#type field values, only set unknown type here,
-# other types, plese see https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
+# other types, plese see https://github.com/diem/diem/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
 SCRIPT_UNKNOWN: str = "unknown"

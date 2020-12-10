@@ -172,7 +172,7 @@ class RequestWithBackups(RequestStrategy):
 class Client:
     """Diem JSON-RPC API client
 
-    [SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md)
+    [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
     """
 
     def __init__(
@@ -301,7 +301,7 @@ class Client:
     ) -> typing.Optional[rpc.Metadata]:
         """get block metadata
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_metadata.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md)
         """
 
         params = [int(version)] if version else []
@@ -310,7 +310,7 @@ class Client:
     def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:
         """get currencies
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_currencies.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_currencies.md)
         """
 
         return self.execute("get_currencies", [], _parse_list(lambda: rpc.CurrencyInfo()))
@@ -321,7 +321,7 @@ class Client:
         """get on-chain account information
 
         Returns None if account not found
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account.md)
         """
 
         address = utils.account_address_hex(account_address)
@@ -337,7 +337,7 @@ class Client:
 
         Returns None if transaction is not found
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account_transaction.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transaction.md)
         """
 
         address = utils.account_address_hex(account_address)
@@ -355,7 +355,7 @@ class Client:
 
         Returns empty list if no transactions found
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_account_transactions.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transactions.md)
         """
 
         address = utils.account_address_hex(account_address)
@@ -372,7 +372,7 @@ class Client:
 
         Returns empty list if no transactions found
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_transactions.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_transactions.md)
         """
 
         params = [int(start_version), int(limit), bool(include_events)]
@@ -383,7 +383,7 @@ class Client:
 
         Returns empty list if no events found
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_get_events.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_events.md)
         """
 
         params = [event_stream_key, int(start), int(limit)]
@@ -416,7 +416,7 @@ class Client:
 
         Pass in `raise_stale_response=True` to raise StaleResponseError and handle it by yourself.
 
-        See [JSON-RPC API Doc](https://github.com/libra/libra/blob/master/json-rpc/docs/method_submit.md)
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
         """
 
         if isinstance(txn, diem_types.SignedTransaction):
@@ -577,9 +577,9 @@ class Client:
         # check stable response before check jsonrpc error
         try:
             self.update_last_known_state(
-                json.get("libra_chain_id"),
-                json.get("libra_ledger_version"),
-                json.get("libra_ledger_timestampusec"),
+                json.get("diem_chain_id"),
+                json.get("diem_ledger_version"),
+                json.get("diem_ledger_timestampusec"),
             )
         except StaleResponseError as e:
             if not ignore_stale_response:

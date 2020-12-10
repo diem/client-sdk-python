@@ -5,7 +5,7 @@
 """LIP-4 Transaction Metadata Utilities
 
 This module implements utility functions for application to create transaction metadata and metadata signature.
-See https://lip.libra.org/lip-4 for more details
+See https://dip.diem.com/dip-4 for more details
 """
 
 
@@ -44,9 +44,9 @@ def travel_rule(
         )
     )
 
-    # receiver_lcs_data = lcs(metadata, sender_address, amount) + "@@$$LIBRA_ATTEST$$@@" /*ASCII-encoded string*/
+    # receiver_lcs_data = lcs(metadata, sender_address, amount) + "@@$$DIEM_ATTEST$$@@" /*ASCII-encoded string*/
     attest = Attest(metadata=metadata, sender_address=sender_address, amount=serde_types.uint64(amount))  # pyre-ignore
-    signing_msg = attest.lcs_serialize() + b"@@$$LIBRA_ATTEST$$@@"
+    signing_msg = attest.lcs_serialize() + b"@@$$DIEM_ATTEST$$@@"
 
     return (metadata.lcs_serialize(), signing_msg)
 

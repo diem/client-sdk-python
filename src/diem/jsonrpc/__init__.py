@@ -16,7 +16,7 @@ chain_id: 2
 
 ```
 
-See [Diem JSON-RPC API SPEC](https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md) for more details
+See [Diem JSON-RPC API SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md) for more details
 
 """
 
@@ -64,7 +64,7 @@ from .constants import (
     EVENT_DATA_BURN,
     EVENT_DATA_CANCEL_BURN,
     EVENT_DATA_MINT,
-    EVENT_DATA_TO_LBR_EXCHANGE_RATE_UPDATE,
+    EVENT_DATA_TO_XDX_EXCHANGE_RATE_UPDATE,
     EVENT_DATA_PREBURN,
     EVENT_DATA_RECEIVED_PAYMENT,
     EVENT_DATA_SENT_PAYMENT,
@@ -87,6 +87,6 @@ from .constants import (
     TRANSACTION_DATA_USER,
     TRANSACTION_DATA_UNKNOWN,
     # Script#type field values, only set unknown type here,
-    # other types, plese see https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
+    # other types, plese see https://github.com/diem/diem/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
     SCRIPT_UNKNOWN,
 )

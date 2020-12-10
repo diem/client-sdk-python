@@ -204,7 +204,7 @@ class EventData(google___protobuf___message___Message):
     type: typing___Text = ...
     preburn_address: typing___Text = ...
     currency_code: typing___Text = ...
-    new_to_lbr_exchange_rate: builtin___float = ...
+    new_to_xdx_exchange_rate: builtin___float = ...
     sender: typing___Text = ...
     receiver: typing___Text = ...
     metadata: typing___Text = ...
@@ -228,7 +228,7 @@ class EventData(google___protobuf___message___Message):
         amount: typing___Optional[type___Amount] = None,
         preburn_address: typing___Optional[typing___Text] = None,
         currency_code: typing___Optional[typing___Text] = None,
-        new_to_lbr_exchange_rate: typing___Optional[builtin___float] = None,
+        new_to_xdx_exchange_rate: typing___Optional[builtin___float] = None,
         sender: typing___Optional[typing___Text] = None,
         receiver: typing___Optional[typing___Text] = None,
         metadata: typing___Optional[typing___Text] = None,
@@ -266,8 +266,8 @@ class EventData(google___protobuf___message___Message):
             b"new_base_url",
             "new_compliance_public_key",
             b"new_compliance_public_key",
-            "new_to_lbr_exchange_rate",
-            b"new_to_lbr_exchange_rate",
+            "new_to_xdx_exchange_rate",
+            b"new_to_xdx_exchange_rate",
             "preburn_address",
             b"preburn_address",
             "proposed_time",
@@ -300,7 +300,9 @@ class Metadata(google___protobuf___message___Message):
         typing___Text
     ] = ...
     module_publishing_allowed: builtin___bool = ...
-    libra_version: builtin___int = ...
+    diem_version: builtin___int = ...
+    accumulator_root_hash: typing___Text = ...
+    dual_attestation_limit: builtin___int = ...
     def __init__(
         self,
         *,
@@ -309,15 +311,21 @@ class Metadata(google___protobuf___message___Message):
         chain_id: typing___Optional[builtin___int] = None,
         script_hash_allow_list: typing___Optional[typing___Iterable[typing___Text]] = None,
         module_publishing_allowed: typing___Optional[builtin___bool] = None,
-        libra_version: typing___Optional[builtin___int] = None,
+        diem_version: typing___Optional[builtin___int] = None,
+        accumulator_root_hash: typing___Optional[typing___Text] = None,
+        dual_attestation_limit: typing___Optional[builtin___int] = None,
     ) -> None: ...
     def ClearField(
         self,
         field_name: typing_extensions___Literal[
+            "accumulator_root_hash",
+            b"accumulator_root_hash",
             "chain_id",
             b"chain_id",
-            "libra_version",
-            b"libra_version",
+            "diem_version",
+            b"diem_version",
+            "dual_attestation_limit",
+            b"dual_attestation_limit",
             "module_publishing_allowed",
             b"module_publishing_allowed",
             "script_hash_allow_list",
@@ -580,7 +588,7 @@ class CurrencyInfo(google___protobuf___message___Message):
     code: typing___Text = ...
     scaling_factor: builtin___int = ...
     fractional_part: builtin___int = ...
-    to_lbr_exchange_rate: builtin___float = ...
+    to_xdx_exchange_rate: builtin___float = ...
     mint_events_key: typing___Text = ...
     burn_events_key: typing___Text = ...
     preburn_events_key: typing___Text = ...
@@ -592,7 +600,7 @@ class CurrencyInfo(google___protobuf___message___Message):
         code: typing___Optional[typing___Text] = None,
         scaling_factor: typing___Optional[builtin___int] = None,
         fractional_part: typing___Optional[builtin___int] = None,
-        to_lbr_exchange_rate: typing___Optional[builtin___float] = None,
+        to_xdx_exchange_rate: typing___Optional[builtin___float] = None,
         mint_events_key: typing___Optional[typing___Text] = None,
         burn_events_key: typing___Optional[typing___Text] = None,
         preburn_events_key: typing___Optional[typing___Text] = None,
@@ -618,8 +626,8 @@ class CurrencyInfo(google___protobuf___message___Message):
             b"preburn_events_key",
             "scaling_factor",
             b"scaling_factor",
-            "to_lbr_exchange_rate",
-            b"to_lbr_exchange_rate",
+            "to_xdx_exchange_rate",
+            b"to_xdx_exchange_rate",
         ],
     ) -> None: ...
 

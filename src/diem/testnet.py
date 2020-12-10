@@ -26,12 +26,12 @@ import typing, time
 from . import diem_types, jsonrpc, utils, chain_ids, lcs, stdlib, LocalAccount
 
 
-JSON_RPC_URL: str = "https://testnet.diem.com/v1"
-FAUCET_URL: str = "https://testnet.diem.com/mint"
-CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
+JSON_RPC_URL: str = "http://dev.testnet.diem.com/v1"
+FAUCET_URL: str = "http://dev.testnet.diem.com/mint"
+CHAIN_ID: diem_types.ChainId = chain_ids.DEVNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
-TEST_CURRENCY_CODE: str = "Coin1"
+TEST_CURRENCY_CODE: str = "XUS"
 
 
 def create_client() -> jsonrpc.Client:
@@ -51,10 +51,10 @@ def gen_vasp_account(base_url: str) -> LocalAccount:
     return account
 
 
-def gen_account() -> LocalAccount:
+def gen_account(dd_account: bool = False) -> LocalAccount:
     """generates a Testnet onchain account"""
 
-    return Faucet(create_client()).gen_account()
+    return Faucet(create_client()).gen_account(dd_account=dd_account)
 
 
 def gen_child_vasp(
@@ -99,7 +99,7 @@ def exec_txn(sender: LocalAccount, script: diem_types.Script) -> jsonrpc.Transac
 class Faucet:
     """Faucet service is a proxy server to mint coins for your test account on Testnet
 
-    See https://github.com/libra/libra/blob/master/json-rpc/docs/service_testnet_faucet.md for more details
+    See https://github.com/diem/diem/blob/master/json-rpc/docs/service_testnet_faucet.md for more details
     """
 
     def __init__(
@@ -113,15 +113,15 @@ class Faucet:
         self._retry: jsonrpc.Retry = retry or jsonrpc.Retry(5, 0.2, Exception)
         self._session: requests.Session = requests.Session()
 
-    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE) -> LocalAccount:
+    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE, dd_account: bool = False) -> LocalAccount:
         account = LocalAccount.generate()
-        self.mint(account.auth_key.hex(), 100_000_000_000, currency_code)
+        self.mint(account.auth_key.hex(), 100_000_000_000, currency_code, dd_account)
         return account
 
-    def mint(self, authkey: str, amount: int, currency_code: str) -> None:
-        self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code))
+    def mint(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
+        self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code, dd_account))
 
-    def _mint_without_retry(self, authkey: str, amount: int, currency_code: str) -> None:
+    def _mint_without_retry(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
         response = self._session.post(
             FAUCET_URL,
             params={
@@ -129,6 +129,7 @@ class Faucet:
                 "auth_key": authkey,
                 "currency_code": currency_code,
                 "return_txns": "true",
+                "is_designated_dealer": "true" if dd_account else "false",
             },
         )
         response.raise_for_status()

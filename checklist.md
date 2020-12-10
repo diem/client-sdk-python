@@ -28,7 +28,7 @@ This file is a checklist of requirement & technical details for a Diem client SD
   - [x] client tracks latest server response block version and timestamp, raise error when received server response contains stale version / timestamp.
     - [x] last known blockchain version >= response version: when connecting to a cluster of fullnodes, it is possible some fullnodes are behind the head couple versions.
     - [x] last known blockchain timestamp >= response timestamp.
-  - [x] parse and use libra_chain_id, libra_ledger_version and libra_ledger_tiemstamp in the JSONRPC response.
+  - [x] parse and use diem_chain_id, diem_ledger_version and diem_ledger_tiemstamp in the JSONRPC response.
 - [x] Parsing and gen Diem Account Identifier (see [DIP-5][2])
   - bech32 addresses/subaddresses support
 - [x] language specific standard release publish: e.g. java maven central repo, python pip
@@ -88,7 +88,7 @@ See [doc][5] for above concepts.
 
 # Examples
 
-- [x] [p2p transfer examples](https://github.com/libra/dip/blob/master/dips/dip-4.md#transaction-examples)
+- [x] [p2p transfer examples](https://github.com/diem/lip/blob/master/lips/lip-4.md#transaction-examples)
 - [x] refund p2p transfer example
 - [x] create childVASP example
 - [x] Intent identifier encoding, decoding example
@@ -98,10 +98,10 @@ See [doc][5] for above concepts.
 - [ ] Async client
 - [ ] CLI connects to testnet for trying out features.
 
-[1]: https://github.com/libra/libra/blob/master/json-rpc/json-rpc-spec.md "Diem JSON-RPC SPEC"
-[2]: https://github.com/libra/dip/blob/master/dips/dip-5.md "DIP-5"
-[3]: https://github.com/libra/libra/blob/master/language/stdlib/transaction_scripts/doc/peer_to_peer_with_metadata.md "P2P Transafer"
-[4]: https://github.com/libra/libra/tree/master/language/stdlib/transaction_scripts/doc "Move Stdlib scripts"
-[5]: https://github.com/libra/libra/blob/master/client/libra-dev/README.md "Diem Client Dev Doc"
-[6]: https://github.com/libra/libra/blob/master/json-rpc/docs/service_testnet_faucet.md "Faucet service"
-[7]: https://github.com/libra/dip/blob/master/dips/dip-4.md "Transaction Metadata Specification"
+[1]: https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md "Diem JSON-RPC SPEC"
+[2]: https://github.com/diem/lip/blob/master/lips/lip-5.md "Address formatting"
+[3]: https://github.com/diem/diem/blob/master/language/stdlib/transaction_scripts/doc/peer_to_peer_with_metadata.md "P2P Transafer"
+[4]: https://github.com/diem/diem/tree/master/language/stdlib/transaction_scripts/doc "Move Stdlib scripts"
+[5]: https://github.com/diem/diem/blob/master/client/diem-dev/README.md "Diem Client Dev Doc"
+[6]: https://github.com/diem/diem/blob/master/json-rpc/docs/service_testnet_faucet.md "Faucet service"
+[7]: https://github.com/diem/lip/blob/master/lips/lip-4.md "Transaction Metadata Specification"

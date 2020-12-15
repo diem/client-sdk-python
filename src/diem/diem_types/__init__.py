@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 import typing
 from diem import serde_types as st
-from diem import lcs
+from diem import bcs
 
 
 @dataclass(frozen=True)
@@ -10,12 +10,12 @@ class AccessPath:
     address: "AccountAddress"
     path: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, AccessPath)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, AccessPath)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "AccessPath":
-        v, buffer = lcs.deserialize(input, AccessPath)
+    def bcs_deserialize(input: bytes) -> "AccessPath":
+        v, buffer = bcs.deserialize(input, AccessPath)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -42,12 +42,12 @@ class AccountAddress:
         st.uint8,
     ]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, AccountAddress)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, AccountAddress)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "AccountAddress":
-        v, buffer = lcs.deserialize(input, AccountAddress)
+    def bcs_deserialize(input: bytes) -> "AccountAddress":
+        v, buffer = bcs.deserialize(input, AccountAddress)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -83,12 +83,12 @@ class BlockMetadata:
     previous_block_votes: typing.Sequence["AccountAddress"]
     proposer: "AccountAddress"
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, BlockMetadata)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, BlockMetadata)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "BlockMetadata":
-        v, buffer = lcs.deserialize(input, BlockMetadata)
+    def bcs_deserialize(input: bytes) -> "BlockMetadata":
+        v, buffer = bcs.deserialize(input, BlockMetadata)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -98,12 +98,12 @@ class BlockMetadata:
 class ChainId:
     value: st.uint8
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, ChainId)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, ChainId)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "ChainId":
-        v, buffer = lcs.deserialize(input, ChainId)
+    def bcs_deserialize(input: bytes) -> "ChainId":
+        v, buffer = bcs.deserialize(input, ChainId)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -121,12 +121,12 @@ class ChangeSet:
     write_set: "WriteSet"
     events: typing.Sequence["ContractEvent"]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, ChangeSet)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, ChangeSet)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "ChangeSet":
-        v, buffer = lcs.deserialize(input, ChangeSet)
+    def bcs_deserialize(input: bytes) -> "ChangeSet":
+        v, buffer = bcs.deserialize(input, ChangeSet)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -135,12 +135,12 @@ class ChangeSet:
 class ContractEvent:
     VARIANTS = []  # type: typing.Sequence[typing.Type[ContractEvent]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, ContractEvent)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, ContractEvent)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "ContractEvent":
-        v, buffer = lcs.deserialize(input, ContractEvent)
+    def bcs_deserialize(input: bytes) -> "ContractEvent":
+        v, buffer = bcs.deserialize(input, ContractEvent)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -164,12 +164,12 @@ class ContractEventV0:
     type_tag: "TypeTag"
     event_data: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, ContractEventV0)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, ContractEventV0)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "ContractEventV0":
-        v, buffer = lcs.deserialize(input, ContractEventV0)
+    def bcs_deserialize(input: bytes) -> "ContractEventV0":
+        v, buffer = bcs.deserialize(input, ContractEventV0)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -179,12 +179,12 @@ class ContractEventV0:
 class Ed25519PublicKey:
     value: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Ed25519PublicKey)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Ed25519PublicKey)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Ed25519PublicKey":
-        v, buffer = lcs.deserialize(input, Ed25519PublicKey)
+    def bcs_deserialize(input: bytes) -> "Ed25519PublicKey":
+        v, buffer = bcs.deserialize(input, Ed25519PublicKey)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -194,12 +194,12 @@ class Ed25519PublicKey:
 class Ed25519Signature:
     value: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Ed25519Signature)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Ed25519Signature)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Ed25519Signature":
-        v, buffer = lcs.deserialize(input, Ed25519Signature)
+    def bcs_deserialize(input: bytes) -> "Ed25519Signature":
+        v, buffer = bcs.deserialize(input, Ed25519Signature)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -209,12 +209,12 @@ class Ed25519Signature:
 class EventKey:
     value: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, EventKey)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, EventKey)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "EventKey":
-        v, buffer = lcs.deserialize(input, EventKey)
+    def bcs_deserialize(input: bytes) -> "EventKey":
+        v, buffer = bcs.deserialize(input, EventKey)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -223,12 +223,12 @@ class EventKey:
 class GeneralMetadata:
     VARIANTS = []  # type: typing.Sequence[typing.Type[GeneralMetadata]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, GeneralMetadata)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, GeneralMetadata)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "GeneralMetadata":
-        v, buffer = lcs.deserialize(input, GeneralMetadata)
+    def bcs_deserialize(input: bytes) -> "GeneralMetadata":
+        v, buffer = bcs.deserialize(input, GeneralMetadata)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -251,12 +251,12 @@ class GeneralMetadataV0:
     from_subaddress: typing.Optional[bytes]
     referenced_event: typing.Optional[st.uint64]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, GeneralMetadataV0)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, GeneralMetadataV0)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "GeneralMetadataV0":
-        v, buffer = lcs.deserialize(input, GeneralMetadataV0)
+    def bcs_deserialize(input: bytes) -> "GeneralMetadataV0":
+        v, buffer = bcs.deserialize(input, GeneralMetadataV0)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -266,12 +266,12 @@ class GeneralMetadataV0:
 class HashValue:
     value: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, HashValue)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, HashValue)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "HashValue":
-        v, buffer = lcs.deserialize(input, HashValue)
+    def bcs_deserialize(input: bytes) -> "HashValue":
+        v, buffer = bcs.deserialize(input, HashValue)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -281,12 +281,12 @@ class HashValue:
 class Identifier:
     value: str
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Identifier)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Identifier)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Identifier":
-        v, buffer = lcs.deserialize(input, Identifier)
+    def bcs_deserialize(input: bytes) -> "Identifier":
+        v, buffer = bcs.deserialize(input, Identifier)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -295,12 +295,12 @@ class Identifier:
 class Metadata:
     VARIANTS = []  # type: typing.Sequence[typing.Type[Metadata]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Metadata)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Metadata)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Metadata":
-        v, buffer = lcs.deserialize(input, Metadata)
+    def bcs_deserialize(input: bytes) -> "Metadata":
+        v, buffer = bcs.deserialize(input, Metadata)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -342,12 +342,12 @@ Metadata.VARIANTS = [
 class Module:
     code: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Module)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Module)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Module":
-        v, buffer = lcs.deserialize(input, Module)
+    def bcs_deserialize(input: bytes) -> "Module":
+        v, buffer = bcs.deserialize(input, Module)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -357,12 +357,12 @@ class Module:
 class MultiEd25519PublicKey:
     value: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, MultiEd25519PublicKey)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, MultiEd25519PublicKey)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "MultiEd25519PublicKey":
-        v, buffer = lcs.deserialize(input, MultiEd25519PublicKey)
+    def bcs_deserialize(input: bytes) -> "MultiEd25519PublicKey":
+        v, buffer = bcs.deserialize(input, MultiEd25519PublicKey)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -372,12 +372,12 @@ class MultiEd25519PublicKey:
 class MultiEd25519Signature:
     value: bytes
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, MultiEd25519Signature)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, MultiEd25519Signature)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "MultiEd25519Signature":
-        v, buffer = lcs.deserialize(input, MultiEd25519Signature)
+    def bcs_deserialize(input: bytes) -> "MultiEd25519Signature":
+        v, buffer = bcs.deserialize(input, MultiEd25519Signature)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -394,12 +394,12 @@ class RawTransaction:
     expiration_timestamp_secs: st.uint64
     chain_id: "ChainId"
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, RawTransaction)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, RawTransaction)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "RawTransaction":
-        v, buffer = lcs.deserialize(input, RawTransaction)
+    def bcs_deserialize(input: bytes) -> "RawTransaction":
+        v, buffer = bcs.deserialize(input, RawTransaction)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -411,12 +411,12 @@ class Script:
     ty_args: typing.Sequence["TypeTag"]
     args: typing.Sequence["TransactionArgument"]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Script)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Script)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Script":
-        v, buffer = lcs.deserialize(input, Script)
+    def bcs_deserialize(input: bytes) -> "Script":
+        v, buffer = bcs.deserialize(input, Script)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -427,12 +427,12 @@ class SignedTransaction:
     raw_txn: "RawTransaction"
     authenticator: "TransactionAuthenticator"
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, SignedTransaction)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, SignedTransaction)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "SignedTransaction":
-        v, buffer = lcs.deserialize(input, SignedTransaction)
+    def bcs_deserialize(input: bytes) -> "SignedTransaction":
+        v, buffer = bcs.deserialize(input, SignedTransaction)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -455,12 +455,12 @@ class StructTag:
     name: "Identifier"
     type_params: typing.Sequence["TypeTag"]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, StructTag)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, StructTag)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "StructTag":
-        v, buffer = lcs.deserialize(input, StructTag)
+    def bcs_deserialize(input: bytes) -> "StructTag":
+        v, buffer = bcs.deserialize(input, StructTag)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -469,12 +469,12 @@ class StructTag:
 class Transaction:
     VARIANTS = []  # type: typing.Sequence[typing.Type[Transaction]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Transaction)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Transaction)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "Transaction":
-        v, buffer = lcs.deserialize(input, Transaction)
+    def bcs_deserialize(input: bytes) -> "Transaction":
+        v, buffer = bcs.deserialize(input, Transaction)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -508,12 +508,12 @@ Transaction.VARIANTS = [
 class TransactionArgument:
     VARIANTS = []  # type: typing.Sequence[typing.Type[TransactionArgument]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, TransactionArgument)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, TransactionArgument)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "TransactionArgument":
-        v, buffer = lcs.deserialize(input, TransactionArgument)
+    def bcs_deserialize(input: bytes) -> "TransactionArgument":
+        v, buffer = bcs.deserialize(input, TransactionArgument)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -568,12 +568,12 @@ TransactionArgument.VARIANTS = [
 class TransactionAuthenticator:
     VARIANTS = []  # type: typing.Sequence[typing.Type[TransactionAuthenticator]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, TransactionAuthenticator)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, TransactionAuthenticator)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "TransactionAuthenticator":
-        v, buffer = lcs.deserialize(input, TransactionAuthenticator)
+    def bcs_deserialize(input: bytes) -> "TransactionAuthenticator":
+        v, buffer = bcs.deserialize(input, TransactionAuthenticator)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -602,12 +602,12 @@ TransactionAuthenticator.VARIANTS = [
 class TransactionPayload:
     VARIANTS = []  # type: typing.Sequence[typing.Type[TransactionPayload]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, TransactionPayload)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, TransactionPayload)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "TransactionPayload":
-        v, buffer = lcs.deserialize(input, TransactionPayload)
+    def bcs_deserialize(input: bytes) -> "TransactionPayload":
+        v, buffer = bcs.deserialize(input, TransactionPayload)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -641,12 +641,12 @@ TransactionPayload.VARIANTS = [
 class TravelRuleMetadata:
     VARIANTS = []  # type: typing.Sequence[typing.Type[TravelRuleMetadata]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, TravelRuleMetadata)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, TravelRuleMetadata)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "TravelRuleMetadata":
-        v, buffer = lcs.deserialize(input, TravelRuleMetadata)
+    def bcs_deserialize(input: bytes) -> "TravelRuleMetadata":
+        v, buffer = bcs.deserialize(input, TravelRuleMetadata)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -667,12 +667,12 @@ TravelRuleMetadata.VARIANTS = [
 class TravelRuleMetadataV0:
     off_chain_reference_id: typing.Optional[str]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, TravelRuleMetadataV0)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, TravelRuleMetadataV0)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "TravelRuleMetadataV0":
-        v, buffer = lcs.deserialize(input, TravelRuleMetadataV0)
+    def bcs_deserialize(input: bytes) -> "TravelRuleMetadataV0":
+        v, buffer = bcs.deserialize(input, TravelRuleMetadataV0)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -681,12 +681,12 @@ class TravelRuleMetadataV0:
 class TypeTag:
     VARIANTS = []  # type: typing.Sequence[typing.Type[TypeTag]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, TypeTag)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, TypeTag)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "TypeTag":
-        v, buffer = lcs.deserialize(input, TypeTag)
+    def bcs_deserialize(input: bytes) -> "TypeTag":
+        v, buffer = bcs.deserialize(input, TypeTag)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -778,12 +778,12 @@ TypeTag.VARIANTS = [
 class UnstructuredBytesMetadata:
     metadata: typing.Optional[bytes]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, UnstructuredBytesMetadata)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, UnstructuredBytesMetadata)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "UnstructuredBytesMetadata":
-        v, buffer = lcs.deserialize(input, UnstructuredBytesMetadata)
+    def bcs_deserialize(input: bytes) -> "UnstructuredBytesMetadata":
+        v, buffer = bcs.deserialize(input, UnstructuredBytesMetadata)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -792,12 +792,12 @@ class UnstructuredBytesMetadata:
 class WriteOp:
     VARIANTS = []  # type: typing.Sequence[typing.Type[WriteOp]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, WriteOp)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, WriteOp)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "WriteOp":
-        v, buffer = lcs.deserialize(input, WriteOp)
+    def bcs_deserialize(input: bytes) -> "WriteOp":
+        v, buffer = bcs.deserialize(input, WriteOp)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -825,12 +825,12 @@ WriteOp.VARIANTS = [
 class WriteSet:
     value: "WriteSetMut"
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, WriteSet)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, WriteSet)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "WriteSet":
-        v, buffer = lcs.deserialize(input, WriteSet)
+    def bcs_deserialize(input: bytes) -> "WriteSet":
+        v, buffer = bcs.deserialize(input, WriteSet)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -840,12 +840,12 @@ class WriteSet:
 class WriteSetMut:
     write_set: typing.Sequence[typing.Tuple["AccessPath", "WriteOp"]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, WriteSetMut)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, WriteSetMut)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "WriteSetMut":
-        v, buffer = lcs.deserialize(input, WriteSetMut)
+    def bcs_deserialize(input: bytes) -> "WriteSetMut":
+        v, buffer = bcs.deserialize(input, WriteSetMut)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -854,12 +854,12 @@ class WriteSetMut:
 class WriteSetPayload:
     VARIANTS = []  # type: typing.Sequence[typing.Type[WriteSetPayload]]
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, WriteSetPayload)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, WriteSetPayload)
 
     @staticmethod
-    def lcs_deserialize(input: bytes) -> "WriteSetPayload":
-        v, buffer = lcs.deserialize(input, WriteSetPayload)
+    def bcs_deserialize(input: bytes) -> "WriteSetPayload":
+        v, buffer = bcs.deserialize(input, WriteSetPayload)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v

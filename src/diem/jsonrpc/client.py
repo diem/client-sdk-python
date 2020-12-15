@@ -420,7 +420,7 @@ class Client:
         """
 
         if isinstance(txn, diem_types.SignedTransaction):
-            return self.submit(txn.lcs_serialize().hex())
+            return self.submit(txn.bcs_serialize().hex())
 
         self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=not raise_stale_response)
 
@@ -444,7 +444,7 @@ class Client:
         """
 
         if isinstance(txn, str):
-            txn_obj = diem_types.SignedTransaction.lcs_deserialize(bytes.fromhex(txn))
+            txn_obj = diem_types.SignedTransaction.bcs_deserialize(bytes.fromhex(txn))
             return self.wait_for_transaction(txn_obj, timeout_secs)
 
         return self.wait_for_transaction2(

@@ -34,6 +34,10 @@ class LocalAccount:
         private_key = Ed25519PrivateKey.generate()
         return LocalAccount(private_key)
 
+    @staticmethod
+    def from_private_key_hex(key: str) -> "LocalAccount":
+        return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))
+
     private_key: Ed25519PrivateKey
     compliance_key: Ed25519PrivateKey
 

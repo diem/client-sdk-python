@@ -77,7 +77,7 @@ def test_refund_metadata_from_event():
     ret = txnmetadata.refund_metadata_from_event(event)
     assert ret is not None
 
-    gm = diem_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
+    gm = diem_types.Metadata__GeneralMetadata.bcs_deserialize(ret)
     assert gm is not None
     assert gm.value.value.from_subaddress.hex() == to_sub_address
     assert gm.value.value.to_subaddress.hex() == from_sub_address
@@ -99,7 +99,7 @@ def test_refund_metadata_from_event_that_has_from_subaddress():
     ret = txnmetadata.refund_metadata_from_event(event)
     assert ret is not None
 
-    gm = diem_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
+    gm = diem_types.Metadata__GeneralMetadata.bcs_deserialize(ret)
     assert gm is not None
     assert gm.value.value.from_subaddress is None
     assert gm.value.value.to_subaddress.hex() == from_sub_address
@@ -121,7 +121,7 @@ def test_refund_metadata_from_event_that_has_to_subaddress():
     ret = txnmetadata.refund_metadata_from_event(event)
     assert ret is not None
 
-    gm = diem_types.Metadata__GeneralMetadata.lcs_deserialize(ret)
+    gm = diem_types.Metadata__GeneralMetadata.bcs_deserialize(ret)
     assert gm is not None
     assert gm.value.value.from_subaddress.hex() == to_sub_address
     assert gm.value.value.to_subaddress is None
@@ -139,7 +139,7 @@ def test_event_metadata_is_not_hex_encoded_string():
         txnmetadata.refund_metadata_from_event(event)
 
 
-def test_event_metadata_is_not_lcs_string():
+def test_event_metadata_is_not_bcs_string():
     event = jsonrpc.Event(
         data=jsonrpc.EventData(
             metadata="1111122222",

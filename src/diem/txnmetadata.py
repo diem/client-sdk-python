@@ -12,7 +12,7 @@ See https://dip.diem.com/dip-4 for more details
 from dataclasses import dataclass
 import typing
 
-from . import diem_types, serde_types, lcs, jsonrpc, utils
+from . import diem_types, serde_types, bcs, jsonrpc, utils
 
 
 class InvalidEventMetadataForRefundError(Exception):
@@ -26,8 +26,8 @@ class Attest:
     sender_address: diem_types.AccountAddress
     amount: serde_types.uint64  # pyre-ignore
 
-    def lcs_serialize(self) -> bytes:
-        return lcs.serialize(self, Attest)
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, Attest)
 
 
 def travel_rule(
@@ -44,11 +44,11 @@ def travel_rule(
         )
     )
 
-    # receiver_lcs_data = lcs(metadata, sender_address, amount) + "@@$$DIEM_ATTEST$$@@" /*ASCII-encoded string*/
+    # receiver_bcs_data = bcs(metadata, sender_address, amount) + "@@$$DIEM_ATTEST$$@@" /*ASCII-encoded string*/
     attest = Attest(metadata=metadata, sender_address=sender_address, amount=serde_types.uint64(amount))  # pyre-ignore
-    signing_msg = attest.lcs_serialize() + b"@@$$DIEM_ATTEST$$@@"
+    signing_msg = attest.bcs_serialize() + b"@@$$DIEM_ATTEST$$@@"
 
-    return (metadata.lcs_serialize(), signing_msg)
+    return (metadata.bcs_serialize(), signing_msg)
 
 
 def general_metadata(
@@ -79,7 +79,7 @@ def general_metadata(
             )
         )
     )
-    return metadata.lcs_serialize()
+    return metadata.bcs_serialize()
 
 
 def find_refund_reference_event(
@@ -128,7 +128,7 @@ def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
 
     try:
         metadata_bytes = bytes.fromhex(event.data.metadata)
-        metadata = diem_types.Metadata.lcs_deserialize(metadata_bytes)
+        metadata = diem_types.Metadata.bcs_deserialize(metadata_bytes)
 
         if isinstance(metadata, diem_types.Metadata__GeneralMetadata):
             if isinstance(metadata.value, diem_types.GeneralMetadata__GeneralMetadataVersion0):

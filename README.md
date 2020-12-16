@@ -14,7 +14,7 @@ Sub-modules:
 
 - `jsonrpc`: diem JSON-RPC APIs client and API response types. [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
 - `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
-- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [LCS](https://diem.github.io/diem/lcs/index.html) data.
+- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [BCS](https://crates.io/crates/bcs) data.
 - `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
 - `AuthKey` | `auth_key`: auth key utils
 - `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)

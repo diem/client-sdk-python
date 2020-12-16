@@ -23,7 +23,7 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing, time
 
-from . import diem_types, jsonrpc, utils, chain_ids, lcs, stdlib, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, LocalAccount
 
 
 JSON_RPC_URL: str = "http://dev.testnet.diem.com/v1"
@@ -40,9 +40,10 @@ def create_client() -> jsonrpc.Client:
     return jsonrpc.Client(JSON_RPC_URL)
 
 
-def gen_vasp_account(base_url: str) -> LocalAccount:
-    account = gen_account()
+def gen_vasp_account(client: jsonrpc.Client, base_url: str) -> LocalAccount:
+    account = gen_account(client)
     exec_txn(
+        client,
         account,
         stdlib.encode_rotate_dual_attestation_info_script(
             new_url=base_url.encode("utf-8"), new_key=account.compliance_public_key_bytes
@@ -51,17 +52,21 @@ def gen_vasp_account(base_url: str) -> LocalAccount:
     return account
 
 
-def gen_account(dd_account: bool = False) -> LocalAccount:
+def gen_account(client: jsonrpc.Client, dd_account: bool = False) -> LocalAccount:
     """generates a Testnet onchain account"""
 
-    return Faucet(create_client()).gen_account(dd_account=dd_account)
+    return Faucet(client).gen_account(dd_account=dd_account)
 
 
 def gen_child_vasp(
-    parent_vasp: LocalAccount, initial_balance: int = 10_000_000_000, currency: str = TEST_CURRENCY_CODE
+    client: jsonrpc.Client,
+    parent_vasp: LocalAccount,
+    initial_balance: int = 10_000_000_000,
+    currency: str = TEST_CURRENCY_CODE,
 ) -> LocalAccount:
     child_vasp = LocalAccount.generate()
     exec_txn(
+        client,
         parent_vasp,
         stdlib.encode_create_child_vasp_account_script(
             coin_type=utils.currency_code(currency),
@@ -74,10 +79,9 @@ def gen_child_vasp(
     return child_vasp
 
 
-def exec_txn(sender: LocalAccount, script: diem_types.Script) -> jsonrpc.Transaction:
+def exec_txn(client: jsonrpc.Client, sender: LocalAccount, script: diem_types.Script) -> jsonrpc.Transaction:
     """create, submit and wait for the transaction"""
 
-    client = create_client()
     sender_account_sequence = client.get_account_sequence(sender.account_address)
     expire = 30
     txn = sender.sign(
@@ -134,7 +138,7 @@ class Faucet:
         )
         response.raise_for_status()
 
-        de = lcs.LcsDeserializer(bytes.fromhex(response.text))
+        de = bcs.BcsDeserializer(bytes.fromhex(response.text))
         length = de.deserialize_len()
 
         for i in range(length):

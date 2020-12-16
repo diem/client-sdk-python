@@ -122,7 +122,7 @@ def test_get_account_transaction_by_hex_encoded_account_address():
 
 def test_get_account_transaction_include_events():
     client = testnet.create_client()
-    account = testnet.gen_vasp_account("http://baseurl")
+    account = testnet.gen_vasp_account(client, "http://baseurl")
 
     txn = client.get_account_transaction(account.account_address, 0, include_events=True)
     assert txn is not None
@@ -164,7 +164,7 @@ def test_get_account_transactions_by_hex_encoded_account_address():
 
 def test_get_account_transactions_with_events():
     client = testnet.create_client()
-    account = testnet.gen_vasp_account("url")
+    account = testnet.gen_vasp_account(client, "url")
     txns = client.get_account_transactions(account.account_address, 0, 1, include_events=True)
     assert txns is not None
     assert isinstance(txns, list)
@@ -258,7 +258,7 @@ def test_submit_create_child_vasp():
     assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
 
     # wait for transaction by signed txn hex string
-    signed_txn_hex = signed_txn.lcs_serialize().hex()
+    signed_txn_hex = signed_txn.bcs_serialize().hex()
     executed_txn = client.wait_for_transaction(signed_txn_hex)
     assert executed_txn is not None
     assert isinstance(executed_txn, jsonrpc.Transaction)
@@ -344,10 +344,10 @@ def test_get_parent_vasp_account_with_non_vasp_account_address():
 
 
 def test_gen_vasp_account():
-    account = testnet.gen_vasp_account("http://hello.com")
-    child_vasp = testnet.gen_child_vasp(account)
-
     client = testnet.create_client()
+    account = testnet.gen_vasp_account(client, "http://hello.com")
+    child_vasp = testnet.gen_child_vasp(client, account)
+
     assert client.get_account(account.account_address).role.type == "parent_vasp"
     assert client.get_account(child_vasp.account_address).role.type == "child_vasp"
 
@@ -355,8 +355,8 @@ def test_gen_vasp_account():
 def test_get_base_url_and_compliance_key():
     client = testnet.create_client()
 
-    parent_vasp = testnet.gen_vasp_account("http://hello.com")
-    child_vasp = testnet.gen_child_vasp(parent_vasp)
+    parent_vasp = testnet.gen_vasp_account(client, "http://hello.com")
+    child_vasp = testnet.gen_child_vasp(client, parent_vasp)
 
     base_url, key = client.get_base_url_and_compliance_key(child_vasp.account_address)
     assert base_url == "http://hello.com"
@@ -380,8 +380,8 @@ def test_value_error_when_get_base_url_and_compliance_key_for_account_has_no_bas
 
 
 def test_gen_dd_account():
-    account = testnet.gen_account(dd_account=True)
     client = testnet.create_client()
+    account = testnet.gen_account(client, dd_account=True)
     onchain_account = client.get_account(account.account_address)
     assert onchain_account.role.type == "designated_dealer"
 

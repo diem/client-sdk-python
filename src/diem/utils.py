@@ -110,7 +110,7 @@ def create_signed_transaction(
 def raw_transaction_signing_msg(txn: diem_types.RawTransaction) -> bytes:
     """create signing message from given `diem_types.RawTransaction`"""
 
-    return diem_hash_seed(b"RawTransaction") + txn.lcs_serialize()
+    return diem_hash_seed(b"RawTransaction") + txn.bcs_serialize()
 
 
 def transaction_hash(txn: diem_types.SignedTransaction) -> str:
@@ -120,7 +120,7 @@ def transaction_hash(txn: diem_types.SignedTransaction) -> str:
     """
 
     user_txn = diem_types.Transaction__UserTransaction(value=txn)
-    return hash(diem_hash_seed(b"Transaction"), user_txn.lcs_serialize()).hex()
+    return hash(diem_hash_seed(b"Transaction"), user_txn.bcs_serialize()).hex()
 
 
 def diem_hash_seed(typ: bytes) -> bytes:
@@ -147,7 +147,7 @@ def decode_transaction_script(
     """
 
     if isinstance(txn, str):
-        script = diem_types.Script.lcs_deserialize(bytes.fromhex(txn))
+        script = diem_types.Script.bcs_deserialize(bytes.fromhex(txn))
         return stdlib.decode_script(script)
     if isinstance(txn, jsonrpc.Transaction):
         return decode_transaction_script(txn.transaction.script_bytes)

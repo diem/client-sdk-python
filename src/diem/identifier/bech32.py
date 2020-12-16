@@ -21,6 +21,7 @@ _DIEM_ADDRESS_SIZE = 16  # in bytes
 _DIEM_BECH32_VERSION = 1
 _DIEM_BECH32_SIZE = [50, 49]  # in characters
 
+
 class Bech32Error(Exception):
     """ Represents an error when creating a Diem address. """
 

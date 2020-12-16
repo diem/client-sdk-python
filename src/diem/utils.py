@@ -4,7 +4,7 @@
 """Utilities for data type converting, construction and hashing."""
 
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
 import hashlib
 import typing
 
@@ -79,9 +79,19 @@ def sub_address(addr: typing.Union[str, bytes]) -> bytes:
 
 
 def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:
-    """convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into bytes"""
+    """convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into raw bytes"""
 
     return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+
+
+def private_key_bytes(private_key: Ed25519PrivateKey) -> bytes:
+    """convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey into raw bytes"""
+
+    return private_key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
 
 
 def currency_code(code: str) -> diem_types.TypeTag:

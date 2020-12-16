@@ -6,6 +6,6 @@
 
 ```
 git checkout <releasse version>
-make tagrelease
+git tag vX.X.X
 git push origin --tags
 ```

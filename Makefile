@@ -60,9 +60,6 @@ publish: dist
 	./venv/bin/pip install --upgrade twine
 	./venv/bin/python3 -m twine upload dist/*
 
-tagrelease:
-	git tag "v$(shell cat setup.py | grep version | cut -c 14-27)"
-
 docs: init install
 	rm -rf docs
 	./venv/bin/python3 -m pdoc diem --html -o docs

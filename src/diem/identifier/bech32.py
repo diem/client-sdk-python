@@ -83,7 +83,7 @@ def bech32_address_decode(expected_hrp: str, bech32: str) -> typing.Tuple[int, b
 
     if hrp != expected_hrp:
         raise Bech32Error(
-            f'Wrong Diem address Bech32 human readable part (prefix): requested "{expected_hrp}" but ' f'got "{hrp}"'
+            f"Wrong Diem address Bech32 human readable part (prefix): expect {expected_hrp} but got {hrp}"
         )
 
     # check separator

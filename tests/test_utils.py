@@ -39,11 +39,11 @@ def test_sub_address():
 
 
 def test_currency_code():
-    ccode = utils.currency_code("Coin1")
+    ccode = utils.currency_code("XUS")
     assert isinstance(ccode, diem_types.TypeTag)
 
     code = utils.type_tag_to_str(ccode)
-    assert code == "Coin1"
+    assert code == "XUS"
 
     with pytest.raises(TypeError):
         utils.currency_code(False)
@@ -76,10 +76,10 @@ def test_decode_transaction_script():
 def test_balance():
     account = jsonrpc.Account(
         balances=[
-            jsonrpc.Amount(amount=32, currency="Coin1"),
-            jsonrpc.Amount(amount=33, currency="Coin2"),
+            jsonrpc.Amount(amount=32, currency="XUS"),
+            jsonrpc.Amount(amount=33, currency="XDX"),
         ]
     )
-    assert utils.balance(account, "Coin1") == 32
-    assert utils.balance(account, "Coin2") == 33
+    assert utils.balance(account, "XUS") == 32
+    assert utils.balance(account, "XDX") == 33
     assert utils.balance(account, "unknown") == 0

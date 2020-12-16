@@ -10,16 +10,42 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  build37:
     runs-on: ubuntu-latest
-
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7
+    - name: Install dependencies
+      run: |
+        make init
+    - name: Test Dist
+      run: |
+        make dist
+  build38:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
+    - name: Install dependencies
+      run: |
+        make init
+    - name: Test Dist
+      run: |
+        make dist
+  build39:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
     - name: Install dependencies
       run: |
         make init

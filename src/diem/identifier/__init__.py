@@ -171,3 +171,13 @@ def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.Ac
     if subaddress_bytes != DIEM_ZERO_SUBADDRESS:
         return (address, subaddress_bytes)
     return (address, None)
+
+
+def decode_account_address(encoded_address: str, hrp: str) -> diem_types.AccountAddress:
+    address, _ = decode_account(encoded_address, hrp)
+    return address
+
+
+def decode_account_subaddress(encoded_address: str, hrp: str) -> typing.Optional[bytes]:
+    _, subaddress = decode_account(encoded_address, hrp)
+    return subaddress

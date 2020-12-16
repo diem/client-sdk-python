@@ -298,7 +298,7 @@ class Client:
     def get_metadata(
         self,
         version: typing.Optional[int] = None,
-    ) -> typing.Optional[rpc.Metadata]:
+    ) -> rpc.Metadata:
         """get block metadata
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md)

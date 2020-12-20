@@ -331,6 +331,14 @@ def test_x_request_sender_address_must_one_of_actor_addresses(sender_app, receiv
     assert_response_command_error(resp, "invalid-x-request-sender-address")
 
 
+def test_http_header_x_request_sender_address_missing(sender_app, receiver_app):
+    request = minimum_required_fields_request_sample(sender_app, receiver_app)
+    resp = send_request_json_with_headers(
+        json.dumps(request), sender_app, receiver_app, "failure", {http_header.X_REQUEST_ID: str(uuid.uuid4())}
+    )
+    assert_response_protocol_error(resp, "missing-http-header")
+
+
 def replace_actor(cmd, name, actor, **changes):
     new_actor = dataclasses.replace(actor, **changes)
     return replace_command_payment(cmd, **{name: new_actor})
@@ -391,8 +399,16 @@ def assert_invalid_overwrite_error(sender_app, receiver_app, field, update_cmd, 
 
 
 def assert_response_command_error(resp, code, field=None):
+    assert_response_error(resp, code, "command_error", field)
+
+
+def assert_response_protocol_error(resp, code, field=None):
+    assert_response_error(resp, code, "protocol_error", field)
+
+
+def assert_response_error(resp, code, err_type, field=None):
     assert resp.error, resp
-    assert resp.error.type == "command_error", resp
+    assert resp.error.type == err_type, resp
     assert resp.error.code == code, resp
     assert resp.error.field == field, resp
 
@@ -430,15 +446,26 @@ def send_request_json(
         subaddress = subaddresses[len(subaddresses) - 1] if len(subaddresses) > 0 else None
         account_address = sender_app._available_child_vasp().account_address
         sender_address = identifier.encode_account(account_address, subaddress, sender_app.hrp)
+    return send_request_json_with_headers(
+        request_json,
+        sender_app,
+        receiver_app,
+        expected_resp_status,
+        {
+            http_header.X_REQUEST_ID: str(uuid.uuid4()),
+            http_header.X_REQUEST_SENDER_ADDRESS: sender_address,
+        },
+    )
 
+
+def send_request_json_with_headers(
+    request_json, sender_app, receiver_app, expected_resp_status, headers
+) -> CommandResponseObject:
     session = requests.Session()
     resp = session.post(
         f"http://localhost:{receiver_app.offchain_service_port}/v2/command",
         data=jws.serialize_string(request_json, sender_app.compliance_key.sign),
-        headers={
-            http_header.X_REQUEST_ID: str(uuid.uuid4()),
-            http_header.X_REQUEST_SENDER_ADDRESS: sender_address,
-        },
+        headers=headers,
     )
 
     cmd_resp_obj = jws.deserialize(

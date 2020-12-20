@@ -82,6 +82,8 @@ class Client:
         return cmd_resp
 
     def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> PaymentCommand:
+        if not request_sender_address:
+            raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
         _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
         request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
         if request.command_type == CommandType.PaymentCommand:

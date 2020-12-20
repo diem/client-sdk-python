@@ -90,6 +90,7 @@ class ErrorCode:
     conflict = "conflict"
 
     missing_http_header = "missing-http-header"
+    invalid_recipient_signature = "invalid-recipient-signature"
 
 
 class Status:

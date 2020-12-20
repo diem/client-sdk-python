@@ -31,9 +31,7 @@ def start_local(
     class Handler(server.BaseHTTPRequestHandler):
         def do_POST(self):
             x_request_id = self.headers[X_REQUEST_ID]
-            assert x_request_id
             jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
-            assert jws_key_address
             try:
                 length = int(self.headers["content-length"])
                 content = self.rfile.read(length)

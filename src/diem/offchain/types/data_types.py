@@ -89,6 +89,8 @@ class ErrorCode:
     # the command is conflict with another command updating in progress by reference id
     conflict = "conflict"
 
+    missing_http_header = "missing-http-header"
+
 
 class Status:
     # No status is yet set from this actor.

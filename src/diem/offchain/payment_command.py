@@ -3,6 +3,8 @@
 
 import typing, dataclasses, uuid
 
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.exceptions import InvalidSignature
 from .types import (
     CommandRequestObject,
     ErrorCode,
@@ -18,14 +20,7 @@ from .types import (
     validate_write_once_fields,
 )
 from .error import command_error
-from .payment_state import (
-    Action,
-    Actor,
-    MACHINE as payment_states,
-    follow_up_action,
-    summary,
-    trigger_actor,
-)
+from .payment_state import Action, Actor, MACHINE as payment_states, follow_up_action, summary, trigger_actor, R_SEND
 from .state import ConditionValidationError, State
 from .command import Command
 from .. import diem_types, identifier, txnmetadata
@@ -87,10 +82,6 @@ class PaymentCommand(Command):
                 self.validate_is_initial()
         except FieldError as e:
             raise command_error(e.code, str(e), e.field) from e
-        except ConditionValidationError as e:
-            fields = ", ".join(map(lambda f: f"command.payment.{f}", e.match_result.mismatched_fields))
-            msg = f"payment object is invalid, missing: {fields}"
-            raise command_error(ErrorCode.missing_field, msg, fields) from e
 
     def validate_state_trigger_actor(self) -> None:
         if self.inbound and self.opponent_actor() != self.state_trigger_actor():
@@ -173,7 +164,12 @@ class PaymentCommand(Command):
         return self.my_actor().value
 
     def state(self) -> State[PaymentObject]:
-        return payment_states.match_state(self.payment)
+        try:
+            return payment_states.match_state(self.payment)
+        except ConditionValidationError as e:
+            fields = ", ".join(map(lambda f: f"command.payment.{f}", e.match_result.mismatched_fields))
+            msg = f"payment object is invalid, missing: {fields}"
+            raise command_error(ErrorCode.missing_field, msg, fields) from e
 
     def state_trigger_actor(self) -> Actor:
         return trigger_actor(self.state())
@@ -183,6 +179,9 @@ class PaymentCommand(Command):
 
     def is_initial(self) -> bool:
         return payment_states.is_initial(self.state())
+
+    def is_rsend(self) -> bool:
+        return R_SEND == self.state()
 
     def is_both_ready(self) -> bool:
         return (

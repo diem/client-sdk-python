@@ -84,39 +84,35 @@ class Client:
     def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> PaymentCommand:
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
-        _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+        try:
+            _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+        except ValueError as e:
+            raise protocol_error(ErrorCode.invalid_x_request_sender_address, str(e)) from e
+
         request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
         if request.command_type == CommandType.PaymentCommand:
-            self.validate_payment_object(request.command.payment, request_sender_address)
-            return self.create_inbound_payment_command(request.cid, request.command.payment)
+            self.validate_addresses(request.command.payment, request_sender_address)
+            cmd = self.create_inbound_payment_command(request.cid, request.command.payment)
+            state = cmd.state()
+            if cmd.is_initial():
+                self.validate_dual_attestation_limit(cmd.payment.action)
+            elif cmd.is_rsend():
+                self.validate_recipient_signature(cmd, public_key)
+            return cmd
 
         raise command_error(
             ErrorCode.unknown_command_type,
             f"unknown command_type: {request.command_type}",
         )
 
-    def validate_payment_object(self, payment: PaymentObject, request_sender_address: str) -> None:
-        self.validate_actor_address("sender", payment.sender)
-        self.validate_actor_address("receiver", payment.receiver)
-        self.validate_request_sender_address(request_sender_address, [payment.sender.address, payment.receiver.address])
-        self.validate_dual_attestation_limit(payment.action)
-
-    def validate_actor_address(self, actor_name: str, actor: PaymentActorObject) -> None:
+    def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -> None:
+        msg = cmd.travel_rule_metadata_signature_message(self.hrp)
         try:
-            identifier.decode_account(actor.address, self.hrp)
-        except ValueError as e:
+            public_key.verify(bytes.fromhex(cmd.payment.recipient_signature), msg)
+        except (ValueError, InvalidSignature) as e:
             raise command_error(
-                ErrorCode.invalid_field_value,
-                f"could not decode account identifier: {e}",
-                f"command.payment.{actor_name}.address",
+                ErrorCode.invalid_recipient_signature, str(e), "command.payment.recipient_signature"
             ) from e
-
-    def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -> None:
-        if request_sender_address not in addresses:
-            raise command_error(
-                ErrorCode.invalid_x_request_sender_address,
-                f"address {request_sender_address} is not one of {addresses}",
-            )
 
     def validate_dual_attestation_limit(self, action: PaymentActionObject) -> None:
         currencies = self.jsonrpc_client.get_currencies()
@@ -136,6 +132,28 @@ class Client:
             f"currency code is invalid: {action.currency}",
             "command.payment.action.currency",
         )
+
+    def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -> None:
+        self.validate_actor_address("sender", payment.sender)
+        self.validate_actor_address("receiver", payment.receiver)
+        self.validate_request_sender_address(request_sender_address, [payment.sender.address, payment.receiver.address])
+
+    def validate_actor_address(self, actor_name: str, actor: PaymentActorObject) -> None:
+        try:
+            identifier.decode_account(actor.address, self.hrp)
+        except ValueError as e:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f"could not decode account identifier: {e}",
+                f"command.payment.{actor_name}.address",
+            ) from e
+
+    def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -> None:
+        if request_sender_address not in addresses:
+            raise command_error(
+                ErrorCode.invalid_x_request_sender_address,
+                f"address {request_sender_address} is not one of {addresses}",
+            )
 
     def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -> PaymentCommand:
         if self.is_my_account_id(obj.sender.address):

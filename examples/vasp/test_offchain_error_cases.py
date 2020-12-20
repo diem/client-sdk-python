@@ -10,7 +10,7 @@ from diem.offchain import (
     CommandResponseError,
     PaymentActionObject,
 )
-from diem import LocalAccount, identifier
+from diem import LocalAccount, identifier, testnet
 from .wallet import ActionResult
 import dataclasses, requests, json, copy, pytest, uuid
 
@@ -319,6 +319,13 @@ def test_reference_id_uuid(sender_app, receiver_app):
     assert_response_command_error(resp, "invalid-field-value", "command.payment.reference_id")
 
 
+def test_unknown_actor_address_could_not_find_request_receiver_account_id(sender_app, receiver_app):
+    request = minimum_required_fields_request_sample(sender_app, receiver_app)
+    request["command"]["payment"]["receiver"]["address"] = sender_app.offchain_client.my_compliance_key_account_id
+    resp = send_request(request, sender_app, receiver_app, "failure")
+    assert_response_command_error(resp, "unknown-actor-address")
+
+
 def test_x_request_sender_address_must_one_of_actor_addresses(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     resp = send_request(
@@ -337,6 +344,58 @@ def test_http_header_x_request_sender_address_missing(sender_app, receiver_app):
         json.dumps(request), sender_app, receiver_app, "failure", {http_header.X_REQUEST_ID: str(uuid.uuid4())}
     )
     assert_response_protocol_error(resp, "missing-http-header")
+
+
+def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, receiver_app):
+    account = LocalAccount.generate()
+    account_id = identifier.encode_account(account.account_address, None, sender_app.hrp)
+    request = minimum_required_fields_request_sample(sender_app, receiver_app)
+    request["command"]["payment"]["sender"]["address"] = account_id
+    resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
+    assert_response_protocol_error(resp, "invalid-x-request-sender-address")
+
+
+def test_could_not_find_compliance_key_of_x_request_sender_address(sender_app, receiver_app):
+    account = testnet.gen_account(testnet.create_client())
+    account_id = identifier.encode_account(account.account_address, None, sender_app.hrp)
+    request = minimum_required_fields_request_sample(sender_app, receiver_app)
+    request["command"]["payment"]["sender"]["address"] = account_id
+    resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
+    assert_response_protocol_error(resp, "invalid-x-request-sender-address")
+
+
+def test_invalid_recipient_signature(sender_app, receiver_app):
+    intent_id = receiver_app.gen_intent_id("bar", AMOUNT)
+    ref_id = sender_app.pay("foo", intent_id)
+    assert sender_app.run_once_background_job() == ActionResult.SEND_REQUEST_SUCCESS
+
+    assert receiver_app.run_once_background_job() == (
+        Action.EVALUATE_KYC_DATA,
+        ActionResult.PASS,
+    )
+    cmd = receiver_app.saved_commands.get(ref_id)
+    invalid_sig_cmd = replace_command_payment(cmd, recipient_signature=b"invalid-sig".hex())
+    with pytest.raises(CommandResponseError) as err:
+        assert receiver_app._send_request(invalid_sig_cmd)
+
+    assert_response_command_error(err.value.resp, "invalid-recipient-signature", "command.payment.recipient_signature")
+
+
+def test_invalid_recipient_signature_hex(sender_app, receiver_app):
+    intent_id = receiver_app.gen_intent_id("bar", AMOUNT)
+    ref_id = sender_app.pay("foo", intent_id)
+    assert sender_app.run_once_background_job() == ActionResult.SEND_REQUEST_SUCCESS
+
+    assert receiver_app.run_once_background_job() == (
+        Action.EVALUATE_KYC_DATA,
+        ActionResult.PASS,
+    )
+    cmd = receiver_app.saved_commands.get(ref_id)
+    invalid_sig_cmd = replace_command_payment(cmd, recipient_signature="invalid-sig-hex")
+    with pytest.raises(CommandResponseError) as err:
+        assert receiver_app._send_request(invalid_sig_cmd)
+
+    assert_response_command_error(err.value.resp, "invalid-recipient-signature", "command.payment.recipient_signature")
 
 
 def replace_actor(cmd, name, actor, **changes):

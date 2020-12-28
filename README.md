@@ -1,6 +1,6 @@
 # The official Diem Client SDK for Python.
 
-[Documentation](https://developers.diem.com/docs/python-client-sdk-docs)
+[Documentation](https://diem.github.io/client-sdk-python/)
 
 ## Modules Overview
 

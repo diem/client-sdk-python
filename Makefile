@@ -64,5 +64,13 @@ docs: init install
 	rm -rf docs
 	./venv/bin/python3 -m pdoc diem --html -o docs
 
+publishdocs:
+	git fetch origin gh-pages
+	git checkout origin/gh-pages
+	make docs
+	git add docs
+	git commit -m 'update docs'
+	git push origin gh-pages
+	git checkout master
 
 .PHONY: init check lint format install test cover build diemtypes protobuf gen dist pylama docs

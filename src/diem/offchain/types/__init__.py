@@ -1,12 +1,21 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from .data_types import (
+from .command_types import (
+    OffChainErrorType,
+    ErrorCode,
+    CommandResponseObject,
+    OffChainErrorObject,
+    CommandRequestObject,
+    CommandResponseStatus,
+    OffChainErrorObject,
+    CommandResponseStatus,
+    FundPullPreApprovalCommandObject,
+)
+from .payment_types import (
     AbortCode,
     NationalIdObject,
     AddressObject,
-    OffChainErrorType,
-    ErrorCode,
     Status,
     StatusObject,
     PaymentObject,
@@ -15,12 +24,7 @@ from .data_types import (
     KycDataObject,
     KycDataObjectType,
     CommandType,
-    CommandRequestObject,
-    CommandResponseObject,
     PaymentCommandObject,
-    FundPullPreApprovalCommandObject,
-    OffChainErrorObject,
-    CommandResponseStatus,
 )
 
 import dataclasses, json, re, secrets, typing, uuid

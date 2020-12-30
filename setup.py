@@ -27,5 +27,10 @@ setup(
     setup_requires=[
         # Setuptools 18.0 properly handles Cython extensions.
         "setuptools>=18.0",
+    ],
+    classifiers=[
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9'
     ]
 )

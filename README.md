@@ -1,27 +1,10 @@
 # The official Diem Client SDK for Python.
 
+[![pypi](https://img.shields.io/pypi/v/diem)](https://pypi.org/project/diem/)
+![Apache V2 License](https://img.shields.io/pypi/l/diem)
+![Python versoins](https://img.shields.io/pypi/pyversions/diem)
+
 [Documentation](https://diem.github.io/client-sdk-python/diem)
-
-## Modules Overview
-
-> SPEC = specification
-
-> DIP-X = Diem Improvement Protocol
-
-Root module name: `diem`
-
-Sub-modules:
-
-- `jsonrpc`: diem JSON-RPC APIs client and API response types. [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
-- `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
-- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [BCS](https://crates.io/crates/bcs) data.
-- `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
-- `AuthKey` | `auth_key`: auth key utils
-- `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)
-- `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.diem.com/dip-4/)
-- `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
-- `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
-- `chain_ids`: list of static chain ids
 
 ## Examples
 
@@ -45,15 +28,6 @@ You can find more examples under the [`examples`](./examples/) directory:
 
 Note: `make test` runs all examples too, see the Makefile for details.
 
-## Download
-
-```
-pip install diem
-```
-
-## Bugs/Requests
-
-Please use the [GitHub issue tracker](https://github.com/diem/client-sdk-python/issues) to submit bugs or request features.
 
 ## Build & Test
 
@@ -67,3 +41,24 @@ run specific test:
 ```
 TEST=<test file / test name> make test
 ```
+
+## Modules Overview
+
+> SPEC = specification
+
+> DIP-X = Diem Improvement Protocol
+
+Root module name: `diem`
+
+Sub-modules:
+
+- `jsonrpc`: diem JSON-RPC APIs client and API response types. [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
+- `stdlib`: generated code, move stdlib script utils for constructing transaction script playload.
+- `diem_types`: generated code, Diem on-chain data structure types for encoding and decoding [BCS](https://crates.io/crates/bcs) data.
+- `utils`: utility functions, account address utils, currency code, hashing, hex encoding / decoding, transaction utils.
+- `AuthKey` | `auth_key`: auth key utils
+- `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)
+- `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.diem.com/dip-4/)
+- `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
+- `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
+- `chain_ids`: list of static chain ids

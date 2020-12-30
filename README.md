@@ -1,6 +1,6 @@
 # The official Diem Client SDK for Python.
 
-[Documentation](https://diem.github.io/client-sdk-python/)
+[Documentation](https://diem.github.io/client-sdk-python/diem)
 
 ## Modules Overview
 
@@ -48,7 +48,7 @@ Note: `make test` runs all examples too, see the Makefile for details.
 ## Download
 
 ```
-pip install diem-client-sdk
+pip install diem
 ```
 
 ## Bugs/Requests

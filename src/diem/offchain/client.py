@@ -93,7 +93,6 @@ class Client:
         if request.command_type == CommandType.PaymentCommand:
             self.validate_addresses(request.command.payment, request_sender_address)
             cmd = self.create_inbound_payment_command(request.cid, request.command.payment)
-            state = cmd.state()
             if cmd.is_initial():
                 self.validate_dual_attestation_limit(cmd.payment.action)
             elif cmd.is_rsend():
@@ -108,7 +107,14 @@ class Client:
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -> None:
         msg = cmd.travel_rule_metadata_signature_message(self.hrp)
         try:
-            public_key.verify(bytes.fromhex(cmd.payment.recipient_signature), msg)
+            sig = cmd.payment.recipient_signature
+            if sig is None:
+                raise command_error(
+                    ErrorCode.invalid_recipient_signature,
+                    "recipient_signature is none",
+                    "command.payment.recipient_signature",
+                )
+            public_key.verify(bytes.fromhex(sig), msg)
         except (ValueError, InvalidSignature) as e:
             raise command_error(
                 ErrorCode.invalid_recipient_signature, str(e), "command.payment.recipient_signature"

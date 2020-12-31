@@ -3,8 +3,6 @@
 
 import typing, dataclasses, uuid
 
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from cryptography.exceptions import InvalidSignature
 from .types import (
     CommandRequestObject,
     ErrorCode,

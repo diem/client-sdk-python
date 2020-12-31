@@ -198,7 +198,9 @@ class PaymentObject:
     sender: PaymentActorObject
     receiver: PaymentActorObject
     action: PaymentActionObject = datafield(metadata={"write_once": True})
-    original_payment_reference_id: typing.Optional[str] = datafield(default=None, metadata={"immutable": True})
+    original_payment_reference_id: typing.Optional[str] = datafield(
+        default=None, metadata={"immutable": True, "valid-values": UUID_REGEX}
+    )
     recipient_signature: typing.Optional[str] = datafield(default=None, metadata={"write_once": True})
     description: typing.Optional[str] = datafield(default=None, metadata={"write_once": True})
 
@@ -210,6 +212,11 @@ class PaymentCommandObject:
 
 
 @dataclass(frozen=True)
+class FundPullPreApprovalCommandObject:
+    _ObjectType: str = datafield(metadata={"valid-values": [CommandType.FundPullPreApprovalCommand]})
+
+
+@dataclass(frozen=True)
 class CommandRequestObject:
     # A unique identifier for the Command.
     cid: str = datafield(metadata={"valid-values": UUID_REGEX})
@@ -217,7 +224,7 @@ class CommandRequestObject:
     command_type: str = datafield(
         metadata={"valid-values": [CommandType.PaymentCommand, CommandType.FundPullPreApprovalCommand]}
     )
-    command: PaymentCommandObject
+    command: typing.Union[PaymentCommandObject, FundPullPreApprovalCommandObject]
     _ObjectType: str = datafield(default="CommandRequestObject", metadata={"valid-values": ["CommandRequestObject"]})
 
 

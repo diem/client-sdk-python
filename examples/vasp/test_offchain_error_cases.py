@@ -252,8 +252,8 @@ def test_written_once_payment_original_payment_reference_id(sender_app, receiver
         sender_app,
         receiver_app,
         "payment.original_payment_reference_id",
-        lambda cmd: replace_command_payment(cmd, original_payment_reference_id="update ref id"),
-        original_payment_reference_id="original-id",
+        lambda cmd: replace_command_payment(cmd, original_payment_reference_id="4185027f-0574-6f55-2668-3a38fdb5de98"),
+        original_payment_reference_id="6185027f-0574-6f55-2668-3a38fdb5de98",
     )
 
 
@@ -262,7 +262,7 @@ def test_written_once_payment_original_payment_reference_id_initial_only(sender_
         sender_app,
         receiver_app,
         "payment.original_payment_reference_id",
-        lambda cmd: replace_command_payment(cmd, original_payment_reference_id="update ref id"),
+        lambda cmd: replace_command_payment(cmd, original_payment_reference_id="4185027f-0574-6f55-2668-3a38fdb5de98"),
     )
 
 
@@ -379,6 +379,23 @@ def test_invalid_recipient_signature(sender_app, receiver_app):
         assert receiver_app._send_request(invalid_sig_cmd)
 
     assert_response_command_error(err.value.resp, "invalid-recipient-signature", "command.payment.recipient_signature")
+
+
+def test_receiver_actor_is_ready_for_settlement_but_recipient_signature_is_none(sender_app, receiver_app):
+    intent_id = receiver_app.gen_intent_id("bar", AMOUNT)
+    ref_id = sender_app.pay("foo", intent_id)
+    assert sender_app.run_once_background_job() == ActionResult.SEND_REQUEST_SUCCESS
+
+    assert receiver_app.run_once_background_job() == (
+        Action.EVALUATE_KYC_DATA,
+        ActionResult.PASS,
+    )
+    cmd = receiver_app.saved_commands.get(ref_id)
+    missing_sig_cmd = replace_command_payment(cmd, recipient_signature=None)
+    with pytest.raises(CommandResponseError) as err:
+        assert receiver_app._send_request(missing_sig_cmd)
+
+    assert_response_command_error(err.value.resp, "missing-field", "command.payment.recipient_signature")
 
 
 def test_invalid_recipient_signature_hex(sender_app, receiver_app):

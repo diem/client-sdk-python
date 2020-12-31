@@ -57,11 +57,10 @@ class WalletApp:
     """WalletApp is an example of custodial wallet application"""
 
     @staticmethod
-    def generate(name: str) -> "WalletApp":
+    def generate(name: str, client: jsonrpc.Client) -> "WalletApp":
         """generate a WalletApp running on testnet"""
 
         offchain_service_port = offchain.http_server.get_available_port()
-        client = testnet.create_client()
         account = testnet.gen_vasp_account(client, f"http://localhost:{offchain_service_port}")
         w = WalletApp(
             name=name,

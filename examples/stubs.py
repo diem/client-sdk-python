@@ -18,8 +18,8 @@ class CustodialApp:
     """CustodialApp is a stub for simulating custodial application on testnet"""
 
     @staticmethod
-    def create(vasp: LocalAccount) -> "CustodialApp":
-        c = CustodialApp(vasp)
+    def create(vasp: LocalAccount, client: jsonrpc.Client) -> "CustodialApp":
+        c = CustodialApp(vasp, client)
         c.add_child_vasp()
         c.add_user()
         return c
@@ -34,10 +34,10 @@ class CustodialApp:
     def __init__(
         self,
         parent_vasp: LocalAccount,
+        client: jsonrpc.Client,
     ) -> None:
         self._parent_vasp = parent_vasp
-        # a custodial application runs with its own client
-        self._client = testnet.create_client()
+        self._client = client
         self._chain_id = testnet.CHAIN_ID
         self._children = []
         self._users = []

@@ -8,6 +8,8 @@ from .command_types import (
     OffChainErrorObject,
     CommandRequestObject,
     CommandResponseStatus,
+    OffChainErrorObject,
+    CommandResponseStatus,
     FundPullPreApprovalCommandObject,
 )
 from .payment_types import (
@@ -24,8 +26,17 @@ from .payment_types import (
     CommandType,
     PaymentCommandObject,
 )
+from .fund_pull_pre_approval_types import (
+    FundPullPreApprovalCommandObject,
+    FundPullPreApprovalObject,
+    FundPullPreApprovalStatus,
+    FundPullPreApprovalScopeObject,
+    ScopedCumulativeAmountObject,
+    TimeUnit,
+    CurrencyObject,
+)
 
-import dataclasses, json, re, secrets, typing, uuid
+import dataclasses, json, re, typing, uuid
 
 
 class FieldError(ValueError):

@@ -119,6 +119,7 @@ class PaymentCommand(Command):
         abort_code: typing.Optional[str] = None,
         abort_message: typing.Optional[str] = None,
         inbound: bool = False,
+        metadata: typing.Optional[typing.List[str]] = None,
     ) -> Command:
         changes: typing.Dict[str, typing.Any] = {
             self.my_actor().value: replace_payment_actor(
@@ -128,6 +129,7 @@ class PaymentCommand(Command):
                 additional_kyc_data=additional_kyc_data,
                 abort_code=abort_code,
                 abort_message=abort_message,
+                metadata=metadata,
             ),
         }
         if recipient_signature:

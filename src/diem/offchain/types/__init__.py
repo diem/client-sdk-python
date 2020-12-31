@@ -142,6 +142,7 @@ def replace_payment_actor(
     additional_kyc_data: typing.Optional[str] = None,
     abort_code: typing.Optional[str] = None,
     abort_message: typing.Optional[str] = None,
+    metadata: typing.Optional[typing.List[str]] = None,
 ) -> PaymentActorObject:
     changes = {}
     if kyc_data:
@@ -155,6 +156,10 @@ def replace_payment_actor(
             abort_code=abort_code,
             abort_message=abort_message,
         )
+    if metadata:
+        if not isinstance(metadata, list):
+            raise ValueError("metadata should be a list of string")
+        changes["metadata"] = actor.metadata + metadata if actor.metadata else metadata
     return dataclasses.replace(actor, **changes)
 
 

@@ -4,6 +4,8 @@
 from diem import offchain, identifier, txnmetadata
 from dataclasses import replace
 
+import pytest
+
 
 def test_is_both_ready(factory):
     cmd = factory.new_sender_payment_command()
@@ -57,3 +59,17 @@ def test_travel_rule_metadata_and_sig_message(factory):
 def test_to_json(factory):
     cmd = factory.new_sender_payment_command()
     assert cmd == offchain.from_json(offchain.to_json(cmd), offchain.PaymentCommand)
+
+
+def test_new_command_with_metadata_should_append_to_existing_metadata(factory):
+    cmd = factory.new_sender_payment_command()
+    cmd = cmd.new_command(metadata=["hello"])
+    cmd = cmd.new_command(metadata=["world"])
+    assert cmd.payment.receiver.metadata is None
+    assert cmd.payment.sender.metadata == ["hello", "world"]
+
+
+def test_new_command_raises_value_error_if_metadata_is_not_list(factory):
+    cmd = factory.new_sender_payment_command()
+    with pytest.raises(ValueError):
+        cmd.new_command(metadata="hello")

@@ -23,7 +23,7 @@ jobs:
         make init
     - name: Test
       run: |
-        make test
+        make build
     - name: Test Dist
       run: |
         make dist

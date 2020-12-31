@@ -18,6 +18,7 @@ from .data_types import (
     CommandRequestObject,
     CommandResponseObject,
     PaymentCommandObject,
+    FundPullPreApprovalCommandObject,
     OffChainErrorObject,
     CommandResponseStatus,
 )
@@ -43,15 +44,34 @@ class InvalidOverwriteError(FieldError):
 T = typing.TypeVar("T")
 
 
+_OBJECT_TYPES: typing.Dict[str, typing.Any] = {
+    "CommandResponseObject": CommandResponseObject,
+    "CommandRequestObject": CommandRequestObject,
+    CommandType.PaymentCommand: PaymentCommandObject,
+    CommandType.FundPullPreApprovalCommand: FundPullPreApprovalCommandObject,
+}
+
+_OBJECT_TYPE_FIELD_NAME = "_ObjectType"
+
+
 def to_json(obj: T, indent: typing.Optional[int] = None) -> str:
     return json.dumps(_delete_none(dataclasses.asdict(obj)), indent=indent)
 
 
-def from_json(data: str, klass: typing.Type[T]) -> T:
+def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -> T:
     return from_json_obj(json.loads(data), klass, "")
 
 
-def from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -> typing.Any:  # pyre-ignore
+def from_json_obj(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str) -> T:  # pyre-ignore
+    if klass is None or _is_union(klass):
+        if not isinstance(obj, dict):
+            code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
+            raise FieldError(code, field_path, f"expect json object, but got {type(obj).__name__}: {obj}")
+        klass = _find_object_type(obj, field_path)
+    return _from_json_obj(obj, klass, field_path)
+
+
+def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -> typing.Any:  # pyre-ignore
     if not isinstance(obj, dict):
         item_type = None
         if hasattr(klass, "__origin__") and klass.__origin__ == list and hasattr(klass, "__args__"):
@@ -59,7 +79,7 @@ def from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: s
             klass = list
         if not isinstance(obj, klass):
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
-            raise FieldError(code, field_path, f"expect type {klass}, but got {type(obj)}")
+            raise FieldError(code, field_path, f"expect type {klass.__name__}, but got {type(obj).__name__}")
         if klass == list and item_type:
             return [from_json_obj(item, item_type, field_path) for item in obj]
         return obj
@@ -72,7 +92,9 @@ def from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: s
 
     if len(unknown_fields) > 0:
         full_name = _join_field_path(field_path, unknown_fields[0])
-        raise FieldError(ErrorCode.unknown_field, full_name, f"{field_path}({klass}): {unknown_fields}")
+        unknown_fields.sort()
+        field_names = ", ".join(unknown_fields)
+        raise FieldError(ErrorCode.unknown_field, full_name, f"{field_path}: {field_names}")
     return klass(**obj)
 
 
@@ -246,3 +268,22 @@ def _delete_none(obj: typing.Any) -> typing.Any:  # pyre-ignore
         for val in obj:
             _delete_none(val)
     return obj
+
+
+def _find_object_type(obj: typing.Dict[str, typing.Any], field_path: str) -> typing.Type[typing.Any]:  # pyre-ignore
+    obj_type = obj.get(_OBJECT_TYPE_FIELD_NAME)
+    full_name = _join_field_path(field_path, _OBJECT_TYPE_FIELD_NAME)
+    if not obj_type:
+        raise FieldError(ErrorCode.missing_field, full_name, f"missing field: {full_name}")
+    t = _OBJECT_TYPES.get(obj_type)
+    if t is None:
+        raise FieldError(
+            ErrorCode.invalid_field_value,
+            full_name,
+            f"could not find object type: {obj_type}, valid types: {list(_OBJECT_TYPES.keys())}",
+        )
+    return t
+
+
+def _is_union(klass: typing.Any) -> bool:  # pyre-ignore
+    return hasattr(klass, "__origin__") and klass.__origin__ == typing.Union

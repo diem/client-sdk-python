@@ -17,6 +17,7 @@ from .types import (
     PaymentObject,
     PaymentActorObject,
     PaymentActionObject,
+    PaymentCommandObject,
     ErrorCode,
     FieldError,
 )
@@ -91,8 +92,9 @@ class Client:
 
         request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
         if request.command_type == CommandType.PaymentCommand:
-            self.validate_addresses(request.command.payment, request_sender_address)
-            cmd = self.create_inbound_payment_command(request.cid, request.command.payment)
+            payment = typing.cast(PaymentCommandObject, request.command).payment
+            self.validate_addresses(payment, request_sender_address)
+            cmd = self.create_inbound_payment_command(request.cid, payment)
             if cmd.is_initial():
                 self.validate_dual_attestation_limit(cmd.payment.action)
             elif cmd.is_rsend():
@@ -109,11 +111,7 @@ class Client:
         try:
             sig = cmd.payment.recipient_signature
             if sig is None:
-                raise command_error(
-                    ErrorCode.invalid_recipient_signature,
-                    "recipient_signature is none",
-                    "command.payment.recipient_signature",
-                )
+                raise ValueError("recipient_signature is not provided")
             public_key.verify(bytes.fromhex(sig), msg)
         except (ValueError, InvalidSignature) as e:
             raise command_error(
@@ -197,7 +195,7 @@ def _deserialize_jws(
     except JSONDecodeError as e:
         raise error_fn(ErrorCode.invalid_json, f"decode json string failed: {e}", None) from e
     except FieldError as e:
-        raise error_fn(e.code, f"invalid {klass} json: {e}", e.field) from e
+        raise error_fn(e.code, f"invalid {klass.__name__} json: {e}", e.field) from e
     except InvalidSignature as e:
         raise error_fn(ErrorCode.invalid_jws_signature, f"invalid jws signature: {e}", None) from e
     except ValueError as e:

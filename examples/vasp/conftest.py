@@ -2,19 +2,20 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from . import WalletApp
-from diem import testnet
+from diem import testnet, jsonrpc
 import pytest, typing
 
 
-def launch_wallet_app(name: str) -> WalletApp:
-    app = WalletApp.generate(f"{name}'s wallet app", testnet.create_client())
+def launch_wallet_app(name: str, client: jsonrpc.Client) -> WalletApp:
+    app = WalletApp.generate(f"{name}'s wallet app", client)
     app.start_server()
     return app
 
 
 @pytest.fixture(scope="module")
 def wallet_apps() -> typing.List[WalletApp]:
-    return {name: launch_wallet_app(name) for name in ["sender", "receiver"]}
+    client = testnet.create_client()
+    return {name: launch_wallet_app(name, client) for name in ["sender", "receiver"]}
 
 
 @pytest.fixture

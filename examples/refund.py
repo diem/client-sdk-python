@@ -16,8 +16,8 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    sender_custodial = CustodialApp.create(faucet.gen_account())
-    receiver_custodial = CustodialApp.create(faucet.gen_account())
+    sender_custodial = CustodialApp.create(faucet.gen_account(), client)
+    receiver_custodial = CustodialApp.create(faucet.gen_account(), client)
 
     # create a payment transaction
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)

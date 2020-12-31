@@ -45,7 +45,7 @@ def test_non_custodial_to_custodial():
     faucet = testnet.Faucet(client)
 
     sender = faucet.gen_account()
-    receiver_custodial = CustodialApp.create(faucet.gen_account())
+    receiver_custodial = CustodialApp.create(faucet.gen_account(), client)
 
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
 
@@ -71,7 +71,7 @@ def test_custodial_to_non_custodial():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    sender_custodial = CustodialApp.create(faucet.gen_account())
+    sender_custodial = CustodialApp.create(faucet.gen_account(), client)
     receiver = faucet.gen_account()
 
     amount = 1_000_000
@@ -99,8 +99,8 @@ def test_custodial_to_custodial_under_threshold():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    sender_custodial = CustodialApp.create(faucet.gen_account())
-    receiver_custodial = CustodialApp.create(faucet.gen_account())
+    sender_custodial = CustodialApp.create(faucet.gen_account(), client)
+    receiver_custodial = CustodialApp.create(faucet.gen_account(), client)
 
     intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
 
@@ -128,8 +128,8 @@ def test_custodial_to_custodial_above_threshold():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    sender_custodial = CustodialApp.create(faucet.gen_account())
-    receiver_custodial = CustodialApp.create(faucet.gen_account())
+    sender_custodial = CustodialApp.create(faucet.gen_account(), client)
+    receiver_custodial = CustodialApp.create(faucet.gen_account(), client)
     receiver_custodial.init_compliance_keys()
 
     intent_id = receiver_custodial.payment(user_id=0, amount=2_000_000_000)

@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from . import WalletApp
+from diem import testnet
 import pytest, typing
 
 
 def launch_wallet_app(name: str) -> WalletApp:
-    app = WalletApp.generate(f"{name}'s wallet app")
+    app = WalletApp.generate(f"{name}'s wallet app", testnet.create_client())
     app.start_server()
     return app
 

@@ -109,84 +109,113 @@ def test_dumps_and_loads_payment_command():
     """)
 
 
-def test_dumps_and_loads_funds_pull_preapproval_command():
-    pre_approval = offchain.FundPullPreApprovalObject(
-        address="lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
-        biller_address="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
-        funds_pre_approval_id="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
-        scope=offchain.FundPullPreApprovalScopeObject(
-            expiration_timestamp=72322,
-            max_cumulative_amount=offchain.ScopedCumulativeAmountObject(
-                unit=offchain.TimeUnit.week,
-                value=1,
-                max_amount=offchain.CurrencyObject(amount=100, currency="XUS"),
-            ),
-            max_transaction_amount=offchain.CurrencyObject(
-                amount=100_000_000,
-                currency="XUS",
-            ),
-        ),
-        status=offchain.FundPullPreApprovalStatus.pending,
-        description="Kevin's online shop",
-    )
-
-    command_request = offchain.CommandRequestObject(
-        command_type=offchain.CommandType.FundPullPreApprovalCommand,
-        command=offchain.FundPullPreApprovalCommandObject(
-            fund_pull_pre_approval=pre_approval,
-        ),
-        cid="3185027f-0574-6f55-2668-3a38fdb5de98",
-    )
-    # assert offchain.from_json(
-    #     offchain.to_json(request), offchain.CommandRequestObject
-    # ) == request
-    #
-    # assert offchain.from_json(offchain.to_json(request)) == request
-
-    expected_command_json = json.loads("""
-    {
-        "_ObjectType": "CommandRequestObject",
-        "command_type": "FundPullPreApprovalCommand",
-        "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-        "command": {
-            "_ObjectType": "FundPullPreApprovalCommand",
-            "fund_pull_pre_approval": {
-                "address": "lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
-                "biller_address": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
-                "funds_pre_approval_id": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
-                "scope": {
-                    "expiration_timestamp": 72322, 
-                    "max_cumulative_amount": {
-                        "unit": "week",
-                        "value": 1,
-                        "max_amount": {
-                            "amount": 100,
+@pytest.fixture
+def funds_pull_pre_approval():
+    class ExampleData:
+        command_request_json = json.loads("""
+        {
+            "_ObjectType": "CommandRequestObject",
+            "command_type": "FundPullPreApprovalCommand",
+            "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
+            "command": {
+                "_ObjectType": "FundPullPreApprovalCommand",
+                "fund_pull_pre_approval": {
+                    "address": "lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
+                    "biller_address": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
+                    "funds_pre_approval_id": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
+                    "scope": {
+                        "expiration_timestamp": 72322, 
+                        "max_cumulative_amount": {
+                            "unit": "week",
+                            "value": 1,
+                            "max_amount": {
+                                "amount": 100,
+                                "currency": "XUS"
+                            }
+                        },
+                        "max_transaction_amount": {
+                            "amount": 100000000,
                             "currency": "XUS"
                         }
                     },
-                    "max_transaction_amount": {
-                        "amount": 100000000,
-                        "currency": "XUS"
-                    }
-                },
-                "description": "Kevin's online shop",
-                "status": "pending"
+                    "description": "Kevin's online shop",
+                    "status": "pending"
+                }
             }
         }
-    }
-    """)
-    actual_command_json_text = offchain.to_json(command_request)
+        """)
+
+        fund_pull_pre_approval_object = offchain.FundPullPreApprovalObject(
+            address="lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
+            biller_address="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
+            funds_pre_approval_id="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
+            scope=offchain.FundPullPreApprovalScopeObject(
+                expiration_timestamp=72322,
+                max_cumulative_amount=offchain.ScopedCumulativeAmountObject(
+                    unit=offchain.TimeUnit.week,
+                    value=1,
+                    max_amount=offchain.CurrencyObject(amount=100, currency="XUS"),
+                ),
+                max_transaction_amount=offchain.CurrencyObject(
+                    amount=100_000_000,
+                    currency="XUS",
+                ),
+            ),
+            status=offchain.FundPullPreApprovalStatus.pending,
+            description="Kevin's online shop",
+        )
+
+        command_request_object = offchain.CommandRequestObject(
+            command_type=offchain.CommandType.FundPullPreApprovalCommand,
+            command=offchain.FundPullPreApprovalCommandObject(
+                fund_pull_pre_approval=fund_pull_pre_approval_object,
+            ),
+            cid="3185027f-0574-6f55-2668-3a38fdb5de98",
+        )
+
+    yield ExampleData
+
+
+def test_dumps_and_loads_command_request_with_preapproval_json(funds_pull_pre_approval):
+    """
+    Tests that a command request object containing a funds pull pre-approval
+    command is serialized into the correct JSON.
+    """
+    actual_command_json_text = offchain.to_json(
+        funds_pull_pre_approval.command_request_object
+    )
     try:
         actual_command_json = json.loads(actual_command_json_text)
-        assert actual_command_json == expected_command_json, \
+        assert actual_command_json == funds_pull_pre_approval.command_request_json, \
             f"Actual JSON not matching the expectation. Actual: {actual_command_json}"
     except json.JSONDecodeError:
         pytest.fail(f"Failed to decode command JSON: {actual_command_json_text}")
 
-    # Is FundPullPreApprovalObject JSON parsed back into the same object?
+
+def test_dumps_and_loads_funds_pull_preapproval_command(funds_pull_pre_approval):
+    """
+    Tests that a FundPullPreApprovalObject can be serialized into JSON
+    and then deserialized back into exactly the same object.
+    """
     assert offchain.from_json(
-        offchain.to_json(pre_approval), offchain.FundPullPreApprovalObject
-    ) == pre_approval
+        offchain.to_json(funds_pull_pre_approval.fund_pull_pre_approval_object),
+        offchain.FundPullPreApprovalObject,
+    ) == funds_pull_pre_approval.fund_pull_pre_approval_object
+
+
+def test_dumps_and_loads_command_request_with_preapproval(funds_pull_pre_approval):
+    """
+    Tests that a CommandRequestObject can be serialized into JSON and then
+    deserialized back into exactly the same object.
+    """
+    assert offchain.from_json(
+        offchain.to_json(funds_pull_pre_approval.command_request_object),
+        offchain.CommandRequestObject
+    ) == funds_pull_pre_approval.command_request_object
+
+    assert offchain.from_json(
+        offchain.to_json(funds_pull_pre_approval.command_request_object)
+    ) == funds_pull_pre_approval.command_request_object
 
 
 def test_dumps_and_loads_response_command():

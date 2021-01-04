@@ -354,318 +354,150 @@ def test_invalid_object_type():
 
 
 def test_object_type_is_not_provided_when_it_is_required():
-    request_json = """{
-  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(offchain.FieldError, match="missing field: command._ObjectType") as e:
-        offchain.from_json(request_json)
+    request_json = {
+        "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
+        "command_type": "PaymentCommand",
+        "command": {"_ObjectType": "PaymentCommand"},
+    }
+    assert_field_error(request_json, "missing-field", "_ObjectType", "missing field: _ObjectType")
 
-    assert e.value.code == "missing-field"
-
-    request_json = """{
-  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand"
-  }
-}"""
-    with pytest.raises(offchain.FieldError, match="missing field: _ObjectType") as e:
-        offchain.from_json(request_json)
-
-    assert e.value.code == "missing-field"
+    request_json = {
+        "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
+        "command_type": "PaymentCommand",
+        "command": {},
+        "_ObjectType": "CommandRequestObject",
+    }
+    assert_field_error(request_json, "missing-field", "command._ObjectType", "missing field: command._ObjectType")
 
 
 def test_invalid_enum_field_value():
-    request_json = """{
-  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand",
-    "payment": {
-      "reference_id": "2185027f-0574-6f55-2668-3a38fdb5de98",
-      "sender": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "invalid-status-value"
-        },
-        "kyc_data": {
-          "type": "individual",
-          "payload_version": 1,
-          "given_name": "Jack",
-          "surname": "G",
-          "address": {
-            "city": "San Francisco"
-          }
-        }
-      },
-      "receiver": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "none"
-        }
-      },
-      "action": {
-        "amount": 1000000000000,
-        "currency": "XUS",
-        "action": "charge",
-        "timestamp": 1609391272
-      }
-    }
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(
-        offchain.FieldError,
-        match="expect one of \\['none', 'needs_kyc_data', 'ready_for_settlement', 'abort', 'soft_match'\\], but got: invalid-status-value",
-    ) as e:
-        offchain.from_json(request_json)
-
-    assert e.value.code == "invalid-field-value"
+    request_json = set_field(sample_request_json(), {"command.payment.sender.status.status": "invalid"})
+    assert_field_error(
+        request_json,
+        "invalid-field-value",
+        "command.payment.sender.status.status",
+        "expect one of \\['none', 'needs_kyc_data', 'ready_for_settlement', 'abort', 'soft_match'\\], but got: invalid",
+    )
 
 
 def test_invalid_uuid_field_value():
-    request_json = """{
-  "cid": "invalid",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand",
-    "payment": {
-      "reference_id": "2185027f-0574-6f55-2668-3a38fdb5de98",
-      "sender": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "needs_kyc_data"
-        },
-        "kyc_data": {
-          "type": "individual",
-          "payload_version": 1,
-          "given_name": "Jack",
-          "surname": "G",
-          "address": {
-            "city": "San Francisco"
-          }
-        }
-      },
-      "receiver": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "none"
-        }
-      },
-      "action": {
-        "amount": 1000000000000,
-        "currency": "XUS",
-        "action": "charge",
-        "timestamp": 1609391272
-      }
-    }
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(
-        offchain.FieldError,
-        match="invalid does not match pattern",
-    ) as e:
-        offchain.from_json(request_json)
+    request_json = set_field(sample_request_json(), {"cid": "invalid"})
+    assert_field_error(
+        request_json,
+        "invalid-field-value",
+        "cid",
+        "invalid does not match pattern",
+    )
 
-    assert e.value.code == "invalid-field-value"
+    request_json = set_field(sample_request_json(), {"command.payment.reference_id": "invalid"})
+    assert_field_error(
+        request_json,
+        "invalid-field-value",
+        "command.payment.reference_id",
+        "invalid does not match pattern",
+    )
 
-    request_json = """{
-  "cid": "2185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand",
-    "payment": {
-      "reference_id": "invalid",
-      "sender": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "needs_kyc_data"
-        },
-        "kyc_data": {
-          "type": "individual",
-          "payload_version": 1,
-          "given_name": "Jack",
-          "surname": "G",
-          "address": {
-            "city": "San Francisco"
-          }
-        }
-      },
-      "receiver": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "none"
-        }
-      },
-      "action": {
-        "amount": 1000000000000,
-        "currency": "XUS",
-        "action": "charge",
-        "timestamp": 1609391272
-      }
-    }
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(
-        offchain.FieldError,
-        match="invalid does not match pattern",
-    ) as e:
-        offchain.from_json(request_json)
+    request_json = set_field(sample_request_json(), {"command.payment.original_payment_reference_id": "invalid"})
 
-    assert e.value.code == "invalid-field-value"
-
-    request_json = """{
-  "cid": "2185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand",
-    "payment": {
-      "reference_id": "2185027f-0574-6f55-2668-3a38fdb5de99",
-      "sender": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "needs_kyc_data"
-        },
-        "kyc_data": {
-          "type": "individual",
-          "payload_version": 1,
-          "given_name": "Jack",
-          "surname": "G",
-          "address": {
-            "city": "San Francisco"
-          }
-        }
-      },
-      "receiver": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "none"
-        }
-      },
-      "action": {
-        "amount": 1000000000000,
-        "currency": "XUS",
-        "action": "charge",
-        "timestamp": 1609391272
-      },
-      "original_payment_reference_id": "invalid"
-    }
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(
-        offchain.FieldError,
-        match="invalid does not match pattern",
-    ) as e:
-        offchain.from_json(request_json)
-
-    assert e.value.code == "invalid-field-value"
+    assert_field_error(
+        request_json,
+        "invalid-field-value",
+        "command.payment.original_payment_reference_id",
+        "invalid does not match pattern",
+    )
 
 
 def test_unknown_field():
-    request_json = """{
-  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand",
-    "payment": {
-      "reference_id": "2185027f-0574-6f55-2668-3a38fdb5de98",
-      "sender": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "needs_kyc_data",
-          "unknown-field-1": "value",
-          "unknown-field-2": "value"
+    request_json = set_field(
+        sample_request_json(),
+        {
+            "command.payment.sender.status.unknown-field-1": "value",
+            "command.payment.sender.status.unknown-field-2": "value",
         },
-        "kyc_data": {
-          "type": "individual",
-          "payload_version": 1,
-          "given_name": "Jack",
-          "surname": "G",
-          "address": {
-            "city": "San Francisco"
-          }
-        }
-      },
-      "receiver": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "none"
-        }
-      },
-      "action": {
-        "amount": 1000000000000,
-        "currency": "XUS",
-        "action": "charge",
-        "timestamp": 1609391272
-      }
-    }
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(
-        offchain.FieldError,
-        match="command.payment.sender.status: unknown-field-1, unknown-field-2",
-    ) as e:
-        offchain.from_json(request_json)
-
-    assert e.value.code == "unknown-field"
+    )
+    assert_field_error(
+        request_json,
+        "unknown-field",
+        "command.payment.sender.status.unknown-field-1",
+        "command.payment.sender.status: unknown-field-1, unknown-field-2",
+    )
 
 
 def test_missing_required_field():
-    request_json = """{
-  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "PaymentCommand",
-    "payment": {
-      "reference_id": "2185027f-0574-6f55-2668-3a38fdb5de98",
-      "sender": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-        },
-        "kyc_data": {
-          "type": "individual",
-          "payload_version": 1,
-          "given_name": "Jack",
-          "surname": "G",
-          "address": {
-            "city": "San Francisco"
-          }
-        }
-      },
-      "receiver": {
-        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        "status": {
-          "status": "none"
-        }
-      },
-      "action": {
-        "amount": 1000000000000,
-        "currency": "XUS",
-        "action": "charge",
-        "timestamp": 1609391272
-      }
-    }
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(
-        offchain.FieldError,
-        match="missing field: command.payment.sender.status.status",
-    ) as e:
-        offchain.from_json(request_json)
-
-    assert e.value.code == "missing-field"
+    request_json = set_field(sample_request_json(), {"command.payment.sender.status.status": None})
+    assert_field_error(
+        request_json,
+        "missing-field",
+        "command.payment.sender.status.status",
+        "missing field: command.payment.sender.status.status",
+    )
 
 
 def assert_cid(cid: str):
     assert isinstance(cid, str)
     assert uuid.UUID(cid)
     assert "-" in cid
+
+
+def assert_field_error(json_dic, code, field, match):
+    with pytest.raises(offchain.FieldError, match=match) as e:
+        offchain.from_json(json.dumps(json_dic))
+
+    assert e.value.code == code
+    assert e.value.field == field
+
+
+def set_field(root_dic, changes):
+    for field, value in changes.items():
+        path = field.split(".")
+        dic = root_dic
+        for f in path[0 : len(path) - 1]:
+            if f not in dic:
+                dic[f] = {}
+            dic = dic[f]
+
+        dic[path[len(path) - 1]] = value
+    return root_dic
+
+
+def sample_request_json():
+    return json.loads(
+        """{
+  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
+  "command_type": "PaymentCommand",
+  "command": {
+    "_ObjectType": "PaymentCommand",
+    "payment": {
+      "reference_id": "2185027f-0574-6f55-2668-3a38fdb5de98",
+      "sender": {
+        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
+        "status": {
+          "status": "needs_kyc_data"
+        },
+        "kyc_data": {
+          "type": "individual",
+          "payload_version": 1,
+          "given_name": "Jack",
+          "surname": "G",
+          "address": {
+            "city": "San Francisco"
+          }
+        }
+      },
+      "receiver": {
+        "address": "lbr1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
+        "status": {
+          "status": "none"
+        }
+      },
+      "action": {
+        "amount": 1000000000000,
+        "currency": "XUS",
+        "action": "charge",
+        "timestamp": 1609391272
+      }
+    }
+  },
+  "_ObjectType": "CommandRequestObject"
+}"""
+    )

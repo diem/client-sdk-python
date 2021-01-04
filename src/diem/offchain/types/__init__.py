@@ -91,8 +91,8 @@ def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: 
         obj[field.name] = _field_value_from_json_obj(field, obj, field_path)
 
     if len(unknown_fields) > 0:
-        full_name = _join_field_path(field_path, unknown_fields[0])
         unknown_fields.sort()
+        full_name = _join_field_path(field_path, unknown_fields[0])
         field_names = ", ".join(unknown_fields)
         raise FieldError(ErrorCode.unknown_field, full_name, f"{field_path}: {field_names}")
     return klass(**obj)

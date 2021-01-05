@@ -24,56 +24,56 @@ class CommandResponseStatus:
 class ErrorCode:
     # PaymentActionObject#amount is under travel rule threshold, no kyc needed for
     # the transaction
-    no_kyc_needed = "no-kyc-needed"
+    no_kyc_needed = "no_kyc_needed"
 
     # can't transit from prior payment to new payment
-    invalid_transition = "invalid-transition"
+    invalid_transition = "invalid_transition"
 
     # the producer of the command is not right actor, for example:
     # if next actor to change the payment is sender, but receiver send a new command
     # with payment object change.
     # question: should we allow it for the case like appending metadata?
-    invalid_command_producer = "invalid-command-producer"
+    invalid_command_producer = "invalid_command_producer"
 
     # object is not valid, type does not match
-    invalid_object = "invalid-object"
+    invalid_object = "invalid_object"
     # missing required field, field value is required for a specific state
     # for example:
     #     1. when sender init the request, kyc_data is missing, or
     #     2. set sender#status#status to none at any time.
-    missing_field = "missing-field"
+    missing_field = "missing_field"
     # field value type is wrong
     # field value is not one of expected values
-    invalid_field_value = "invalid-field-value"
-    unknown_field = "unknown-field"
+    invalid_field_value = "invalid_field_value"
+    unknown_field = "unknown_field"
 
     # request content is not valid json
-    invalid_json = "invalid-json"
+    invalid_json = "invalid_json"
 
     # decode JWS content failed
-    invalid_jws = "invalid-jws"
+    invalid_jws = "invalid_jws"
     # validate JWS signature failed
-    invalid_jws_signature = "invalid-jws-signature"
+    invalid_jws_signature = "invalid_jws_signature"
 
     # request comment_type value is unknown
-    unknown_command_type = "unknown-command-type"
+    unknown_command_type = "unknown_command_type"
 
     # 1. could not find actor's onchain account by address
     # 2. none of actor addresses is server's (parent / child) vasp or dd address
-    unknown_actor_address = "unknown-actor-address"
+    unknown_actor_address = "unknown_actor_address"
 
     # overwrite write once / immutable field value
-    invalid_overwrite = "invalid-overwrite"
+    invalid_overwrite = "invalid_overwrite"
 
     # could not find command by reference_id for a non-initial command
-    invalid_initial_or_prior_not_found = "invalid-initial-or-prior-not-found"
-    invalid_x_request_sender_address = "invalid-x-request-sender-address"
+    invalid_initial_or_prior_not_found = "invalid_initial_or_prior_not_found"
+    invalid_x_request_sender_address = "invalid_x_request_sender_address"
 
     # the command is conflict with another command updating in progress by reference id
     conflict = "conflict"
 
-    missing_http_header = "missing-http-header"
-    invalid_recipient_signature = "invalid-recipient-signature"
+    missing_http_header = "missing_http_header"
+    invalid_recipient_signature = "invalid_recipient_signature"
 
 
 class OffChainErrorType:

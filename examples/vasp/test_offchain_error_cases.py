@@ -31,7 +31,7 @@ def test_send_command_failed_by_invalid_jws_signature_and_retry_by_bg_job(monkey
         with pytest.raises(CommandResponseError) as err:
             sender_app.run_once_background_job()
 
-        assert_response_command_error(err.value.resp, "invalid-jws-signature")
+        assert_response_command_error(err.value.resp, "invalid_jws_signature")
 
         assert len(sender_app.saved_commands) == 1
         assert len(receiver_app.saved_commands) == 0
@@ -112,14 +112,14 @@ def test_invalid_command_request_json(sender_app, receiver_app):
     resp = send_request("invalid_request_json", sender_app, receiver_app, "failure")
 
     assert resp.cid is None
-    assert_response_command_error(resp, "invalid-object")
+    assert_response_command_error(resp, "invalid_object")
 
 
 def test_invalid_json(sender_app, receiver_app):
     resp = send_request_json("invalid_json", sender_app, receiver_app, "failure")
 
     assert resp.cid is None
-    assert_response_command_error(resp, "invalid-json")
+    assert_response_command_error(resp, "invalid_json")
 
 
 def test_missing_required_fields(sender_app, receiver_app):
@@ -133,7 +133,7 @@ def test_missing_required_fields(sender_app, receiver_app):
         new_req = copy.deepcopy(request)
         set_field(new_req, field, None)
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "missing-field", field)
+        assert_response_command_error(resp, "missing_field", field)
 
 
 def test_unknown_fields(sender_app, receiver_app):
@@ -144,7 +144,7 @@ def test_unknown_fields(sender_app, receiver_app):
         unknown_field = field + "-unknown"
         set_field(new_req, unknown_field, "any")
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "unknown-field", unknown_field)
+        assert_response_command_error(resp, "unknown_field", unknown_field)
 
 
 def test_invalid_field_value(sender_app, receiver_app):
@@ -166,7 +166,7 @@ def test_invalid_field_value(sender_app, receiver_app):
         new_req = copy.deepcopy(request)
         set_field(new_req, field, "invalid-value")
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "invalid-field-value", field)
+        assert_response_command_error(resp, "invalid_field_value", field)
 
 
 def test_invalid_field_value_type(sender_app, receiver_app):
@@ -180,7 +180,7 @@ def test_invalid_field_value_type(sender_app, receiver_app):
         new_req = copy.deepcopy(request)
         set_field(new_req, field, "invalid-value-type")
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "invalid-field-value", field)
+        assert_response_command_error(resp, "invalid_field_value", field)
 
 
 def test_invalid_actor_metadata_item_type(sender_app, receiver_app):
@@ -189,7 +189,7 @@ def test_invalid_actor_metadata_item_type(sender_app, receiver_app):
     field = "command.payment.sender.metadata"
     set_field(request, field, ["1", 2])
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "invalid-field-value", field)
+    assert_response_command_error(resp, "invalid_field_value", field)
 
 
 def test_written_once_payment_actor_kyc_data(sender_app, receiver_app):
@@ -295,35 +295,35 @@ def test_travel_rule_limit_validation(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app, 10)
 
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "no-kyc-needed", "command.payment.action.amount")
+    assert_response_command_error(resp, "no_kyc_needed", "command.payment.action.amount")
 
 
 def test_invalid_currency_code(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app, currency="XXX")
 
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "invalid-field-value", "command.payment.action.currency")
+    assert_response_command_error(resp, "invalid_field_value", "command.payment.action.currency")
 
 
 def test_cid_uuid(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["cid"] = "invalid uuid"
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "invalid-field-value", "cid")
+    assert_response_command_error(resp, "invalid_field_value", "cid")
 
 
 def test_reference_id_uuid(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["reference_id"] = "invalid uuid"
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "invalid-field-value", "command.payment.reference_id")
+    assert_response_command_error(resp, "invalid_field_value", "command.payment.reference_id")
 
 
 def test_unknown_actor_address_could_not_find_request_receiver_account_id(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["receiver"]["address"] = sender_app.offchain_client.my_compliance_key_account_id
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "unknown-actor-address")
+    assert_response_command_error(resp, "unknown_actor_address")
 
 
 def test_x_request_sender_address_must_one_of_actor_addresses(sender_app, receiver_app):
@@ -335,7 +335,7 @@ def test_x_request_sender_address_must_one_of_actor_addresses(sender_app, receiv
         "failure",
         sender_address=sender_app.offchain_client.my_compliance_key_account_id,
     )
-    assert_response_command_error(resp, "invalid-x-request-sender-address")
+    assert_response_command_error(resp, "invalid_x_request_sender_address")
 
 
 def test_http_header_x_request_sender_address_missing(sender_app, receiver_app):
@@ -343,7 +343,7 @@ def test_http_header_x_request_sender_address_missing(sender_app, receiver_app):
     resp = send_request_json_with_headers(
         json.dumps(request), sender_app, receiver_app, "failure", {http_header.X_REQUEST_ID: str(uuid.uuid4())}
     )
-    assert_response_protocol_error(resp, "missing-http-header")
+    assert_response_protocol_error(resp, "missing_http_header")
 
 
 def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, receiver_app):
@@ -352,7 +352,7 @@ def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, 
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["sender"]["address"] = account_id
     resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
-    assert_response_protocol_error(resp, "invalid-x-request-sender-address")
+    assert_response_protocol_error(resp, "invalid_x_request_sender_address")
 
 
 def test_could_not_find_compliance_key_of_x_request_sender_address(sender_app, receiver_app):
@@ -361,7 +361,7 @@ def test_could_not_find_compliance_key_of_x_request_sender_address(sender_app, r
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["sender"]["address"] = account_id
     resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
-    assert_response_protocol_error(resp, "invalid-x-request-sender-address")
+    assert_response_protocol_error(resp, "invalid_x_request_sender_address")
 
 
 def test_invalid_recipient_signature(sender_app, receiver_app):
@@ -378,7 +378,7 @@ def test_invalid_recipient_signature(sender_app, receiver_app):
     with pytest.raises(CommandResponseError) as err:
         assert receiver_app._send_request(invalid_sig_cmd)
 
-    assert_response_command_error(err.value.resp, "invalid-recipient-signature", "command.payment.recipient_signature")
+    assert_response_command_error(err.value.resp, "invalid_recipient_signature", "command.payment.recipient_signature")
 
 
 def test_receiver_actor_is_ready_for_settlement_but_recipient_signature_is_none(sender_app, receiver_app):
@@ -395,7 +395,7 @@ def test_receiver_actor_is_ready_for_settlement_but_recipient_signature_is_none(
     with pytest.raises(CommandResponseError) as err:
         assert receiver_app._send_request(missing_sig_cmd)
 
-    assert_response_command_error(err.value.resp, "missing-field", "command.payment.recipient_signature")
+    assert_response_command_error(err.value.resp, "missing_field", "command.payment.recipient_signature")
 
 
 def test_invalid_recipient_signature_hex(sender_app, receiver_app):
@@ -412,7 +412,7 @@ def test_invalid_recipient_signature_hex(sender_app, receiver_app):
     with pytest.raises(CommandResponseError) as err:
         assert receiver_app._send_request(invalid_sig_cmd)
 
-    assert_response_command_error(err.value.resp, "invalid-recipient-signature", "command.payment.recipient_signature")
+    assert_response_command_error(err.value.resp, "invalid_recipient_signature", "command.payment.recipient_signature")
 
 
 def replace_actor(cmd, name, actor, **changes):
@@ -471,7 +471,7 @@ def assert_invalid_overwrite_error(sender_app, receiver_app, field, update_cmd, 
     with pytest.raises(CommandResponseError) as err:
         sender_app.run_once_background_job()
 
-    assert_response_command_error(err.value.resp, "invalid-overwrite", field)
+    assert_response_command_error(err.value.resp, "invalid_overwrite", field)
 
 
 def assert_response_command_error(resp, code, field=None):

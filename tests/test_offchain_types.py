@@ -316,13 +316,13 @@ def test_invalid_object():
     with pytest.raises(offchain.FieldError, match="expect json object, but got int: ") as e:
         offchain.from_json(request_json)
 
-    assert e.value.code == "invalid-object"
+    assert e.value.code == "invalid_object"
 
     request_json = "[22]"
     with pytest.raises(offchain.FieldError, match="expect json object, but got list: ") as e:
         offchain.from_json(request_json)
 
-    assert e.value.code == "invalid-object"
+    assert e.value.code == "invalid_object"
 
 
 def test_field_value_because_of_invalid_object_type_for_union_type():
@@ -335,7 +335,7 @@ def test_field_value_because_of_invalid_object_type_for_union_type():
     with pytest.raises(offchain.FieldError, match="expect json object, but got str: ") as e:
         offchain.from_json(request_json)
 
-    assert e.value.code == "invalid-field-value"
+    assert e.value.code == "invalid_field_value"
 
 
 def test_invalid_object_type():
@@ -350,7 +350,7 @@ def test_invalid_object_type():
     with pytest.raises(offchain.FieldError, match="could not find object type: InvalidCommand") as e:
         offchain.from_json(request_json)
 
-    assert e.value.code == "invalid-field-value"
+    assert e.value.code == "invalid_field_value"
 
 
 def test_object_type_is_not_provided_when_it_is_required():
@@ -359,7 +359,7 @@ def test_object_type_is_not_provided_when_it_is_required():
         "command_type": "PaymentCommand",
         "command": {"_ObjectType": "PaymentCommand"},
     }
-    assert_field_error(request_json, "missing-field", "_ObjectType", "missing field: _ObjectType")
+    assert_field_error(request_json, "missing_field", "_ObjectType", "missing field: _ObjectType")
 
     request_json = {
         "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
@@ -367,14 +367,14 @@ def test_object_type_is_not_provided_when_it_is_required():
         "command": {},
         "_ObjectType": "CommandRequestObject",
     }
-    assert_field_error(request_json, "missing-field", "command._ObjectType", "missing field: command._ObjectType")
+    assert_field_error(request_json, "missing_field", "command._ObjectType", "missing field: command._ObjectType")
 
 
 def test_invalid_enum_field_value():
     request_json = set_field(sample_request_json(), {"command.payment.sender.status.status": "invalid"})
     assert_field_error(
         request_json,
-        "invalid-field-value",
+        "invalid_field_value",
         "command.payment.sender.status.status",
         "expect one of \\['none', 'needs_kyc_data', 'ready_for_settlement', 'abort', 'soft_match'\\], but got: invalid",
     )
@@ -384,7 +384,7 @@ def test_invalid_uuid_field_value():
     request_json = set_field(sample_request_json(), {"cid": "invalid"})
     assert_field_error(
         request_json,
-        "invalid-field-value",
+        "invalid_field_value",
         "cid",
         "invalid does not match pattern",
     )
@@ -392,7 +392,7 @@ def test_invalid_uuid_field_value():
     request_json = set_field(sample_request_json(), {"command.payment.reference_id": "invalid"})
     assert_field_error(
         request_json,
-        "invalid-field-value",
+        "invalid_field_value",
         "command.payment.reference_id",
         "invalid does not match pattern",
     )
@@ -401,7 +401,7 @@ def test_invalid_uuid_field_value():
 
     assert_field_error(
         request_json,
-        "invalid-field-value",
+        "invalid_field_value",
         "command.payment.original_payment_reference_id",
         "invalid does not match pattern",
     )
@@ -417,7 +417,7 @@ def test_unknown_field():
     )
     assert_field_error(
         request_json,
-        "unknown-field",
+        "unknown_field",
         "command.payment.sender.status.unknown-field-1",
         "command.payment.sender.status: unknown-field-1, unknown-field-2",
     )
@@ -427,7 +427,7 @@ def test_missing_required_field():
     request_json = set_field(sample_request_json(), {"command.payment.sender.status.status": None})
     assert_field_error(
         request_json,
-        "missing-field",
+        "missing_field",
         "command.payment.sender.status.status",
         "missing field: command.payment.sender.status.status",
     )

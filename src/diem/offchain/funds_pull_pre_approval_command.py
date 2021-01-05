@@ -5,7 +5,7 @@ import dataclasses
 import typing
 import uuid
 
-from . import FundPullPreApprovalObject, CommandType
+from . import FundPullPreApprovalObject, CommandType, new_funds_pull_pre_approval_object
 from .command import Command
 from .payment_state import Action
 
@@ -14,6 +14,38 @@ from .payment_state import Action
 class FundsPullPreApprovalCommand(Command):
     funds_pull_pre_approval: FundPullPreApprovalObject
     cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
+
+    @staticmethod
+    def init(
+        address: str,
+        biller_address: str,
+        funds_pull_pre_approval_type: str,
+        expiration_timestamp: int,
+        status: str,
+        max_cumulative_unit: typing.Optional[str] = None,
+        max_cumulative_unit_value: typing.Optional[int] = None,
+        max_cumulative_amount: typing.Optional[int] = None,
+        max_cumulative_amount_currency: typing.Optional[str] = None,
+        max_transaction_amount: typing.Optional[int] = None,
+        max_transaction_amount_currency: typing.Optional[str] = None,
+        description: typing.Optional[str] = None,
+    ) -> "FundsPullPreApprovalCommand":
+        return FundsPullPreApprovalCommand(
+            funds_pull_pre_approval=new_funds_pull_pre_approval_object(
+                address=address,
+                biller_address=biller_address,
+                funds_pull_pre_approval_type=funds_pull_pre_approval_type,
+                expiration_timestamp=expiration_timestamp,
+                status=status,
+                max_cumulative_unit=max_cumulative_unit,
+                max_cumulative_unit_value=max_cumulative_unit_value,
+                max_cumulative_amount=max_cumulative_amount,
+                max_cumulative_amount_currency=max_cumulative_amount_currency,
+                max_transaction_amount=max_transaction_amount,
+                max_transaction_amount_currency=max_transaction_amount_currency,
+                description=description,
+            )
+        )
 
     def command_type(self) -> str:
         return CommandType.FundPullPreApprovalCommand

@@ -31,11 +31,7 @@ class CurrencyObject:
 
 @dataclass(frozen=True)
 class ScopedCumulativeAmountObject:
-    unit: str = datafield(
-        metadata={"valid-values": [
-            TimeUnit.day, TimeUnit.week, TimeUnit.month, TimeUnit.year
-        ]}
-    )
+    unit: str = datafield(metadata={"valid-values": [TimeUnit.day, TimeUnit.week, TimeUnit.month, TimeUnit.year]})
     value: int
     max_amount: CurrencyObject
 
@@ -54,12 +50,14 @@ class FundPullPreApprovalObject:
     funds_pre_approval_id: str = datafield(metadata={"write_once": True})
     scope: FundPullPreApprovalScopeObject
     status: str = datafield(
-        metadata={"valid-values": [
-            FundPullPreApprovalStatus.pending,
-            FundPullPreApprovalStatus.valid,
-            FundPullPreApprovalStatus.rejected,
-            FundPullPreApprovalStatus.closed,
-        ]}
+        metadata={
+            "valid-values": [
+                FundPullPreApprovalStatus.pending,
+                FundPullPreApprovalStatus.valid,
+                FundPullPreApprovalStatus.rejected,
+                FundPullPreApprovalStatus.closed,
+            ]
+        }
     )
     description: typing.Optional[str] = datafield(default=None)
 
@@ -69,5 +67,5 @@ class FundPullPreApprovalCommandObject:
     fund_pull_pre_approval: FundPullPreApprovalObject
     _ObjectType: str = datafield(
         default=CommandType.FundPullPreApprovalCommand,
-        metadata={"valid-values": [CommandType.FundPullPreApprovalCommand]}
+        metadata={"valid-values": [CommandType.FundPullPreApprovalCommand]},
     )

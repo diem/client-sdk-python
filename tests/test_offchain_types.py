@@ -56,7 +56,8 @@ def test_dumps_and_loads_payment_command():
     assert offchain.from_json(offchain.to_json(request), offchain.CommandRequestObject) == request
     assert offchain.from_json(offchain.to_json(request)) == request
 
-    assert json.loads(offchain.to_json(request)) == json.loads("""
+    assert json.loads(offchain.to_json(request)) == json.loads(
+        """
     {
       "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
       "command_type": "PaymentCommand",
@@ -106,13 +107,15 @@ def test_dumps_and_loads_payment_command():
       },
       "_ObjectType": "CommandRequestObject"
     }
-    """)
+    """
+    )
 
 
 @pytest.fixture
 def funds_pull_pre_approval():
     class ExampleData:
-        command_request_json = json.loads("""
+        command_request_json = json.loads(
+            """
         {
             "_ObjectType": "CommandRequestObject",
             "command_type": "FundPullPreApprovalCommand",
@@ -143,7 +146,8 @@ def funds_pull_pre_approval():
                 }
             }
         }
-        """)
+        """
+        )
 
         fund_pull_pre_approval_object = offchain.FundPullPreApprovalObject(
             address="lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
@@ -181,13 +185,12 @@ def test_dumps_and_loads_command_request_with_preapproval_json(funds_pull_pre_ap
     Tests that a command request object containing a funds pull pre-approval
     command is serialized into the correct JSON.
     """
-    actual_command_json_text = offchain.to_json(
-        funds_pull_pre_approval.command_request_object
-    )
+    actual_command_json_text = offchain.to_json(funds_pull_pre_approval.command_request_object)
     try:
         actual_command_json = json.loads(actual_command_json_text)
-        assert actual_command_json == funds_pull_pre_approval.command_request_json, \
-            f"Actual JSON not matching the expectation. Actual: {actual_command_json}"
+        assert (
+            actual_command_json == funds_pull_pre_approval.command_request_json
+        ), f"Actual JSON not matching the expectation. Actual: {actual_command_json}"
     except json.JSONDecodeError:
         pytest.fail(f"Failed to decode command JSON: {actual_command_json_text}")
 
@@ -197,10 +200,13 @@ def test_dumps_and_loads_funds_pull_preapproval_command(funds_pull_pre_approval)
     Tests that a FundPullPreApprovalObject can be serialized into JSON
     and then deserialized back into exactly the same object.
     """
-    assert offchain.from_json(
-        offchain.to_json(funds_pull_pre_approval.fund_pull_pre_approval_object),
-        offchain.FundPullPreApprovalObject,
-    ) == funds_pull_pre_approval.fund_pull_pre_approval_object
+    assert (
+        offchain.from_json(
+            offchain.to_json(funds_pull_pre_approval.fund_pull_pre_approval_object),
+            offchain.FundPullPreApprovalObject,
+        )
+        == funds_pull_pre_approval.fund_pull_pre_approval_object
+    )
 
 
 def test_dumps_and_loads_command_request_with_preapproval(funds_pull_pre_approval):
@@ -208,14 +214,17 @@ def test_dumps_and_loads_command_request_with_preapproval(funds_pull_pre_approva
     Tests that a CommandRequestObject can be serialized into JSON and then
     deserialized back into exactly the same object.
     """
-    assert offchain.from_json(
-        offchain.to_json(funds_pull_pre_approval.command_request_object),
-        offchain.CommandRequestObject
-    ) == funds_pull_pre_approval.command_request_object
+    assert (
+        offchain.from_json(
+            offchain.to_json(funds_pull_pre_approval.command_request_object), offchain.CommandRequestObject
+        )
+        == funds_pull_pre_approval.command_request_object
+    )
 
-    assert offchain.from_json(
-        offchain.to_json(funds_pull_pre_approval.command_request_object)
-    ) == funds_pull_pre_approval.command_request_object
+    assert (
+        offchain.from_json(offchain.to_json(funds_pull_pre_approval.command_request_object))
+        == funds_pull_pre_approval.command_request_object
+    )
 
 
 def test_dumps_and_loads_response_command():

@@ -44,6 +44,7 @@ from .types import (
     to_json,
     from_json,
     validate_write_once_fields,
+    FundPullPreApprovalType,
 )
 from .http_header import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
 from .action import Action

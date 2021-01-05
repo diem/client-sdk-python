@@ -34,6 +34,7 @@ from .fund_pull_pre_approval_types import (
     ScopedCumulativeAmountObject,
     TimeUnit,
     CurrencyObject,
+    FundPullPreApprovalType,
 )
 
 import dataclasses, json, re, typing, uuid

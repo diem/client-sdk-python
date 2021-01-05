@@ -43,7 +43,9 @@ class FundPullPreApprovalType:
 
 @dataclass(frozen=True)
 class FundPullPreApprovalScopeObject:
-    type: FundPullPreApprovalType
+    type: str = datafield(
+        metadata={"valid-values": [FundPullPreApprovalType.save_sub_account, FundPullPreApprovalType.consent]}
+    )
     expiration_timestamp: int
     max_cumulative_amount: typing.Optional[ScopedCumulativeAmountObject]
     max_transaction_amount: typing.Optional[CurrencyObject]

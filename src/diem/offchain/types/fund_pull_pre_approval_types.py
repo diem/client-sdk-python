@@ -53,9 +53,9 @@ class FundPullPreApprovalScopeObject:
 
 @dataclass(frozen=True)
 class FundPullPreApprovalObject:
+    funds_pre_approval_id: str = datafield(metadata={"write_once": True})
     address: str = datafield(metadata={"write_once": True})
     biller_address: str = datafield(metadata={"write_once": True})
-    funds_pre_approval_id: str = datafield(metadata={"write_once": True})
     scope: FundPullPreApprovalScopeObject
     status: str = datafield(
         metadata={

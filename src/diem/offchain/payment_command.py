@@ -3,6 +3,7 @@
 
 import typing, dataclasses, uuid
 
+from . import CommandType
 from .types import (
     CommandRequestObject,
     ErrorCode,
@@ -55,6 +56,9 @@ class PaymentCommand(Command):
             ),
             inbound=inbound,
         )
+
+    def command_type(self) -> str:
+        return CommandType.PaymentCommand
 
     def id(self) -> str:
         return self.cid

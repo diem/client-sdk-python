@@ -171,6 +171,42 @@ def new_payment_object(
     )
 
 
+def new_funds_pull_pre_approval_object(
+    address: str,
+    biller_address: str,
+    funds_pull_pre_approval_type: str,
+    expiration_timestamp: int,
+    status: str,
+    max_cumulative_unit: typing.Optional[str] = None,
+    max_cumulative_unit_value: typing.Optional[int] = None,
+    max_cumulative_amount: typing.Optional[int] = None,
+    max_cumulative_amount_currency: typing.Optional[str] = None,
+    max_transaction_amount: typing.Optional[int] = None,
+    max_transaction_amount_currency: typing.Optional[str] = None,
+    description: typing.Optional[str] = None,
+) -> FundPullPreApprovalObject:
+    return FundPullPreApprovalObject(
+        funds_pre_approval_id=str(uuid.uuid4()),
+        address=address,
+        biller_address=biller_address,
+        scope=FundPullPreApprovalScopeObject(
+            type=funds_pull_pre_approval_type,
+            expiration_timestamp=expiration_timestamp,
+            max_cumulative_amount=ScopedCumulativeAmountObject(
+                unit=max_cumulative_unit,
+                value=max_cumulative_unit_value,
+                max_amount=CurrencyObject(amount=max_cumulative_amount, currency=max_cumulative_amount_currency),
+            ),
+            max_transaction_amount=CurrencyObject(
+                amount=max_transaction_amount,
+                currency=max_transaction_amount_currency,
+            ),
+        ),
+        status=status,
+        description=description,
+    )
+
+
 def replace_payment_actor(
     actor: PaymentActorObject,
     status: typing.Optional[str] = None,

@@ -45,6 +45,7 @@ from .types import (
     from_json,
     validate_write_once_fields,
     FundPullPreApprovalType,
+    new_funds_pull_pre_approval_object,
 )
 from .http_header import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
 from .action import Action

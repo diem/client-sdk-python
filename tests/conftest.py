@@ -45,3 +45,31 @@ class Factory:
     def new_sender_payment_command(self):
         payment = self.new_payment_object()
         return offchain.PaymentCommand(my_actor_address=payment.sender.address, payment=payment, inbound=False)
+
+    def new_funds_pull_pre_approval_object(self, biller=LocalAccount.generate(), receiver=LocalAccount.generate()):
+        address = identifier.encode_account(
+            receiver.account_address,
+            identifier.gen_subaddress(),
+            self.hrp(),
+        )
+
+        biller_address = identifier.encode_account(
+            biller.account_address,
+            identifier.gen_subaddress(),
+            self.hrp(),
+        )
+
+        return offchain.new_funds_pull_pre_approval_object(
+            address=address,
+            biller_address=biller_address,
+            funds_pull_pre_approval_type="consent",
+            expiration_timestamp=1234,
+            status="pending",
+            max_cumulative_unit="week",
+            max_cumulative_unit_value=1,
+            max_cumulative_amount=1_000_000_000_000,
+            max_cumulative_amount_currency=testnet.TEST_CURRENCY_CODE,
+            max_transaction_amount=1_000_000,
+            max_transaction_amount_currency=testnet.TEST_CURRENCY_CODE,
+            description="test",
+        )

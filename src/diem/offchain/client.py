@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 from json.decoder import JSONDecodeError
 
+from .funds_pull_pre_approval_command import FundsPullPreApprovalCommand
 from .payment_command import PaymentCommand
 
 from .types import (
@@ -23,7 +24,7 @@ from .types import (
 )
 from .error import command_error, protocol_error, Error
 
-from . import jws, http_header
+from . import jws, http_header, Command, FundPullPreApprovalCommandObject
 from .. import jsonrpc, diem_types, identifier, utils
 
 
@@ -54,12 +55,19 @@ class Client:
     def __post_init__(self) -> None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
-    def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
-        return self.send_request(
-            request_sender_address=command.my_actor_address,
-            opponent_account_id=command.opponent_actor_obj().address,
-            request_bytes=jws.serialize(command.new_request(), sign),
-        )
+    def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
+        if command.command_type() == CommandType.PaymentCommand:
+            payment_command = typing.cast(PaymentCommand, command)
+            return self.send_request(
+                request_sender_address=payment_command.my_actor_address,
+                opponent_account_id=payment_command.opponent_actor_obj().address,
+                request_bytes=jws.serialize(payment_command.new_request(), sign),
+            )
+        elif command.command_type() == CommandType.FundPullPreApprovalCommand:
+            ...
+        else:
+            # TODO log? error?
+            ...
 
     def send_request(
         self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
@@ -82,7 +90,7 @@ class Client:
             raise CommandResponseError(cmd_resp)
         return cmd_resp
 
-    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> PaymentCommand:
+    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
         try:
@@ -90,20 +98,28 @@ class Client:
         except ValueError as e:
             raise protocol_error(ErrorCode.invalid_x_request_sender_address, str(e)) from e
 
-        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
-        if request.command_type == CommandType.PaymentCommand:
-            payment = typing.cast(PaymentCommandObject, request.command).payment
+        command_request_object = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+
+        if command_request_object.command_type == CommandType.PaymentCommand:
+            payment = typing.cast(PaymentCommandObject, command_request_object.command).payment
             self.validate_addresses(payment, request_sender_address)
-            cmd = self.create_inbound_payment_command(request.cid, payment)
+            cmd = self.create_inbound_payment_command(command_request_object.cid, payment)
             if cmd.is_initial():
                 self.validate_dual_attestation_limit(cmd.payment.action)
             elif cmd.is_rsend():
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
+        elif command_request_object.command_type == CommandType.FundPullPreApprovalCommand:
+            fund_pull_pre_approval = typing.cast(
+                FundPullPreApprovalCommandObject, command_request_object.command
+            ).fund_pull_pre_approval
+            return self.create_inbound_funds_pull_pre_approval_command(
+                command_request_object.cid, fund_pull_pre_approval
+            )
 
         raise command_error(
             ErrorCode.unknown_command_type,
-            f"unknown command_type: {request.command_type}",
+            f"unknown command_type: {command_request_object.command_type}",
         )
 
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -> None:
@@ -182,6 +198,11 @@ class Client:
     def get_base_url_and_compliance_key(self, account_id: str) -> typing.Tuple[str, Ed25519PublicKey]:
         account_address, _ = identifier.decode_account(account_id, self.hrp)
         return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
+
+    def create_inbound_funds_pull_pre_approval_command(
+        self, cid, fund_pull_pre_approval
+    ) -> FundsPullPreApprovalCommand:
+        return FundsPullPreApprovalCommand(cid=cid, funds_pull_pre_approval=fund_pull_pre_approval)
 
 
 def _deserialize_jws(

@@ -9,6 +9,10 @@ import typing
 
 class Command(ABC):
     @abstractmethod
+    def command_type(self) -> str:
+        ...
+
+    @abstractmethod
     def id(self) -> str:
         ...
 

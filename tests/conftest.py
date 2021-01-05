@@ -73,3 +73,7 @@ class Factory:
             max_transaction_amount_currency=testnet.TEST_CURRENCY_CODE,
             description="test",
         )
+
+    def new_funds_pull_pre_approval_command(self):
+        funds_pull_pre_approval = self.new_funds_pull_pre_approval_object()
+        return offchain.FundsPullPreApprovalCommand(funds_pull_pre_approval=funds_pull_pre_approval)

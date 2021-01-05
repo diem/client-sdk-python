@@ -265,6 +265,20 @@ def new_payment_request(
     )
 
 
+def new_funds_pull_pre_approval_request(
+    funds_pull_pre_approval: FundPullPreApprovalObject,
+    cid: typing.Optional[str] = None,
+) -> CommandRequestObject:
+    return CommandRequestObject(
+        cid=cid or str(uuid.uuid4()),
+        command_type=CommandType.FundPullPreApprovalCommand,
+        command=FundPullPreApprovalCommandObject(
+            _ObjectType=CommandType.FundPullPreApprovalCommand,
+            fund_pull_pre_approval=funds_pull_pre_approval,
+        ),
+    )
+
+
 def reply_request(
     cid: typing.Optional[str],
     err: typing.Optional[OffChainErrorObject] = None,

@@ -21,6 +21,7 @@ from .types import (
     PaymentCommandObject,
     ErrorCode,
     FieldError,
+    new_funds_pull_pre_approval_request,
 )
 from .error import command_error, protocol_error, Error
 
@@ -64,10 +65,19 @@ class Client:
                 request_bytes=jws.serialize(payment_command.new_request(), sign),
             )
         elif command.command_type() == CommandType.FundPullPreApprovalCommand:
-            ...
+            fund_pull_pre_approval = typing.cast(FundsPullPreApprovalCommand, command)
+            return self.send_request(
+                request_sender_address=fund_pull_pre_approval.funds_pull_pre_approval.biller_address,
+                opponent_account_id=fund_pull_pre_approval.funds_pull_pre_approval.address,
+                request_bytes=jws.serialize(
+                    new_funds_pull_pre_approval_request(
+                        fund_pull_pre_approval.funds_pull_pre_approval, fund_pull_pre_approval.cid
+                    ),
+                    sign,
+                ),
+            )
         else:
-            # TODO log? error?
-            ...
+            raise command_error(ErrorCode.unknown_command_type, f"unknown command_type: {command.command_type}")
 
     def send_request(
         self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes

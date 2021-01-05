@@ -36,8 +36,14 @@ class ScopedCumulativeAmountObject:
     max_amount: CurrencyObject
 
 
+class FundPullPreApprovalType:
+    save_sub_account = "save_sub_account"
+    consent = "consent"
+
+
 @dataclass(frozen=True)
 class FundPullPreApprovalScopeObject:
+    type: FundPullPreApprovalType
     expiration_timestamp: int
     max_cumulative_amount: typing.Optional[ScopedCumulativeAmountObject]
     max_transaction_amount: typing.Optional[CurrencyObject]

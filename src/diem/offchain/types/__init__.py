@@ -8,8 +8,6 @@ from .command_types import (
     OffChainErrorObject,
     CommandRequestObject,
     CommandResponseStatus,
-    OffChainErrorObject,
-    CommandResponseStatus,
     FundPullPreApprovalCommandObject,
 )
 from .payment_types import (

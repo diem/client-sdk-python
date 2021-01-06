@@ -120,6 +120,7 @@ class Client:
             return cmd
         elif command_request_object.command_type == CommandType.FundPullPreApprovalCommand:
             fund_pull_pre_approval = command_request_object.command.fund_pull_pre_approval
+            # TODO verify expiration time
             return self.create_inbound_funds_pull_pre_approval_command(
                 command_request_object.cid, fund_pull_pre_approval
             )

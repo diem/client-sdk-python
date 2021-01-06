@@ -58,3 +58,5 @@ from .client import Client, CommandResponseError
 from . import jws, http_server, state, payment_state
 
 import typing
+
+CommandVariant = typing.Union[FundsPullPreApprovalCommand, PaymentCommand]

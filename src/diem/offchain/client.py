@@ -1,15 +1,19 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-import requests, typing, dataclasses, uuid
-
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-from cryptography.exceptions import InvalidSignature
 from json.decoder import JSONDecodeError
 
+import dataclasses
+import requests
+import typing
+import uuid
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+from . import jws, http_header, Command, CommandVariant
+from .error import command_error, protocol_error, Error
 from .funds_pull_pre_approval_command import FundsPullPreApprovalCommand
 from .payment_command import PaymentCommand
-
 from .types import (
     CommandType,
     CommandRequestObject,
@@ -18,16 +22,11 @@ from .types import (
     PaymentObject,
     PaymentActorObject,
     PaymentActionObject,
-    PaymentCommandObject,
     ErrorCode,
     FieldError,
     new_funds_pull_pre_approval_request,
 )
-from .error import command_error, protocol_error, Error
-
-from . import jws, http_header, Command, FundPullPreApprovalCommandObject
 from .. import jsonrpc, diem_types, identifier, utils
-
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
 DEFAULT_TIMEOUT_SECS: float = 5.0
@@ -100,7 +99,7 @@ class Client:
             raise CommandResponseError(cmd_resp)
         return cmd_resp
 
-    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
+    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> CommandVariant:
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
         try:
@@ -111,7 +110,7 @@ class Client:
         command_request_object = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
 
         if command_request_object.command_type == CommandType.PaymentCommand:
-            payment = typing.cast(PaymentCommandObject, command_request_object.command).payment
+            payment = command_request_object.command.payment
             self.validate_addresses(payment, request_sender_address)
             cmd = self.create_inbound_payment_command(command_request_object.cid, payment)
             if cmd.is_initial():
@@ -120,9 +119,7 @@ class Client:
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
         elif command_request_object.command_type == CommandType.FundPullPreApprovalCommand:
-            fund_pull_pre_approval = typing.cast(
-                FundPullPreApprovalCommandObject, command_request_object.command
-            ).fund_pull_pre_approval
+            fund_pull_pre_approval = command_request_object.command.fund_pull_pre_approval
             return self.create_inbound_funds_pull_pre_approval_command(
                 command_request_object.cid, fund_pull_pre_approval
             )

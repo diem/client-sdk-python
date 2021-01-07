@@ -1,6 +1,6 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-
+import time
 from json.decoder import JSONDecodeError
 
 import dataclasses
@@ -120,7 +120,7 @@ class Client:
             return cmd
         elif command_request_object.command_type == CommandType.FundPullPreApprovalCommand:
             fund_pull_pre_approval = command_request_object.command.fund_pull_pre_approval
-            # TODO verify expiration time
+            self.validate_expiration_timestamp(fund_pull_pre_approval)
             return self.create_inbound_funds_pull_pre_approval_command(
                 command_request_object.cid, fund_pull_pre_approval
             )
@@ -129,6 +129,13 @@ class Client:
             ErrorCode.unknown_command_type,
             f"unknown command_type: {command_request_object.command_type}",
         )
+
+    def validate_expiration_timestamp(self, fund_pull_pre_approval):
+        if fund_pull_pre_approval.scope.expiration_timestamp < time.time():
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                "expiration timestamp must be in the future",
+            )
 
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -> None:
         msg = cmd.travel_rule_metadata_signature_message(self.hrp)

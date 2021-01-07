@@ -1,6 +1,6 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-
+import time
 
 from diem import testnet, offchain, identifier, LocalAccount
 import pytest
@@ -63,7 +63,7 @@ class Factory:
             address=address,
             biller_address=biller_address,
             funds_pull_pre_approval_type="consent",
-            expiration_timestamp=1234,
+            expiration_timestamp=int(time.time()) + 30,
             status="pending",
             max_cumulative_unit="week",
             max_cumulative_unit_value=1,

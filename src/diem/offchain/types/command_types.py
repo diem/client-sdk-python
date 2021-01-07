@@ -88,11 +88,7 @@ class OffChainErrorType:
 
 # Late import to solve circular dependency and be able to list all the command types
 from .payment_types import PaymentCommandObject
-
-
-@dataclass(frozen=True)
-class FundPullPreApprovalCommandObject:
-    _ObjectType: str = datafield(metadata={"valid-values": [CommandType.FundPullPreApprovalCommand]})
+from .fund_pull_pre_approval_types import FundPullPreApprovalCommandObject
 
 
 @dataclass(frozen=True)

@@ -56,27 +56,11 @@ class Client:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
-        if command.command_type() == CommandType.PaymentCommand:
-            payment_command = typing.cast(PaymentCommand, command)
-            return self.send_request(
-                request_sender_address=payment_command.my_actor_address,
-                opponent_account_id=payment_command.opponent_actor_obj().address,
-                request_bytes=jws.serialize(payment_command.new_request(), sign),
-            )
-        elif command.command_type() == CommandType.FundPullPreApprovalCommand:
-            fund_pull_pre_approval = typing.cast(FundsPullPreApprovalCommand, command)
-            return self.send_request(
-                request_sender_address=fund_pull_pre_approval.funds_pull_pre_approval.biller_address,
-                opponent_account_id=fund_pull_pre_approval.funds_pull_pre_approval.address,
-                request_bytes=jws.serialize(
-                    new_funds_pull_pre_approval_request(
-                        fund_pull_pre_approval.funds_pull_pre_approval, fund_pull_pre_approval.cid
-                    ),
-                    sign,
-                ),
-            )
-        else:
-            raise command_error(ErrorCode.unknown_command_type, f"unknown command_type: {command.command_type}")
+        return self.send_request(
+            request_sender_address=command.my_address(),
+            opponent_account_id=command.opponent_address(),
+            request_bytes=jws.serialize(command.new_request(), sign),
+        )
 
     def send_request(
         self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes

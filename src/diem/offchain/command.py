@@ -36,3 +36,15 @@ class Command(ABC):
     @abstractmethod
     def validate(self, prior: typing.Optional["Command"]) -> None:
         ...
+
+    @abstractmethod
+    def my_address(self):
+        ...
+
+    @abstractmethod
+    def opponent_address(self):
+        ...
+
+    @abstractmethod
+    def new_request(self):
+        ...

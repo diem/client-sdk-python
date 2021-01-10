@@ -68,4 +68,15 @@ class FundsPullPreApprovalCommand(Command):
     def validate(self, prior: typing.Optional["Command"]) -> None:
         pass
 
-    ...
+    def my_address(self):
+        return self.my_actor_address
+
+    def opponent_address(self):
+        return (
+            self.funds_pull_pre_approval.address
+            if self.my_actor_address == self.funds_pull_pre_approval.biller_address
+            else self.funds_pull_pre_approval.address
+        )
+
+    def new_request(self):
+        return new_funds_pull_pre_approval_request(funds_pull_pre_approval=self.funds_pull_pre_approval, cid=self.cid)

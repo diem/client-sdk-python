@@ -42,7 +42,6 @@ def test_send_and_deserialize_funds_pull_pre_approval_request(factory):
 
     funds_pull_pre_approval = factory.new_funds_pull_pre_approval_object(sender, receiver)
     command = offchain.FundsPullPreApprovalCommand(
-        my_role="payee",
         my_actor_address=funds_pull_pre_approval.biller_address,
         funds_pull_pre_approval=funds_pull_pre_approval,
     )

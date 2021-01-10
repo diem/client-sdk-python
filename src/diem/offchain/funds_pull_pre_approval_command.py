@@ -13,7 +13,6 @@ from .types import new_funds_pull_pre_approval_request
 
 @dataclasses.dataclass(frozen=True)
 class FundsPullPreApprovalCommand(Command):
-    my_role: str
     my_actor_address: str
     funds_pull_pre_approval: FundPullPreApprovalObject
     cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))

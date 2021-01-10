@@ -1,6 +1,5 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-import time
 from json.decoder import JSONDecodeError
 
 import dataclasses
@@ -25,7 +24,6 @@ from .types import (
     ErrorCode,
     FieldError,
 )
-from .types.fund_pull_pre_approval_types import Role
 from .. import jsonrpc, diem_types, identifier, utils
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
@@ -193,18 +191,15 @@ class Client:
     def create_inbound_funds_pull_pre_approval_command(
         self, cid, fund_pull_pre_approval
     ) -> FundsPullPreApprovalCommand:
-        role = None
         my_address = None
 
         if self.is_my_account_id(fund_pull_pre_approval.address):
-            role = Role.payer
             my_address = fund_pull_pre_approval.address
         elif self.is_my_account_id(fund_pull_pre_approval.biller_address):
-            role = Role.payee
             my_address = fund_pull_pre_approval.biller_address
 
         return FundsPullPreApprovalCommand(
-            my_role=role, my_actor_address=my_address, cid=cid, funds_pull_pre_approval=fund_pull_pre_approval
+            my_actor_address=my_address, cid=cid, funds_pull_pre_approval=fund_pull_pre_approval
         )
 
 

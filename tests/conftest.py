@@ -77,7 +77,6 @@ class Factory:
     def new_funds_pull_pre_approval_command(self):
         funds_pull_pre_approval = self.new_funds_pull_pre_approval_object()
         return offchain.FundsPullPreApprovalCommand(
-            my_role="payer",
             my_actor_address=identifier.encode_account(
                 LocalAccount.generate().account_address,
                 identifier.gen_subaddress(),

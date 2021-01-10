@@ -41,6 +41,10 @@ def test_send_and_deserialize_funds_pull_pre_approval_request(factory):
     offchain.http_server.start_local(receiver_port, process_inbound_request)
 
     funds_pull_pre_approval = factory.new_funds_pull_pre_approval_object(sender, receiver)
-    command = offchain.FundsPullPreApprovalCommand(funds_pull_pre_approval=funds_pull_pre_approval)
+    command = offchain.FundsPullPreApprovalCommand(
+        my_role="payee",
+        my_actor_address=funds_pull_pre_approval.biller_address,
+        funds_pull_pre_approval=funds_pull_pre_approval,
+    )
     resp = sender_client.send_command(command, sender.compliance_key.sign)
     assert resp

@@ -77,3 +77,9 @@ class FundPullPreApprovalCommandObject:
         default=CommandType.FundPullPreApprovalCommand,
         metadata={"valid-values": [CommandType.FundPullPreApprovalCommand]},
     )
+
+
+@dataclass(frozen=True)
+class Role:
+    payee = "payee"
+    payer = "payer"

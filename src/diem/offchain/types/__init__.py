@@ -186,7 +186,7 @@ def new_funds_pull_pre_approval_object(
     description: typing.Optional[str] = None,
 ) -> FundPullPreApprovalObject:
     return FundPullPreApprovalObject(
-        funds_pre_approval_id=str(uuid.uuid4()),
+        funds_pull_pre_approval_id=str(uuid.uuid4()),
         address=address,
         biller_address=biller_address,
         scope=FundPullPreApprovalScopeObject(

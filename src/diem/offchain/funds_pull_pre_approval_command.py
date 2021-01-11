@@ -30,7 +30,7 @@ class FundsPullPreApprovalCommand(Command):
         pass
 
     def reference_id(self) -> str:
-        return self.funds_pull_pre_approval.funds_pre_approval_id
+        return self.funds_pull_pre_approval.funds_pull_pre_approval_id
 
     def new_command(self) -> "Command":
         pass

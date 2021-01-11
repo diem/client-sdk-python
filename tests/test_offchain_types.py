@@ -125,7 +125,7 @@ def funds_pull_pre_approval():
                 "fund_pull_pre_approval": {
                     "address": "lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
                     "biller_address": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
-                    "funds_pre_approval_id": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
+                    "funds_pull_pre_approval_id": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
                     "scope": {
                         "type": "consent",
                         "expiration_timestamp": 72322, 
@@ -153,7 +153,7 @@ def funds_pull_pre_approval():
         fund_pull_pre_approval_object = offchain.FundPullPreApprovalObject(
             address="lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
             biller_address="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
-            funds_pre_approval_id="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
+            funds_pull_pre_approval_id="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
             scope=offchain.FundPullPreApprovalScopeObject(
                 type=offchain.FundPullPreApprovalType.consent,
                 expiration_timestamp=72322,

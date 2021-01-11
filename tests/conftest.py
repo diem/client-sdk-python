@@ -1,9 +1,18 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 import time
+import uuid
 
 from diem import testnet, offchain, identifier, LocalAccount
 import pytest
+
+from diem.offchain import (
+    FundPullPreApprovalObject,
+    FundPullPreApprovalScopeObject,
+    ScopedCumulativeAmountObject,
+    CurrencyObject,
+    FundPullPreApprovalStatus,
+)
 
 
 @pytest.fixture(
@@ -66,18 +75,21 @@ class Factory:
             self.hrp(),
         )
 
-        return offchain.new_funds_pull_pre_approval_object(
+        return FundPullPreApprovalObject(
+            funds_pull_pre_approval_id=str(uuid.uuid4()),
             address=address,
             biller_address=biller_address,
-            funds_pull_pre_approval_type="consent",
-            expiration_timestamp=int(time.time()) + 30,
-            status="pending",
-            max_cumulative_unit="week",
-            max_cumulative_unit_value=1,
-            max_cumulative_amount=1_000_000_000_000,
-            max_cumulative_amount_currency=testnet.TEST_CURRENCY_CODE,
-            max_transaction_amount=1_000_000,
-            max_transaction_amount_currency=testnet.TEST_CURRENCY_CODE,
+            scope=FundPullPreApprovalScopeObject(
+                type="consent",
+                expiration_timestamp=int(time.time()) + 30,
+                max_cumulative_amount=ScopedCumulativeAmountObject(
+                    unit="week",
+                    value=1,
+                    max_amount=CurrencyObject(amount=1_000_000_000_000, currency=testnet.TEST_CURRENCY_CODE),
+                ),
+                max_transaction_amount=CurrencyObject(amount=1_000_000, currency=testnet.TEST_CURRENCY_CODE),
+            ),
+            status=FundPullPreApprovalStatus.valid,
             description="test",
         )
 

@@ -85,10 +85,10 @@ class PaymentCommand(Command):
         except FieldError as e:
             raise command_error(e.code, str(e), e.field) from e
 
-    def my_address(self):
+    def my_address(self) -> str:
         return self.my_actor_address
 
-    def opponent_address(self):
+    def opponent_address(self) -> str:
         return self.opponent_actor_obj().address
 
     def validate_state_trigger_actor(self) -> None:

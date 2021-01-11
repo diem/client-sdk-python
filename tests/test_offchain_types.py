@@ -128,7 +128,7 @@ def funds_pull_pre_approval():
                     "funds_pull_pre_approval_id": "lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
                     "scope": {
                         "type": "consent",
-                        "expiration_timestamp": 72322, 
+                        "expiration_timestamp": 72322,
                         "max_cumulative_amount": {
                             "unit": "week",
                             "value": 1,

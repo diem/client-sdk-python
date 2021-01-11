@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
+
+from . import CommandRequestObject
 from .action import Action
 
 import typing
@@ -17,10 +19,6 @@ class Command(ABC):
         ...
 
     @abstractmethod
-    def is_inbound(self) -> bool:
-        ...
-
-    @abstractmethod
     def follow_up_action(self) -> typing.Optional[Action]:
         ...
 
@@ -29,22 +27,17 @@ class Command(ABC):
         ...
 
     @abstractmethod
-    def new_command(self) -> "Command":
-        """sub-class should define **kwargs for creating new command from current instance"""
-        ...
-
-    @abstractmethod
     def validate(self, prior: typing.Optional["Command"]) -> None:
         ...
 
     @abstractmethod
-    def my_address(self):
+    def my_address(self) -> str:
         ...
 
     @abstractmethod
-    def opponent_address(self):
+    def opponent_address(self) -> str:
         ...
 
     @abstractmethod
-    def new_request(self):
+    def new_request(self) -> CommandRequestObject:
         ...

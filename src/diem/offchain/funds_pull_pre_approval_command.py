@@ -5,7 +5,7 @@ import dataclasses
 import typing
 import uuid
 
-from . import FundPullPreApprovalObject, CommandType, new_funds_pull_pre_approval_object
+from . import FundPullPreApprovalObject, CommandType, CommandRequestObject
 from .command import Command
 from .payment_state import Action
 from .types import new_funds_pull_pre_approval_request
@@ -23,30 +23,24 @@ class FundsPullPreApprovalCommand(Command):
     def id(self) -> str:
         return self.cid
 
-    def is_inbound(self) -> bool:
-        pass
-
     def follow_up_action(self) -> typing.Optional[Action]:
         pass
 
     def reference_id(self) -> str:
         return self.funds_pull_pre_approval.funds_pull_pre_approval_id
 
-    def new_command(self) -> "Command":
-        pass
-
     def validate(self, prior: typing.Optional["Command"]) -> None:
         pass
 
-    def my_address(self):
+    def my_address(self) -> str:
         return self.my_actor_address
 
-    def opponent_address(self):
+    def opponent_address(self) -> str:
         return (
             self.funds_pull_pre_approval.address
             if self.my_actor_address == self.funds_pull_pre_approval.biller_address
             else self.funds_pull_pre_approval.address
         )
 
-    def new_request(self):
+    def new_request(self) -> CommandRequestObject:
         return new_funds_pull_pre_approval_request(funds_pull_pre_approval=self.funds_pull_pre_approval, cid=self.cid)

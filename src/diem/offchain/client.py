@@ -9,7 +9,7 @@ import uuid
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from . import jws, http_header, Command, CommandVariant
+from . import jws, http_header, Command, CommandVariant, FundPullPreApprovalCommandObject, FundPullPreApprovalObject
 from .error import command_error, protocol_error, Error
 from .funds_pull_pre_approval_command import FundsPullPreApprovalCommand
 from .payment_command import PaymentCommand
@@ -23,6 +23,7 @@ from .types import (
     PaymentActionObject,
     ErrorCode,
     FieldError,
+    PaymentCommandObject,
 )
 from .. import jsonrpc, diem_types, identifier, utils
 
@@ -92,7 +93,7 @@ class Client:
         command_request_object = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
 
         if command_request_object.command_type == CommandType.PaymentCommand:
-            payment = command_request_object.command.payment
+            payment = typing.cast(PaymentCommandObject, command_request_object.command).payment
             self.validate_addresses(payment, request_sender_address)
             cmd = self.create_inbound_payment_command(command_request_object.cid, payment)
             if cmd.is_initial():
@@ -101,7 +102,9 @@ class Client:
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
         elif command_request_object.command_type == CommandType.FundPullPreApprovalCommand:
-            fund_pull_pre_approval = command_request_object.command.fund_pull_pre_approval
+            fund_pull_pre_approval = typing.cast(
+                FundPullPreApprovalCommandObject, command_request_object.command
+            ).fund_pull_pre_approval
             return self.create_inbound_funds_pull_pre_approval_command(
                 command_request_object.cid, fund_pull_pre_approval
             )
@@ -189,18 +192,20 @@ class Client:
         return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
 
     def create_inbound_funds_pull_pre_approval_command(
-        self, cid, fund_pull_pre_approval
+        self, cid: str, fund_pull_pre_approval: FundPullPreApprovalObject
     ) -> FundsPullPreApprovalCommand:
-        my_address = None
-
         if self.is_my_account_id(fund_pull_pre_approval.address):
-            my_address = fund_pull_pre_approval.address
+            return FundsPullPreApprovalCommand(
+                my_actor_address=fund_pull_pre_approval.address, cid=cid, funds_pull_pre_approval=fund_pull_pre_approval
+            )
         elif self.is_my_account_id(fund_pull_pre_approval.biller_address):
-            my_address = fund_pull_pre_approval.biller_address
+            return FundsPullPreApprovalCommand(
+                my_actor_address=fund_pull_pre_approval.biller_address,
+                cid=cid,
+                funds_pull_pre_approval=fund_pull_pre_approval,
+            )
 
-        return FundsPullPreApprovalCommand(
-            my_actor_address=my_address, cid=cid, funds_pull_pre_approval=fund_pull_pre_approval
-        )
+        raise command_error(ErrorCode.unknown_actor_address, "unknown actor addresses: {obj}")
 
 
 def _deserialize_jws(

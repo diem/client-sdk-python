@@ -6,6 +6,13 @@ from diem import testnet, offchain, identifier, LocalAccount
 import pytest
 
 
+@pytest.fixture(
+    scope="module", params=[offchain.CommandType.PaymentCommand, offchain.CommandType.FundPullPreApprovalCommand]
+)
+def command_type(request):
+    return request.param
+
+
 @pytest.fixture
 def factory():
     return Factory()
@@ -84,3 +91,14 @@ class Factory:
             ),
             funds_pull_pre_approval=funds_pull_pre_approval,
         )
+
+    def new_command(self, command_type, sender, receiver):
+        if command_type == offchain.CommandType.PaymentCommand:
+            payment = self.new_payment_object(sender, receiver)
+            return offchain.PaymentCommand(payment=payment, my_actor_address=payment.sender.address, inbound=False)
+        if command_type == offchain.CommandType.FundPullPreApprovalCommand:
+            funds_pull_pre_approval = self.new_funds_pull_pre_approval_object(sender, receiver)
+            return offchain.FundsPullPreApprovalCommand(
+                my_actor_address=funds_pull_pre_approval.biller_address,
+                funds_pull_pre_approval=funds_pull_pre_approval,
+            )

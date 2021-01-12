@@ -43,7 +43,7 @@ class CommandResponseError(Exception):
 class Client:
     """Client for communicating with offchain service.
 
-    Provides oubound and inbound request handlings and convertings between bytes and offchain data types.
+    Provides outbound and inbound request handlings and convertings between bytes and offchain data types.
 
     Initialization:
     ```
@@ -142,7 +142,7 @@ class Client:
         - `diem.offchain.types.payment_types.PaymentObject.sender` or `diem.offchain.types.payment_types.PaymentObject.sender`.address is invalid.
         - `request_sender_address` is not sender or receiver actor address.
         - For initial payment object, the `diem.offchain.types.payment_types.PaymentActionObject.amount` is under dual attestation limit (travel rule limit).
-        - For receiver actor statis is `ready_for_settlement`, recipient signature not set or it is invalid signature.
+        - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
 
         """
 

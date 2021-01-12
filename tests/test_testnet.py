@@ -270,12 +270,8 @@ def test_submit_create_child_vasp():
 def test_submit_failed():
     client = testnet.create_client()
 
-    parent_vasp = LocalAccount.generate()
-    child_vasp = LocalAccount.generate()
-    signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
-
     with pytest.raises(jsonrpc.JsonRpcError):
-        client.submit(signed_txn)
+        client.submit("invalid txn")
 
 
 def test_wait_for_transaction_hash_mismatched_and_execution_failed():

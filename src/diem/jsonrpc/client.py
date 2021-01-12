@@ -406,15 +406,8 @@ class Client:
     def submit(
         self,
         txn: typing.Union[diem_types.SignedTransaction, str],
-        raise_stale_response: typing.Optional[typing.Union[bool]] = None,
     ) -> None:
         """submit signed transaction
-
-        Different with all other get methods, this method ignores StaleResponseError by default.
-        Because submitted transaction can be synced successfully even with a stale version server.
-        Retry submit may end with an error.
-
-        Pass in `raise_stale_response=True` to raise StaleResponseError and handle it by yourself.
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
         """
@@ -422,7 +415,16 @@ class Client:
         if isinstance(txn, diem_types.SignedTransaction):
             return self.submit(txn.bcs_serialize().hex())
 
-        self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=not raise_stale_response)
+        try:
+            self.execute("submit", [txn], result_parser=None)
+        except JsonRpcError as e:
+            # temp solution to ignore transaction re-submit error when retrying
+            # submit transaction for stale response errors.
+            # When server side fix https://github.com/diem/diem/pull/7174 is deployed,
+            # we remove this block
+            if "Failed to update gas price" in str(e):
+                return
+            raise e
 
     def wait_for_transaction(
         self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None

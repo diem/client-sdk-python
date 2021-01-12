@@ -1,12 +1,14 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+
 import requests, typing, dataclasses, uuid
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 from json.decoder import JSONDecodeError
 
+from .command import Command
 from .payment_command import PaymentCommand
 
 from .types import (
@@ -39,6 +41,47 @@ class CommandResponseError(Exception):
 
 @dataclasses.dataclass
 class Client:
+    """Client for communicating with offchain service.
+
+    Provides outbound and inbound request handlings and convertings between bytes and offchain data types.
+
+    Initialization:
+    ```
+    >>> from diem import offchain, jsonrpc, testnet, LocalAccount
+    >>>
+    >>> jsonrpc_client = testnet.create_client()
+    >>> account = testnet.gen_vasp_account(client, "http://vasp.com/offchain")
+    >>> compliance_key_account_address = account.account_address
+    >>> client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    ```
+
+    Send command:
+    ```
+    >>> # for command: offchain.PaymentCommand
+    >>> client.send_command(command, account.compliance_key.sign)
+    ```
+
+    Pre-process inbound request data:
+    ```
+    from http import server
+    from diem.offchain import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
+
+    class Handler(server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            x_request_id = self.headers[X_REQUEST_ID]
+            jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
+            length = int(self.headers["content-length"])
+            content = self.rfile.read(length)
+
+            command = client.process_inbound_request(jws_key_address, content)
+            # validate and save command
+            ...
+
+    ```
+
+    See example [Wallet#process_inbound_request](https://diem.github.io/client-sdk-python/examples/vasp/wallet.html#examples.vasp.wallet.WalletApp.process_inbound_request) for full example of how to process inbound request.
+    """
+
     my_compliance_key_account_address: diem_types.AccountAddress
     jsonrpc_client: jsonrpc.Client
     hrp: str
@@ -82,7 +125,27 @@ class Client:
             raise CommandResponseError(cmd_resp)
         return cmd_resp
 
-    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> PaymentCommand:
+    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
+        """Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        Raises `diem.offchain.error.Error` with `protocol_error` when:
+
+        - `request_sender_address` is not provided.
+        - Cannot find on-chain account by the `request_sender_address`.
+        - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
+        - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
+        - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
+        - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+
+        Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
+
+        - `diem.offchain.types.payment_types.PaymentObject.sender` or `diem.offchain.types.payment_types.PaymentObject.sender`.address is invalid.
+        - `request_sender_address` is not sender or receiver actor address.
+        - For initial payment object, the `diem.offchain.types.payment_types.PaymentActionObject.amount` is under dual attestation limit (travel rule limit).
+        - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
+
+        """
+
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
         try:

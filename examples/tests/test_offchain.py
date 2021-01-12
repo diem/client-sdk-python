@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.offchain import Status, Action
-from .wallet import ActionResult
+from ..vasp.wallet import ActionResult
 
 
 AMOUNT = 1_000_000_000

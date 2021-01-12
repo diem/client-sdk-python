@@ -11,7 +11,7 @@ from diem.offchain import (
     PaymentActionObject,
 )
 from diem import LocalAccount, identifier, testnet
-from .wallet import ActionResult
+from ..vasp.wallet import ActionResult
 import dataclasses, requests, json, copy, pytest, uuid
 
 

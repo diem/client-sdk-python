@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from . import WalletApp
+from ..vasp import WalletApp
 from diem import testnet, jsonrpc
 import pytest, typing
 

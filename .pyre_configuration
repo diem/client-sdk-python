@@ -14,9 +14,6 @@
     "src/diem/serde_binary",
     "src/diem/serde_types",
     "src/diem/stdlib",
-    "venv",
-    "examples/vasp/test_offchain_error_cases.py",
-    "examples/vasp/test_offchain.py",
-    "examples/vasp/conftest.py"
+    "venv"
   ]
 }

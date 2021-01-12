@@ -1,6 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+
 import requests, typing, dataclasses, uuid
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -40,6 +41,47 @@ class CommandResponseError(Exception):
 
 @dataclasses.dataclass
 class Client:
+    """Client for communicating with offchain service.
+
+    Provides oubound and inbound request handlings and convertings between bytes and offchain data types.
+
+    Initialization:
+    ```
+    >>> from diem import offchain, jsonrpc, testnet, LocalAccount
+    >>>
+    >>> jsonrpc_client = testnet.create_client()
+    >>> account = testnet.gen_vasp_account(client, "http://vasp.com/offchain")
+    >>> compliance_key_account_address = account.account_address
+    >>> client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    ```
+
+    Send command:
+    ```
+    >>> # for command: offchain.PaymentCommand
+    >>> client.send_command(command, account.compliance_key.sign)
+    ```
+
+    Pre-process inbound request data:
+    ```
+    from http import server
+    from diem.offchain import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
+
+    class Handler(server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            x_request_id = self.headers[X_REQUEST_ID]
+            jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
+            length = int(self.headers["content-length"])
+            content = self.rfile.read(length)
+
+            command = client.process_inbound_request(jws_key_address, content)
+            # validate and save command
+            ...
+
+    ```
+
+    See example [Wallet#process_inbound_request](https://diem.github.io/client-sdk-python/examples/vasp/wallet.html#examples.vasp.wallet.WalletApp.process_inbound_request) for full example of how to process inbound request.
+    """
+
     my_compliance_key_account_address: diem_types.AccountAddress
     jsonrpc_client: jsonrpc.Client
     hrp: str

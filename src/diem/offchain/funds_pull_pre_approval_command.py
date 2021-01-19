@@ -36,11 +36,10 @@ class FundsPullPreApprovalCommand(Command):
         return self.my_actor_address
 
     def opponent_address(self) -> str:
-        return (
-            self.funds_pull_pre_approval.address
-            if self.my_actor_address == self.funds_pull_pre_approval.biller_address
-            else self.funds_pull_pre_approval.address
-        )
+        if self.my_actor_address == self.funds_pull_pre_approval.biller_address:
+            return self.funds_pull_pre_approval.address
+        else:
+            return self.funds_pull_pre_approval.biller_address
 
     def new_request(self) -> CommandRequestObject:
         return new_funds_pull_pre_approval_request(funds_pull_pre_approval=self.funds_pull_pre_approval, cid=self.cid)

@@ -65,3 +65,42 @@ def test_deserialize_example_jws():
 
     key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(public_key))
     key.verify(sig, msg)
+
+
+def test_serialize_deserialize_preapproval():
+    account = LocalAccount.generate()
+
+    preapproval = offchain.FundPullPreApprovalObject(
+        address="lbr1pgfpyysjzgfpyysjzgfpyysjzgf3xycnzvf3xycsm957ne",
+        biller_address="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pg9skzctpv9skzcg9kmwta",
+        funds_pull_pre_approval_id="lbr1pg9q5zs2pg9q5zs2pg9q5zs2pgyqqqqqqqqqqqqqqspa3m_7b8404c986f53fe072301fe950d030de",
+        scope=offchain.FundPullPreApprovalScopeObject(
+            type=offchain.FundPullPreApprovalType.consent,
+            expiration_timestamp=72322,
+            max_cumulative_amount=offchain.ScopedCumulativeAmountObject(
+                unit=offchain.TimeUnit.week,
+                value=1,
+                max_amount=offchain.CurrencyObject(amount=100, currency="XUS"),
+            ),
+            max_transaction_amount=offchain.CurrencyObject(
+                amount=100_000_000,
+                currency="XUS",
+            ),
+        ),
+        status=offchain.FundPullPreApprovalStatus.pending,
+        description="Pre-approval without default values",
+    )
+    command = offchain.FundsPullPreApprovalCommand(
+        my_actor_address=preapproval.address,
+        funds_pull_pre_approval=preapproval,
+    )
+    request = command.new_request()
+
+    serialized = offchain.jws.serialize(request, account.private_key.sign)
+
+    deserialized = offchain.jws.deserialize(
+        serialized,
+        offchain.CommandRequestObject,
+        account.private_key.public_key().verify,
+    )
+    assert request == deserialized

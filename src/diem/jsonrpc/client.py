@@ -415,16 +415,7 @@ class Client:
         if isinstance(txn, diem_types.SignedTransaction):
             return self.submit(txn.bcs_serialize().hex())
 
-        try:
-            self.execute("submit", [txn], result_parser=None)
-        except JsonRpcError as e:
-            # temp solution to ignore transaction re-submit error when retrying
-            # submit transaction for stale response errors.
-            # When server side fix https://github.com/diem/diem/pull/7174 is deployed,
-            # we remove this block
-            if "Failed to update gas price" in str(e):
-                return
-            raise e
+        self.execute("submit", [txn], result_parser=None)
 
     def wait_for_transaction(
         self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None

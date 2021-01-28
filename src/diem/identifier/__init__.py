@@ -5,14 +5,6 @@
 
 See https://dip.diem.com/dip-5 for more details
 
-```python
-
-from diem import chain_ids, identifier
-
-# print hrp for premainnet by premainnet chain id
-print(identifier.HRPS[chain_ids.PREMAINNET.to_int()])
-```
-
 """
 
 
@@ -36,7 +28,6 @@ HRPS: typing.Dict[int, str] = {
     chain_ids.TESTNET.to_int(): TDM,
     chain_ids.DEVNET.to_int(): TDM,
     chain_ids.TESTING.to_int(): TDM,
-    chain_ids.PREMAINNET.to_int(): PDM,
 }
 
 

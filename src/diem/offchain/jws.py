@@ -40,7 +40,7 @@ def deserialize_string(msg: bytes) -> typing.Tuple[str, bytes, bytes]:
     text = msg.decode(ENCODING)
     parts = text.split(".")
     if len(parts) != 3:
-        raise ValueError(f"invalid JWS compact message: {text}, expect 3 parts: <header>.<payload>.<signature>")
+        raise ValueError("invalid JWS compact message: %s, expect 3 parts: <header>.<payload>.<signature>" % text)
 
     header, body, sig = parts
     if header.encode(ENCODING) != PROTECTED_HEADER:

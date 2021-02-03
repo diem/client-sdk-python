@@ -23,3 +23,10 @@ def test_send_and_deserialize_request(factory):
     command = offchain.PaymentCommand(payment=payment, my_actor_address=payment.sender.address, inbound=False)
     resp = sender_client.send_command(command, sender.compliance_key.sign)
     assert resp
+
+
+def test_is_under_the_threshold():
+    assert offchain.client._is_under_the_threshold(2, 0.2, 1)
+    assert offchain.client._is_under_the_threshold(2, 0.2, 5)
+    assert not offchain.client._is_under_the_threshold(2, 0.2, 6)
+    assert not offchain.client._is_under_the_threshold(2, 0.2, 10)

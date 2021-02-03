@@ -151,7 +151,7 @@ class Client:
         try:
             _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
         except ValueError as e:
-            raise protocol_error(ErrorCode.invalid_x_request_sender_address, str(e)) from e
+            raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
 
         request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
         if request.command_type == CommandType.PaymentCommand:
@@ -218,7 +218,7 @@ class Client:
     def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -> None:
         if request_sender_address not in addresses:
             raise command_error(
-                ErrorCode.invalid_x_request_sender_address,
+                ErrorCode.invalid_http_header,
                 f"address {request_sender_address} is not one of {addresses}",
             )
 
@@ -228,7 +228,7 @@ class Client:
         if self.is_my_account_id(obj.receiver.address):
             return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
 
-        raise command_error(ErrorCode.unknown_actor_address, "unknown actor addresses: {obj}")
+        raise command_error(ErrorCode.unknown_address, "unknown actor addresses: {obj}")
 
     def is_my_account_id(self, account_id: str) -> bool:
         account_address, _ = identifier.decode_account(account_id, self.hrp)

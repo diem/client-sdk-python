@@ -319,11 +319,11 @@ def test_reference_id_uuid(sender_app, receiver_app):
     assert_response_command_error(resp, "invalid_field_value", "command.payment.reference_id")
 
 
-def test_unknown_actor_address_could_not_find_request_receiver_account_id(sender_app, receiver_app):
+def test_unknown_address_could_not_find_request_receiver_account_id(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["receiver"]["address"] = sender_app.offchain_client.my_compliance_key_account_id
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "unknown_actor_address")
+    assert_response_command_error(resp, "unknown_address")
 
 
 def test_x_request_sender_address_must_one_of_actor_addresses(sender_app, receiver_app):
@@ -335,7 +335,7 @@ def test_x_request_sender_address_must_one_of_actor_addresses(sender_app, receiv
         "failure",
         sender_address=sender_app.offchain_client.my_compliance_key_account_id,
     )
-    assert_response_command_error(resp, "invalid_x_request_sender_address")
+    assert_response_command_error(resp, "invalid_http_header")
 
 
 def test_http_header_x_request_sender_address_missing(sender_app, receiver_app):
@@ -352,7 +352,7 @@ def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, 
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["sender"]["address"] = account_id
     resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
-    assert_response_protocol_error(resp, "invalid_x_request_sender_address")
+    assert_response_protocol_error(resp, "invalid_http_header")
 
 
 def test_could_not_find_compliance_key_of_x_request_sender_address(sender_app, receiver_app):
@@ -361,7 +361,7 @@ def test_could_not_find_compliance_key_of_x_request_sender_address(sender_app, r
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["sender"]["address"] = account_id
     resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
-    assert_response_protocol_error(resp, "invalid_x_request_sender_address")
+    assert_response_protocol_error(resp, "invalid_http_header")
 
 
 def test_invalid_recipient_signature(sender_app, receiver_app):

@@ -292,7 +292,7 @@ def test_resource_is_locked_error(sender_app, receiver_app):
 
 
 def test_travel_rule_limit_validation(sender_app, receiver_app):
-    request = minimum_required_fields_request_sample(sender_app, receiver_app, 10)
+    request = minimum_required_fields_request_sample(sender_app, receiver_app, amount=10)
 
     resp = send_request(request, sender_app, receiver_app, "failure")
     assert_response_command_error(resp, "no_kyc_needed", "command.payment.action.amount")

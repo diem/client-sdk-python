@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import requests, typing, dataclasses, uuid
+import requests, typing, dataclasses, uuid, math
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -186,11 +186,11 @@ class Client:
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
             if info.code == action.currency:
-                approx_xdx_microdiem_value = info.to_xdx_exchange_rate * action.amount
-                if approx_xdx_microdiem_value < limit:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
                     raise command_error(
                         ErrorCode.no_kyc_needed,
-                        f"payment amount is under travel rule threshold {limit}",
+                        "payment amount is %s (rate: %s) under travel rule threshold %s"
+                        % (action.amount, info.to_xdx_exchange_rate, limit),
                         "command.payment.action.amount",
                     )
                 return
@@ -263,3 +263,11 @@ def _deserialize_jws(
         raise error_fn(ErrorCode.invalid_jws_signature, f"invalid jws signature: {e}", None) from e
     except ValueError as e:
         raise error_fn(ErrorCode.invalid_jws, f"deserialize JWS bytes failed: {e}", None) from e
+
+
+def _is_under_the_threshold(limit: int, rate: float, amount: int) -> bool:
+    # use ceil of the xdx exchanged amount to ensure a valid amount
+    # is not considered as under the threshold because of float number
+    # transport or calculation difference comparing with Move module
+    # implementation.
+    return math.ceil(rate * amount) < limit

@@ -60,19 +60,19 @@ class ErrorCode:
 
     # 1. could not find actor's onchain account by address
     # 2. none of actor addresses is server's (parent / child) vasp or dd address
-    unknown_actor_address = "unknown_actor_address"
+    unknown_address = "unknown_address"
 
     # overwrite write once / immutable field value
     invalid_overwrite = "invalid_overwrite"
 
     # could not find command by reference_id for a non-initial command
     invalid_initial_or_prior_not_found = "invalid_initial_or_prior_not_found"
-    invalid_x_request_sender_address = "invalid_x_request_sender_address"
 
     # the command is conflict with another command updating in progress by reference id
     conflict = "conflict"
 
     missing_http_header = "missing_http_header"
+    invalid_http_header = "invalid_http_header"
     invalid_recipient_signature = "invalid_recipient_signature"
 
 

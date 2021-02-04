@@ -18,9 +18,7 @@ MAX_CONTAINER_DEPTH = 500
 
 class BcsSerializer(sb.BinarySerializer):
     def __init__(self):
-        super().__init__(
-            output=io.BytesIO(), container_depth_budget=MAX_CONTAINER_DEPTH
-        )
+        super().__init__(output=io.BytesIO(), container_depth_budget=MAX_CONTAINER_DEPTH)
 
     def serialize_u32_as_uleb128(self, value: int):
         while value >= 0x80:
@@ -36,9 +34,7 @@ class BcsSerializer(sb.BinarySerializer):
 
     def serialize_variant_index(self, value: int):
         if value > MAX_U32:
-            raise st.SerializationError(
-                "Variant index exceeds the maximum supported value."
-            )
+            raise st.SerializationError("Variant index exceeds the maximum supported value.")
         self.serialize_u32_as_uleb128(value)
 
     def sort_map_entries(self, offsets: typing.List[int]):
@@ -59,9 +55,7 @@ class BcsSerializer(sb.BinarySerializer):
 
 class BcsDeserializer(sb.BinaryDeserializer):
     def __init__(self, content):
-        super().__init__(
-            input=io.BytesIO(content), container_depth_budget=MAX_CONTAINER_DEPTH
-        )
+        super().__init__(input=io.BytesIO(content), container_depth_budget=MAX_CONTAINER_DEPTH)
 
     def deserialize_uleb128_as_u32(self) -> int:
         value = 0
@@ -70,19 +64,13 @@ class BcsDeserializer(sb.BinaryDeserializer):
             digit = byte & 0x7F
             value |= digit << shift
             if value > MAX_U32:
-                raise st.DeserializationError(
-                    "Overflow while parsing uleb128-encoded uint32 value"
-                )
+                raise st.DeserializationError("Overflow while parsing uleb128-encoded uint32 value")
             if digit == byte:
                 if shift > 0 and digit == 0:
-                    raise st.DeserializationError(
-                        "Invalid uleb128 number (unexpected zero digit)"
-                    )
+                    raise st.DeserializationError("Invalid uleb128 number (unexpected zero digit)")
                 return value
 
-        raise st.DeserializationError(
-            "Overflow while parsing uleb128-encoded uint32 value"
-        )
+        raise st.DeserializationError("Overflow while parsing uleb128-encoded uint32 value")
 
     def deserialize_len(self) -> int:
         value = self.deserialize_uleb128_as_u32()
@@ -93,15 +81,11 @@ class BcsDeserializer(sb.BinaryDeserializer):
     def deserialize_variant_index(self) -> int:
         return self.deserialize_uleb128_as_u32()
 
-    def check_that_key_slices_are_increasing(
-        self, slice1: typing.Tuple[int, int], slice2: typing.Tuple[int, int]
-    ):
+    def check_that_key_slices_are_increasing(self, slice1: typing.Tuple[int, int], slice2: typing.Tuple[int, int]):
         key1 = bytes(self.input.getbuffer()[slice1[0] : slice1[1]])
         key2 = bytes(self.input.getbuffer()[slice2[0] : slice2[1]])
         if key1 >= key2:
-            raise st.DeserializationError(
-                "Serialized keys in a map must be ordered by increasing lexicographic order"
-            )
+            raise st.DeserializationError("Serialized keys in a map must be ordered by increasing lexicographic order")
 
 
 def serialize(obj: typing.Any, obj_type) -> bytes:

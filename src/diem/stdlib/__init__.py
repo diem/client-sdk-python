@@ -6,8 +6,8 @@ from diem import diem_types
 
 
 class ScriptCall:
-    """Structured representation of a call into a known Move script.
-    """
+    """Structured representation of a call into a known Move script."""
+
     pass
 
 
@@ -45,6 +45,7 @@ class ScriptCall__AddCurrencyToAccount(ScriptCall):
     * `Script::create_parent_vasp_account`
     * `Script::peer_to_peer_with_metadata`
     """
+
     currency: diem_types.TypeTag
 
 
@@ -93,6 +94,7 @@ class ScriptCall__AddRecoveryRotationCapability(ScriptCall):
     * `Script::create_recovery_address`
     * `Script::rotate_authentication_key_with_recovery_address`
     """
+
     recovery_address: diem_types.AccountAddress
 
 
@@ -134,6 +136,7 @@ class ScriptCall__AddToScriptAllowList(ScriptCall):
     | `Errors::INVALID_ARGUMENT` | `DiemTransactionPublishingOption::EINVALID_SCRIPT_HASH`               | The script `hash` is an invalid length.                                                    |
     | `Errors::INVALID_ARGUMENT` | `DiemTransactionPublishingOption::EALLOWLIST_ALREADY_CONTAINS_SCRIPT` | The on-chain allowlist already contains the script `hash`.                                 |
     """
+
     hash: bytes
     sliding_nonce: st.uint64
 
@@ -188,6 +191,7 @@ class ScriptCall__AddValidatorAndReconfigure(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     sliding_nonce: st.uint64
     validator_name: bytes
     validator_address: diem_types.AccountAddress
@@ -248,6 +252,7 @@ class ScriptCall__Burn(ScriptCall):
     * `Script::cancel_burn`
     * `Script::preburn`
     """
+
     token: diem_types.TypeTag
     sliding_nonce: st.uint64
     preburn_address: diem_types.AccountAddress
@@ -293,6 +298,7 @@ class ScriptCall__BurnTxnFees(ScriptCall):
     * `Script::burn`
     * `Script::cancel_burn`
     """
+
     coin_type: diem_types.TypeTag
 
 
@@ -346,6 +352,7 @@ class ScriptCall__CancelBurn(ScriptCall):
     * `Script::burn`
     * `Script::preburn`
     """
+
     token: diem_types.TypeTag
     preburn_address: diem_types.AccountAddress
 
@@ -408,6 +415,7 @@ class ScriptCall__CreateChildVaspAccount(ScriptCall):
     * `Script::add_recovery_rotation_capability`
     * `Script::create_recovery_address`
     """
+
     coin_type: diem_types.TypeTag
     child_address: diem_types.AccountAddress
     auth_key_prefix: bytes
@@ -462,6 +470,7 @@ class ScriptCall__CreateDesignatedDealer(ScriptCall):
     * `Script::peer_to_peer_with_metadata`
     * `Script::rotate_dual_attestation_info`
     """
+
     currency: diem_types.TypeTag
     sliding_nonce: st.uint64
     addr: diem_types.AccountAddress
@@ -515,6 +524,7 @@ class ScriptCall__CreateParentVaspAccount(ScriptCall):
     * `Script::create_recovery_address`
     * `Script::rotate_dual_attestation_info`
     """
+
     coin_type: diem_types.TypeTag
     sliding_nonce: st.uint64
     new_account_address: diem_types.AccountAddress
@@ -557,6 +567,7 @@ class ScriptCall__CreateRecoveryAddress(ScriptCall):
     * `Script::add_recovery_rotation_capability`
     * `Script::rotate_authentication_key_with_recovery_address`
     """
+
     pass
 
 
@@ -606,6 +617,7 @@ class ScriptCall__CreateValidatorAccount(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     sliding_nonce: st.uint64
     new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
@@ -655,6 +667,7 @@ class ScriptCall__CreateValidatorOperatorAccount(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     sliding_nonce: st.uint64
     new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
@@ -709,6 +722,7 @@ class ScriptCall__FreezeAccount(ScriptCall):
     # Related Scripts
     * `Script::unfreeze_account`
     """
+
     sliding_nonce: st.uint64
     to_freeze_account: diem_types.AccountAddress
 
@@ -768,6 +782,7 @@ class ScriptCall__PeerToPeerWithMetadata(ScriptCall):
     * `Script::create_parent_vasp_account`
     * `Script::add_currency_to_account`
     """
+
     currency: diem_types.TypeTag
     payee: diem_types.AccountAddress
     amount: st.uint64
@@ -823,6 +838,7 @@ class ScriptCall__Preburn(ScriptCall):
     * `Script::burn`
     * `Script::burn_txn_fees`
     """
+
     token: diem_types.TypeTag
     amount: st.uint64
 
@@ -858,6 +874,7 @@ class ScriptCall__PublishSharedEd25519PublicKey(ScriptCall):
     # Related Scripts
     * `Script::rotate_shared_ed25519_public_key`
     """
+
     public_key: bytes
 
 
@@ -902,6 +919,7 @@ class ScriptCall__RegisterValidatorConfig(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     validator_account: diem_types.AccountAddress
     consensus_pubkey: bytes
     validator_network_addresses: bytes
@@ -955,6 +973,7 @@ class ScriptCall__RemoveValidatorAndReconfigure(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     sliding_nonce: st.uint64
     validator_name: bytes
     validator_address: diem_types.AccountAddress
@@ -990,6 +1009,7 @@ class ScriptCall__RotateAuthenticationKey(ScriptCall):
     * `Script::rotate_authentication_key_with_nonce_admin`
     * `Script::rotate_authentication_key_with_recovery_address`
     """
+
     new_key: bytes
 
 
@@ -1029,6 +1049,7 @@ class ScriptCall__RotateAuthenticationKeyWithNonce(ScriptCall):
     * `Script::rotate_authentication_key_with_nonce_admin`
     * `Script::rotate_authentication_key_with_recovery_address`
     """
+
     sliding_nonce: st.uint64
     new_key: bytes
 
@@ -1069,6 +1090,7 @@ class ScriptCall__RotateAuthenticationKeyWithNonceAdmin(ScriptCall):
     * `Script::rotate_authentication_key_with_nonce`
     * `Script::rotate_authentication_key_with_recovery_address`
     """
+
     sliding_nonce: st.uint64
     new_key: bytes
 
@@ -1110,6 +1132,7 @@ class ScriptCall__RotateAuthenticationKeyWithRecoveryAddress(ScriptCall):
     * `Script::rotate_authentication_key_with_nonce`
     * `Script::rotate_authentication_key_with_nonce_admin`
     """
+
     recovery_address: diem_types.AccountAddress
     to_recover: diem_types.AccountAddress
     new_key: bytes
@@ -1156,6 +1179,7 @@ class ScriptCall__RotateDualAttestationInfo(ScriptCall):
     * `Script::create_designated_dealer`
     * `Script::rotate_dual_attestation_info`
     """
+
     new_url: bytes
     new_key: bytes
 
@@ -1190,6 +1214,7 @@ class ScriptCall__RotateSharedEd25519PublicKey(ScriptCall):
     # Related Scripts
     * `Script::publish_shared_ed25519_public_key`
     """
+
     public_key: bytes
 
 
@@ -1235,6 +1260,7 @@ class ScriptCall__SetValidatorConfigAndReconfigure(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::register_validator_config`
     """
+
     validator_account: diem_types.AccountAddress
     consensus_pubkey: bytes
     validator_network_addresses: bytes
@@ -1284,6 +1310,7 @@ class ScriptCall__SetValidatorOperator(ScriptCall):
     * `Script::set_validator_operator_with_nonce_admin`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     operator_name: bytes
     operator_account: diem_types.AccountAddress
 
@@ -1338,6 +1365,7 @@ class ScriptCall__SetValidatorOperatorWithNonceAdmin(ScriptCall):
     * `Script::set_validator_operator`
     * `Script::set_validator_config_and_reconfigure`
     """
+
     sliding_nonce: st.uint64
     operator_name: bytes
     operator_account: diem_types.AccountAddress
@@ -1402,6 +1430,7 @@ class ScriptCall__TieredMint(ScriptCall):
     * `Script::peer_to_peer_with_metadata`
     * `Script::rotate_dual_attestation_info`
     """
+
     coin_type: diem_types.TypeTag
     sliding_nonce: st.uint64
     designated_dealer_address: diem_types.AccountAddress
@@ -1447,6 +1476,7 @@ class ScriptCall__UnfreezeAccount(ScriptCall):
     # Related Scripts
     * `Script::freeze_account`
     """
+
     sliding_nonce: st.uint64
     to_unfreeze_account: diem_types.AccountAddress
 
@@ -1482,6 +1512,7 @@ class ScriptCall__UpdateDiemVersion(ScriptCall):
     | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                  | `account` is not the Diem Root account.                                                   |
     | `Errors::INVALID_ARGUMENT` | `DiemVersion::EINVALID_MAJOR_VERSION_NUMBER` | `major` is less-than or equal to the current major version stored on-chain.                |
     """
+
     sliding_nonce: st.uint64
     major: st.uint64
 
@@ -1519,6 +1550,7 @@ class ScriptCall__UpdateDualAttestationLimit(ScriptCall):
     * `Script::update_exchange_rate`
     * `Script::update_minting_ability`
     """
+
     sliding_nonce: st.uint64
     new_micro_xdx_limit: st.uint64
 
@@ -1563,6 +1595,7 @@ class ScriptCall__UpdateExchangeRate(ScriptCall):
     * `Script::update_dual_attestation_limit`
     * `Script::update_minting_ability`
     """
+
     currency: diem_types.TypeTag
     sliding_nonce: st.uint64
     new_exchange_rate_numerator: st.uint64
@@ -1601,22 +1634,33 @@ class ScriptCall__UpdateMintingAbility(ScriptCall):
     * `Script::update_dual_attestation_limit`
     * `Script::update_exchange_rate`
     """
+
     currency: diem_types.TypeTag
     allow_minting: st.bool
 
 
-from diem.diem_types import (Script, TypeTag, AccountAddress, TransactionArgument, TransactionArgument__Bool, TransactionArgument__U8, TransactionArgument__U64, TransactionArgument__U128, TransactionArgument__Address, TransactionArgument__U8Vector)
+from diem.diem_types import (
+    Script,
+    TypeTag,
+    AccountAddress,
+    TransactionArgument,
+    TransactionArgument__Bool,
+    TransactionArgument__U8,
+    TransactionArgument__U64,
+    TransactionArgument__U128,
+    TransactionArgument__Address,
+    TransactionArgument__U8Vector,
+)
+
 
 def encode_script(call: ScriptCall) -> Script:
-    """Build a Diem `Script` from a structured object `ScriptCall`.
-    """
+    """Build a Diem `Script` from a structured object `ScriptCall`."""
     helper = SCRIPT_ENCODER_MAP[call.__class__]
     return helper(call)
 
 
 def decode_script(script: Script) -> ScriptCall:
-    """Try to recognize a Diem `Script` and convert it into a structured object `ScriptCall`.
-    """
+    """Try to recognize a Diem `Script` and convert it into a structured object `ScriptCall`."""
     helper = SCRIPT_DECODER_MAP.get(script.code)
     if helper is None:
         raise ValueError("Unknown script bytecode")
@@ -1758,7 +1802,9 @@ def encode_add_to_script_allow_list_script(hash: bytes, sliding_nonce: st.uint64
     )
 
 
-def encode_add_validator_and_reconfigure_script(sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress) -> Script:
+def encode_add_validator_and_reconfigure_script(
+    sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress
+) -> Script:
     """# Summary
     Adds a validator account to the validator set, and triggers a
     reconfiguration of the system to admit the account to the validator set for the system.
@@ -1810,7 +1856,11 @@ def encode_add_validator_and_reconfigure_script(sliding_nonce: st.uint64, valida
     return Script(
         code=ADD_VALIDATOR_AND_RECONFIGURE_CODE,
         ty_args=[],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U8Vector(value=validator_name), TransactionArgument__Address(value=validator_address)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__U8Vector(value=validator_name),
+            TransactionArgument__Address(value=validator_address),
+        ],
     )
 
 
@@ -1977,7 +2027,13 @@ def encode_cancel_burn_script(token: TypeTag, preburn_address: AccountAddress) -
     )
 
 
-def encode_create_child_vasp_account_script(coin_type: TypeTag, child_address: AccountAddress, auth_key_prefix: bytes, add_all_currencies: st.bool, child_initial_balance: st.uint64) -> Script:
+def encode_create_child_vasp_account_script(
+    coin_type: TypeTag,
+    child_address: AccountAddress,
+    auth_key_prefix: bytes,
+    add_all_currencies: st.bool,
+    child_initial_balance: st.uint64,
+) -> Script:
     """# Summary
     Creates a Child VASP account with its parent being the sending account of the transaction.
 
@@ -2037,11 +2093,23 @@ def encode_create_child_vasp_account_script(coin_type: TypeTag, child_address: A
     return Script(
         code=CREATE_CHILD_VASP_ACCOUNT_CODE,
         ty_args=[coin_type],
-        args=[TransactionArgument__Address(value=child_address), TransactionArgument__U8Vector(value=auth_key_prefix), TransactionArgument__Bool(value=add_all_currencies), TransactionArgument__U64(value=child_initial_balance)],
+        args=[
+            TransactionArgument__Address(value=child_address),
+            TransactionArgument__U8Vector(value=auth_key_prefix),
+            TransactionArgument__Bool(value=add_all_currencies),
+            TransactionArgument__U64(value=child_initial_balance),
+        ],
     )
 
 
-def encode_create_designated_dealer_script(currency: TypeTag, sliding_nonce: st.uint64, addr: AccountAddress, auth_key_prefix: bytes, human_name: bytes, add_all_currencies: st.bool) -> Script:
+def encode_create_designated_dealer_script(
+    currency: TypeTag,
+    sliding_nonce: st.uint64,
+    addr: AccountAddress,
+    auth_key_prefix: bytes,
+    human_name: bytes,
+    add_all_currencies: st.bool,
+) -> Script:
     """# Summary
     Creates a Designated Dealer account with the provided information, and initializes it with
     default mint tiers.
@@ -2090,11 +2158,24 @@ def encode_create_designated_dealer_script(currency: TypeTag, sliding_nonce: st.
     return Script(
         code=CREATE_DESIGNATED_DEALER_CODE,
         ty_args=[currency],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__Address(value=addr), TransactionArgument__U8Vector(value=auth_key_prefix), TransactionArgument__U8Vector(value=human_name), TransactionArgument__Bool(value=add_all_currencies)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__Address(value=addr),
+            TransactionArgument__U8Vector(value=auth_key_prefix),
+            TransactionArgument__U8Vector(value=human_name),
+            TransactionArgument__Bool(value=add_all_currencies),
+        ],
     )
 
 
-def encode_create_parent_vasp_account_script(coin_type: TypeTag, sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes, add_all_currencies: st.bool) -> Script:
+def encode_create_parent_vasp_account_script(
+    coin_type: TypeTag,
+    sliding_nonce: st.uint64,
+    new_account_address: AccountAddress,
+    auth_key_prefix: bytes,
+    human_name: bytes,
+    add_all_currencies: st.bool,
+) -> Script:
     """# Summary
     Creates a Parent VASP account with the specified human name.
 
@@ -2141,7 +2222,13 @@ def encode_create_parent_vasp_account_script(coin_type: TypeTag, sliding_nonce: 
     return Script(
         code=CREATE_PARENT_VASP_ACCOUNT_CODE,
         ty_args=[coin_type],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__Address(value=new_account_address), TransactionArgument__U8Vector(value=auth_key_prefix), TransactionArgument__U8Vector(value=human_name), TransactionArgument__Bool(value=add_all_currencies)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__Address(value=new_account_address),
+            TransactionArgument__U8Vector(value=auth_key_prefix),
+            TransactionArgument__U8Vector(value=human_name),
+            TransactionArgument__Bool(value=add_all_currencies),
+        ],
     )
 
 
@@ -2185,7 +2272,9 @@ def encode_create_recovery_address_script() -> Script:
     )
 
 
-def encode_create_validator_account_script(sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes) -> Script:
+def encode_create_validator_account_script(
+    sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
+) -> Script:
     """# Summary
     Creates a Validator account.
 
@@ -2233,11 +2322,18 @@ def encode_create_validator_account_script(sliding_nonce: st.uint64, new_account
     return Script(
         code=CREATE_VALIDATOR_ACCOUNT_CODE,
         ty_args=[],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__Address(value=new_account_address), TransactionArgument__U8Vector(value=auth_key_prefix), TransactionArgument__U8Vector(value=human_name)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__Address(value=new_account_address),
+            TransactionArgument__U8Vector(value=auth_key_prefix),
+            TransactionArgument__U8Vector(value=human_name),
+        ],
     )
 
 
-def encode_create_validator_operator_account_script(sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes) -> Script:
+def encode_create_validator_operator_account_script(
+    sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
+) -> Script:
     """# Summary
     Creates a Validator Operator account.
 
@@ -2282,7 +2378,12 @@ def encode_create_validator_operator_account_script(sliding_nonce: st.uint64, ne
     return Script(
         code=CREATE_VALIDATOR_OPERATOR_ACCOUNT_CODE,
         ty_args=[],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__Address(value=new_account_address), TransactionArgument__U8Vector(value=auth_key_prefix), TransactionArgument__U8Vector(value=human_name)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__Address(value=new_account_address),
+            TransactionArgument__U8Vector(value=auth_key_prefix),
+            TransactionArgument__U8Vector(value=human_name),
+        ],
     )
 
 
@@ -2340,7 +2441,9 @@ def encode_freeze_account_script(sliding_nonce: st.uint64, to_freeze_account: Ac
     )
 
 
-def encode_peer_to_peer_with_metadata_script(currency: TypeTag, payee: AccountAddress, amount: st.uint64, metadata: bytes, metadata_signature: bytes) -> Script:
+def encode_peer_to_peer_with_metadata_script(
+    currency: TypeTag, payee: AccountAddress, amount: st.uint64, metadata: bytes, metadata_signature: bytes
+) -> Script:
     """# Summary
     Transfers a given number of coins in a specified currency from one account to another.
 
@@ -2397,7 +2500,12 @@ def encode_peer_to_peer_with_metadata_script(currency: TypeTag, payee: AccountAd
     return Script(
         code=PEER_TO_PEER_WITH_METADATA_CODE,
         ty_args=[currency],
-        args=[TransactionArgument__Address(value=payee), TransactionArgument__U64(value=amount), TransactionArgument__U8Vector(value=metadata), TransactionArgument__U8Vector(value=metadata_signature)],
+        args=[
+            TransactionArgument__Address(value=payee),
+            TransactionArgument__U64(value=amount),
+            TransactionArgument__U8Vector(value=metadata),
+            TransactionArgument__U8Vector(value=metadata_signature),
+        ],
     )
 
 
@@ -2492,7 +2600,12 @@ def encode_publish_shared_ed25519_public_key_script(public_key: bytes) -> Script
     )
 
 
-def encode_register_validator_config_script(validator_account: AccountAddress, consensus_pubkey: bytes, validator_network_addresses: bytes, fullnode_network_addresses: bytes) -> Script:
+def encode_register_validator_config_script(
+    validator_account: AccountAddress,
+    consensus_pubkey: bytes,
+    validator_network_addresses: bytes,
+    fullnode_network_addresses: bytes,
+) -> Script:
     """# Summary
     Updates a validator's configuration.
 
@@ -2535,11 +2648,18 @@ def encode_register_validator_config_script(validator_account: AccountAddress, c
     return Script(
         code=REGISTER_VALIDATOR_CONFIG_CODE,
         ty_args=[],
-        args=[TransactionArgument__Address(value=validator_account), TransactionArgument__U8Vector(value=consensus_pubkey), TransactionArgument__U8Vector(value=validator_network_addresses), TransactionArgument__U8Vector(value=fullnode_network_addresses)],
+        args=[
+            TransactionArgument__Address(value=validator_account),
+            TransactionArgument__U8Vector(value=consensus_pubkey),
+            TransactionArgument__U8Vector(value=validator_network_addresses),
+            TransactionArgument__U8Vector(value=fullnode_network_addresses),
+        ],
     )
 
 
-def encode_remove_validator_and_reconfigure_script(sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress) -> Script:
+def encode_remove_validator_and_reconfigure_script(
+    sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress
+) -> Script:
     """# Summary
     This script removes a validator account from the validator set, and triggers a reconfiguration
     of the system to remove the validator from the system.
@@ -2588,7 +2708,11 @@ def encode_remove_validator_and_reconfigure_script(sliding_nonce: st.uint64, val
     return Script(
         code=REMOVE_VALIDATOR_AND_RECONFIGURE_CODE,
         ty_args=[],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U8Vector(value=validator_name), TransactionArgument__Address(value=validator_address)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__U8Vector(value=validator_name),
+            TransactionArgument__Address(value=validator_address),
+        ],
     )
 
 
@@ -2712,7 +2836,9 @@ def encode_rotate_authentication_key_with_nonce_admin_script(sliding_nonce: st.u
     )
 
 
-def encode_rotate_authentication_key_with_recovery_address_script(recovery_address: AccountAddress, to_recover: AccountAddress, new_key: bytes) -> Script:
+def encode_rotate_authentication_key_with_recovery_address_script(
+    recovery_address: AccountAddress, to_recover: AccountAddress, new_key: bytes
+) -> Script:
     """# Summary
     Rotates the authentication key of a specified account that is part of a recovery address to a
     new authentication key.
@@ -2751,7 +2877,11 @@ def encode_rotate_authentication_key_with_recovery_address_script(recovery_addre
     return Script(
         code=ROTATE_AUTHENTICATION_KEY_WITH_RECOVERY_ADDRESS_CODE,
         ty_args=[],
-        args=[TransactionArgument__Address(value=recovery_address), TransactionArgument__Address(value=to_recover), TransactionArgument__U8Vector(value=new_key)],
+        args=[
+            TransactionArgument__Address(value=recovery_address),
+            TransactionArgument__Address(value=to_recover),
+            TransactionArgument__U8Vector(value=new_key),
+        ],
     )
 
 
@@ -2838,7 +2968,12 @@ def encode_rotate_shared_ed25519_public_key_script(public_key: bytes) -> Script:
     )
 
 
-def encode_set_validator_config_and_reconfigure_script(validator_account: AccountAddress, consensus_pubkey: bytes, validator_network_addresses: bytes, fullnode_network_addresses: bytes) -> Script:
+def encode_set_validator_config_and_reconfigure_script(
+    validator_account: AccountAddress,
+    consensus_pubkey: bytes,
+    validator_network_addresses: bytes,
+    fullnode_network_addresses: bytes,
+) -> Script:
     """# Summary
     Updates a validator's configuration, and triggers a reconfiguration of the system to update the
     validator set with this new validator configuration.
@@ -2882,7 +3017,12 @@ def encode_set_validator_config_and_reconfigure_script(validator_account: Accoun
     return Script(
         code=SET_VALIDATOR_CONFIG_AND_RECONFIGURE_CODE,
         ty_args=[],
-        args=[TransactionArgument__Address(value=validator_account), TransactionArgument__U8Vector(value=consensus_pubkey), TransactionArgument__U8Vector(value=validator_network_addresses), TransactionArgument__U8Vector(value=fullnode_network_addresses)],
+        args=[
+            TransactionArgument__Address(value=validator_account),
+            TransactionArgument__U8Vector(value=consensus_pubkey),
+            TransactionArgument__U8Vector(value=validator_network_addresses),
+            TransactionArgument__U8Vector(value=fullnode_network_addresses),
+        ],
     )
 
 
@@ -2935,7 +3075,9 @@ def encode_set_validator_operator_script(operator_name: bytes, operator_account:
     )
 
 
-def encode_set_validator_operator_with_nonce_admin_script(sliding_nonce: st.uint64, operator_name: bytes, operator_account: AccountAddress) -> Script:
+def encode_set_validator_operator_with_nonce_admin_script(
+    sliding_nonce: st.uint64, operator_name: bytes, operator_account: AccountAddress
+) -> Script:
     """# Summary
     Sets the validator operator for a validator in the validator's configuration resource "locally"
     and does not reconfigure the system.
@@ -2987,11 +3129,21 @@ def encode_set_validator_operator_with_nonce_admin_script(sliding_nonce: st.uint
     return Script(
         code=SET_VALIDATOR_OPERATOR_WITH_NONCE_ADMIN_CODE,
         ty_args=[],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U8Vector(value=operator_name), TransactionArgument__Address(value=operator_account)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__U8Vector(value=operator_name),
+            TransactionArgument__Address(value=operator_account),
+        ],
     )
 
 
-def encode_tiered_mint_script(coin_type: TypeTag, sliding_nonce: st.uint64, designated_dealer_address: AccountAddress, mint_amount: st.uint64, tier_index: st.uint64) -> Script:
+def encode_tiered_mint_script(
+    coin_type: TypeTag,
+    sliding_nonce: st.uint64,
+    designated_dealer_address: AccountAddress,
+    mint_amount: st.uint64,
+    tier_index: st.uint64,
+) -> Script:
     """# Summary
     Mints a specified number of coins in a currency to a Designated Dealer.
 
@@ -3052,7 +3204,12 @@ def encode_tiered_mint_script(coin_type: TypeTag, sliding_nonce: st.uint64, desi
     return Script(
         code=TIERED_MINT_CODE,
         ty_args=[coin_type],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__Address(value=designated_dealer_address), TransactionArgument__U64(value=mint_amount), TransactionArgument__U64(value=tier_index)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__Address(value=designated_dealer_address),
+            TransactionArgument__U64(value=mint_amount),
+            TransactionArgument__U64(value=tier_index),
+        ],
     )
 
 
@@ -3176,7 +3333,12 @@ def encode_update_dual_attestation_limit_script(sliding_nonce: st.uint64, new_mi
     )
 
 
-def encode_update_exchange_rate_script(currency: TypeTag, sliding_nonce: st.uint64, new_exchange_rate_numerator: st.uint64, new_exchange_rate_denominator: st.uint64) -> Script:
+def encode_update_exchange_rate_script(
+    currency: TypeTag,
+    sliding_nonce: st.uint64,
+    new_exchange_rate_numerator: st.uint64,
+    new_exchange_rate_denominator: st.uint64,
+) -> Script:
     """# Summary
     Update the rough on-chain exchange rate between a specified currency and XDX (as a conversion
     to micro-XDX).
@@ -3218,7 +3380,11 @@ def encode_update_exchange_rate_script(currency: TypeTag, sliding_nonce: st.uint
     return Script(
         code=UPDATE_EXCHANGE_RATE_CODE,
         ty_args=[currency],
-        args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U64(value=new_exchange_rate_numerator), TransactionArgument__U64(value=new_exchange_rate_denominator)],
+        args=[
+            TransactionArgument__U64(value=sliding_nonce),
+            TransactionArgument__U64(value=new_exchange_rate_numerator),
+            TransactionArgument__U64(value=new_exchange_rate_denominator),
+        ],
     )
 
 
@@ -3341,8 +3507,7 @@ def decode_create_parent_vasp_account_script(script: Script) -> ScriptCall:
 
 
 def decode_create_recovery_address_script(_script: Script) -> ScriptCall:
-    return ScriptCall__CreateRecoveryAddress(
-    )
+    return ScriptCall__CreateRecoveryAddress()
 
 
 def decode_create_validator_account_script(script: Script) -> ScriptCall:
@@ -3689,4 +3854,3 @@ def decode_u8vector_argument(arg: TransactionArgument) -> bytes:
     if not isinstance(arg, TransactionArgument__U8Vector):
         raise ValueError("Was expecting a U8Vector argument")
     return arg.value
-

@@ -169,5 +169,11 @@ def test_event_metadata_is_none_or_empty():
 
 
 def test_refund_metadata():
-    ret = txnmetadata.refund_metadata(12343, diem_types.RefundReason__UserInitiatedFullRefund())
+    txn_version = 12343
+    reason = diem_types.RefundReason__UserInitiatedFullRefund()
+    ret = txnmetadata.refund_metadata(txn_version, reason)
     assert ret.hex() == "0400373000000000000004"
+
+    metadata = diem_types.Metadata.bcs_deserialize(ret)
+    assert metadata.value.value.transaction_version == txn_version
+    assert metadata.value.value.reason == reason

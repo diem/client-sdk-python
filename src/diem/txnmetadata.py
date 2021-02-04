@@ -75,7 +75,9 @@ def refund_metadata(original_transaction_version: int, reason: diem_types.Refund
 
     metadata = diem_types.Metadata__RefundMetadata(
         value=diem_types.RefundMetadata__RefundMetadataV0(
-            value=diem_types.RefundMetadataV0(transaction_version=original_transaction_version, reason=reason)
+            value=diem_types.RefundMetadataV0(  # pyre-ignore
+                transaction_version=original_transaction_version, reason=reason
+            )
         )
     )
     return metadata.bcs_serialize()

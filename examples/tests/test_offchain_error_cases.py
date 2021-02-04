@@ -346,6 +346,14 @@ def test_http_header_x_request_sender_address_missing(sender_app, receiver_app):
     assert_response_protocol_error(resp, "missing_http_header")
 
 
+def test_missing_x_request_id(sender_app, receiver_app):
+    request = minimum_required_fields_request_sample(sender_app, receiver_app)
+    resp = send_request_json_with_headers(
+        json.dumps(request), sender_app, receiver_app, "failure", {http_header.X_REQUEST_SENDER_ADDRESS: "address"}
+    )
+    assert_response_protocol_error(resp, "missing_http_header")
+
+
 def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, receiver_app):
     account = LocalAccount.generate()
     account_id = identifier.encode_account(account.account_address, None, sender_app.hrp)

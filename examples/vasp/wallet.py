@@ -130,6 +130,11 @@ class WalletApp:
     ) -> typing.Tuple[int, bytes]:
         cid = None
         try:
+            if not x_request_id:
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.missing_http_header, "missing %s" % offchain.X_REQUEST_ID
+                )
+
             inbound_command = self.offchain_client.process_inbound_request(request_sender_address, request_bytes)
             cid = inbound_command.id()
             self.save_command(inbound_command)

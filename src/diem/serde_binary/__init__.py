@@ -30,7 +30,7 @@ class BinarySerializer:
 
     def __post_init__(self):
         self.primitive_type_serializer = {
-            bool: self.serialize_bool,
+            st.bool: self.serialize_bool,
             st.uint8: self.serialize_u8,
             st.uint16: self.serialize_u16,
             st.uint32: self.serialize_u32,
@@ -59,7 +59,7 @@ class BinarySerializer:
     def serialize_unit(self, value: st.unit):
         pass
 
-    def serialize_bool(self, value: bool):
+    def serialize_bool(self, value: st.bool):
         self.output.write(int(value).to_bytes(1, "little", signed=False))
 
     def serialize_u8(self, value: st.uint8):
@@ -171,7 +171,9 @@ class BinarySerializer:
                 if not hasattr(obj_type, "VARIANTS"):
                     raise st.SerializationError("Unexpected type", obj_type)
                 if not hasattr(obj, "INDEX"):
-                    raise st.SerializationError("Wrong Value for the type", obj, obj_type)
+                    raise st.SerializationError(
+                        "Wrong Value for the type", obj, obj_type
+                    )
                 self.serialize_variant_index(obj.__class__.INDEX)
                 # Proceed to variant
                 obj_type = obj_type.VARIANTS[obj.__class__.INDEX]
@@ -207,7 +209,7 @@ class BinaryDeserializer:
 
     def __post_init__(self):
         self.primitive_type_deserializer = {
-            bool: self.deserialize_bool,
+            st.bool: self.deserialize_bool,
             st.uint8: self.deserialize_u8,
             st.uint16: self.deserialize_u16,
             st.uint32: self.deserialize_u32,
@@ -246,7 +248,7 @@ class BinaryDeserializer:
     def deserialize_unit(self) -> st.unit:
         pass
 
-    def deserialize_bool(self) -> bool:
+    def deserialize_bool(self) -> st.bool:
         b = int.from_bytes(self.read(1), byteorder="little", signed=False)
         if b == 0:
             return False
@@ -268,7 +270,9 @@ class BinaryDeserializer:
         return st.uint64(int.from_bytes(self.read(8), byteorder="little", signed=False))
 
     def deserialize_u128(self) -> st.uint128:
-        return st.uint128(int.from_bytes(self.read(16), byteorder="little", signed=False))
+        return st.uint128(
+            int.from_bytes(self.read(16), byteorder="little", signed=False)
+        )
 
     def deserialize_i8(self) -> st.int8:
         return st.int8(int.from_bytes(self.read(1), byteorder="little", signed=True))
@@ -371,7 +375,9 @@ class BinaryDeserializer:
 
                     key_slice = (key_start, key_end)
                     if previous_key_slice is not None:
-                        self.check_that_key_slices_are_increasing(previous_key_slice, key_slice)
+                        self.check_that_key_slices_are_increasing(
+                            previous_key_slice, key_slice
+                        )
                     previous_key_slice = key_slice
 
                     result[key] = value
@@ -399,7 +405,9 @@ class BinaryDeserializer:
             elif hasattr(obj_type, "VARIANTS"):
                 variant_index = self.deserialize_variant_index()
                 if variant_index not in range(len(obj_type.VARIANTS)):
-                    raise st.DeserializationError("Unexpected variant index", variant_index)
+                    raise st.DeserializationError(
+                        "Unexpected variant index", variant_index
+                    )
                 new_type = obj_type.VARIANTS[variant_index]
                 return self.deserialize_any(new_type)
 

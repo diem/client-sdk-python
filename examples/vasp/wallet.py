@@ -88,7 +88,12 @@ class WalletApp:
 
     def __post_init__(self) -> None:
         self.compliance_key = self.parent_vasp.compliance_key
-        self.offchain_client = offchain.Client(self.parent_vasp.account_address, self.jsonrpc_client, self.hrp)
+        self.offchain_client = offchain.Client(
+            self.parent_vasp.account_address,
+            self.jsonrpc_client,
+            self.hrp,
+            supported_currency_codes=[testnet.TEST_CURRENCY_CODE],
+        )
 
     # --------------------- end user interaction --------------------------
 

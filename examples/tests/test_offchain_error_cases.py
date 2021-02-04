@@ -305,6 +305,13 @@ def test_invalid_currency_code(sender_app, receiver_app):
     assert_response_command_error(resp, "invalid_field_value", "command.payment.action.currency")
 
 
+def test_unsupported_currency(sender_app, receiver_app):
+    request = minimum_required_fields_request_sample(sender_app, receiver_app, currency="XDX")
+
+    resp = send_request(request, sender_app, receiver_app, "failure")
+    assert_response_command_error(resp, "unsupported_currency", "command.payment.action.currency")
+
+
 def test_cid_uuid(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["cid"] = "invalid uuid"

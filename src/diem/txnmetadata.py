@@ -60,10 +60,9 @@ def refund_metadata(original_transaction_version: int, reason: diem_types.Refund
     List of reason types available:
 
     0. RefundReason__OtherReason
-    1. RefundReason__InvalidReferenceId
-    2. RefundReason__DuplicateReferenceId
-    3. RefundReason__UserInitiatedPartialRefund
-    4. RefundReason__UserInitiatedFullRefund
+    1. RefundReason__InvalidSubaddress,
+    2. RefundReason__UserInitiatedPartialRefund,
+    3. RefundReason__UserInitiatedFullRefund,
 
     Example:
 

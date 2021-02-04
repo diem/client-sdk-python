@@ -51,6 +51,36 @@ def travel_rule(
     return (metadata.bcs_serialize(), signing_msg)
 
 
+def refund_metadata(original_transaction_version: int, reason: diem_types.RefundReason) -> bytes:
+    """Create refund metadata for peer to peer transaction script
+
+    Use this function to create metadata when refunding a transaction, pass in the transaction version and
+    a reason.
+
+    List of reason types available:
+
+    0. RefundReason__OtherReason
+    1. RefundReason__InvalidReferenceId
+    2. RefundReason__DuplicateReferenceId
+    3. RefundReason__UserInitiatedPartialRefund
+    4. RefundReason__UserInitiatedFullRefund
+
+    Example:
+
+    ```
+    >>> from diem import diem_types, txnmetadata
+    >>> txnmetadata.refund_metadata(txn_version, diem_types.RefundReason__UserInitiatedFullRefund())
+
+    """
+
+    metadata = diem_types.Metadata__RefundMetadata(
+        value=diem_types.RefundMetadata__RefundMetadataV0(
+            value=diem_types.RefundMetadataV0(transaction_version=original_transaction_version, reason=reason)
+        )
+    )
+    return metadata.bcs_serialize()
+
+
 def general_metadata(
     from_subaddress: typing.Optional[bytes] = None,
     to_subaddress: typing.Optional[bytes] = None,

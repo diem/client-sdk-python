@@ -166,3 +166,8 @@ def test_event_metadata_is_none_or_empty():
         sequence_number=32,
     )
     assert txnmetadata.refund_metadata_from_event(event) == b""
+
+
+def test_refund_metadata():
+    ret = txnmetadata.refund_metadata(12343, diem_types.RefundReason__UserInitiatedFullRefund())
+    assert ret.hex() == "0400373000000000000004"

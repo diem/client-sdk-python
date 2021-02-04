@@ -330,11 +330,18 @@ class Metadata__UnstructuredBytesMetadata(Metadata):
     value: "UnstructuredBytesMetadata"
 
 
+@dataclass(frozen=True)
+class Metadata__RefundMetadata(Metadata):
+    INDEX = 4  # type: int
+    value: "RefundMetadata"
+
+
 Metadata.VARIANTS = [
     Metadata__Undefined,
     Metadata__GeneralMetadata,
     Metadata__TravelRuleMetadata,
     Metadata__UnstructuredBytesMetadata,
+    Metadata__RefundMetadata,
 ]
 
 
@@ -403,6 +410,93 @@ class RawTransaction:
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
+
+
+class RefundMetadata:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[RefundMetadata]]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, RefundMetadata)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "RefundMetadata":
+        v, buffer = bcs.deserialize(input, RefundMetadata)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
+class RefundMetadata__RefundMetadataV0(RefundMetadata):
+    INDEX = 0  # type: int
+    value: "RefundMetadataV0"
+
+
+RefundMetadata.VARIANTS = [
+    RefundMetadata__RefundMetadataV0,
+]
+
+
+@dataclass(frozen=True)
+class RefundMetadataV0:
+    transaction_version: st.uint64
+    reason: "RefundReason"
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, RefundMetadataV0)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "RefundMetadataV0":
+        v, buffer = bcs.deserialize(input, RefundMetadataV0)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+class RefundReason:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[RefundReason]]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, RefundReason)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "RefundReason":
+        v, buffer = bcs.deserialize(input, RefundReason)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
+class RefundReason__OtherReason(RefundReason):
+    INDEX = 0  # type: int
+    pass
+
+
+@dataclass(frozen=True)
+class RefundReason__InvalidSubaddress(RefundReason):
+    INDEX = 1  # type: int
+    pass
+
+
+@dataclass(frozen=True)
+class RefundReason__UserInitiatedPartialRefund(RefundReason):
+    INDEX = 2  # type: int
+    pass
+
+
+@dataclass(frozen=True)
+class RefundReason__UserInitiatedFullRefund(RefundReason):
+    INDEX = 3  # type: int
+    pass
+
+
+RefundReason.VARIANTS = [
+    RefundReason__OtherReason,
+    RefundReason__InvalidSubaddress,
+    RefundReason__UserInitiatedPartialRefund,
+    RefundReason__UserInitiatedFullRefund,
+]
 
 
 @dataclass(frozen=True)

@@ -85,6 +85,7 @@ class Client:
     my_compliance_key_account_address: diem_types.AccountAddress
     jsonrpc_client: jsonrpc.Client
     hrp: str
+    supported_currency_codes: typing.Optional[typing.List[str]] = dataclasses.field(default=None)
     session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
     timeout: typing.Tuple[float, float] = dataclasses.field(
         default_factory=lambda: (
@@ -183,6 +184,21 @@ class Client:
 
     def validate_dual_attestation_limit(self, action: PaymentActionObject) -> None:
         currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if action.currency not in currency_codes:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f"currency code is invalid: {action.currency}",
+                "command.payment.action.currency",
+            )
+
+        if action.currency not in supported_codes:
+            raise command_error(
+                ErrorCode.unsupported_currency,
+                f"currency code is not supported: {action.currency}",
+                "command.payment.action.currency",
+            )
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
             if info.code == action.currency:
@@ -193,12 +209,6 @@ class Client:
                         % (action.amount, info.to_xdx_exchange_rate, limit),
                         "command.payment.action.amount",
                     )
-                return
-        raise command_error(
-            ErrorCode.invalid_field_value,
-            f"currency code is invalid: {action.currency}",
-            "command.payment.action.currency",
-        )
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -> None:
         self.validate_actor_address("sender", payment.sender)
@@ -245,6 +255,12 @@ class Client:
     def get_base_url_and_compliance_key(self, account_id: str) -> typing.Tuple[str, Ed25519PublicKey]:
         account_address, _ = identifier.decode_account(account_id, self.hrp)
         return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
+
+
+def _filter_supported_currency_codes(
+    supported_codes: typing.Optional[typing.List[str]], codes: typing.List[str]
+) -> typing.List[str]:
+    return list(filter(lambda code: supported_codes is None or code in supported_codes, codes))
 
 
 def _deserialize_jws(

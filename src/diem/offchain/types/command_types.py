@@ -75,6 +75,9 @@ class ErrorCode:
     invalid_http_header = "invalid_http_header"
     invalid_recipient_signature = "invalid_recipient_signature"
 
+    # Field payment.action.currency value is a valid Diem currency code, but it is not supported / acceptable by the receiver VASP.
+    unsupported_currency = "unsupported_currency"
+
 
 class OffChainErrorType:
     """command_error occurs in response to a Command failing to be applied -

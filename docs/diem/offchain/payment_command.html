@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.offchain.payment_command API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.offchain.payment_command</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+import typing, dataclasses, uuid
+
+from .types import (
+    CommandRequestObject,
+    ErrorCode,
+    PaymentObject,
+    PaymentActorObject,
+    KycDataObject,
+    Status,
+    FieldError,
+    InvalidOverwriteError,
+    new_payment_object,
+    new_payment_request,
+    replace_payment_actor,
+    validate_write_once_fields,
+)
+from .error import command_error
+from .payment_state import Action, Actor, MACHINE as payment_states, follow_up_action, summary, trigger_actor, R_SEND
+from .state import ConditionValidationError, State
+from .command import Command
+from .. import diem_types, identifier, txnmetadata
+
+
+@dataclasses.dataclass(frozen=True)
+class PaymentCommand(Command):
+    my_actor_address: str
+    payment: PaymentObject
+    inbound: bool
+    cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
+
+    @staticmethod
+    def init(
+        sender_account_id: str,
+        sender_kyc_data: KycDataObject,
+        receiver_account_id: str,
+        amount: int,
+        currency: str,
+        original_payment_reference_id: typing.Optional[str] = None,
+        description: typing.Optional[str] = None,
+        inbound: bool = False,
+    ) -&gt; &#34;PaymentCommand&#34;:
+        return PaymentCommand(
+            my_actor_address=sender_account_id,
+            payment=new_payment_object(
+                sender_account_id,
+                sender_kyc_data,
+                receiver_account_id,
+                amount,
+                currency,
+                original_payment_reference_id=original_payment_reference_id,
+                description=description,
+            ),
+            inbound=inbound,
+        )
+
+    def id(self) -&gt; str:
+        return self.cid
+
+    def is_inbound(self) -&gt; bool:
+        return self.inbound
+
+    def reference_id(self) -&gt; str:
+        return self.payment.reference_id
+
+    def follow_up_action(self) -&gt; typing.Optional[Action]:
+        return follow_up_action(self.my_actor(), self.state())
+
+    def validate(self, prior: typing.Optional[Command]) -&gt; None:
+        prior = typing.cast(PaymentCommand, prior)
+        try:
+            self.validate_state_trigger_actor()
+            if prior:
+                self.validate_actor_object(prior)
+                self.validate_write_once_fields(prior)
+                self.validate_transition(prior)
+            else:
+                self.validate_is_initial()
+        except FieldError as e:
+            raise command_error(e.code, str(e), e.field) from e
+
+    def validate_state_trigger_actor(self) -&gt; None:
+        if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+            raise command_error(
+                ErrorCode.invalid_command_producer, f&#34;{self.opponent_actor()} should not produce {self}&#34;
+            )
+
+    def validate_actor_object(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+        if self.inbound and self.my_actor_obj() != prior.my_actor_obj():
+            raise InvalidOverwriteError(
+                f&#34;payment.{self.my_actor_field_name()}&#34;,
+                self.my_actor_obj(),
+                prior.my_actor_obj(),
+                self.my_actor_field_name(),
+            )
+
+    def validate_is_initial(self) -&gt; None:
+        if not self.is_initial():
+            msg = (
+                f&#34;{self} is not initial object, or could not find payment object by reference id: {self.reference_id()}&#34;
+            )
+            raise command_error(ErrorCode.invalid_initial_or_prior_not_found, msg)
+
+    def validate_transition(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+        if not self.is_valid_transition(prior):
+            raise command_error(ErrorCode.invalid_transition, f&#34;can not transit from {prior} to {self}&#34;)
+
+    def validate_write_once_fields(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+        validate_write_once_fields(&#34;payment&#34;, self.payment, prior.payment)
+
+    def new_command(
+        self,
+        recipient_signature: typing.Optional[str] = None,
+        status: typing.Optional[str] = None,
+        kyc_data: typing.Optional[KycDataObject] = None,
+        additional_kyc_data: typing.Optional[str] = None,
+        abort_code: typing.Optional[str] = None,
+        abort_message: typing.Optional[str] = None,
+        inbound: bool = False,
+        metadata: typing.Optional[typing.List[str]] = None,
+    ) -&gt; Command:
+        changes: typing.Dict[str, typing.Any] = {
+            self.my_actor().value: replace_payment_actor(
+                self.my_actor_obj(),
+                status=status,
+                kyc_data=kyc_data,
+                additional_kyc_data=additional_kyc_data,
+                abort_code=abort_code,
+                abort_message=abort_message,
+                metadata=metadata,
+            ),
+        }
+        if recipient_signature:
+            changes[&#34;recipient_signature&#34;] = recipient_signature
+        new_payment = dataclasses.replace(self.payment, **changes)
+        return PaymentCommand(my_actor_address=self.my_actor_address, payment=new_payment, inbound=inbound)
+
+    def new_request(self) -&gt; CommandRequestObject:
+        return new_payment_request(self.payment, self.cid)
+
+    # the followings are PaymentCommand specific methods
+
+    def is_sender(self) -&gt; bool:
+        return self.payment.sender.address == self.my_actor_address
+
+    def is_receiver(self) -&gt; bool:
+        return self.payment.receiver.address == self.my_actor_address
+
+    def my_actor_obj(self) -&gt; PaymentActorObject:
+        return self.payment.sender if self.is_sender() else self.payment.receiver
+
+    def opponent_actor_obj(self) -&gt; PaymentActorObject:
+        return self.payment.receiver if self.is_sender() else self.payment.sender
+
+    def my_actor(self) -&gt; Actor:
+        return Actor.SENDER if self.is_sender() else Actor.RECEIVER
+
+    def opponent_actor(self) -&gt; Actor:
+        return Actor.RECEIVER if self.is_sender() else Actor.SENDER
+
+    def my_actor_field_name(self) -&gt; str:
+        return self.my_actor().value
+
+    def state(self) -&gt; State[PaymentObject]:
+        try:
+            return payment_states.match_state(self.payment)
+        except ConditionValidationError as e:
+            fields = &#34;, &#34;.join(map(lambda f: f&#34;command.payment.{f}&#34;, e.match_result.mismatched_fields))
+            msg = f&#34;payment object is invalid, missing: {fields}&#34;
+            raise command_error(ErrorCode.missing_field, msg, fields) from e
+
+    def state_trigger_actor(self) -&gt; Actor:
+        return trigger_actor(self.state())
+
+    def is_valid_transition(self, prior: &#34;PaymentCommand&#34;) -&gt; bool:
+        return payment_states.is_valid_transition(prior.state(), self.state(), self.payment)
+
+    def is_initial(self) -&gt; bool:
+        return payment_states.is_initial(self.state())
+
+    def is_rsend(self) -&gt; bool:
+        return R_SEND == self.state()
+
+    def is_both_ready(self) -&gt; bool:
+        return (
+            self.payment.sender.status.status == Status.ready_for_settlement
+            and self.payment.receiver.status.status == Status.ready_for_settlement
+        )
+
+    def is_abort(self) -&gt; bool:
+        return self.payment.sender.status.status == Status.abort or self.payment.receiver.status.status == Status.abort
+
+    def receiver_account_address(self, hrp: str) -&gt; diem_types.AccountAddress:
+        return identifier.decode_account_address(self.payment.receiver.address, hrp)
+
+    def receiver_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+        return identifier.decode_account_subaddress(self.payment.receiver.address, hrp)
+
+    def sender_account_address(self, hrp: str) -&gt; diem_types.AccountAddress:
+        return identifier.decode_account_address(self.payment.sender.address, hrp)
+
+    def sender_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+        return identifier.decode_account_subaddress(self.payment.sender.address, hrp)
+
+    def travel_rule_metadata_signature_message(self, hrp: str) -&gt; bytes:
+        return self.travel_rule_metadata_and_sig_msg(hrp)[1]
+
+    def travel_rule_metadata(self, hrp: str) -&gt; bytes:
+        return self.travel_rule_metadata_and_sig_msg(hrp)[0]
+
+    def travel_rule_metadata_and_sig_msg(self, hrp: str) -&gt; typing.Tuple[bytes, bytes]:
+        return txnmetadata.travel_rule(
+            self.payment.reference_id, self.sender_account_address(hrp), self.payment.action.amount
+        )
+
+    def __str__(self) -&gt; str:
+        return f&#34;[payment#{self.cid} {self.my_actor_address} {summary(self.payment)}]&#34;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.offchain.payment_command.PaymentCommand"><code class="flex name class">
+<span>class <span class="ident">PaymentCommand</span></span>
+<span>(</span><span>my_actor_address: str, payment: <a title="diem.offchain.types.payment_types.PaymentObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a>, inbound: bool, cid: str = &lt;factory&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>PaymentCommand(my_actor_address: str, payment: diem.offchain.types.payment_types.PaymentObject, inbound: bool, cid: str = <factory>)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass(frozen=True)
+class PaymentCommand(Command):
+    my_actor_address: str
+    payment: PaymentObject
+    inbound: bool
+    cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
+
+    @staticmethod
+    def init(
+        sender_account_id: str,
+        sender_kyc_data: KycDataObject,
+        receiver_account_id: str,
+        amount: int,
+        currency: str,
+        original_payment_reference_id: typing.Optional[str] = None,
+        description: typing.Optional[str] = None,
+        inbound: bool = False,
+    ) -&gt; &#34;PaymentCommand&#34;:
+        return PaymentCommand(
+            my_actor_address=sender_account_id,
+            payment=new_payment_object(
+                sender_account_id,
+                sender_kyc_data,
+                receiver_account_id,
+                amount,
+                currency,
+                original_payment_reference_id=original_payment_reference_id,
+                description=description,
+            ),
+            inbound=inbound,
+        )
+
+    def id(self) -&gt; str:
+        return self.cid
+
+    def is_inbound(self) -&gt; bool:
+        return self.inbound
+
+    def reference_id(self) -&gt; str:
+        return self.payment.reference_id
+
+    def follow_up_action(self) -&gt; typing.Optional[Action]:
+        return follow_up_action(self.my_actor(), self.state())
+
+    def validate(self, prior: typing.Optional[Command]) -&gt; None:
+        prior = typing.cast(PaymentCommand, prior)
+        try:
+            self.validate_state_trigger_actor()
+            if prior:
+                self.validate_actor_object(prior)
+                self.validate_write_once_fields(prior)
+                self.validate_transition(prior)
+            else:
+                self.validate_is_initial()
+        except FieldError as e:
+            raise command_error(e.code, str(e), e.field) from e
+
+    def validate_state_trigger_actor(self) -&gt; None:
+        if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+            raise command_error(
+                ErrorCode.invalid_command_producer, f&#34;{self.opponent_actor()} should not produce {self}&#34;
+            )
+
+    def validate_actor_object(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+        if self.inbound and self.my_actor_obj() != prior.my_actor_obj():
+            raise InvalidOverwriteError(
+                f&#34;payment.{self.my_actor_field_name()}&#34;,
+                self.my_actor_obj(),
+                prior.my_actor_obj(),
+                self.my_actor_field_name(),
+            )
+
+    def validate_is_initial(self) -&gt; None:
+        if not self.is_initial():
+            msg = (
+                f&#34;{self} is not initial object, or could not find payment object by reference id: {self.reference_id()}&#34;
+            )
+            raise command_error(ErrorCode.invalid_initial_or_prior_not_found, msg)
+
+    def validate_transition(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+        if not self.is_valid_transition(prior):
+            raise command_error(ErrorCode.invalid_transition, f&#34;can not transit from {prior} to {self}&#34;)
+
+    def validate_write_once_fields(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+        validate_write_once_fields(&#34;payment&#34;, self.payment, prior.payment)
+
+    def new_command(
+        self,
+        recipient_signature: typing.Optional[str] = None,
+        status: typing.Optional[str] = None,
+        kyc_data: typing.Optional[KycDataObject] = None,
+        additional_kyc_data: typing.Optional[str] = None,
+        abort_code: typing.Optional[str] = None,
+        abort_message: typing.Optional[str] = None,
+        inbound: bool = False,
+        metadata: typing.Optional[typing.List[str]] = None,
+    ) -&gt; Command:
+        changes: typing.Dict[str, typing.Any] = {
+            self.my_actor().value: replace_payment_actor(
+                self.my_actor_obj(),
+                status=status,
+                kyc_data=kyc_data,
+                additional_kyc_data=additional_kyc_data,
+                abort_code=abort_code,
+                abort_message=abort_message,
+                metadata=metadata,
+            ),
+        }
+        if recipient_signature:
+            changes[&#34;recipient_signature&#34;] = recipient_signature
+        new_payment = dataclasses.replace(self.payment, **changes)
+        return PaymentCommand(my_actor_address=self.my_actor_address, payment=new_payment, inbound=inbound)
+
+    def new_request(self) -&gt; CommandRequestObject:
+        return new_payment_request(self.payment, self.cid)
+
+    # the followings are PaymentCommand specific methods
+
+    def is_sender(self) -&gt; bool:
+        return self.payment.sender.address == self.my_actor_address
+
+    def is_receiver(self) -&gt; bool:
+        return self.payment.receiver.address == self.my_actor_address
+
+    def my_actor_obj(self) -&gt; PaymentActorObject:
+        return self.payment.sender if self.is_sender() else self.payment.receiver
+
+    def opponent_actor_obj(self) -&gt; PaymentActorObject:
+        return self.payment.receiver if self.is_sender() else self.payment.sender
+
+    def my_actor(self) -&gt; Actor:
+        return Actor.SENDER if self.is_sender() else Actor.RECEIVER
+
+    def opponent_actor(self) -&gt; Actor:
+        return Actor.RECEIVER if self.is_sender() else Actor.SENDER
+
+    def my_actor_field_name(self) -&gt; str:
+        return self.my_actor().value
+
+    def state(self) -&gt; State[PaymentObject]:
+        try:
+            return payment_states.match_state(self.payment)
+        except ConditionValidationError as e:
+            fields = &#34;, &#34;.join(map(lambda f: f&#34;command.payment.{f}&#34;, e.match_result.mismatched_fields))
+            msg = f&#34;payment object is invalid, missing: {fields}&#34;
+            raise command_error(ErrorCode.missing_field, msg, fields) from e
+
+    def state_trigger_actor(self) -&gt; Actor:
+        return trigger_actor(self.state())
+
+    def is_valid_transition(self, prior: &#34;PaymentCommand&#34;) -&gt; bool:
+        return payment_states.is_valid_transition(prior.state(), self.state(), self.payment)
+
+    def is_initial(self) -&gt; bool:
+        return payment_states.is_initial(self.state())
+
+    def is_rsend(self) -&gt; bool:
+        return R_SEND == self.state()
+
+    def is_both_ready(self) -&gt; bool:
+        return (
+            self.payment.sender.status.status == Status.ready_for_settlement
+            and self.payment.receiver.status.status == Status.ready_for_settlement
+        )
+
+    def is_abort(self) -&gt; bool:
+        return self.payment.sender.status.status == Status.abort or self.payment.receiver.status.status == Status.abort
+
+    def receiver_account_address(self, hrp: str) -&gt; diem_types.AccountAddress:
+        return identifier.decode_account_address(self.payment.receiver.address, hrp)
+
+    def receiver_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+        return identifier.decode_account_subaddress(self.payment.receiver.address, hrp)
+
+    def sender_account_address(self, hrp: str) -&gt; diem_types.AccountAddress:
+        return identifier.decode_account_address(self.payment.sender.address, hrp)
+
+    def sender_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+        return identifier.decode_account_subaddress(self.payment.sender.address, hrp)
+
+    def travel_rule_metadata_signature_message(self, hrp: str) -&gt; bytes:
+        return self.travel_rule_metadata_and_sig_msg(hrp)[1]
+
+    def travel_rule_metadata(self, hrp: str) -&gt; bytes:
+        return self.travel_rule_metadata_and_sig_msg(hrp)[0]
+
+    def travel_rule_metadata_and_sig_msg(self, hrp: str) -&gt; typing.Tuple[bytes, bytes]:
+        return txnmetadata.travel_rule(
+            self.payment.reference_id, self.sender_account_address(hrp), self.payment.action.amount
+        )
+
+    def __str__(self) -&gt; str:
+        return f&#34;[payment#{self.cid} {self.my_actor_address} {summary(self.payment)}]&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.payment_command.PaymentCommand.cid"><code class="name">var <span class="ident">cid</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.inbound"><code class="name">var <span class="ident">inbound</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.my_actor_address"><code class="name">var <span class="ident">my_actor_address</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.payment"><code class="name">var <span class="ident">payment</span> : <a title="diem.offchain.types.payment_types.PaymentObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.offchain.payment_command.PaymentCommand.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>sender_account_id: str, sender_kyc_data: <a title="diem.offchain.types.payment_types.KycDataObject" href="types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>, receiver_account_id: str, amount: int, currency: str, original_payment_reference_id: Optional[str] = None, description: Optional[str] = None, inbound: bool = False) ‑> <a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def init(
+    sender_account_id: str,
+    sender_kyc_data: KycDataObject,
+    receiver_account_id: str,
+    amount: int,
+    currency: str,
+    original_payment_reference_id: typing.Optional[str] = None,
+    description: typing.Optional[str] = None,
+    inbound: bool = False,
+) -&gt; &#34;PaymentCommand&#34;:
+    return PaymentCommand(
+        my_actor_address=sender_account_id,
+        payment=new_payment_object(
+            sender_account_id,
+            sender_kyc_data,
+            receiver_account_id,
+            amount,
+            currency,
+            original_payment_reference_id=original_payment_reference_id,
+            description=description,
+        ),
+        inbound=inbound,
+    )</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.offchain.payment_command.PaymentCommand.follow_up_action"><code class="name flex">
+<span>def <span class="ident">follow_up_action</span></span>(<span>self) ‑> Optional[<a title="diem.offchain.action.Action" href="action.html#diem.offchain.action.Action">Action</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def follow_up_action(self) -&gt; typing.Optional[Action]:
+    return follow_up_action(self.my_actor(), self.state())</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.id"><code class="name flex">
+<span>def <span class="ident">id</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def id(self) -&gt; str:
+    return self.cid</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_abort"><code class="name flex">
+<span>def <span class="ident">is_abort</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_abort(self) -&gt; bool:
+    return self.payment.sender.status.status == Status.abort or self.payment.receiver.status.status == Status.abort</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_both_ready"><code class="name flex">
+<span>def <span class="ident">is_both_ready</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_both_ready(self) -&gt; bool:
+    return (
+        self.payment.sender.status.status == Status.ready_for_settlement
+        and self.payment.receiver.status.status == Status.ready_for_settlement
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_inbound"><code class="name flex">
+<span>def <span class="ident">is_inbound</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_inbound(self) -&gt; bool:
+    return self.inbound</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_initial"><code class="name flex">
+<span>def <span class="ident">is_initial</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_initial(self) -&gt; bool:
+    return payment_states.is_initial(self.state())</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_receiver"><code class="name flex">
+<span>def <span class="ident">is_receiver</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_receiver(self) -&gt; bool:
+    return self.payment.receiver.address == self.my_actor_address</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_rsend"><code class="name flex">
+<span>def <span class="ident">is_rsend</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_rsend(self) -&gt; bool:
+    return R_SEND == self.state()</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_sender"><code class="name flex">
+<span>def <span class="ident">is_sender</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_sender(self) -&gt; bool:
+    return self.payment.sender.address == self.my_actor_address</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.is_valid_transition"><code class="name flex">
+<span>def <span class="ident">is_valid_transition</span></span>(<span>self, prior: <a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_valid_transition(self, prior: &#34;PaymentCommand&#34;) -&gt; bool:
+    return payment_states.is_valid_transition(prior.state(), self.state(), self.payment)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.my_actor"><code class="name flex">
+<span>def <span class="ident">my_actor</span></span>(<span>self) ‑> <a title="diem.offchain.payment_state.Actor" href="payment_state.html#diem.offchain.payment_state.Actor">Actor</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def my_actor(self) -&gt; Actor:
+    return Actor.SENDER if self.is_sender() else Actor.RECEIVER</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.my_actor_field_name"><code class="name flex">
+<span>def <span class="ident">my_actor_field_name</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def my_actor_field_name(self) -&gt; str:
+    return self.my_actor().value</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.my_actor_obj"><code class="name flex">
+<span>def <span class="ident">my_actor_obj</span></span>(<span>self) ‑> <a title="diem.offchain.types.payment_types.PaymentActorObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def my_actor_obj(self) -&gt; PaymentActorObject:
+    return self.payment.sender if self.is_sender() else self.payment.receiver</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.new_request"><code class="name flex">
+<span>def <span class="ident">new_request</span></span>(<span>self) ‑> <a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def new_request(self) -&gt; CommandRequestObject:
+    return new_payment_request(self.payment, self.cid)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.opponent_actor"><code class="name flex">
+<span>def <span class="ident">opponent_actor</span></span>(<span>self) ‑> <a title="diem.offchain.payment_state.Actor" href="payment_state.html#diem.offchain.payment_state.Actor">Actor</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def opponent_actor(self) -&gt; Actor:
+    return Actor.RECEIVER if self.is_sender() else Actor.SENDER</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.opponent_actor_obj"><code class="name flex">
+<span>def <span class="ident">opponent_actor_obj</span></span>(<span>self) ‑> <a title="diem.offchain.types.payment_types.PaymentActorObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def opponent_actor_obj(self) -&gt; PaymentActorObject:
+    return self.payment.receiver if self.is_sender() else self.payment.sender</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.receiver_account_address"><code class="name flex">
+<span>def <span class="ident">receiver_account_address</span></span>(<span>self, hrp: str) ‑> <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def receiver_account_address(self, hrp: str) -&gt; diem_types.AccountAddress:
+    return identifier.decode_account_address(self.payment.receiver.address, hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.receiver_subaddress"><code class="name flex">
+<span>def <span class="ident">receiver_subaddress</span></span>(<span>self, hrp: str) ‑> Optional[bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def receiver_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+    return identifier.decode_account_subaddress(self.payment.receiver.address, hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.reference_id"><code class="name flex">
+<span>def <span class="ident">reference_id</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reference_id(self) -&gt; str:
+    return self.payment.reference_id</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.sender_account_address"><code class="name flex">
+<span>def <span class="ident">sender_account_address</span></span>(<span>self, hrp: str) ‑> <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sender_account_address(self, hrp: str) -&gt; diem_types.AccountAddress:
+    return identifier.decode_account_address(self.payment.sender.address, hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.sender_subaddress"><code class="name flex">
+<span>def <span class="ident">sender_subaddress</span></span>(<span>self, hrp: str) ‑> Optional[bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sender_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+    return identifier.decode_account_subaddress(self.payment.sender.address, hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.state"><code class="name flex">
+<span>def <span class="ident">state</span></span>(<span>self) ‑> <a title="diem.offchain.state.State" href="state.html#diem.offchain.state.State">State</a>[<a title="diem.offchain.types.payment_types.PaymentObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def state(self) -&gt; State[PaymentObject]:
+    try:
+        return payment_states.match_state(self.payment)
+    except ConditionValidationError as e:
+        fields = &#34;, &#34;.join(map(lambda f: f&#34;command.payment.{f}&#34;, e.match_result.mismatched_fields))
+        msg = f&#34;payment object is invalid, missing: {fields}&#34;
+        raise command_error(ErrorCode.missing_field, msg, fields) from e</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.state_trigger_actor"><code class="name flex">
+<span>def <span class="ident">state_trigger_actor</span></span>(<span>self) ‑> <a title="diem.offchain.payment_state.Actor" href="payment_state.html#diem.offchain.payment_state.Actor">Actor</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def state_trigger_actor(self) -&gt; Actor:
+    return trigger_actor(self.state())</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.travel_rule_metadata"><code class="name flex">
+<span>def <span class="ident">travel_rule_metadata</span></span>(<span>self, hrp: str) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def travel_rule_metadata(self, hrp: str) -&gt; bytes:
+    return self.travel_rule_metadata_and_sig_msg(hrp)[0]</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.travel_rule_metadata_and_sig_msg"><code class="name flex">
+<span>def <span class="ident">travel_rule_metadata_and_sig_msg</span></span>(<span>self, hrp: str) ‑> Tuple[bytes, bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def travel_rule_metadata_and_sig_msg(self, hrp: str) -&gt; typing.Tuple[bytes, bytes]:
+    return txnmetadata.travel_rule(
+        self.payment.reference_id, self.sender_account_address(hrp), self.payment.action.amount
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.travel_rule_metadata_signature_message"><code class="name flex">
+<span>def <span class="ident">travel_rule_metadata_signature_message</span></span>(<span>self, hrp: str) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def travel_rule_metadata_signature_message(self, hrp: str) -&gt; bytes:
+    return self.travel_rule_metadata_and_sig_msg(hrp)[1]</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.validate"><code class="name flex">
+<span>def <span class="ident">validate</span></span>(<span>self, prior: Optional[<a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a>]) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate(self, prior: typing.Optional[Command]) -&gt; None:
+    prior = typing.cast(PaymentCommand, prior)
+    try:
+        self.validate_state_trigger_actor()
+        if prior:
+            self.validate_actor_object(prior)
+            self.validate_write_once_fields(prior)
+            self.validate_transition(prior)
+        else:
+            self.validate_is_initial()
+    except FieldError as e:
+        raise command_error(e.code, str(e), e.field) from e</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.validate_actor_object"><code class="name flex">
+<span>def <span class="ident">validate_actor_object</span></span>(<span>self, prior: <a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_actor_object(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+    if self.inbound and self.my_actor_obj() != prior.my_actor_obj():
+        raise InvalidOverwriteError(
+            f&#34;payment.{self.my_actor_field_name()}&#34;,
+            self.my_actor_obj(),
+            prior.my_actor_obj(),
+            self.my_actor_field_name(),
+        )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.validate_is_initial"><code class="name flex">
+<span>def <span class="ident">validate_is_initial</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_is_initial(self) -&gt; None:
+    if not self.is_initial():
+        msg = (
+            f&#34;{self} is not initial object, or could not find payment object by reference id: {self.reference_id()}&#34;
+        )
+        raise command_error(ErrorCode.invalid_initial_or_prior_not_found, msg)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.validate_state_trigger_actor"><code class="name flex">
+<span>def <span class="ident">validate_state_trigger_actor</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_state_trigger_actor(self) -&gt; None:
+    if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+        raise command_error(
+            ErrorCode.invalid_command_producer, f&#34;{self.opponent_actor()} should not produce {self}&#34;
+        )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.validate_transition"><code class="name flex">
+<span>def <span class="ident">validate_transition</span></span>(<span>self, prior: <a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_transition(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+    if not self.is_valid_transition(prior):
+        raise command_error(ErrorCode.invalid_transition, f&#34;can not transit from {prior} to {self}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.validate_write_once_fields"><code class="name flex">
+<span>def <span class="ident">validate_write_once_fields</span></span>(<span>self, prior: <a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_write_once_fields(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
+    validate_write_once_fields(&#34;payment&#34;, self.payment, prior.payment)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.offchain.command.Command.new_command" href="command.html#diem.offchain.command.Command.new_command">new_command</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.offchain" href="index.html">diem.offchain</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.cid" href="#diem.offchain.payment_command.PaymentCommand.cid">cid</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.follow_up_action" href="#diem.offchain.payment_command.PaymentCommand.follow_up_action">follow_up_action</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.id" href="#diem.offchain.payment_command.PaymentCommand.id">id</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.inbound" href="#diem.offchain.payment_command.PaymentCommand.inbound">inbound</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.init" href="#diem.offchain.payment_command.PaymentCommand.init">init</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_abort" href="#diem.offchain.payment_command.PaymentCommand.is_abort">is_abort</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_both_ready" href="#diem.offchain.payment_command.PaymentCommand.is_both_ready">is_both_ready</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_inbound" href="#diem.offchain.payment_command.PaymentCommand.is_inbound">is_inbound</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_initial" href="#diem.offchain.payment_command.PaymentCommand.is_initial">is_initial</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_receiver" href="#diem.offchain.payment_command.PaymentCommand.is_receiver">is_receiver</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_rsend" href="#diem.offchain.payment_command.PaymentCommand.is_rsend">is_rsend</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_sender" href="#diem.offchain.payment_command.PaymentCommand.is_sender">is_sender</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.is_valid_transition" href="#diem.offchain.payment_command.PaymentCommand.is_valid_transition">is_valid_transition</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor" href="#diem.offchain.payment_command.PaymentCommand.my_actor">my_actor</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor_address" href="#diem.offchain.payment_command.PaymentCommand.my_actor_address">my_actor_address</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor_field_name" href="#diem.offchain.payment_command.PaymentCommand.my_actor_field_name">my_actor_field_name</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor_obj" href="#diem.offchain.payment_command.PaymentCommand.my_actor_obj">my_actor_obj</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.new_request" href="#diem.offchain.payment_command.PaymentCommand.new_request">new_request</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.opponent_actor" href="#diem.offchain.payment_command.PaymentCommand.opponent_actor">opponent_actor</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.opponent_actor_obj" href="#diem.offchain.payment_command.PaymentCommand.opponent_actor_obj">opponent_actor_obj</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.payment" href="#diem.offchain.payment_command.PaymentCommand.payment">payment</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.receiver_account_address" href="#diem.offchain.payment_command.PaymentCommand.receiver_account_address">receiver_account_address</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.receiver_subaddress" href="#diem.offchain.payment_command.PaymentCommand.receiver_subaddress">receiver_subaddress</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.reference_id" href="#diem.offchain.payment_command.PaymentCommand.reference_id">reference_id</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.sender_account_address" href="#diem.offchain.payment_command.PaymentCommand.sender_account_address">sender_account_address</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.sender_subaddress" href="#diem.offchain.payment_command.PaymentCommand.sender_subaddress">sender_subaddress</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.state" href="#diem.offchain.payment_command.PaymentCommand.state">state</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.state_trigger_actor" href="#diem.offchain.payment_command.PaymentCommand.state_trigger_actor">state_trigger_actor</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.travel_rule_metadata" href="#diem.offchain.payment_command.PaymentCommand.travel_rule_metadata">travel_rule_metadata</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.travel_rule_metadata_and_sig_msg" href="#diem.offchain.payment_command.PaymentCommand.travel_rule_metadata_and_sig_msg">travel_rule_metadata_and_sig_msg</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.travel_rule_metadata_signature_message" href="#diem.offchain.payment_command.PaymentCommand.travel_rule_metadata_signature_message">travel_rule_metadata_signature_message</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.validate" href="#diem.offchain.payment_command.PaymentCommand.validate">validate</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.validate_actor_object" href="#diem.offchain.payment_command.PaymentCommand.validate_actor_object">validate_actor_object</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.validate_is_initial" href="#diem.offchain.payment_command.PaymentCommand.validate_is_initial">validate_is_initial</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.validate_state_trigger_actor" href="#diem.offchain.payment_command.PaymentCommand.validate_state_trigger_actor">validate_state_trigger_actor</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.validate_transition" href="#diem.offchain.payment_command.PaymentCommand.validate_transition">validate_transition</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.validate_write_once_fields" href="#diem.offchain.payment_command.PaymentCommand.validate_write_once_fields">validate_write_once_fields</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

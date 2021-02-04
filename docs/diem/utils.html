@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.utils API documentation</title>
+<meta name="description" content="Utilities for data type converting, construction and hashing." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.utils</code></h1>
+</header>
+<section id="section-intro">
+<p>Utilities for data type converting, construction and hashing.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+&#34;&#34;&#34;Utilities for data type converting, construction and hashing.&#34;&#34;&#34;
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
+import hashlib
+import typing
+
+from . import diem_types, jsonrpc, stdlib
+
+
+ACCOUNT_ADDRESS_LEN: int = diem_types.AccountAddress.LENGTH
+SUB_ADDRESS_LEN: int = 8
+DIEM_HASH_PREFIX: bytes = b&#34;DIEM::&#34;
+ROOT_ADDRESS: str = &#34;0000000000000000000000000a550c18&#34;
+TREASURY_ADDRESS: str = &#34;0000000000000000000000000b1e55ed&#34;
+CORE_CODE_ADDRESS: str = &#34;00000000000000000000000000000001&#34;
+
+
+class InvalidAccountAddressError(Exception):
+    pass
+
+
+class InvalidSubAddressError(Exception):
+    pass
+
+
+def account_address(addr: typing.Union[diem_types.AccountAddress, bytes, str]) -&gt; diem_types.AccountAddress:
+    &#34;&#34;&#34;convert an account address from hex-encoded or bytes into `diem_types.AccountAddress`
+
+    Returns given address if it is `diem_types.AccountAddress` already
+    &#34;&#34;&#34;
+
+    if isinstance(addr, diem_types.AccountAddress):
+        return addr
+
+    try:
+        if isinstance(addr, str):
+            return diem_types.AccountAddress.from_hex(addr)
+        return diem_types.AccountAddress.from_bytes(addr)
+    except ValueError as e:
+        raise InvalidAccountAddressError(e)
+
+
+def account_address_hex(addr: typing.Union[diem_types.AccountAddress, str]) -&gt; str:
+    &#34;&#34;&#34;convert `diem_types.AccountAddress` into hex-encoded string
+
+    This function converts given parameter into account address bytes first, then convert bytes
+    into hex-encoded string
+    &#34;&#34;&#34;
+
+    return account_address_bytes(addr).hex()
+
+
+def account_address_bytes(addr: typing.Union[diem_types.AccountAddress, str]) -&gt; bytes:
+    &#34;&#34;&#34;convert `diem_types.AccountAddress` or hex-encoded account address into bytes&#34;&#34;&#34;
+
+    if isinstance(addr, str):
+        return account_address_bytes(account_address(addr))
+
+    return addr.to_bytes()
+
+
+def sub_address(addr: typing.Union[str, bytes]) -&gt; bytes:
+    &#34;&#34;&#34;convert hex-encoded sub-address into bytes
+
+    This function validates bytes length, and raises `InvalidSubAddressError` if length
+    does not match sub-address length (8 bytes)
+    &#34;&#34;&#34;
+
+    ret = bytes.fromhex(addr) if isinstance(addr, str) else addr
+    if len(ret) != SUB_ADDRESS_LEN:
+        raise InvalidSubAddressError(
+            f&#34;{addr}(len={len(ret)}) is a valid sub-address, sub-address is {SUB_ADDRESS_LEN} bytes&#34;
+        )
+    return ret
+
+
+def public_key_bytes(public_key: Ed25519PublicKey) -&gt; bytes:
+    &#34;&#34;&#34;convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into raw bytes&#34;&#34;&#34;
+
+    return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
+
+
+def private_key_bytes(private_key: Ed25519PrivateKey) -&gt; bytes:
+    &#34;&#34;&#34;convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey into raw bytes&#34;&#34;&#34;
+
+    return private_key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+def currency_code(code: str) -&gt; diem_types.TypeTag:
+    &#34;&#34;&#34;converts currency code string to diem_types.TypeTag&#34;&#34;&#34;
+
+    return diem_types.TypeTag.from_currency_code(code)
+
+
+def type_tag_to_str(code: diem_types.TypeTag) -&gt; str:
+    &#34;&#34;&#34;converts currency code TypeTag into string&#34;&#34;&#34;
+
+    if isinstance(code, diem_types.TypeTag__Struct):
+        return code.to_currency_code()
+
+    raise TypeError(f&#34;unknown currency code type: {code}&#34;)
+
+
+def create_signed_transaction(
+    txn: diem_types.RawTransaction, public_key: bytes, signature: bytes
+) -&gt; diem_types.SignedTransaction:
+    &#34;&#34;&#34;create single signed `diem_types.SignedTransaction`&#34;&#34;&#34;
+
+    return diem_types.SignedTransaction.from_raw_txn_and_ed25519_key(txn, public_key, signature)
+
+
+def raw_transaction_signing_msg(txn: diem_types.RawTransaction) -&gt; bytes:
+    &#34;&#34;&#34;create signing message from given `diem_types.RawTransaction`&#34;&#34;&#34;
+
+    return diem_hash_seed(b&#34;RawTransaction&#34;) + txn.bcs_serialize()
+
+
+def transaction_hash(txn: diem_types.SignedTransaction) -&gt; str:
+    &#34;&#34;&#34;create transaction hash from given `diem_types.SignedTransaction`
+
+    This hash string matches jsonrpc.Transaction#hash returned from Diem JSON-RPC API.
+    &#34;&#34;&#34;
+
+    user_txn = diem_types.Transaction__UserTransaction(value=txn)
+    return hash(diem_hash_seed(b&#34;Transaction&#34;), user_txn.bcs_serialize()).hex()
+
+
+def diem_hash_seed(typ: bytes) -&gt; bytes:
+    return hash(DIEM_HASH_PREFIX, typ)
+
+
+def hash(b1: bytes, b2: bytes) -&gt; bytes:
+    hash = hashlib.sha3_256()
+    hash.update(b1)
+    hash.update(b2)
+
+    return hash.digest()
+
+
+def decode_transaction_script(
+    txn: typing.Union[str, jsonrpc.TransactionData, jsonrpc.Transaction]
+) -&gt; stdlib.ScriptCall:
+    &#34;&#34;&#34;decode jsonrpc.Transaction#transaction#script_bytes
+
+    Returns `stdlib.ScriptCall`, which is same object we created for `diem_types.RawTransaction`
+    payload.
+    You can find out script type by checking it&#39;s class name: `type(script_call).__name__`.
+    See diem.stdlib documentation for more details.
+    &#34;&#34;&#34;
+
+    if isinstance(txn, str):
+        script = diem_types.Script.bcs_deserialize(bytes.fromhex(txn))
+        return stdlib.decode_script(script)
+    if isinstance(txn, jsonrpc.Transaction):
+        return decode_transaction_script(txn.transaction.script_bytes)
+    if isinstance(txn, jsonrpc.TransactionData):
+        return decode_transaction_script(txn.script_bytes)
+
+    raise TypeError(f&#34;unknown transaction type: {txn}&#34;)
+
+
+def balance(account: jsonrpc.Account, currency: str) -&gt; int:
+    for b in account.balances:
+        if b.currency == currency:
+            return b.amount
+    return 0</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="diem.utils.account_address"><code class="name flex">
+<span>def <span class="ident">account_address</span></span>(<span>addr: Union[<a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, bytes, str]) ‑> <a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert an account address from hex-encoded or bytes into <code>diem_types.AccountAddress</code></p>
+<p>Returns given address if it is <code>diem_types.AccountAddress</code> already</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def account_address(addr: typing.Union[diem_types.AccountAddress, bytes, str]) -&gt; diem_types.AccountAddress:
+    &#34;&#34;&#34;convert an account address from hex-encoded or bytes into `diem_types.AccountAddress`
+
+    Returns given address if it is `diem_types.AccountAddress` already
+    &#34;&#34;&#34;
+
+    if isinstance(addr, diem_types.AccountAddress):
+        return addr
+
+    try:
+        if isinstance(addr, str):
+            return diem_types.AccountAddress.from_hex(addr)
+        return diem_types.AccountAddress.from_bytes(addr)
+    except ValueError as e:
+        raise InvalidAccountAddressError(e)</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.account_address_bytes"><code class="name flex">
+<span>def <span class="ident">account_address_bytes</span></span>(<span>addr: Union[<a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert <code>diem_types.AccountAddress</code> or hex-encoded account address into bytes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def account_address_bytes(addr: typing.Union[diem_types.AccountAddress, str]) -&gt; bytes:
+    &#34;&#34;&#34;convert `diem_types.AccountAddress` or hex-encoded account address into bytes&#34;&#34;&#34;
+
+    if isinstance(addr, str):
+        return account_address_bytes(account_address(addr))
+
+    return addr.to_bytes()</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.account_address_hex"><code class="name flex">
+<span>def <span class="ident">account_address_hex</span></span>(<span>addr: Union[<a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert <code>diem_types.AccountAddress</code> into hex-encoded string</p>
+<p>This function converts given parameter into account address bytes first, then convert bytes
+into hex-encoded string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def account_address_hex(addr: typing.Union[diem_types.AccountAddress, str]) -&gt; str:
+    &#34;&#34;&#34;convert `diem_types.AccountAddress` into hex-encoded string
+
+    This function converts given parameter into account address bytes first, then convert bytes
+    into hex-encoded string
+    &#34;&#34;&#34;
+
+    return account_address_bytes(addr).hex()</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.balance"><code class="name flex">
+<span>def <span class="ident">balance</span></span>(<span>account: jsonrpc_pb2.Account, currency: str) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def balance(account: jsonrpc.Account, currency: str) -&gt; int:
+    for b in account.balances:
+        if b.currency == currency:
+            return b.amount
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.create_signed_transaction"><code class="name flex">
+<span>def <span class="ident">create_signed_transaction</span></span>(<span>txn: <a title="diem.diem_types.RawTransaction" href="diem_types/index.html#diem.diem_types.RawTransaction">RawTransaction</a>, public_key: bytes, signature: bytes) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>create single signed <code>diem_types.SignedTransaction</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_signed_transaction(
+    txn: diem_types.RawTransaction, public_key: bytes, signature: bytes
+) -&gt; diem_types.SignedTransaction:
+    &#34;&#34;&#34;create single signed `diem_types.SignedTransaction`&#34;&#34;&#34;
+
+    return diem_types.SignedTransaction.from_raw_txn_and_ed25519_key(txn, public_key, signature)</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.currency_code"><code class="name flex">
+<span>def <span class="ident">currency_code</span></span>(<span>code: str) ‑> <a title="diem.diem_types.TypeTag" href="diem_types/index.html#diem.diem_types.TypeTag">TypeTag</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts currency code string to diem_types.TypeTag</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def currency_code(code: str) -&gt; diem_types.TypeTag:
+    &#34;&#34;&#34;converts currency code string to diem_types.TypeTag&#34;&#34;&#34;
+
+    return diem_types.TypeTag.from_currency_code(code)</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.decode_transaction_script"><code class="name flex">
+<span>def <span class="ident">decode_transaction_script</span></span>(<span>txn: Union[str, jsonrpc_pb2.TransactionData, jsonrpc_pb2.Transaction]) ‑> <a title="diem.stdlib.ScriptCall" href="stdlib/index.html#diem.stdlib.ScriptCall">ScriptCall</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>decode jsonrpc.Transaction#transaction#script_bytes</p>
+<p>Returns <code>stdlib.ScriptCall</code>, which is same object we created for <code>diem_types.RawTransaction</code>
+payload.
+You can find out script type by checking it's class name: <code>type(script_call).__name__</code>.
+See diem.stdlib documentation for more details.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_transaction_script(
+    txn: typing.Union[str, jsonrpc.TransactionData, jsonrpc.Transaction]
+) -&gt; stdlib.ScriptCall:
+    &#34;&#34;&#34;decode jsonrpc.Transaction#transaction#script_bytes
+
+    Returns `stdlib.ScriptCall`, which is same object we created for `diem_types.RawTransaction`
+    payload.
+    You can find out script type by checking it&#39;s class name: `type(script_call).__name__`.
+    See diem.stdlib documentation for more details.
+    &#34;&#34;&#34;
+
+    if isinstance(txn, str):
+        script = diem_types.Script.bcs_deserialize(bytes.fromhex(txn))
+        return stdlib.decode_script(script)
+    if isinstance(txn, jsonrpc.Transaction):
+        return decode_transaction_script(txn.transaction.script_bytes)
+    if isinstance(txn, jsonrpc.TransactionData):
+        return decode_transaction_script(txn.script_bytes)
+
+    raise TypeError(f&#34;unknown transaction type: {txn}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.diem_hash_seed"><code class="name flex">
+<span>def <span class="ident">diem_hash_seed</span></span>(<span>typ: bytes) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def diem_hash_seed(typ: bytes) -&gt; bytes:
+    return hash(DIEM_HASH_PREFIX, typ)</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.hash"><code class="name flex">
+<span>def <span class="ident">hash</span></span>(<span>b1: bytes, b2: bytes) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hash(b1: bytes, b2: bytes) -&gt; bytes:
+    hash = hashlib.sha3_256()
+    hash.update(b1)
+    hash.update(b2)
+
+    return hash.digest()</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.private_key_bytes"><code class="name flex">
+<span>def <span class="ident">private_key_bytes</span></span>(<span>private_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey into raw bytes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def private_key_bytes(private_key: Ed25519PrivateKey) -&gt; bytes:
+    &#34;&#34;&#34;convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey into raw bytes&#34;&#34;&#34;
+
+    return private_key.private_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PrivateFormat.Raw,
+        encryption_algorithm=serialization.NoEncryption(),
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.public_key_bytes"><code class="name flex">
+<span>def <span class="ident">public_key_bytes</span></span>(<span>public_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into raw bytes</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def public_key_bytes(public_key: Ed25519PublicKey) -&gt; bytes:
+    &#34;&#34;&#34;convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into raw bytes&#34;&#34;&#34;
+
+    return public_key.public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.raw_transaction_signing_msg"><code class="name flex">
+<span>def <span class="ident">raw_transaction_signing_msg</span></span>(<span>txn: <a title="diem.diem_types.RawTransaction" href="diem_types/index.html#diem.diem_types.RawTransaction">RawTransaction</a>) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>create signing message from given <code>diem_types.RawTransaction</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def raw_transaction_signing_msg(txn: diem_types.RawTransaction) -&gt; bytes:
+    &#34;&#34;&#34;create signing message from given `diem_types.RawTransaction`&#34;&#34;&#34;
+
+    return diem_hash_seed(b&#34;RawTransaction&#34;) + txn.bcs_serialize()</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.sub_address"><code class="name flex">
+<span>def <span class="ident">sub_address</span></span>(<span>addr: Union[str, bytes]) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert hex-encoded sub-address into bytes</p>
+<p>This function validates bytes length, and raises <code><a title="diem.utils.InvalidSubAddressError" href="#diem.utils.InvalidSubAddressError">InvalidSubAddressError</a></code> if length
+does not match sub-address length (8 bytes)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sub_address(addr: typing.Union[str, bytes]) -&gt; bytes:
+    &#34;&#34;&#34;convert hex-encoded sub-address into bytes
+
+    This function validates bytes length, and raises `InvalidSubAddressError` if length
+    does not match sub-address length (8 bytes)
+    &#34;&#34;&#34;
+
+    ret = bytes.fromhex(addr) if isinstance(addr, str) else addr
+    if len(ret) != SUB_ADDRESS_LEN:
+        raise InvalidSubAddressError(
+            f&#34;{addr}(len={len(ret)}) is a valid sub-address, sub-address is {SUB_ADDRESS_LEN} bytes&#34;
+        )
+    return ret</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.transaction_hash"><code class="name flex">
+<span>def <span class="ident">transaction_hash</span></span>(<span>txn: <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>create transaction hash from given <code>diem_types.SignedTransaction</code></p>
+<p>This hash string matches jsonrpc.Transaction#hash returned from Diem JSON-RPC API.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transaction_hash(txn: diem_types.SignedTransaction) -&gt; str:
+    &#34;&#34;&#34;create transaction hash from given `diem_types.SignedTransaction`
+
+    This hash string matches jsonrpc.Transaction#hash returned from Diem JSON-RPC API.
+    &#34;&#34;&#34;
+
+    user_txn = diem_types.Transaction__UserTransaction(value=txn)
+    return hash(diem_hash_seed(b&#34;Transaction&#34;), user_txn.bcs_serialize()).hex()</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.type_tag_to_str"><code class="name flex">
+<span>def <span class="ident">type_tag_to_str</span></span>(<span>code: <a title="diem.diem_types.TypeTag" href="diem_types/index.html#diem.diem_types.TypeTag">TypeTag</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts currency code TypeTag into string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def type_tag_to_str(code: diem_types.TypeTag) -&gt; str:
+    &#34;&#34;&#34;converts currency code TypeTag into string&#34;&#34;&#34;
+
+    if isinstance(code, diem_types.TypeTag__Struct):
+        return code.to_currency_code()
+
+    raise TypeError(f&#34;unknown currency code type: {code}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.utils.InvalidAccountAddressError"><code class="flex name class">
+<span>class <span class="ident">InvalidAccountAddressError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidAccountAddressError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.utils.InvalidSubAddressError"><code class="flex name class">
+<span>class <span class="ident">InvalidSubAddressError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidSubAddressError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem" href="index.html">diem</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="diem.utils.account_address" href="#diem.utils.account_address">account_address</a></code></li>
+<li><code><a title="diem.utils.account_address_bytes" href="#diem.utils.account_address_bytes">account_address_bytes</a></code></li>
+<li><code><a title="diem.utils.account_address_hex" href="#diem.utils.account_address_hex">account_address_hex</a></code></li>
+<li><code><a title="diem.utils.balance" href="#diem.utils.balance">balance</a></code></li>
+<li><code><a title="diem.utils.create_signed_transaction" href="#diem.utils.create_signed_transaction">create_signed_transaction</a></code></li>
+<li><code><a title="diem.utils.currency_code" href="#diem.utils.currency_code">currency_code</a></code></li>
+<li><code><a title="diem.utils.decode_transaction_script" href="#diem.utils.decode_transaction_script">decode_transaction_script</a></code></li>
+<li><code><a title="diem.utils.diem_hash_seed" href="#diem.utils.diem_hash_seed">diem_hash_seed</a></code></li>
+<li><code><a title="diem.utils.hash" href="#diem.utils.hash">hash</a></code></li>
+<li><code><a title="diem.utils.private_key_bytes" href="#diem.utils.private_key_bytes">private_key_bytes</a></code></li>
+<li><code><a title="diem.utils.public_key_bytes" href="#diem.utils.public_key_bytes">public_key_bytes</a></code></li>
+<li><code><a title="diem.utils.raw_transaction_signing_msg" href="#diem.utils.raw_transaction_signing_msg">raw_transaction_signing_msg</a></code></li>
+<li><code><a title="diem.utils.sub_address" href="#diem.utils.sub_address">sub_address</a></code></li>
+<li><code><a title="diem.utils.transaction_hash" href="#diem.utils.transaction_hash">transaction_hash</a></code></li>
+<li><code><a title="diem.utils.type_tag_to_str" href="#diem.utils.type_tag_to_str">type_tag_to_str</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.utils.InvalidAccountAddressError" href="#diem.utils.InvalidAccountAddressError">InvalidAccountAddressError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.utils.InvalidSubAddressError" href="#diem.utils.InvalidSubAddressError">InvalidSubAddressError</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

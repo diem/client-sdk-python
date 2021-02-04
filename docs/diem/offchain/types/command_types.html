@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.offchain.types.command_types API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.offchain.types.command_types</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+import re
+import typing
+from dataclasses import dataclass, field as datafield
+
+
+UUID_REGEX: typing.Pattern[str] = re.compile(
+    &#34;^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$&#34;, re.IGNORECASE
+)
+
+
+class CommandType:
+    PaymentCommand = &#34;PaymentCommand&#34;
+    FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;
+
+
+class CommandResponseStatus:
+    success = &#34;success&#34;
+    failure = &#34;failure&#34;
+
+
+class ErrorCode:
+    # PaymentActionObject#amount is under travel rule threshold, no kyc needed for
+    # the transaction
+    no_kyc_needed = &#34;no_kyc_needed&#34;
+
+    # can&#39;t transit from prior payment to new payment
+    invalid_transition = &#34;invalid_transition&#34;
+
+    # the producer of the command is not right actor, for example:
+    # if next actor to change the payment is sender, but receiver send a new command
+    # with payment object change.
+    # question: should we allow it for the case like appending metadata?
+    invalid_command_producer = &#34;invalid_command_producer&#34;
+
+    # object is not valid, type does not match
+    invalid_object = &#34;invalid_object&#34;
+    # missing required field, field value is required for a specific state
+    # for example:
+    #     1. when sender init the request, kyc_data is missing, or
+    #     2. set sender#status#status to none at any time.
+    missing_field = &#34;missing_field&#34;
+    # field value type is wrong
+    # field value is not one of expected values
+    invalid_field_value = &#34;invalid_field_value&#34;
+    unknown_field = &#34;unknown_field&#34;
+
+    # request content is not valid json
+    invalid_json = &#34;invalid_json&#34;
+
+    # decode JWS content failed
+    invalid_jws = &#34;invalid_jws&#34;
+    # validate JWS signature failed
+    invalid_jws_signature = &#34;invalid_jws_signature&#34;
+
+    # request comment_type value is unknown
+    unknown_command_type = &#34;unknown_command_type&#34;
+
+    # 1. could not find actor&#39;s onchain account by address
+    # 2. none of actor addresses is server&#39;s (parent / child) vasp or dd address
+    unknown_address = &#34;unknown_address&#34;
+
+    # overwrite write once / immutable field value
+    invalid_overwrite = &#34;invalid_overwrite&#34;
+
+    # could not find command by reference_id for a non-initial command
+    invalid_initial_or_prior_not_found = &#34;invalid_initial_or_prior_not_found&#34;
+
+    # the command is conflict with another command updating in progress by reference id
+    conflict = &#34;conflict&#34;
+
+    missing_http_header = &#34;missing_http_header&#34;
+    invalid_http_header = &#34;invalid_http_header&#34;
+    invalid_recipient_signature = &#34;invalid_recipient_signature&#34;
+
+
+class OffChainErrorType:
+    &#34;&#34;&#34;command_error occurs in response to a Command failing to be applied -
+    for example, invalid _reads values, or high level validation errors.
+    protocol_error occurs in response to a failure related to the lower-level protocol.
+    &#34;&#34;&#34;
+
+    command_error = &#34;command_error&#34;
+    protocol_error = &#34;protocol_error&#34;
+
+
+# Late import to solve circular dependency and be able to list all the command types
+from .payment_types import PaymentCommandObject
+
+
+@dataclass(frozen=True)
+class FundPullPreApprovalCommandObject:
+    _ObjectType: str = datafield(metadata={&#34;valid-values&#34;: [CommandType.FundPullPreApprovalCommand]})
+
+
+@dataclass(frozen=True)
+class CommandRequestObject:
+    # A unique identifier for the Command.
+    cid: str = datafield(metadata={&#34;valid-values&#34;: UUID_REGEX})
+    # A string representing the type of Command contained in the request.
+    command_type: str = datafield(
+        metadata={&#34;valid-values&#34;: [CommandType.PaymentCommand, CommandType.FundPullPreApprovalCommand]}
+    )
+    command: typing.Union[PaymentCommandObject, FundPullPreApprovalCommandObject]
+    _ObjectType: str = datafield(default=&#34;CommandRequestObject&#34;, metadata={&#34;valid-values&#34;: [&#34;CommandRequestObject&#34;]})
+
+
+@dataclass(frozen=True)
+class OffChainErrorObject:
+    # Either &#34;command_error&#34; or &#34;protocol_error&#34;.
+    type: str = datafield(
+        metadata={
+            &#34;valid-values&#34;: [
+                OffChainErrorType.command_error,
+                OffChainErrorType.protocol_error,
+            ]
+        }
+    )
+    # The error code of the corresponding error
+    code: str
+    # The field on which this error occurred
+    field: typing.Optional[str] = datafield(default=None)
+    # Additional details about this error
+    message: typing.Optional[str] = datafield(default=None)
+
+
+@dataclass(frozen=True)
+class CommandResponseObject:
+    # Either success or failure.
+    status: str = datafield(metadata={&#34;valid-values&#34;: [CommandResponseStatus.success, CommandResponseStatus.failure]})
+    # The fixed string CommandResponseObject.
+    _ObjectType: str = datafield(default=&#34;CommandResponseObject&#34;, metadata={&#34;valid-values&#34;: [&#34;CommandResponseObject&#34;]})
+    # Details on errors when status == &#34;failure&#34;
+    error: typing.Optional[OffChainErrorObject] = datafield(default=None)
+    # The Command identifier to which this is a response.
+    cid: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.offchain.types.command_types.CommandRequestObject"><code class="flex name class">
+<span>class <span class="ident">CommandRequestObject</span></span>
+<span>(</span><span>cid: str, command_type: str, command: Union[<a title="diem.offchain.types.payment_types.PaymentCommandObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentCommandObject">PaymentCommandObject</a>, <a title="diem.offchain.types.command_types.FundPullPreApprovalCommandObject" href="#diem.offchain.types.command_types.FundPullPreApprovalCommandObject">FundPullPreApprovalCommandObject</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>CommandRequestObject(cid: str, command_type: str, command: Union[diem.offchain.types.payment_types.PaymentCommandObject, diem.offchain.types.command_types.FundPullPreApprovalCommandObject], _ObjectType: str = 'CommandRequestObject')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class CommandRequestObject:
+    # A unique identifier for the Command.
+    cid: str = datafield(metadata={&#34;valid-values&#34;: UUID_REGEX})
+    # A string representing the type of Command contained in the request.
+    command_type: str = datafield(
+        metadata={&#34;valid-values&#34;: [CommandType.PaymentCommand, CommandType.FundPullPreApprovalCommand]}
+    )
+    command: typing.Union[PaymentCommandObject, FundPullPreApprovalCommandObject]
+    _ObjectType: str = datafield(default=&#34;CommandRequestObject&#34;, metadata={&#34;valid-values&#34;: [&#34;CommandRequestObject&#34;]})</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.CommandRequestObject.cid"><code class="name">var <span class="ident">cid</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandRequestObject.command"><code class="name">var <span class="ident">command</span> : Union[<a title="diem.offchain.types.payment_types.PaymentCommandObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentCommandObject">PaymentCommandObject</a>, <a title="diem.offchain.types.command_types.FundPullPreApprovalCommandObject" href="#diem.offchain.types.command_types.FundPullPreApprovalCommandObject">FundPullPreApprovalCommandObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandRequestObject.command_type"><code class="name">var <span class="ident">command_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandResponseObject"><code class="flex name class">
+<span>class <span class="ident">CommandResponseObject</span></span>
+<span>(</span><span>status: str, error: Optional[<a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>] = None, cid: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>CommandResponseObject(status: str, _ObjectType: str = 'CommandResponseObject', error: Optional[diem.offchain.types.command_types.OffChainErrorObject] = None, cid: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class CommandResponseObject:
+    # Either success or failure.
+    status: str = datafield(metadata={&#34;valid-values&#34;: [CommandResponseStatus.success, CommandResponseStatus.failure]})
+    # The fixed string CommandResponseObject.
+    _ObjectType: str = datafield(default=&#34;CommandResponseObject&#34;, metadata={&#34;valid-values&#34;: [&#34;CommandResponseObject&#34;]})
+    # Details on errors when status == &#34;failure&#34;
+    error: typing.Optional[OffChainErrorObject] = datafield(default=None)
+    # The Command identifier to which this is a response.
+    cid: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.CommandResponseObject.cid"><code class="name">var <span class="ident">cid</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandResponseObject.error"><code class="name">var <span class="ident">error</span> : Optional[<a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandResponseObject.status"><code class="name">var <span class="ident">status</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandResponseStatus"><code class="flex name class">
+<span>class <span class="ident">CommandResponseStatus</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CommandResponseStatus:
+    success = &#34;success&#34;
+    failure = &#34;failure&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.CommandResponseStatus.failure"><code class="name">var <span class="ident">failure</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandResponseStatus.success"><code class="name">var <span class="ident">success</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandType"><code class="flex name class">
+<span>class <span class="ident">CommandType</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CommandType:
+    PaymentCommand = &#34;PaymentCommand&#34;
+    FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand"><code class="name">var <span class="ident">FundPullPreApprovalCommand</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandType.PaymentCommand"><code class="name">var <span class="ident">PaymentCommand</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode"><code class="flex name class">
+<span>class <span class="ident">ErrorCode</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ErrorCode:
+    # PaymentActionObject#amount is under travel rule threshold, no kyc needed for
+    # the transaction
+    no_kyc_needed = &#34;no_kyc_needed&#34;
+
+    # can&#39;t transit from prior payment to new payment
+    invalid_transition = &#34;invalid_transition&#34;
+
+    # the producer of the command is not right actor, for example:
+    # if next actor to change the payment is sender, but receiver send a new command
+    # with payment object change.
+    # question: should we allow it for the case like appending metadata?
+    invalid_command_producer = &#34;invalid_command_producer&#34;
+
+    # object is not valid, type does not match
+    invalid_object = &#34;invalid_object&#34;
+    # missing required field, field value is required for a specific state
+    # for example:
+    #     1. when sender init the request, kyc_data is missing, or
+    #     2. set sender#status#status to none at any time.
+    missing_field = &#34;missing_field&#34;
+    # field value type is wrong
+    # field value is not one of expected values
+    invalid_field_value = &#34;invalid_field_value&#34;
+    unknown_field = &#34;unknown_field&#34;
+
+    # request content is not valid json
+    invalid_json = &#34;invalid_json&#34;
+
+    # decode JWS content failed
+    invalid_jws = &#34;invalid_jws&#34;
+    # validate JWS signature failed
+    invalid_jws_signature = &#34;invalid_jws_signature&#34;
+
+    # request comment_type value is unknown
+    unknown_command_type = &#34;unknown_command_type&#34;
+
+    # 1. could not find actor&#39;s onchain account by address
+    # 2. none of actor addresses is server&#39;s (parent / child) vasp or dd address
+    unknown_address = &#34;unknown_address&#34;
+
+    # overwrite write once / immutable field value
+    invalid_overwrite = &#34;invalid_overwrite&#34;
+
+    # could not find command by reference_id for a non-initial command
+    invalid_initial_or_prior_not_found = &#34;invalid_initial_or_prior_not_found&#34;
+
+    # the command is conflict with another command updating in progress by reference id
+    conflict = &#34;conflict&#34;
+
+    missing_http_header = &#34;missing_http_header&#34;
+    invalid_http_header = &#34;invalid_http_header&#34;
+    invalid_recipient_signature = &#34;invalid_recipient_signature&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.ErrorCode.conflict"><code class="name">var <span class="ident">conflict</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_command_producer"><code class="name">var <span class="ident">invalid_command_producer</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_field_value"><code class="name">var <span class="ident">invalid_field_value</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_http_header"><code class="name">var <span class="ident">invalid_http_header</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_initial_or_prior_not_found"><code class="name">var <span class="ident">invalid_initial_or_prior_not_found</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_json"><code class="name">var <span class="ident">invalid_json</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_jws"><code class="name">var <span class="ident">invalid_jws</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_jws_signature"><code class="name">var <span class="ident">invalid_jws_signature</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_object"><code class="name">var <span class="ident">invalid_object</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_overwrite"><code class="name">var <span class="ident">invalid_overwrite</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_recipient_signature"><code class="name">var <span class="ident">invalid_recipient_signature</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_transition"><code class="name">var <span class="ident">invalid_transition</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.missing_field"><code class="name">var <span class="ident">missing_field</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.missing_http_header"><code class="name">var <span class="ident">missing_http_header</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.no_kyc_needed"><code class="name">var <span class="ident">no_kyc_needed</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.unknown_address"><code class="name">var <span class="ident">unknown_address</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.unknown_command_type"><code class="name">var <span class="ident">unknown_command_type</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.unknown_field"><code class="name">var <span class="ident">unknown_field</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.FundPullPreApprovalCommandObject"><code class="flex name class">
+<span>class <span class="ident">FundPullPreApprovalCommandObject</span></span>
+<span>(</span><span>_ObjectType: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>FundPullPreApprovalCommandObject(_ObjectType: str)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class FundPullPreApprovalCommandObject:
+    _ObjectType: str = datafield(metadata={&#34;valid-values&#34;: [CommandType.FundPullPreApprovalCommand]})</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainErrorObject"><code class="flex name class">
+<span>class <span class="ident">OffChainErrorObject</span></span>
+<span>(</span><span>type: str, code: str, field: Optional[str] = None, message: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>OffChainErrorObject(type: str, code: str, field: Optional[str] = None, message: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class OffChainErrorObject:
+    # Either &#34;command_error&#34; or &#34;protocol_error&#34;.
+    type: str = datafield(
+        metadata={
+            &#34;valid-values&#34;: [
+                OffChainErrorType.command_error,
+                OffChainErrorType.protocol_error,
+            ]
+        }
+    )
+    # The error code of the corresponding error
+    code: str
+    # The field on which this error occurred
+    field: typing.Optional[str] = datafield(default=None)
+    # Additional details about this error
+    message: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.OffChainErrorObject.code"><code class="name">var <span class="ident">code</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainErrorObject.field"><code class="name">var <span class="ident">field</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainErrorObject.message"><code class="name">var <span class="ident">message</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainErrorObject.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainErrorType"><code class="flex name class">
+<span>class <span class="ident">OffChainErrorType</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>command_error occurs in response to a Command failing to be applied -
+for example, invalid _reads values, or high level validation errors.
+protocol_error occurs in response to a failure related to the lower-level protocol.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OffChainErrorType:
+    &#34;&#34;&#34;command_error occurs in response to a Command failing to be applied -
+    for example, invalid _reads values, or high level validation errors.
+    protocol_error occurs in response to a failure related to the lower-level protocol.
+    &#34;&#34;&#34;
+
+    command_error = &#34;command_error&#34;
+    protocol_error = &#34;protocol_error&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.OffChainErrorType.command_error"><code class="name">var <span class="ident">command_error</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainErrorType.protocol_error"><code class="name">var <span class="ident">protocol_error</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.offchain.types" href="index.html">diem.offchain.types</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.CommandRequestObject" href="#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.CommandRequestObject.cid" href="#diem.offchain.types.command_types.CommandRequestObject.cid">cid</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandRequestObject.command" href="#diem.offchain.types.command_types.CommandRequestObject.command">command</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandRequestObject.command_type" href="#diem.offchain.types.command_types.CommandRequestObject.command_type">command_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.CommandResponseObject" href="#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.CommandResponseObject.cid" href="#diem.offchain.types.command_types.CommandResponseObject.cid">cid</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandResponseObject.error" href="#diem.offchain.types.command_types.CommandResponseObject.error">error</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandResponseObject.status" href="#diem.offchain.types.command_types.CommandResponseObject.status">status</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.CommandResponseStatus" href="#diem.offchain.types.command_types.CommandResponseStatus">CommandResponseStatus</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.CommandResponseStatus.failure" href="#diem.offchain.types.command_types.CommandResponseStatus.failure">failure</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandResponseStatus.success" href="#diem.offchain.types.command_types.CommandResponseStatus.success">success</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.CommandType" href="#diem.offchain.types.command_types.CommandType">CommandType</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand" href="#diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand">FundPullPreApprovalCommand</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandType.PaymentCommand" href="#diem.offchain.types.command_types.CommandType.PaymentCommand">PaymentCommand</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.ErrorCode" href="#diem.offchain.types.command_types.ErrorCode">ErrorCode</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.conflict" href="#diem.offchain.types.command_types.ErrorCode.conflict">conflict</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_command_producer" href="#diem.offchain.types.command_types.ErrorCode.invalid_command_producer">invalid_command_producer</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_field_value" href="#diem.offchain.types.command_types.ErrorCode.invalid_field_value">invalid_field_value</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_http_header" href="#diem.offchain.types.command_types.ErrorCode.invalid_http_header">invalid_http_header</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_initial_or_prior_not_found" href="#diem.offchain.types.command_types.ErrorCode.invalid_initial_or_prior_not_found">invalid_initial_or_prior_not_found</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_json" href="#diem.offchain.types.command_types.ErrorCode.invalid_json">invalid_json</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_jws" href="#diem.offchain.types.command_types.ErrorCode.invalid_jws">invalid_jws</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_jws_signature" href="#diem.offchain.types.command_types.ErrorCode.invalid_jws_signature">invalid_jws_signature</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_object" href="#diem.offchain.types.command_types.ErrorCode.invalid_object">invalid_object</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_overwrite" href="#diem.offchain.types.command_types.ErrorCode.invalid_overwrite">invalid_overwrite</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_recipient_signature" href="#diem.offchain.types.command_types.ErrorCode.invalid_recipient_signature">invalid_recipient_signature</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_transition" href="#diem.offchain.types.command_types.ErrorCode.invalid_transition">invalid_transition</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.missing_field" href="#diem.offchain.types.command_types.ErrorCode.missing_field">missing_field</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.missing_http_header" href="#diem.offchain.types.command_types.ErrorCode.missing_http_header">missing_http_header</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.no_kyc_needed" href="#diem.offchain.types.command_types.ErrorCode.no_kyc_needed">no_kyc_needed</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.unknown_address" href="#diem.offchain.types.command_types.ErrorCode.unknown_address">unknown_address</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.unknown_command_type" href="#diem.offchain.types.command_types.ErrorCode.unknown_command_type">unknown_command_type</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.unknown_field" href="#diem.offchain.types.command_types.ErrorCode.unknown_field">unknown_field</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.FundPullPreApprovalCommandObject" href="#diem.offchain.types.command_types.FundPullPreApprovalCommandObject">FundPullPreApprovalCommandObject</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.OffChainErrorObject.code" href="#diem.offchain.types.command_types.OffChainErrorObject.code">code</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.OffChainErrorObject.field" href="#diem.offchain.types.command_types.OffChainErrorObject.field">field</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.OffChainErrorObject.message" href="#diem.offchain.types.command_types.OffChainErrorObject.message">message</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.OffChainErrorObject.type" href="#diem.offchain.types.command_types.OffChainErrorObject.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.OffChainErrorType" href="#diem.offchain.types.command_types.OffChainErrorType">OffChainErrorType</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.OffChainErrorType.command_error" href="#diem.offchain.types.command_types.OffChainErrorType.command_error">command_error</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.OffChainErrorType.protocol_error" href="#diem.offchain.types.command_types.OffChainErrorType.protocol_error">protocol_error</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

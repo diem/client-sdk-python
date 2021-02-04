@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.offchain.types API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.offchain.types</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+from .command_types import (
+    OffChainErrorType,
+    ErrorCode,
+    CommandResponseObject,
+    OffChainErrorObject,
+    CommandRequestObject,
+    CommandResponseStatus,
+    FundPullPreApprovalCommandObject,
+)
+from .payment_types import (
+    AbortCode,
+    NationalIdObject,
+    AddressObject,
+    Status,
+    StatusObject,
+    PaymentObject,
+    PaymentActorObject,
+    PaymentActionObject,
+    KycDataObject,
+    KycDataObjectType,
+    CommandType,
+    PaymentCommandObject,
+)
+
+import dataclasses, json, re, secrets, typing, uuid
+
+
+class FieldError(ValueError):
+    def __init__(self, code: str, field: str, msg: str) -&gt; None:
+        super().__init__(msg)
+        self.code: str = code
+        self.field: typing.Optional[str] = field if field else None
+
+
+class InvalidOverwriteError(FieldError):
+    def __init__(
+        self, field: str, prior_value: typing.Any, new_value: typing.Any, field_type: str  # pyre-ignore
+    ) -&gt; None:
+        msg = f&#34;{field_type} field &#39;{field}&#39;: {prior_value} =&gt; {new_value}&#34;
+        super().__init__(ErrorCode.invalid_overwrite, field, msg)
+
+
+T = typing.TypeVar(&#34;T&#34;)
+
+
+_OBJECT_TYPES: typing.Dict[str, typing.Any] = {
+    &#34;CommandResponseObject&#34;: CommandResponseObject,
+    &#34;CommandRequestObject&#34;: CommandRequestObject,
+    CommandType.PaymentCommand: PaymentCommandObject,
+    CommandType.FundPullPreApprovalCommand: FundPullPreApprovalCommandObject,
+}
+
+_OBJECT_TYPE_FIELD_NAME = &#34;_ObjectType&#34;
+
+
+def to_json(obj: T, indent: typing.Optional[int] = None) -&gt; str:
+    return json.dumps(_delete_none(dataclasses.asdict(obj)), indent=indent)
+
+
+def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -&gt; T:
+    return from_json_obj(json.loads(data), klass, &#34;&#34;)
+
+
+def from_json_obj(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str) -&gt; T:  # pyre-ignore
+    if klass is None or _is_union(klass):
+        if not isinstance(obj, dict):
+            code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
+            raise FieldError(code, field_path, f&#34;expect json object, but got {type(obj).__name__}: {obj}&#34;)
+        klass = _find_object_type(obj, field_path)
+    return _from_json_obj(obj, klass, field_path)
+
+
+def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -&gt; typing.Any:  # pyre-ignore
+    if not isinstance(obj, dict):
+        item_type = None
+        if hasattr(klass, &#34;__origin__&#34;) and klass.__origin__ == list and hasattr(klass, &#34;__args__&#34;):
+            item_type = klass.__args__[0]
+            klass = list
+        if not isinstance(obj, klass):
+            code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
+            raise FieldError(code, field_path, f&#34;expect type {klass.__name__}, but got {type(obj).__name__}&#34;)
+        if klass == list and item_type:
+            return [from_json_obj(item, item_type, field_path) for item in obj]
+        return obj
+
+    unknown_fields = list(obj.keys())
+    for field in dataclasses.fields(klass):
+        if field.name in unknown_fields:
+            unknown_fields.remove(field.name)
+        obj[field.name] = _field_value_from_json_obj(field, obj, field_path)
+
+    if len(unknown_fields) &gt; 0:
+        unknown_fields.sort()
+        full_name = _join_field_path(field_path, unknown_fields[0])
+        field_names = &#34;, &#34;.join(unknown_fields)
+        raise FieldError(ErrorCode.unknown_field, full_name, f&#34;{field_path}: {field_names}&#34;)
+    return klass(**obj)
+
+
+def _field_value_from_json_obj(field: dataclasses.Field, obj: typing.Any, field_path: str) -&gt; typing.Any:  # pyre-ignore
+    full_name = _join_field_path(field_path, field.name)
+    field_type = field.type
+    args = field.type.__args__ if hasattr(field.type, &#34;__args__&#34;) else []
+    is_optional = len(args) == 2 and isinstance(None, args[1])  # pyre-ignore
+    if is_optional:
+        field_type = args[0]
+    val = obj.get(field.name)
+    if val is None:
+        if is_optional:
+            return None
+        raise FieldError(ErrorCode.missing_field, full_name, f&#34;missing field: {full_name}&#34;)
+
+    valid_values = field.metadata.get(&#34;valid-values&#34;)
+    if valid_values:
+        if isinstance(valid_values, list) and val not in valid_values:
+            raise FieldError(ErrorCode.invalid_field_value, full_name, f&#34;expect one of {valid_values}, but got: {val}&#34;)
+        if isinstance(valid_values, re.Pattern) and not valid_values.match(val):
+            raise FieldError(
+                ErrorCode.invalid_field_value, full_name, f&#34;{val} does not match pattern {valid_values.pattern}&#34;
+            )
+    return from_json_obj(val, field_type, full_name)
+
+
+def _join_field_path(path: str, field: str) -&gt; str:
+    return f&#34;{path}.{field}&#34; if path else field
+
+
+def new_payment_object(
+    sender_account_id: str,
+    sender_kyc_data: KycDataObject,
+    receiver_account_id: str,
+    amount: int,
+    currency: str,
+    original_payment_reference_id: typing.Optional[str] = None,
+    description: typing.Optional[str] = None,
+) -&gt; PaymentObject:
+    &#34;&#34;&#34;Initialize a payment request command
+
+    returns generated reference_id and created `CommandRequestObject`
+    &#34;&#34;&#34;
+
+    return PaymentObject(
+        reference_id=str(uuid.uuid4()),
+        sender=PaymentActorObject(
+            address=sender_account_id,
+            kyc_data=sender_kyc_data,
+            status=StatusObject(status=Status.needs_kyc_data),
+        ),
+        receiver=PaymentActorObject(
+            address=receiver_account_id,
+            status=StatusObject(status=Status.none),
+        ),
+        action=PaymentActionObject(amount=amount, currency=currency),
+        description=description,
+        original_payment_reference_id=original_payment_reference_id,
+    )
+
+
+def replace_payment_actor(
+    actor: PaymentActorObject,
+    status: typing.Optional[str] = None,
+    kyc_data: typing.Optional[KycDataObject] = None,
+    additional_kyc_data: typing.Optional[str] = None,
+    abort_code: typing.Optional[str] = None,
+    abort_message: typing.Optional[str] = None,
+    metadata: typing.Optional[typing.List[str]] = None,
+) -&gt; PaymentActorObject:
+    changes = {}
+    if kyc_data:
+        changes[&#34;kyc_data&#34;] = kyc_data
+    if additional_kyc_data:
+        changes[&#34;additional_kyc_data&#34;] = additional_kyc_data
+    if status or abort_code or abort_message:
+        changes[&#34;status&#34;] = replace_payment_status(
+            actor.status,
+            status=status,
+            abort_code=abort_code,
+            abort_message=abort_message,
+        )
+    if metadata:
+        if not isinstance(metadata, list):
+            raise ValueError(&#34;metadata should be a list of string&#34;)
+        changes[&#34;metadata&#34;] = actor.metadata + metadata if actor.metadata else metadata
+    return dataclasses.replace(actor, **changes)
+
+
+def replace_payment_status(
+    status_obj: StatusObject,
+    status: typing.Optional[str] = None,
+    abort_code: typing.Optional[str] = None,
+    abort_message: typing.Optional[str] = None,
+) -&gt; StatusObject:
+    changes = {}
+    if status:
+        changes[&#34;status&#34;] = status
+    if abort_code:
+        changes[&#34;abort_code&#34;] = abort_code
+    if abort_message:
+        changes[&#34;abort_message&#34;] = abort_message
+    return dataclasses.replace(status_obj, **changes)
+
+
+def new_payment_request(
+    payment: PaymentObject,
+    cid: typing.Optional[str] = None,
+) -&gt; CommandRequestObject:
+    return CommandRequestObject(
+        cid=cid or str(uuid.uuid4()),
+        command_type=CommandType.PaymentCommand,
+        command=PaymentCommandObject(
+            _ObjectType=CommandType.PaymentCommand,
+            payment=payment,
+        ),
+    )
+
+
+def reply_request(
+    cid: typing.Optional[str],
+    err: typing.Optional[OffChainErrorObject] = None,
+) -&gt; CommandResponseObject:
+    return CommandResponseObject(
+        status=CommandResponseStatus.failure if err else CommandResponseStatus.success,
+        error=err,
+        cid=cid,
+    )
+
+
+def individual_kyc_data(**kwargs) -&gt; KycDataObject:  # pyre-ignore
+    return KycDataObject(
+        type=KycDataObjectType.individual,
+        **kwargs,
+    )
+
+
+def entity_kyc_data(**kwargs) -&gt; KycDataObject:  # pyre-ignore
+    return KycDataObject(
+        type=KycDataObjectType.entity,
+        **kwargs,
+    )
+
+
+def validate_write_once_fields(path: str, new: typing.Any, prior: typing.Any) -&gt; None:  # pyre-ignore
+    if new is None or prior is None:
+        return
+
+    new_type = type(new)
+    if type(prior) != new_type:
+        raise TypeError(f&#34;field {path} type is different, expect {type(prior)}, but got {new_type}&#34;)
+
+    if not dataclasses.is_dataclass(new_type):
+        return
+
+    for field in dataclasses.fields(new_type):
+        prior_value = getattr(prior, field.name)
+        new_value = getattr(new, field.name)
+        field_path = path + &#34;.&#34; + field.name
+        if field.metadata.get(&#34;immutable&#34;) and prior_value != new_value:
+            raise InvalidOverwriteError(field_path, prior_value, new_value, &#34;immutable&#34;)
+        if field.metadata.get(&#34;write_once&#34;) and prior_value is not None and prior_value != new_value:
+            raise InvalidOverwriteError(field_path, prior_value, new_value, &#34;write once&#34;)
+        validate_write_once_fields(field_path, new_value, prior_value)
+
+
+def _delete_none(obj: typing.Any) -&gt; typing.Any:  # pyre-ignore
+    if isinstance(obj, dict):
+        for key, val in list(obj.items()):
+            if val is None:
+                del obj[key]
+            else:
+                obj[key] = _delete_none(val)
+    elif isinstance(obj, list):
+        for val in obj:
+            _delete_none(val)
+    return obj
+
+
+def _find_object_type(obj: typing.Dict[str, typing.Any], field_path: str) -&gt; typing.Type[typing.Any]:  # pyre-ignore
+    obj_type = obj.get(_OBJECT_TYPE_FIELD_NAME)
+    full_name = _join_field_path(field_path, _OBJECT_TYPE_FIELD_NAME)
+    if not obj_type:
+        raise FieldError(ErrorCode.missing_field, full_name, f&#34;missing field: {full_name}&#34;)
+    t = _OBJECT_TYPES.get(obj_type)
+    if t is None:
+        raise FieldError(
+            ErrorCode.invalid_field_value,
+            full_name,
+            f&#34;could not find object type: {obj_type}, valid types: {list(_OBJECT_TYPES.keys())}&#34;,
+        )
+    return t
+
+
+def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
+    return hasattr(klass, &#34;__origin__&#34;) and klass.__origin__ == typing.Union</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="diem.offchain.types.command_types" href="command_types.html">diem.offchain.types.command_types</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="diem.offchain.types.payment_types" href="payment_types.html">diem.offchain.types.payment_types</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="diem.offchain.types.entity_kyc_data"><code class="name flex">
+<span>def <span class="ident">entity_kyc_data</span></span>(<span>**kwargs) ‑> <a title="diem.offchain.types.payment_types.KycDataObject" href="payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def entity_kyc_data(**kwargs) -&gt; KycDataObject:  # pyre-ignore
+    return KycDataObject(
+        type=KycDataObjectType.entity,
+        **kwargs,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>data: str, klass: Optional[Type[~T]] = None) ‑> ~T</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -&gt; T:
+    return from_json_obj(json.loads(data), klass, &#34;&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.from_json_obj"><code class="name flex">
+<span>def <span class="ident">from_json_obj</span></span>(<span>obj: Any, klass: Optional[Type[~T]], field_path: str) ‑> ~T</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_json_obj(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str) -&gt; T:  # pyre-ignore
+    if klass is None or _is_union(klass):
+        if not isinstance(obj, dict):
+            code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
+            raise FieldError(code, field_path, f&#34;expect json object, but got {type(obj).__name__}: {obj}&#34;)
+        klass = _find_object_type(obj, field_path)
+    return _from_json_obj(obj, klass, field_path)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.individual_kyc_data"><code class="name flex">
+<span>def <span class="ident">individual_kyc_data</span></span>(<span>**kwargs) ‑> <a title="diem.offchain.types.payment_types.KycDataObject" href="payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def individual_kyc_data(**kwargs) -&gt; KycDataObject:  # pyre-ignore
+    return KycDataObject(
+        type=KycDataObjectType.individual,
+        **kwargs,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.new_payment_object"><code class="name flex">
+<span>def <span class="ident">new_payment_object</span></span>(<span>sender_account_id: str, sender_kyc_data: <a title="diem.offchain.types.payment_types.KycDataObject" href="payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>, receiver_account_id: str, amount: int, currency: str, original_payment_reference_id: Optional[str] = None, description: Optional[str] = None) ‑> <a title="diem.offchain.types.payment_types.PaymentObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialize a payment request command</p>
+<p>returns generated reference_id and created <code>CommandRequestObject</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def new_payment_object(
+    sender_account_id: str,
+    sender_kyc_data: KycDataObject,
+    receiver_account_id: str,
+    amount: int,
+    currency: str,
+    original_payment_reference_id: typing.Optional[str] = None,
+    description: typing.Optional[str] = None,
+) -&gt; PaymentObject:
+    &#34;&#34;&#34;Initialize a payment request command
+
+    returns generated reference_id and created `CommandRequestObject`
+    &#34;&#34;&#34;
+
+    return PaymentObject(
+        reference_id=str(uuid.uuid4()),
+        sender=PaymentActorObject(
+            address=sender_account_id,
+            kyc_data=sender_kyc_data,
+            status=StatusObject(status=Status.needs_kyc_data),
+        ),
+        receiver=PaymentActorObject(
+            address=receiver_account_id,
+            status=StatusObject(status=Status.none),
+        ),
+        action=PaymentActionObject(amount=amount, currency=currency),
+        description=description,
+        original_payment_reference_id=original_payment_reference_id,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.new_payment_request"><code class="name flex">
+<span>def <span class="ident">new_payment_request</span></span>(<span>payment: <a title="diem.offchain.types.payment_types.PaymentObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a>, cid: Optional[str] = None) ‑> <a title="diem.offchain.types.command_types.CommandRequestObject" href="command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def new_payment_request(
+    payment: PaymentObject,
+    cid: typing.Optional[str] = None,
+) -&gt; CommandRequestObject:
+    return CommandRequestObject(
+        cid=cid or str(uuid.uuid4()),
+        command_type=CommandType.PaymentCommand,
+        command=PaymentCommandObject(
+            _ObjectType=CommandType.PaymentCommand,
+            payment=payment,
+        ),
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.replace_payment_actor"><code class="name flex">
+<span>def <span class="ident">replace_payment_actor</span></span>(<span>actor: <a title="diem.offchain.types.payment_types.PaymentActorObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a>, status: Optional[str] = None, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None, additional_kyc_data: Optional[str] = None, abort_code: Optional[str] = None, abort_message: Optional[str] = None, metadata: Optional[List[str]] = None) ‑> <a title="diem.offchain.types.payment_types.PaymentActorObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def replace_payment_actor(
+    actor: PaymentActorObject,
+    status: typing.Optional[str] = None,
+    kyc_data: typing.Optional[KycDataObject] = None,
+    additional_kyc_data: typing.Optional[str] = None,
+    abort_code: typing.Optional[str] = None,
+    abort_message: typing.Optional[str] = None,
+    metadata: typing.Optional[typing.List[str]] = None,
+) -&gt; PaymentActorObject:
+    changes = {}
+    if kyc_data:
+        changes[&#34;kyc_data&#34;] = kyc_data
+    if additional_kyc_data:
+        changes[&#34;additional_kyc_data&#34;] = additional_kyc_data
+    if status or abort_code or abort_message:
+        changes[&#34;status&#34;] = replace_payment_status(
+            actor.status,
+            status=status,
+            abort_code=abort_code,
+            abort_message=abort_message,
+        )
+    if metadata:
+        if not isinstance(metadata, list):
+            raise ValueError(&#34;metadata should be a list of string&#34;)
+        changes[&#34;metadata&#34;] = actor.metadata + metadata if actor.metadata else metadata
+    return dataclasses.replace(actor, **changes)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.replace_payment_status"><code class="name flex">
+<span>def <span class="ident">replace_payment_status</span></span>(<span>status_obj: <a title="diem.offchain.types.payment_types.StatusObject" href="payment_types.html#diem.offchain.types.payment_types.StatusObject">StatusObject</a>, status: Optional[str] = None, abort_code: Optional[str] = None, abort_message: Optional[str] = None) ‑> <a title="diem.offchain.types.payment_types.StatusObject" href="payment_types.html#diem.offchain.types.payment_types.StatusObject">StatusObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def replace_payment_status(
+    status_obj: StatusObject,
+    status: typing.Optional[str] = None,
+    abort_code: typing.Optional[str] = None,
+    abort_message: typing.Optional[str] = None,
+) -&gt; StatusObject:
+    changes = {}
+    if status:
+        changes[&#34;status&#34;] = status
+    if abort_code:
+        changes[&#34;abort_code&#34;] = abort_code
+    if abort_message:
+        changes[&#34;abort_message&#34;] = abort_message
+    return dataclasses.replace(status_obj, **changes)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.reply_request"><code class="name flex">
+<span>def <span class="ident">reply_request</span></span>(<span>cid: Optional[str], err: Optional[<a title="diem.offchain.types.command_types.OffChainErrorObject" href="command_types.html#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>] = None) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reply_request(
+    cid: typing.Optional[str],
+    err: typing.Optional[OffChainErrorObject] = None,
+) -&gt; CommandResponseObject:
+    return CommandResponseObject(
+        status=CommandResponseStatus.failure if err else CommandResponseStatus.success,
+        error=err,
+        cid=cid,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>obj: ~T, indent: Optional[int] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(obj: T, indent: typing.Optional[int] = None) -&gt; str:
+    return json.dumps(_delete_none(dataclasses.asdict(obj)), indent=indent)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.types.validate_write_once_fields"><code class="name flex">
+<span>def <span class="ident">validate_write_once_fields</span></span>(<span>path: str, new: Any, prior: Any) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_write_once_fields(path: str, new: typing.Any, prior: typing.Any) -&gt; None:  # pyre-ignore
+    if new is None or prior is None:
+        return
+
+    new_type = type(new)
+    if type(prior) != new_type:
+        raise TypeError(f&#34;field {path} type is different, expect {type(prior)}, but got {new_type}&#34;)
+
+    if not dataclasses.is_dataclass(new_type):
+        return
+
+    for field in dataclasses.fields(new_type):
+        prior_value = getattr(prior, field.name)
+        new_value = getattr(new, field.name)
+        field_path = path + &#34;.&#34; + field.name
+        if field.metadata.get(&#34;immutable&#34;) and prior_value != new_value:
+            raise InvalidOverwriteError(field_path, prior_value, new_value, &#34;immutable&#34;)
+        if field.metadata.get(&#34;write_once&#34;) and prior_value is not None and prior_value != new_value:
+            raise InvalidOverwriteError(field_path, prior_value, new_value, &#34;write once&#34;)
+        validate_write_once_fields(field_path, new_value, prior_value)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.offchain.types.FieldError"><code class="flex name class">
+<span>class <span class="ident">FieldError</span></span>
+<span>(</span><span>code: str, field: str, msg: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FieldError(ValueError):
+    def __init__(self, code: str, field: str, msg: str) -&gt; None:
+        super().__init__(msg)
+        self.code: str = code
+        self.field: typing.Optional[str] = field if field else None</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.offchain.types.InvalidOverwriteError" href="#diem.offchain.types.InvalidOverwriteError">InvalidOverwriteError</a></li>
+</ul>
+</dd>
+<dt id="diem.offchain.types.InvalidOverwriteError"><code class="flex name class">
+<span>class <span class="ident">InvalidOverwriteError</span></span>
+<span>(</span><span>field: str, prior_value: Any, new_value: Any, field_type: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidOverwriteError(FieldError):
+    def __init__(
+        self, field: str, prior_value: typing.Any, new_value: typing.Any, field_type: str  # pyre-ignore
+    ) -&gt; None:
+        msg = f&#34;{field_type} field &#39;{field}&#39;: {prior_value} =&gt; {new_value}&#34;
+        super().__init__(ErrorCode.invalid_overwrite, field, msg)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.offchain.types.FieldError" href="#diem.offchain.types.FieldError">FieldError</a></li>
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.offchain" href="../index.html">diem.offchain</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="diem.offchain.types.command_types" href="command_types.html">diem.offchain.types.command_types</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types" href="payment_types.html">diem.offchain.types.payment_types</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="diem.offchain.types.entity_kyc_data" href="#diem.offchain.types.entity_kyc_data">entity_kyc_data</a></code></li>
+<li><code><a title="diem.offchain.types.from_json" href="#diem.offchain.types.from_json">from_json</a></code></li>
+<li><code><a title="diem.offchain.types.from_json_obj" href="#diem.offchain.types.from_json_obj">from_json_obj</a></code></li>
+<li><code><a title="diem.offchain.types.individual_kyc_data" href="#diem.offchain.types.individual_kyc_data">individual_kyc_data</a></code></li>
+<li><code><a title="diem.offchain.types.new_payment_object" href="#diem.offchain.types.new_payment_object">new_payment_object</a></code></li>
+<li><code><a title="diem.offchain.types.new_payment_request" href="#diem.offchain.types.new_payment_request">new_payment_request</a></code></li>
+<li><code><a title="diem.offchain.types.replace_payment_actor" href="#diem.offchain.types.replace_payment_actor">replace_payment_actor</a></code></li>
+<li><code><a title="diem.offchain.types.replace_payment_status" href="#diem.offchain.types.replace_payment_status">replace_payment_status</a></code></li>
+<li><code><a title="diem.offchain.types.reply_request" href="#diem.offchain.types.reply_request">reply_request</a></code></li>
+<li><code><a title="diem.offchain.types.to_json" href="#diem.offchain.types.to_json">to_json</a></code></li>
+<li><code><a title="diem.offchain.types.validate_write_once_fields" href="#diem.offchain.types.validate_write_once_fields">validate_write_once_fields</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.offchain.types.FieldError" href="#diem.offchain.types.FieldError">FieldError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.InvalidOverwriteError" href="#diem.offchain.types.InvalidOverwriteError">InvalidOverwriteError</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

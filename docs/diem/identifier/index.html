@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.identifier API documentation</title>
+<meta name="description" content="DIP-5 Diem Account Identifier and Intent Identifier Utilities …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.identifier</code></h1>
+</header>
+<section id="section-intro">
+<p>DIP-5 Diem Account Identifier and Intent Identifier Utilities.</p>
+<p>See <a href="https://dip.diem.com/dip-5">https://dip.diem.com/dip-5</a> for more details</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+&#34;&#34;&#34;DIP-5 Diem Account Identifier and Intent Identifier Utilities.
+
+See https://dip.diem.com/dip-5 for more details
+
+&#34;&#34;&#34;
+
+
+import typing
+from urllib import parse
+from typing import List
+
+from . import bech32
+from .. import diem_types, utils, chain_ids
+
+from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
+from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
+
+DM = &#34;dm&#34;  # mainnet
+TDM = &#34;tdm&#34;  # testnet
+PDM = &#34;pdm&#34;  # premainnet
+DDM = &#34;ddm&#34;  # dry-run mainnet
+
+HRPS: typing.Dict[int, str] = {
+    chain_ids.MAINNET.to_int(): DM,
+    chain_ids.TESTNET.to_int(): TDM,
+    chain_ids.DEVNET.to_int(): TDM,
+    chain_ids.TESTING.to_int(): TDM,
+}
+
+
+class InvalidIntentIdentifierError(Exception):
+    pass
+
+
+class Intent:
+    &#34;&#34;&#34;Intent is a struct hold data decoded from Diem Intent Identifier string&#34;&#34;&#34;
+
+    account_address: diem_types.AccountAddress
+    sub_address: typing.Optional[bytes]
+    currency_code: str
+    amount: int
+
+    def __init__(
+        self,
+        account_address: diem_types.AccountAddress,
+        sub_address: typing.Optional[bytes],
+        currency_code: str,
+        amount: int,
+        hrp: str,
+    ) -&gt; None:
+        self.account_address = account_address
+        self.sub_address = sub_address
+        self.currency_code = currency_code
+        self.amount = amount
+        self.hrp = hrp
+
+    @property
+    def account_address_bytes(self) -&gt; bytes:
+        return self.account_address.to_bytes()
+
+    @property
+    def account_id(self) -&gt; str:
+        return encode_account(self.account_address, self.sub_address, self.hrp)
+
+
+def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -&gt; str:
+    &#34;&#34;&#34;
+    Encode account identifier string(encoded), currency code and amount into
+    Diem intent identifier (https://dip.diem.com/dip-5/)
+    &#34;&#34;&#34;
+
+    return &#34;diem://%s?c=%s&amp;am=%d&#34; % (encoded_account_identifier, currency_code, amount)
+
+
+def decode_intent(encoded_intent_identifier: str, hrp: str) -&gt; Intent:
+    &#34;&#34;&#34;
+    Decode Diem intent identifier (https://dip.diem.com/dip-5/) int 3 parts:
+    1. account identifier: account address &amp; sub-address
+    2. currency code
+    3. amount
+
+    InvalidIntentIdentifierError is raised if given identifier is invalid
+    &#34;&#34;&#34;
+
+    result = parse.urlparse(encoded_intent_identifier)
+    if result.scheme != &#34;diem&#34;:
+        raise InvalidIntentIdentifierError(
+            f&#34;Unknown intent identifier scheme {result.scheme} &#34; f&#34;in {encoded_intent_identifier}&#34;
+        )
+
+    account_identifier = result.netloc
+    params = parse.parse_qs(result.query)
+
+    amount = _decode_param(&#34;amount&#34;, params, &#34;am&#34;, lambda am: int(am))
+    currency_code = _decode_param(&#34;currency code&#34;, params, &#34;c&#34;, lambda c: str(c))
+
+    try:
+        account_address, sub_address = decode_account(account_identifier, hrp)
+    except ValueError as e:
+        raise InvalidIntentIdentifierError(f&#34;decode account identifier failed: {e}:&#34;)
+
+    return Intent(
+        account_address=utils.account_address(account_address),
+        sub_address=sub_address,
+        currency_code=currency_code,
+        amount=amount,
+        hrp=hrp,
+    )
+
+
+def _decode_param(name, params, field, convert):  # pyre-ignore
+    if field not in params:
+        raise InvalidIntentIdentifierError(f&#34;Can&#39;t decode {name}: not found in params {params}&#34;)
+
+    if not isinstance(params[field], list):
+        raise InvalidIntentIdentifierError(f&#34;Can&#39;t decode {name}: unknown type {params}&#34;)
+
+    if len(params[field]) != 1:
+        raise InvalidIntentIdentifierError(f&#34;Can&#39;t decode {name}: too many values {params}&#34;)
+
+    value = params[field][0]
+    try:
+        return convert(value)
+    except ValueError as e:
+        raise InvalidIntentIdentifierError(f&#34;Can&#39;t decode {name}: {value}, error: {e}&#34;)
+
+
+def encode_account(
+    onchain_addr: typing.Union[diem_types.AccountAddress, str],
+    subaddr: typing.Union[str, bytes, None],
+    hrp: str,
+) -&gt; str:
+    &#34;&#34;&#34;Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format&#34;&#34;&#34;
+
+    onchain_address_bytes = utils.account_address_bytes(onchain_addr)
+    subaddress_bytes = utils.sub_address(subaddr) if subaddr else None
+
+    try:
+        encoded_address = bech32_address_encode(hrp, onchain_address_bytes, subaddress_bytes)
+    except Bech32Error as e:
+        raise ValueError(
+            f&#34;Can&#39;t encode from &#34;
+            f&#34;onchain_addr: {onchain_addr}, &#34;
+            f&#34;subaddr: {subaddr}, &#34;
+            f&#34;hrp: {hrp}, got error: {e}&#34;
+        )
+    return encoded_address
+
+
+def decode_account(encoded_address: str, hrp: str) -&gt; typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
+    &#34;&#34;&#34;Return (addrees_str, subaddress_str) given a bech32 encoded str &amp; human readable prefix(hrp)&#34;&#34;&#34;
+    try:
+        (_version, onchain_address_bytes, subaddress_bytes) = bech32.bech32_address_decode(hrp, encoded_address)
+    except Bech32Error as e:
+        raise ValueError(f&#34;Can&#39;t decode from encoded str {encoded_address}, &#34; f&#34;got error: {e}&#34;)
+
+    address = utils.account_address(onchain_address_bytes)
+    # If subaddress is absent, subaddress_bytes is a list of 0
+    if subaddress_bytes != DIEM_ZERO_SUBADDRESS:
+        return (address, subaddress_bytes)
+    return (address, None)
+
+
+def decode_account_address(encoded_address: str, hrp: str) -&gt; diem_types.AccountAddress:
+    address, _ = decode_account(encoded_address, hrp)
+    return address
+
+
+def decode_account_subaddress(encoded_address: str, hrp: str) -&gt; typing.Optional[bytes]:
+    _, subaddress = decode_account(encoded_address, hrp)
+    return subaddress</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="diem.identifier.bech32" href="bech32.html">diem.identifier.bech32</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="diem.identifier.subaddress" href="subaddress.html">diem.identifier.subaddress</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="diem.identifier.decode_account"><code class="name flex">
+<span>def <span class="ident">decode_account</span></span>(<span>encoded_address: str, hrp: str) ‑> Tuple[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, Optional[bytes]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return (addrees_str, subaddress_str) given a bech32 encoded str &amp; human readable prefix(hrp)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_account(encoded_address: str, hrp: str) -&gt; typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
+    &#34;&#34;&#34;Return (addrees_str, subaddress_str) given a bech32 encoded str &amp; human readable prefix(hrp)&#34;&#34;&#34;
+    try:
+        (_version, onchain_address_bytes, subaddress_bytes) = bech32.bech32_address_decode(hrp, encoded_address)
+    except Bech32Error as e:
+        raise ValueError(f&#34;Can&#39;t decode from encoded str {encoded_address}, &#34; f&#34;got error: {e}&#34;)
+
+    address = utils.account_address(onchain_address_bytes)
+    # If subaddress is absent, subaddress_bytes is a list of 0
+    if subaddress_bytes != DIEM_ZERO_SUBADDRESS:
+        return (address, subaddress_bytes)
+    return (address, None)</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.decode_account_address"><code class="name flex">
+<span>def <span class="ident">decode_account_address</span></span>(<span>encoded_address: str, hrp: str) ‑> <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_account_address(encoded_address: str, hrp: str) -&gt; diem_types.AccountAddress:
+    address, _ = decode_account(encoded_address, hrp)
+    return address</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.decode_account_subaddress"><code class="name flex">
+<span>def <span class="ident">decode_account_subaddress</span></span>(<span>encoded_address: str, hrp: str) ‑> Optional[bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_account_subaddress(encoded_address: str, hrp: str) -&gt; typing.Optional[bytes]:
+    _, subaddress = decode_account(encoded_address, hrp)
+    return subaddress</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.decode_intent"><code class="name flex">
+<span>def <span class="ident">decode_intent</span></span>(<span>encoded_intent_identifier: str, hrp: str) ‑> <a title="diem.identifier.Intent" href="#diem.identifier.Intent">Intent</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decode Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.com/dip-5/</a>) int 3 parts:
+1. account identifier: account address &amp; sub-address
+2. currency code
+3. amount</p>
+<p>InvalidIntentIdentifierError is raised if given identifier is invalid</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_intent(encoded_intent_identifier: str, hrp: str) -&gt; Intent:
+    &#34;&#34;&#34;
+    Decode Diem intent identifier (https://dip.diem.com/dip-5/) int 3 parts:
+    1. account identifier: account address &amp; sub-address
+    2. currency code
+    3. amount
+
+    InvalidIntentIdentifierError is raised if given identifier is invalid
+    &#34;&#34;&#34;
+
+    result = parse.urlparse(encoded_intent_identifier)
+    if result.scheme != &#34;diem&#34;:
+        raise InvalidIntentIdentifierError(
+            f&#34;Unknown intent identifier scheme {result.scheme} &#34; f&#34;in {encoded_intent_identifier}&#34;
+        )
+
+    account_identifier = result.netloc
+    params = parse.parse_qs(result.query)
+
+    amount = _decode_param(&#34;amount&#34;, params, &#34;am&#34;, lambda am: int(am))
+    currency_code = _decode_param(&#34;currency code&#34;, params, &#34;c&#34;, lambda c: str(c))
+
+    try:
+        account_address, sub_address = decode_account(account_identifier, hrp)
+    except ValueError as e:
+        raise InvalidIntentIdentifierError(f&#34;decode account identifier failed: {e}:&#34;)
+
+    return Intent(
+        account_address=utils.account_address(account_address),
+        sub_address=sub_address,
+        currency_code=currency_code,
+        amount=amount,
+        hrp=hrp,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.encode_account"><code class="name flex">
+<span>def <span class="ident">encode_account</span></span>(<span>onchain_addr: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str], subaddr: Union[str, bytes, NoneType], hrp: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def encode_account(
+    onchain_addr: typing.Union[diem_types.AccountAddress, str],
+    subaddr: typing.Union[str, bytes, None],
+    hrp: str,
+) -&gt; str:
+    &#34;&#34;&#34;Encode onchain address and (optional) subaddress with human readable prefix(hrp) into bech32 format&#34;&#34;&#34;
+
+    onchain_address_bytes = utils.account_address_bytes(onchain_addr)
+    subaddress_bytes = utils.sub_address(subaddr) if subaddr else None
+
+    try:
+        encoded_address = bech32_address_encode(hrp, onchain_address_bytes, subaddress_bytes)
+    except Bech32Error as e:
+        raise ValueError(
+            f&#34;Can&#39;t encode from &#34;
+            f&#34;onchain_addr: {onchain_addr}, &#34;
+            f&#34;subaddr: {subaddr}, &#34;
+            f&#34;hrp: {hrp}, got error: {e}&#34;
+        )
+    return encoded_address</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.encode_intent"><code class="name flex">
+<span>def <span class="ident">encode_intent</span></span>(<span>encoded_account_identifier: str, currency_code: str, amount: int) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Encode account identifier string(encoded), currency code and amount into
+Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.com/dip-5/</a>)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -&gt; str:
+    &#34;&#34;&#34;
+    Encode account identifier string(encoded), currency code and amount into
+    Diem intent identifier (https://dip.diem.com/dip-5/)
+    &#34;&#34;&#34;
+
+    return &#34;diem://%s?c=%s&amp;am=%d&#34; % (encoded_account_identifier, currency_code, amount)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.identifier.Intent"><code class="flex name class">
+<span>class <span class="ident">Intent</span></span>
+<span>(</span><span>account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, sub_address: Optional[bytes], currency_code: str, amount: int, hrp: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Intent is a struct hold data decoded from Diem Intent Identifier string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Intent:
+    &#34;&#34;&#34;Intent is a struct hold data decoded from Diem Intent Identifier string&#34;&#34;&#34;
+
+    account_address: diem_types.AccountAddress
+    sub_address: typing.Optional[bytes]
+    currency_code: str
+    amount: int
+
+    def __init__(
+        self,
+        account_address: diem_types.AccountAddress,
+        sub_address: typing.Optional[bytes],
+        currency_code: str,
+        amount: int,
+        hrp: str,
+    ) -&gt; None:
+        self.account_address = account_address
+        self.sub_address = sub_address
+        self.currency_code = currency_code
+        self.amount = amount
+        self.hrp = hrp
+
+    @property
+    def account_address_bytes(self) -&gt; bytes:
+        return self.account_address.to_bytes()
+
+    @property
+    def account_id(self) -&gt; str:
+        return encode_account(self.account_address, self.sub_address, self.hrp)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.identifier.Intent.account_address"><code class="name">var <span class="ident">account_address</span> : <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.identifier.Intent.amount"><code class="name">var <span class="ident">amount</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.identifier.Intent.currency_code"><code class="name">var <span class="ident">currency_code</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.identifier.Intent.sub_address"><code class="name">var <span class="ident">sub_address</span> : Optional[bytes]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="diem.identifier.Intent.account_address_bytes"><code class="name">var <span class="ident">account_address_bytes</span> : bytes</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def account_address_bytes(self) -&gt; bytes:
+    return self.account_address.to_bytes()</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.Intent.account_id"><code class="name">var <span class="ident">account_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def account_id(self) -&gt; str:
+    return encode_account(self.account_address, self.sub_address, self.hrp)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.identifier.InvalidIntentIdentifierError"><code class="flex name class">
+<span>class <span class="ident">InvalidIntentIdentifierError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidIntentIdentifierError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem" href="../index.html">diem</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="diem.identifier.bech32" href="bech32.html">diem.identifier.bech32</a></code></li>
+<li><code><a title="diem.identifier.subaddress" href="subaddress.html">diem.identifier.subaddress</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="diem.identifier.decode_account" href="#diem.identifier.decode_account">decode_account</a></code></li>
+<li><code><a title="diem.identifier.decode_account_address" href="#diem.identifier.decode_account_address">decode_account_address</a></code></li>
+<li><code><a title="diem.identifier.decode_account_subaddress" href="#diem.identifier.decode_account_subaddress">decode_account_subaddress</a></code></li>
+<li><code><a title="diem.identifier.decode_intent" href="#diem.identifier.decode_intent">decode_intent</a></code></li>
+<li><code><a title="diem.identifier.encode_account" href="#diem.identifier.encode_account">encode_account</a></code></li>
+<li><code><a title="diem.identifier.encode_intent" href="#diem.identifier.encode_intent">encode_intent</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.identifier.Intent" href="#diem.identifier.Intent">Intent</a></code></h4>
+<ul class="">
+<li><code><a title="diem.identifier.Intent.account_address" href="#diem.identifier.Intent.account_address">account_address</a></code></li>
+<li><code><a title="diem.identifier.Intent.account_address_bytes" href="#diem.identifier.Intent.account_address_bytes">account_address_bytes</a></code></li>
+<li><code><a title="diem.identifier.Intent.account_id" href="#diem.identifier.Intent.account_id">account_id</a></code></li>
+<li><code><a title="diem.identifier.Intent.amount" href="#diem.identifier.Intent.amount">amount</a></code></li>
+<li><code><a title="diem.identifier.Intent.currency_code" href="#diem.identifier.Intent.currency_code">currency_code</a></code></li>
+<li><code><a title="diem.identifier.Intent.sub_address" href="#diem.identifier.Intent.sub_address">sub_address</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.identifier.InvalidIntentIdentifierError" href="#diem.identifier.InvalidIntentIdentifierError">InvalidIntentIdentifierError</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

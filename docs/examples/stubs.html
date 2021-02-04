@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>examples.stubs API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>examples.stubs</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+import time, typing
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from diem import (
+    identifier,
+    jsonrpc,
+    diem_types,
+    stdlib,
+    testnet,
+    utils,
+    LocalAccount,
+)
+
+
+class CustodialApp:
+    &#34;&#34;&#34;CustodialApp is a stub for simulating custodial application on testnet&#34;&#34;&#34;
+
+    @staticmethod
+    def create(vasp: LocalAccount, client: jsonrpc.Client) -&gt; &#34;CustodialApp&#34;:
+        c = CustodialApp(vasp, client)
+        c.add_child_vasp()
+        c.add_user()
+        return c
+
+    _parent_vasp: LocalAccount
+    _client: jsonrpc.Client
+    _children: typing.List[LocalAccount]
+    _users: typing.List[bytes]
+
+    compliance_key: typing.Optional[Ed25519PrivateKey]
+
+    def __init__(
+        self,
+        parent_vasp: LocalAccount,
+        client: jsonrpc.Client,
+    ) -&gt; None:
+        self._parent_vasp = parent_vasp
+        self._client = client
+        self._chain_id = testnet.CHAIN_ID
+        self._children = []
+        self._users = []
+
+    def add_child_vasp(self) -&gt; jsonrpc.Transaction:
+        child_vasp = LocalAccount.generate()
+        self._children.append(child_vasp)
+        txn = self.create_transaction(
+            self._parent_vasp,
+            stdlib.encode_create_child_vasp_account_script(
+                coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
+                child_address=child_vasp.account_address,
+                auth_key_prefix=child_vasp.auth_key.prefix(),
+                add_all_currencies=False,
+                child_initial_balance=2_000_000_000,
+            ),
+            testnet.TEST_CURRENCY_CODE,
+        )
+
+        return self.submit_and_wait(self._parent_vasp.sign(txn))
+
+    def init_compliance_keys(self) -&gt; jsonrpc.Transaction:
+        self.compliance_key = Ed25519PrivateKey.generate()
+        txn = self.create_transaction(
+            self._parent_vasp,
+            stdlib.encode_rotate_dual_attestation_info_script(
+                new_url=b&#34;http://helloworld.org&#34;, new_key=utils.public_key_bytes(self.compliance_key.public_key())
+            ),
+            testnet.TEST_CURRENCY_CODE,
+        )
+        return self.submit_and_wait(self._parent_vasp.sign(txn))
+
+    def add_user(self):
+        self._users.append(identifier.gen_subaddress())
+
+    def payment(self, user_id: int, amount: int) -&gt; str:
+        account_id = identifier.encode_account(
+            self._children[0].account_address, self._users[user_id], identifier.TDM  # testnet HRP
+        )
+        return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
+
+    # TODO: change to generate sub address for user when needed
+    def find_user_sub_address_by_id(self, user_id: int) -&gt; bytes:
+        return self._users[user_id]
+
+    def get_sequence_number(self, account: LocalAccount) -&gt; int:
+        return self._client.get_account_sequence(account.account_address)
+
+    def available_child_vasp(self) -&gt; LocalAccount:
+        return self._children[0]
+
+    def submit_and_wait(
+        self,
+        txn: typing.Union[diem_types.SignedTransaction, str],
+    ) -&gt; jsonrpc.Transaction:
+        self._client.submit(txn)
+        return self._client.wait_for_transaction(txn)
+
+    def create_transaction(self, sender, script, currency) -&gt; diem_types.RawTransaction:
+        sender_account_sequence = self.get_sequence_number(sender)
+        return diem_types.RawTransaction(
+            sender=sender.account_address,
+            sequence_number=sender_account_sequence,
+            payload=diem_types.TransactionPayload__Script(script),
+            max_gas_amount=1_000_000,
+            gas_unit_price=0,
+            gas_currency_code=currency,
+            expiration_timestamp_secs=int(time.time()) + 30,
+            chain_id=self._chain_id,
+        )</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="examples.stubs.CustodialApp"><code class="flex name class">
+<span>class <span class="ident">CustodialApp</span></span>
+<span>(</span><span>parent_vasp: diem.local_account.LocalAccount, client: diem.jsonrpc.client.Client)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>CustodialApp is a stub for simulating custodial application on testnet</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CustodialApp:
+    &#34;&#34;&#34;CustodialApp is a stub for simulating custodial application on testnet&#34;&#34;&#34;
+
+    @staticmethod
+    def create(vasp: LocalAccount, client: jsonrpc.Client) -&gt; &#34;CustodialApp&#34;:
+        c = CustodialApp(vasp, client)
+        c.add_child_vasp()
+        c.add_user()
+        return c
+
+    _parent_vasp: LocalAccount
+    _client: jsonrpc.Client
+    _children: typing.List[LocalAccount]
+    _users: typing.List[bytes]
+
+    compliance_key: typing.Optional[Ed25519PrivateKey]
+
+    def __init__(
+        self,
+        parent_vasp: LocalAccount,
+        client: jsonrpc.Client,
+    ) -&gt; None:
+        self._parent_vasp = parent_vasp
+        self._client = client
+        self._chain_id = testnet.CHAIN_ID
+        self._children = []
+        self._users = []
+
+    def add_child_vasp(self) -&gt; jsonrpc.Transaction:
+        child_vasp = LocalAccount.generate()
+        self._children.append(child_vasp)
+        txn = self.create_transaction(
+            self._parent_vasp,
+            stdlib.encode_create_child_vasp_account_script(
+                coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
+                child_address=child_vasp.account_address,
+                auth_key_prefix=child_vasp.auth_key.prefix(),
+                add_all_currencies=False,
+                child_initial_balance=2_000_000_000,
+            ),
+            testnet.TEST_CURRENCY_CODE,
+        )
+
+        return self.submit_and_wait(self._parent_vasp.sign(txn))
+
+    def init_compliance_keys(self) -&gt; jsonrpc.Transaction:
+        self.compliance_key = Ed25519PrivateKey.generate()
+        txn = self.create_transaction(
+            self._parent_vasp,
+            stdlib.encode_rotate_dual_attestation_info_script(
+                new_url=b&#34;http://helloworld.org&#34;, new_key=utils.public_key_bytes(self.compliance_key.public_key())
+            ),
+            testnet.TEST_CURRENCY_CODE,
+        )
+        return self.submit_and_wait(self._parent_vasp.sign(txn))
+
+    def add_user(self):
+        self._users.append(identifier.gen_subaddress())
+
+    def payment(self, user_id: int, amount: int) -&gt; str:
+        account_id = identifier.encode_account(
+            self._children[0].account_address, self._users[user_id], identifier.TDM  # testnet HRP
+        )
+        return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
+
+    # TODO: change to generate sub address for user when needed
+    def find_user_sub_address_by_id(self, user_id: int) -&gt; bytes:
+        return self._users[user_id]
+
+    def get_sequence_number(self, account: LocalAccount) -&gt; int:
+        return self._client.get_account_sequence(account.account_address)
+
+    def available_child_vasp(self) -&gt; LocalAccount:
+        return self._children[0]
+
+    def submit_and_wait(
+        self,
+        txn: typing.Union[diem_types.SignedTransaction, str],
+    ) -&gt; jsonrpc.Transaction:
+        self._client.submit(txn)
+        return self._client.wait_for_transaction(txn)
+
+    def create_transaction(self, sender, script, currency) -&gt; diem_types.RawTransaction:
+        sender_account_sequence = self.get_sequence_number(sender)
+        return diem_types.RawTransaction(
+            sender=sender.account_address,
+            sequence_number=sender_account_sequence,
+            payload=diem_types.TransactionPayload__Script(script),
+            max_gas_amount=1_000_000,
+            gas_unit_price=0,
+            gas_currency_code=currency,
+            expiration_timestamp_secs=int(time.time()) + 30,
+            chain_id=self._chain_id,
+        )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="examples.stubs.CustodialApp.compliance_key"><code class="name">var <span class="ident">compliance_key</span> : Optional[cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="examples.stubs.CustodialApp.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>vasp: diem.local_account.LocalAccount, client: diem.jsonrpc.client.Client) ‑> <a title="examples.stubs.CustodialApp" href="#examples.stubs.CustodialApp">CustodialApp</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def create(vasp: LocalAccount, client: jsonrpc.Client) -&gt; &#34;CustodialApp&#34;:
+    c = CustodialApp(vasp, client)
+    c.add_child_vasp()
+    c.add_user()
+    return c</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="examples.stubs.CustodialApp.add_child_vasp"><code class="name flex">
+<span>def <span class="ident">add_child_vasp</span></span>(<span>self) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_child_vasp(self) -&gt; jsonrpc.Transaction:
+    child_vasp = LocalAccount.generate()
+    self._children.append(child_vasp)
+    txn = self.create_transaction(
+        self._parent_vasp,
+        stdlib.encode_create_child_vasp_account_script(
+            coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
+            child_address=child_vasp.account_address,
+            auth_key_prefix=child_vasp.auth_key.prefix(),
+            add_all_currencies=False,
+            child_initial_balance=2_000_000_000,
+        ),
+        testnet.TEST_CURRENCY_CODE,
+    )
+
+    return self.submit_and_wait(self._parent_vasp.sign(txn))</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.add_user"><code class="name flex">
+<span>def <span class="ident">add_user</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_user(self):
+    self._users.append(identifier.gen_subaddress())</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.available_child_vasp"><code class="name flex">
+<span>def <span class="ident">available_child_vasp</span></span>(<span>self) ‑> diem.local_account.LocalAccount</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def available_child_vasp(self) -&gt; LocalAccount:
+    return self._children[0]</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.create_transaction"><code class="name flex">
+<span>def <span class="ident">create_transaction</span></span>(<span>self, sender, script, currency) ‑> diem.diem_types.RawTransaction</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_transaction(self, sender, script, currency) -&gt; diem_types.RawTransaction:
+    sender_account_sequence = self.get_sequence_number(sender)
+    return diem_types.RawTransaction(
+        sender=sender.account_address,
+        sequence_number=sender_account_sequence,
+        payload=diem_types.TransactionPayload__Script(script),
+        max_gas_amount=1_000_000,
+        gas_unit_price=0,
+        gas_currency_code=currency,
+        expiration_timestamp_secs=int(time.time()) + 30,
+        chain_id=self._chain_id,
+    )</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.find_user_sub_address_by_id"><code class="name flex">
+<span>def <span class="ident">find_user_sub_address_by_id</span></span>(<span>self, user_id: int) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_user_sub_address_by_id(self, user_id: int) -&gt; bytes:
+    return self._users[user_id]</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.get_sequence_number"><code class="name flex">
+<span>def <span class="ident">get_sequence_number</span></span>(<span>self, account: diem.local_account.LocalAccount) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sequence_number(self, account: LocalAccount) -&gt; int:
+    return self._client.get_account_sequence(account.account_address)</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.init_compliance_keys"><code class="name flex">
+<span>def <span class="ident">init_compliance_keys</span></span>(<span>self) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init_compliance_keys(self) -&gt; jsonrpc.Transaction:
+    self.compliance_key = Ed25519PrivateKey.generate()
+    txn = self.create_transaction(
+        self._parent_vasp,
+        stdlib.encode_rotate_dual_attestation_info_script(
+            new_url=b&#34;http://helloworld.org&#34;, new_key=utils.public_key_bytes(self.compliance_key.public_key())
+        ),
+        testnet.TEST_CURRENCY_CODE,
+    )
+    return self.submit_and_wait(self._parent_vasp.sign(txn))</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.payment"><code class="name flex">
+<span>def <span class="ident">payment</span></span>(<span>self, user_id: int, amount: int) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payment(self, user_id: int, amount: int) -&gt; str:
+    account_id = identifier.encode_account(
+        self._children[0].account_address, self._users[user_id], identifier.TDM  # testnet HRP
+    )
+    return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)</code></pre>
+</details>
+</dd>
+<dt id="examples.stubs.CustodialApp.submit_and_wait"><code class="name flex">
+<span>def <span class="ident">submit_and_wait</span></span>(<span>self, txn: Union[diem.diem_types.SignedTransaction, str]) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def submit_and_wait(
+    self,
+    txn: typing.Union[diem_types.SignedTransaction, str],
+) -&gt; jsonrpc.Transaction:
+    self._client.submit(txn)
+    return self._client.wait_for_transaction(txn)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="examples" href="index.html">examples</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="examples.stubs.CustodialApp" href="#examples.stubs.CustodialApp">CustodialApp</a></code></h4>
+<ul class="">
+<li><code><a title="examples.stubs.CustodialApp.add_child_vasp" href="#examples.stubs.CustodialApp.add_child_vasp">add_child_vasp</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.add_user" href="#examples.stubs.CustodialApp.add_user">add_user</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.available_child_vasp" href="#examples.stubs.CustodialApp.available_child_vasp">available_child_vasp</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.compliance_key" href="#examples.stubs.CustodialApp.compliance_key">compliance_key</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.create" href="#examples.stubs.CustodialApp.create">create</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.create_transaction" href="#examples.stubs.CustodialApp.create_transaction">create_transaction</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.find_user_sub_address_by_id" href="#examples.stubs.CustodialApp.find_user_sub_address_by_id">find_user_sub_address_by_id</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.get_sequence_number" href="#examples.stubs.CustodialApp.get_sequence_number">get_sequence_number</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.init_compliance_keys" href="#examples.stubs.CustodialApp.init_compliance_keys">init_compliance_keys</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.payment" href="#examples.stubs.CustodialApp.payment">payment</a></code></li>
+<li><code><a title="examples.stubs.CustodialApp.submit_and_wait" href="#examples.stubs.CustodialApp.submit_and_wait">submit_and_wait</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

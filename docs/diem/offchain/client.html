@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.offchain.client API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.offchain.client</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+
+import requests, typing, dataclasses, uuid, math
+
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.exceptions import InvalidSignature
+from json.decoder import JSONDecodeError
+
+from .command import Command
+from .payment_command import PaymentCommand
+
+from .types import (
+    CommandType,
+    CommandRequestObject,
+    CommandResponseObject,
+    CommandResponseStatus,
+    PaymentObject,
+    PaymentActorObject,
+    PaymentActionObject,
+    PaymentCommandObject,
+    ErrorCode,
+    FieldError,
+)
+from .error import command_error, protocol_error, Error
+
+from . import jws, http_header
+from .. import jsonrpc, diem_types, identifier, utils
+
+
+DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
+DEFAULT_TIMEOUT_SECS: float = 5.0
+
+
+class CommandResponseError(Exception):
+    def __init__(self, resp: CommandResponseObject) -&gt; None:
+        super().__init__(resp)
+        self.resp = resp
+
+
+@dataclasses.dataclass
+class Client:
+    &#34;&#34;&#34;Client for communicating with offchain service.
+
+    Provides outbound and inbound request handlings and convertings between bytes and offchain data types.
+
+    Initialization:
+    ```
+    &gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
+    &gt;&gt;&gt; account = testnet.gen_vasp_account(client, &#34;http://vasp.com/offchain&#34;)
+    &gt;&gt;&gt; compliance_key_account_address = account.account_address
+    &gt;&gt;&gt; client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    ```
+
+    Send command:
+    ```
+    &gt;&gt;&gt; # for command: offchain.PaymentCommand
+    &gt;&gt;&gt; client.send_command(command, account.compliance_key.sign)
+    ```
+
+    Pre-process inbound request data:
+    ```
+    from http import server
+    from diem.offchain import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
+
+    class Handler(server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            x_request_id = self.headers[X_REQUEST_ID]
+            jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
+            length = int(self.headers[&#34;content-length&#34;])
+            content = self.rfile.read(length)
+
+            command = client.process_inbound_request(jws_key_address, content)
+            # validate and save command
+            ...
+
+    ```
+
+    See example [Wallet#process_inbound_request](https://diem.github.io/client-sdk-python/examples/vasp/wallet.html#examples.vasp.wallet.WalletApp.process_inbound_request) for full example of how to process inbound request.
+    &#34;&#34;&#34;
+
+    my_compliance_key_account_address: diem_types.AccountAddress
+    jsonrpc_client: jsonrpc.Client
+    hrp: str
+    session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
+    timeout: typing.Tuple[float, float] = dataclasses.field(
+        default_factory=lambda: (
+            DEFAULT_CONNECT_TIMEOUT_SECS,
+            DEFAULT_TIMEOUT_SECS,
+        )
+    )
+    my_compliance_key_account_id: str = dataclasses.field(init=False)
+
+    def __post_init__(self) -&gt; None:
+        self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
+
+    def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
+        return self.send_request(
+            request_sender_address=command.my_actor_address,
+            opponent_account_id=command.opponent_actor_obj().address,
+            request_bytes=jws.serialize(command.new_request(), sign),
+        )
+
+    def send_request(
+        self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+    ) -&gt; CommandResponseObject:
+        base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+        response = self.session.post(
+            f&#34;{base_url.rstrip(&#39;/&#39;)}/v2/command&#34;,
+            data=request_bytes,
+            headers={
+                http_header.X_REQUEST_ID: str(uuid.uuid4()),
+                http_header.X_REQUEST_SENDER_ADDRESS: request_sender_address,
+            },
+            timeout=self.timeout,
+        )
+        if response.status_code not in [200, 400]:
+            response.raise_for_status()
+
+        cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key, protocol_error)
+        if cmd_resp.status == CommandResponseStatus.failure:
+            raise CommandResponseError(cmd_resp)
+        return cmd_resp
+
+    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
+        &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        Raises `diem.offchain.error.Error` with `protocol_error` when:
+
+        - `request_sender_address` is not provided.
+        - Cannot find on-chain account by the `request_sender_address`.
+        - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
+        - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
+        - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
+        - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+
+        Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
+
+        - `diem.offchain.types.payment_types.PaymentObject.sender` or `diem.offchain.types.payment_types.PaymentObject.sender`.address is invalid.
+        - `request_sender_address` is not sender or receiver actor address.
+        - For initial payment object, the `diem.offchain.types.payment_types.PaymentActionObject.amount` is under dual attestation limit (travel rule limit).
+        - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
+
+        &#34;&#34;&#34;
+
+        if not request_sender_address:
+            raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+        try:
+            _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+        except ValueError as e:
+            raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
+
+        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+        if request.command_type == CommandType.PaymentCommand:
+            payment = typing.cast(PaymentCommandObject, request.command).payment
+            self.validate_addresses(payment, request_sender_address)
+            cmd = self.create_inbound_payment_command(request.cid, payment)
+            if cmd.is_initial():
+                self.validate_dual_attestation_limit(cmd.payment.action)
+            elif cmd.is_rsend():
+                self.validate_recipient_signature(cmd, public_key)
+            return cmd
+
+        raise command_error(
+            ErrorCode.unknown_command_type,
+            f&#34;unknown command_type: {request.command_type}&#34;,
+        )
+
+    def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -&gt; None:
+        msg = cmd.travel_rule_metadata_signature_message(self.hrp)
+        try:
+            sig = cmd.payment.recipient_signature
+            if sig is None:
+                raise ValueError(&#34;recipient_signature is not provided&#34;)
+            public_key.verify(bytes.fromhex(sig), msg)
+        except (ValueError, InvalidSignature) as e:
+            raise command_error(
+                ErrorCode.invalid_recipient_signature, str(e), &#34;command.payment.recipient_signature&#34;
+            ) from e
+
+    def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
+        currencies = self.jsonrpc_client.get_currencies()
+        limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
+        for info in currencies:
+            if info.code == action.currency:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
+                    raise command_error(
+                        ErrorCode.no_kyc_needed,
+                        &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
+                        % (action.amount, info.to_xdx_exchange_rate, limit),
+                        &#34;command.payment.action.amount&#34;,
+                    )
+                return
+        raise command_error(
+            ErrorCode.invalid_field_value,
+            f&#34;currency code is invalid: {action.currency}&#34;,
+            &#34;command.payment.action.currency&#34;,
+        )
+
+    def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
+        self.validate_actor_address(&#34;sender&#34;, payment.sender)
+        self.validate_actor_address(&#34;receiver&#34;, payment.receiver)
+        self.validate_request_sender_address(request_sender_address, [payment.sender.address, payment.receiver.address])
+
+    def validate_actor_address(self, actor_name: str, actor: PaymentActorObject) -&gt; None:
+        try:
+            identifier.decode_account(actor.address, self.hrp)
+        except ValueError as e:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f&#34;could not decode account identifier: {e}&#34;,
+                f&#34;command.payment.{actor_name}.address&#34;,
+            ) from e
+
+    def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -&gt; None:
+        if request_sender_address not in addresses:
+            raise command_error(
+                ErrorCode.invalid_http_header,
+                f&#34;address {request_sender_address} is not one of {addresses}&#34;,
+            )
+
+    def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -&gt; PaymentCommand:
+        if self.is_my_account_id(obj.sender.address):
+            return PaymentCommand(cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
+        if self.is_my_account_id(obj.receiver.address):
+            return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
+
+        raise command_error(ErrorCode.unknown_address, &#34;unknown actor addresses: {obj}&#34;)
+
+    def is_my_account_id(self, account_id: str) -&gt; bool:
+        account_address, _ = identifier.decode_account(account_id, self.hrp)
+        if self.my_compliance_key_account_id == self.account_id(account_address):
+            return True
+        account = self.jsonrpc_client.get_account(account_address)
+        if account and account.role.parent_vasp_address:
+            return self.my_compliance_key_account_id == self.account_id(account.role.parent_vasp_address)
+        return False
+
+    def account_id(self, address: typing.Union[diem_types.AccountAddress, bytes, str]) -&gt; str:
+        return identifier.encode_account(utils.account_address(address), None, self.hrp)
+
+    def get_base_url_and_compliance_key(self, account_id: str) -&gt; typing.Tuple[str, Ed25519PublicKey]:
+        account_address, _ = identifier.decode_account(account_id, self.hrp)
+        return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
+
+
+def _deserialize_jws(
+    content_bytes: bytes,
+    klass: typing.Type[jws.T],
+    public_key: Ed25519PublicKey,
+    error_fn: typing.Callable[[str, str, typing.Optional[str]], Error],
+) -&gt; jws.T:
+    try:
+        return jws.deserialize(content_bytes, klass, public_key.verify)
+    except JSONDecodeError as e:
+        raise error_fn(ErrorCode.invalid_json, f&#34;decode json string failed: {e}&#34;, None) from e
+    except FieldError as e:
+        raise error_fn(e.code, f&#34;invalid {klass.__name__} json: {e}&#34;, e.field) from e
+    except InvalidSignature as e:
+        raise error_fn(ErrorCode.invalid_jws_signature, f&#34;invalid jws signature: {e}&#34;, None) from e
+    except ValueError as e:
+        raise error_fn(ErrorCode.invalid_jws, f&#34;deserialize JWS bytes failed: {e}&#34;, None) from e
+
+
+def _is_under_the_threshold(limit: int, rate: float, amount: int) -&gt; bool:
+    # use ceil of the xdx exchanged amount to ensure a valid amount
+    # is not considered as under the threshold because of float number
+    # transport or calculation difference comparing with Move module
+    # implementation.
+    return math.ceil(rate * amount) &lt; limit</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.offchain.client.Client"><code class="flex name class">
+<span>class <span class="ident">Client</span></span>
+<span>(</span><span>my_compliance_key_account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, jsonrpc_client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, hrp: str, session: requests.sessions.Session = &lt;factory&gt;, timeout: Tuple[float, float] = &lt;factory&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Client for communicating with offchain service.</p>
+<p>Provides outbound and inbound request handlings and convertings between bytes and offchain data types.</p>
+<p>Initialization:</p>
+<pre><code>&gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
+&gt;&gt;&gt;
+&gt;&gt;&gt; jsonrpc_client = testnet.create_client()
+&gt;&gt;&gt; account = testnet.gen_vasp_account(client, &quot;http://vasp.com/offchain&quot;)
+&gt;&gt;&gt; compliance_key_account_address = account.account_address
+&gt;&gt;&gt; client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+</code></pre>
+<p>Send command:</p>
+<pre><code>&gt;&gt;&gt; # for command: offchain.PaymentCommand
+&gt;&gt;&gt; client.send_command(command, account.compliance_key.sign)
+</code></pre>
+<p>Pre-process inbound request data:</p>
+<pre><code>from http import server
+from diem.offchain import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
+
+class Handler(server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        x_request_id = self.headers[X_REQUEST_ID]
+        jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
+        length = int(self.headers[&quot;content-length&quot;])
+        content = self.rfile.read(length)
+
+        command = client.process_inbound_request(jws_key_address, content)
+        # validate and save command
+        ...
+
+</code></pre>
+<p>See example <a href="https://diem.github.io/client-sdk-python/examples/vasp/wallet.html#examples.vasp.wallet.WalletApp.process_inbound_request">Wallet#process_inbound_request</a> for full example of how to process inbound request.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass
+class Client:
+    &#34;&#34;&#34;Client for communicating with offchain service.
+
+    Provides outbound and inbound request handlings and convertings between bytes and offchain data types.
+
+    Initialization:
+    ```
+    &gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
+    &gt;&gt;&gt;
+    &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
+    &gt;&gt;&gt; account = testnet.gen_vasp_account(client, &#34;http://vasp.com/offchain&#34;)
+    &gt;&gt;&gt; compliance_key_account_address = account.account_address
+    &gt;&gt;&gt; client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    ```
+
+    Send command:
+    ```
+    &gt;&gt;&gt; # for command: offchain.PaymentCommand
+    &gt;&gt;&gt; client.send_command(command, account.compliance_key.sign)
+    ```
+
+    Pre-process inbound request data:
+    ```
+    from http import server
+    from diem.offchain import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
+
+    class Handler(server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            x_request_id = self.headers[X_REQUEST_ID]
+            jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
+            length = int(self.headers[&#34;content-length&#34;])
+            content = self.rfile.read(length)
+
+            command = client.process_inbound_request(jws_key_address, content)
+            # validate and save command
+            ...
+
+    ```
+
+    See example [Wallet#process_inbound_request](https://diem.github.io/client-sdk-python/examples/vasp/wallet.html#examples.vasp.wallet.WalletApp.process_inbound_request) for full example of how to process inbound request.
+    &#34;&#34;&#34;
+
+    my_compliance_key_account_address: diem_types.AccountAddress
+    jsonrpc_client: jsonrpc.Client
+    hrp: str
+    session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
+    timeout: typing.Tuple[float, float] = dataclasses.field(
+        default_factory=lambda: (
+            DEFAULT_CONNECT_TIMEOUT_SECS,
+            DEFAULT_TIMEOUT_SECS,
+        )
+    )
+    my_compliance_key_account_id: str = dataclasses.field(init=False)
+
+    def __post_init__(self) -&gt; None:
+        self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
+
+    def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
+        return self.send_request(
+            request_sender_address=command.my_actor_address,
+            opponent_account_id=command.opponent_actor_obj().address,
+            request_bytes=jws.serialize(command.new_request(), sign),
+        )
+
+    def send_request(
+        self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+    ) -&gt; CommandResponseObject:
+        base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+        response = self.session.post(
+            f&#34;{base_url.rstrip(&#39;/&#39;)}/v2/command&#34;,
+            data=request_bytes,
+            headers={
+                http_header.X_REQUEST_ID: str(uuid.uuid4()),
+                http_header.X_REQUEST_SENDER_ADDRESS: request_sender_address,
+            },
+            timeout=self.timeout,
+        )
+        if response.status_code not in [200, 400]:
+            response.raise_for_status()
+
+        cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key, protocol_error)
+        if cmd_resp.status == CommandResponseStatus.failure:
+            raise CommandResponseError(cmd_resp)
+        return cmd_resp
+
+    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
+        &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        Raises `diem.offchain.error.Error` with `protocol_error` when:
+
+        - `request_sender_address` is not provided.
+        - Cannot find on-chain account by the `request_sender_address`.
+        - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
+        - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
+        - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
+        - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+
+        Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
+
+        - `diem.offchain.types.payment_types.PaymentObject.sender` or `diem.offchain.types.payment_types.PaymentObject.sender`.address is invalid.
+        - `request_sender_address` is not sender or receiver actor address.
+        - For initial payment object, the `diem.offchain.types.payment_types.PaymentActionObject.amount` is under dual attestation limit (travel rule limit).
+        - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
+
+        &#34;&#34;&#34;
+
+        if not request_sender_address:
+            raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+        try:
+            _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+        except ValueError as e:
+            raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
+
+        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+        if request.command_type == CommandType.PaymentCommand:
+            payment = typing.cast(PaymentCommandObject, request.command).payment
+            self.validate_addresses(payment, request_sender_address)
+            cmd = self.create_inbound_payment_command(request.cid, payment)
+            if cmd.is_initial():
+                self.validate_dual_attestation_limit(cmd.payment.action)
+            elif cmd.is_rsend():
+                self.validate_recipient_signature(cmd, public_key)
+            return cmd
+
+        raise command_error(
+            ErrorCode.unknown_command_type,
+            f&#34;unknown command_type: {request.command_type}&#34;,
+        )
+
+    def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -&gt; None:
+        msg = cmd.travel_rule_metadata_signature_message(self.hrp)
+        try:
+            sig = cmd.payment.recipient_signature
+            if sig is None:
+                raise ValueError(&#34;recipient_signature is not provided&#34;)
+            public_key.verify(bytes.fromhex(sig), msg)
+        except (ValueError, InvalidSignature) as e:
+            raise command_error(
+                ErrorCode.invalid_recipient_signature, str(e), &#34;command.payment.recipient_signature&#34;
+            ) from e
+
+    def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
+        currencies = self.jsonrpc_client.get_currencies()
+        limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
+        for info in currencies:
+            if info.code == action.currency:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
+                    raise command_error(
+                        ErrorCode.no_kyc_needed,
+                        &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
+                        % (action.amount, info.to_xdx_exchange_rate, limit),
+                        &#34;command.payment.action.amount&#34;,
+                    )
+                return
+        raise command_error(
+            ErrorCode.invalid_field_value,
+            f&#34;currency code is invalid: {action.currency}&#34;,
+            &#34;command.payment.action.currency&#34;,
+        )
+
+    def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
+        self.validate_actor_address(&#34;sender&#34;, payment.sender)
+        self.validate_actor_address(&#34;receiver&#34;, payment.receiver)
+        self.validate_request_sender_address(request_sender_address, [payment.sender.address, payment.receiver.address])
+
+    def validate_actor_address(self, actor_name: str, actor: PaymentActorObject) -&gt; None:
+        try:
+            identifier.decode_account(actor.address, self.hrp)
+        except ValueError as e:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f&#34;could not decode account identifier: {e}&#34;,
+                f&#34;command.payment.{actor_name}.address&#34;,
+            ) from e
+
+    def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -&gt; None:
+        if request_sender_address not in addresses:
+            raise command_error(
+                ErrorCode.invalid_http_header,
+                f&#34;address {request_sender_address} is not one of {addresses}&#34;,
+            )
+
+    def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -&gt; PaymentCommand:
+        if self.is_my_account_id(obj.sender.address):
+            return PaymentCommand(cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
+        if self.is_my_account_id(obj.receiver.address):
+            return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
+
+        raise command_error(ErrorCode.unknown_address, &#34;unknown actor addresses: {obj}&#34;)
+
+    def is_my_account_id(self, account_id: str) -&gt; bool:
+        account_address, _ = identifier.decode_account(account_id, self.hrp)
+        if self.my_compliance_key_account_id == self.account_id(account_address):
+            return True
+        account = self.jsonrpc_client.get_account(account_address)
+        if account and account.role.parent_vasp_address:
+            return self.my_compliance_key_account_id == self.account_id(account.role.parent_vasp_address)
+        return False
+
+    def account_id(self, address: typing.Union[diem_types.AccountAddress, bytes, str]) -&gt; str:
+        return identifier.encode_account(utils.account_address(address), None, self.hrp)
+
+    def get_base_url_and_compliance_key(self, account_id: str) -&gt; typing.Tuple[str, Ed25519PublicKey]:
+        account_address, _ = identifier.decode_account(account_id, self.hrp)
+        return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.client.Client.hrp"><code class="name">var <span class="ident">hrp</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.client.Client.jsonrpc_client"><code class="name">var <span class="ident">jsonrpc_client</span> : <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.client.Client.my_compliance_key_account_address"><code class="name">var <span class="ident">my_compliance_key_account_address</span> : <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.client.Client.my_compliance_key_account_id"><code class="name">var <span class="ident">my_compliance_key_account_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.client.Client.session"><code class="name">var <span class="ident">session</span> : requests.sessions.Session</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.client.Client.timeout"><code class="name">var <span class="ident">timeout</span> : Tuple[float, float]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.offchain.client.Client.account_id"><code class="name flex">
+<span>def <span class="ident">account_id</span></span>(<span>self, address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, bytes, str]) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def account_id(self, address: typing.Union[diem_types.AccountAddress, bytes, str]) -&gt; str:
+    return identifier.encode_account(utils.account_address(address), None, self.hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.create_inbound_payment_command"><code class="name flex">
+<span>def <span class="ident">create_inbound_payment_command</span></span>(<span>self, cid: str, obj: <a title="diem.offchain.types.payment_types.PaymentObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a>) ‑> <a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -&gt; PaymentCommand:
+    if self.is_my_account_id(obj.sender.address):
+        return PaymentCommand(cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
+    if self.is_my_account_id(obj.receiver.address):
+        return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
+
+    raise command_error(ErrorCode.unknown_address, &#34;unknown actor addresses: {obj}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.get_base_url_and_compliance_key"><code class="name flex">
+<span>def <span class="ident">get_base_url_and_compliance_key</span></span>(<span>self, account_id: str) ‑> Tuple[str, cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_base_url_and_compliance_key(self, account_id: str) -&gt; typing.Tuple[str, Ed25519PublicKey]:
+    account_address, _ = identifier.decode_account(account_id, self.hrp)
+    return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.is_my_account_id"><code class="name flex">
+<span>def <span class="ident">is_my_account_id</span></span>(<span>self, account_id: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_my_account_id(self, account_id: str) -&gt; bool:
+    account_address, _ = identifier.decode_account(account_id, self.hrp)
+    if self.my_compliance_key_account_id == self.account_id(account_address):
+        return True
+    account = self.jsonrpc_client.get_account(account_address)
+    if account and account.role.parent_vasp_address:
+        return self.my_compliance_key_account_id == self.account_id(account.role.parent_vasp_address)
+    return False</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.process_inbound_request"><code class="name flex">
+<span>def <span class="ident">process_inbound_request</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validate and decode the <code>request_bytes</code> into <code><a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></code> object.</p>
+<p>Raises <code><a title="diem.offchain.error.Error" href="error.html#diem.offchain.error.Error">Error</a></code> with <code>protocol_error</code> when:</p>
+<ul>
+<li><code>request_sender_address</code> is not provided.</li>
+<li>Cannot find on-chain account by the <code>request_sender_address</code>.</li>
+<li>Cannot get base url and public key from the on-chain account found by the <code>request_sender_address</code>.</li>
+<li><code>request_bytes</code> is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.</li>
+<li>Cannot decode <code>request_bytes</code> into <code><a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code>.</li>
+<li>Decoded <code><a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code> is invalid according to DIP-1 data structure requirements.</li>
+</ul>
+<p>Raises <code><a title="diem.offchain.error.Error" href="error.html#diem.offchain.error.Error">Error</a></code> with <code>command_error</code> when <code><a title="diem.offchain.types.command_types.CommandRequestObject.command" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject.command">CommandRequestObject.command</a></code> is <code><a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></code>:</p>
+<ul>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.sender" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject.sender">PaymentObject.sender</a></code> or <code><a title="diem.offchain.types.payment_types.PaymentObject.sender" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject.sender">PaymentObject.sender</a></code>.address is invalid.</li>
+<li><code>request_sender_address</code> is not sender or receiver actor address.</li>
+<li>For initial payment object, the <code><a title="diem.offchain.types.payment_types.PaymentActionObject.amount" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActionObject.amount">PaymentActionObject.amount</a></code> is under dual attestation limit (travel rule limit).</li>
+<li>When receiver actor statis is <code>ready_for_settlement</code>, the <code>recipient_signature</code> is not set or is invalid (verifying transaction metadata failed).</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
+    &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+    Raises `diem.offchain.error.Error` with `protocol_error` when:
+
+    - `request_sender_address` is not provided.
+    - Cannot find on-chain account by the `request_sender_address`.
+    - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
+    - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
+    - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
+    - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+
+    Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
+
+    - `diem.offchain.types.payment_types.PaymentObject.sender` or `diem.offchain.types.payment_types.PaymentObject.sender`.address is invalid.
+    - `request_sender_address` is not sender or receiver actor address.
+    - For initial payment object, the `diem.offchain.types.payment_types.PaymentActionObject.amount` is under dual attestation limit (travel rule limit).
+    - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
+
+    &#34;&#34;&#34;
+
+    if not request_sender_address:
+        raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+    try:
+        _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+    except ValueError as e:
+        raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
+
+    request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+    if request.command_type == CommandType.PaymentCommand:
+        payment = typing.cast(PaymentCommandObject, request.command).payment
+        self.validate_addresses(payment, request_sender_address)
+        cmd = self.create_inbound_payment_command(request.cid, payment)
+        if cmd.is_initial():
+            self.validate_dual_attestation_limit(cmd.payment.action)
+        elif cmd.is_rsend():
+            self.validate_recipient_signature(cmd, public_key)
+        return cmd
+
+    raise command_error(
+        ErrorCode.unknown_command_type,
+        f&#34;unknown command_type: {request.command_type}&#34;,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.send_command"><code class="name flex">
+<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>, sign: Callable[[bytes], bytes]) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
+    return self.send_request(
+        request_sender_address=command.my_actor_address,
+        opponent_account_id=command.opponent_actor_obj().address,
+        request_bytes=jws.serialize(command.new_request(), sign),
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.send_request"><code class="name flex">
+<span>def <span class="ident">send_request</span></span>(<span>self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_request(
+    self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+) -&gt; CommandResponseObject:
+    base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+    response = self.session.post(
+        f&#34;{base_url.rstrip(&#39;/&#39;)}/v2/command&#34;,
+        data=request_bytes,
+        headers={
+            http_header.X_REQUEST_ID: str(uuid.uuid4()),
+            http_header.X_REQUEST_SENDER_ADDRESS: request_sender_address,
+        },
+        timeout=self.timeout,
+    )
+    if response.status_code not in [200, 400]:
+        response.raise_for_status()
+
+    cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key, protocol_error)
+    if cmd_resp.status == CommandResponseStatus.failure:
+        raise CommandResponseError(cmd_resp)
+    return cmd_resp</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.validate_actor_address"><code class="name flex">
+<span>def <span class="ident">validate_actor_address</span></span>(<span>self, actor_name: str, actor: <a title="diem.offchain.types.payment_types.PaymentActorObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_actor_address(self, actor_name: str, actor: PaymentActorObject) -&gt; None:
+    try:
+        identifier.decode_account(actor.address, self.hrp)
+    except ValueError as e:
+        raise command_error(
+            ErrorCode.invalid_field_value,
+            f&#34;could not decode account identifier: {e}&#34;,
+            f&#34;command.payment.{actor_name}.address&#34;,
+        ) from e</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.validate_addresses"><code class="name flex">
+<span>def <span class="ident">validate_addresses</span></span>(<span>self, payment: <a title="diem.offchain.types.payment_types.PaymentObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a>, request_sender_address: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
+    self.validate_actor_address(&#34;sender&#34;, payment.sender)
+    self.validate_actor_address(&#34;receiver&#34;, payment.receiver)
+    self.validate_request_sender_address(request_sender_address, [payment.sender.address, payment.receiver.address])</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.validate_dual_attestation_limit"><code class="name flex">
+<span>def <span class="ident">validate_dual_attestation_limit</span></span>(<span>self, action: <a title="diem.offchain.types.payment_types.PaymentActionObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActionObject">PaymentActionObject</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
+    currencies = self.jsonrpc_client.get_currencies()
+    limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
+    for info in currencies:
+        if info.code == action.currency:
+            if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
+                raise command_error(
+                    ErrorCode.no_kyc_needed,
+                    &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
+                    % (action.amount, info.to_xdx_exchange_rate, limit),
+                    &#34;command.payment.action.amount&#34;,
+                )
+            return
+    raise command_error(
+        ErrorCode.invalid_field_value,
+        f&#34;currency code is invalid: {action.currency}&#34;,
+        &#34;command.payment.action.currency&#34;,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.validate_recipient_signature"><code class="name flex">
+<span>def <span class="ident">validate_recipient_signature</span></span>(<span>self, cmd: <a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>, public_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -&gt; None:
+    msg = cmd.travel_rule_metadata_signature_message(self.hrp)
+    try:
+        sig = cmd.payment.recipient_signature
+        if sig is None:
+            raise ValueError(&#34;recipient_signature is not provided&#34;)
+        public_key.verify(bytes.fromhex(sig), msg)
+    except (ValueError, InvalidSignature) as e:
+        raise command_error(
+            ErrorCode.invalid_recipient_signature, str(e), &#34;command.payment.recipient_signature&#34;
+        ) from e</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.validate_request_sender_address"><code class="name flex">
+<span>def <span class="ident">validate_request_sender_address</span></span>(<span>self, request_sender_address: str, addresses: List[str]) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -&gt; None:
+    if request_sender_address not in addresses:
+        raise command_error(
+            ErrorCode.invalid_http_header,
+            f&#34;address {request_sender_address} is not one of {addresses}&#34;,
+        )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.client.CommandResponseError"><code class="flex name class">
+<span>class <span class="ident">CommandResponseError</span></span>
+<span>(</span><span>resp: <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CommandResponseError(Exception):
+    def __init__(self, resp: CommandResponseObject) -&gt; None:
+        super().__init__(resp)
+        self.resp = resp</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.offchain" href="index.html">diem.offchain</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.offchain.client.Client" href="#diem.offchain.client.Client">Client</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.client.Client.account_id" href="#diem.offchain.client.Client.account_id">account_id</a></code></li>
+<li><code><a title="diem.offchain.client.Client.create_inbound_payment_command" href="#diem.offchain.client.Client.create_inbound_payment_command">create_inbound_payment_command</a></code></li>
+<li><code><a title="diem.offchain.client.Client.get_base_url_and_compliance_key" href="#diem.offchain.client.Client.get_base_url_and_compliance_key">get_base_url_and_compliance_key</a></code></li>
+<li><code><a title="diem.offchain.client.Client.hrp" href="#diem.offchain.client.Client.hrp">hrp</a></code></li>
+<li><code><a title="diem.offchain.client.Client.is_my_account_id" href="#diem.offchain.client.Client.is_my_account_id">is_my_account_id</a></code></li>
+<li><code><a title="diem.offchain.client.Client.jsonrpc_client" href="#diem.offchain.client.Client.jsonrpc_client">jsonrpc_client</a></code></li>
+<li><code><a title="diem.offchain.client.Client.my_compliance_key_account_address" href="#diem.offchain.client.Client.my_compliance_key_account_address">my_compliance_key_account_address</a></code></li>
+<li><code><a title="diem.offchain.client.Client.my_compliance_key_account_id" href="#diem.offchain.client.Client.my_compliance_key_account_id">my_compliance_key_account_id</a></code></li>
+<li><code><a title="diem.offchain.client.Client.process_inbound_request" href="#diem.offchain.client.Client.process_inbound_request">process_inbound_request</a></code></li>
+<li><code><a title="diem.offchain.client.Client.send_command" href="#diem.offchain.client.Client.send_command">send_command</a></code></li>
+<li><code><a title="diem.offchain.client.Client.send_request" href="#diem.offchain.client.Client.send_request">send_request</a></code></li>
+<li><code><a title="diem.offchain.client.Client.session" href="#diem.offchain.client.Client.session">session</a></code></li>
+<li><code><a title="diem.offchain.client.Client.timeout" href="#diem.offchain.client.Client.timeout">timeout</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_actor_address" href="#diem.offchain.client.Client.validate_actor_address">validate_actor_address</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_addresses" href="#diem.offchain.client.Client.validate_addresses">validate_addresses</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_dual_attestation_limit" href="#diem.offchain.client.Client.validate_dual_attestation_limit">validate_dual_attestation_limit</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_recipient_signature" href="#diem.offchain.client.Client.validate_recipient_signature">validate_recipient_signature</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_request_sender_address" href="#diem.offchain.client.Client.validate_request_sender_address">validate_request_sender_address</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.client.CommandResponseError" href="#diem.offchain.client.CommandResponseError">CommandResponseError</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

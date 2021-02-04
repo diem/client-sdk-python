@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.identifier.bech32 API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.identifier.bech32</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+######################################################################################
+
+# Bech32 implementation for Diem human readable addresses based on
+# Bitcoin&#39;s segwit python lib https://github.com/fiatjaf/bech32 modified to support the
+# requirements of Diem (sub)address and versioning specs.
+
+import typing
+
+from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS
+
+# Bech32 constants
+_BECH32_CHARSET = &#34;qpzry9x8gf2tvdw0s3jn54khce6mua7l&#34;
+_BECH32_SEPARATOR = &#34;1&#34;
+_BECH32_CHECKSUM_CHAR_SIZE = 6
+
+# DIEM constants
+_DIEM_ADDRESS_SIZE = 16  # in bytes
+_DIEM_BECH32_VERSION = 1
+_DIEM_BECH32_SIZE = [50, 49]  # in characters
+
+
+class Bech32Error(Exception):
+    &#34;&#34;&#34; Represents an error when creating a Diem address. &#34;&#34;&#34;
+
+    pass
+
+
+def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typing.Optional[bytes]) -&gt; str:
+    &#34;&#34;&#34;Encode a Diem address (and sub-address if provided).
+    Args:
+        hrp: Bech32 human readable part
+        address_bytes: on-chain account address (16 bytes)
+        subaddress_bytes: subaddress (8 bytes). If not provided, it is set to 8 zero bytes
+    Returns:
+        Bech32 encoded address
+    &#34;&#34;&#34;
+
+    # only accept correct size for Diem address
+    if len(address_bytes) != _DIEM_ADDRESS_SIZE:
+        raise Bech32Error(f&#34;Address size should be {_DIEM_ADDRESS_SIZE}, but got: {len(address_bytes)}&#34;)
+
+    # only accept correct size for Diem subaddress (if set)
+    if subaddress_bytes is not None and len(subaddress_bytes) != DIEM_SUBADDRESS_SIZE:
+        raise Bech32Error(f&#34;Subaddress size should be {DIEM_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}&#34;)
+
+    encoding_version = _DIEM_BECH32_VERSION
+
+    # if subaddress has not been provided it&#39;s set to 8 zero bytes.
+    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else DIEM_ZERO_SUBADDRESS
+    total_bytes = address_bytes + subaddress_final_bytes
+
+    five_bit_data = _convertbits(total_bytes, 8, 5, True)
+    # check base conversion
+    if five_bit_data is None:
+        raise Bech32Error(&#34;Error converting bytes to base32&#34;)
+    return _bech32_encode(hrp, [encoding_version] + five_bit_data)
+
+
+def bech32_address_decode(expected_hrp: str, bech32: str) -&gt; typing.Tuple[int, bytes, bytes]:
+    &#34;&#34;&#34;Validate a Bech32 Diem address Bech32 string, and split between version, address and sub-address.
+    Args:
+        expected_hrp: expected Bech32 human readable part (lbr or tlb)
+        bech32: Bech32 encoded address
+    Returns:
+        A tuple consisiting of the Bech32 version (int), address (16 bytes), subaddress (8 bytes)
+    &#34;&#34;&#34;
+    len_bech32 = len(bech32)
+    len_hrp = len(expected_hrp)
+
+    # check expected length
+    if len_bech32 not in _DIEM_BECH32_SIZE:
+        raise Bech32Error(f&#34;Bech32 size should be {_DIEM_BECH32_SIZE}, but it is: {len_bech32}&#34;)
+
+    # do not allow mixed case per BIP 173
+    if bech32 != bech32.lower() and bech32 != bech32.upper():
+        raise Bech32Error(f&#34;Mixed case Bech32 addresses are not allowed, got: {bech32}&#34;)
+
+    bech32 = bech32.lower()
+    hrp = bech32[:len_hrp]
+
+    if hrp != expected_hrp:
+        raise Bech32Error(
+            f&#34;Wrong Diem address Bech32 human readable part (prefix): expect {expected_hrp} but got {hrp}&#34;
+        )
+
+    # check separator
+    if bech32[len_hrp] != _BECH32_SEPARATOR:
+        raise Bech32Error(f&#34;Non-expected Bech32 separator: {bech32[len_hrp]}&#34;)
+
+    # check characters after separator in Bech32 alphabet
+    if not all(x in _BECH32_CHARSET for x in bech32[len_hrp + 1 :]):
+        raise Bech32Error(f&#34;Invalid Bech32 characters detected: {bech32}&#34;)
+
+    # version is defined by the index of the Bech32 character after separator
+    address_version = _BECH32_CHARSET.find(bech32[len_hrp + 1])
+    # check valid version
+    if address_version != _DIEM_BECH32_VERSION:
+        raise Bech32Error(f&#34;Version mismatch. Expected {_DIEM_BECH32_VERSION}, &#34; f&#34;but received {address_version}&#34;)
+
+    # we&#39;ve already checked that all characters are in the correct alphabet,
+    # thus, this will always succeed
+    data = [_BECH32_CHARSET.find(x) for x in bech32[len_hrp + 2 :]]
+
+    # check Bech32 checksum
+    if not _bech32_verify_checksum(hrp, [address_version] + data):
+        raise Bech32Error(f&#34;Bech32 checksum validation failed: {bech32}&#34;)
+
+    decoded_data = _convertbits(data[:-_BECH32_CHECKSUM_CHAR_SIZE], 5, 8, False)
+    # check base conversion
+    if decoded_data is None:
+        raise Bech32Error(&#34;Error converting bytes from base32&#34;)
+
+    length_data = len(decoded_data)
+    # extra check about the expected output (sub)address size in bytes
+    if length_data != _DIEM_ADDRESS_SIZE + DIEM_SUBADDRESS_SIZE:
+        raise Bech32Error(
+            f&#34;Expected {_DIEM_ADDRESS_SIZE + DIEM_SUBADDRESS_SIZE} bytes after decoding, but got: {length_data}&#34;
+        )
+
+    return (
+        address_version,
+        bytes(decoded_data[:_DIEM_ADDRESS_SIZE]),
+        bytes(decoded_data[-DIEM_SUBADDRESS_SIZE:]),
+    )
+
+
+def _bech32_polymod(values: typing.Iterable[int]) -&gt; int:
+    &#34;&#34;&#34;Internal function that computes the Bech32 checksum.&#34;&#34;&#34;
+    generator = [0x3B6A57B2, 0x26508E6D, 0x1EA119FA, 0x3D4233DD, 0x2A1462B3]
+    chk = 1
+    for value in values:
+        top = chk &gt;&gt; 25
+        chk = (chk &amp; 0x1FFFFFF) &lt;&lt; 5 ^ value
+        for i in range(5):
+            chk ^= generator[i] if ((top &gt;&gt; i) &amp; 1) else 0
+    return chk
+
+
+def _bech32_hrp_expand(hrp: str) -&gt; typing.List[int]:
+    &#34;&#34;&#34;Expand the HRP into values for checksum computation.&#34;&#34;&#34;
+    return [ord(x) &gt;&gt; 5 for x in hrp] + [0] + [ord(x) &amp; 31 for x in hrp]
+
+
+def _bech32_verify_checksum(hrp: str, data: typing.Iterable[int]) -&gt; bool:
+    &#34;&#34;&#34;Verify a checksum given HRP and converted data characters.&#34;&#34;&#34;
+    return _bech32_polymod(_bech32_hrp_expand(hrp) + list(data)) == 1
+
+
+def _bech32_create_checksum(hrp: str, data: typing.Iterable[int]) -&gt; typing.List[int]:
+    &#34;&#34;&#34;Compute the checksum values given HRP and data.&#34;&#34;&#34;
+    values = _bech32_hrp_expand(hrp) + list(data)
+    polymod = _bech32_polymod(values + [0, 0, 0, 0, 0, 0]) ^ 1
+    return [(polymod &gt;&gt; 5 * (5 - i)) &amp; 31 for i in range(6)]
+
+
+def _bech32_encode(hrp: str, data: typing.Iterable[int]) -&gt; str:
+    &#34;&#34;&#34;Compute a Bech32 string given HRP and data values.&#34;&#34;&#34;
+    combined = list(data) + _bech32_create_checksum(hrp, data)
+    return hrp + _BECH32_SEPARATOR + &#34;&#34;.join([_BECH32_CHARSET[d] for d in combined])
+
+
+def _convertbits(
+    data: typing.Iterable[int], from_bits: int, to_bits: int, pad: bool
+) -&gt; typing.Optional[typing.List[int]]:
+    &#34;&#34;&#34;General power-of-2 base conversion.&#34;&#34;&#34;
+    acc = 0
+    bits = 0
+    ret = []
+    maxv = (1 &lt;&lt; to_bits) - 1
+    max_acc = (1 &lt;&lt; (from_bits + to_bits - 1)) - 1
+    for value in data:
+        if value &lt; 0 or (value &gt;&gt; from_bits):
+            return None
+        acc = ((acc &lt;&lt; from_bits) | value) &amp; max_acc
+        bits += from_bits
+        while bits &gt;= to_bits:
+            bits -= to_bits
+            ret.append((acc &gt;&gt; bits) &amp; maxv)
+    if pad:
+        if bits:
+            ret.append((acc &lt;&lt; (to_bits - bits)) &amp; maxv)
+    elif bits &gt;= from_bits or ((acc &lt;&lt; (to_bits - bits)) &amp; maxv):
+        return None
+    return ret</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="diem.identifier.bech32.bech32_address_decode"><code class="name flex">
+<span>def <span class="ident">bech32_address_decode</span></span>(<span>expected_hrp: str, bech32: str) ‑> Tuple[int, bytes, bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validate a Bech32 Diem address Bech32 string, and split between version, address and sub-address.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>expected_hrp</code></strong></dt>
+<dd>expected Bech32 human readable part (lbr or tlb)</dd>
+<dt><strong><code>bech32</code></strong></dt>
+<dd>Bech32 encoded address</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A tuple consisiting of the Bech32 version (int), address (16 bytes), subaddress (8 bytes)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bech32_address_decode(expected_hrp: str, bech32: str) -&gt; typing.Tuple[int, bytes, bytes]:
+    &#34;&#34;&#34;Validate a Bech32 Diem address Bech32 string, and split between version, address and sub-address.
+    Args:
+        expected_hrp: expected Bech32 human readable part (lbr or tlb)
+        bech32: Bech32 encoded address
+    Returns:
+        A tuple consisiting of the Bech32 version (int), address (16 bytes), subaddress (8 bytes)
+    &#34;&#34;&#34;
+    len_bech32 = len(bech32)
+    len_hrp = len(expected_hrp)
+
+    # check expected length
+    if len_bech32 not in _DIEM_BECH32_SIZE:
+        raise Bech32Error(f&#34;Bech32 size should be {_DIEM_BECH32_SIZE}, but it is: {len_bech32}&#34;)
+
+    # do not allow mixed case per BIP 173
+    if bech32 != bech32.lower() and bech32 != bech32.upper():
+        raise Bech32Error(f&#34;Mixed case Bech32 addresses are not allowed, got: {bech32}&#34;)
+
+    bech32 = bech32.lower()
+    hrp = bech32[:len_hrp]
+
+    if hrp != expected_hrp:
+        raise Bech32Error(
+            f&#34;Wrong Diem address Bech32 human readable part (prefix): expect {expected_hrp} but got {hrp}&#34;
+        )
+
+    # check separator
+    if bech32[len_hrp] != _BECH32_SEPARATOR:
+        raise Bech32Error(f&#34;Non-expected Bech32 separator: {bech32[len_hrp]}&#34;)
+
+    # check characters after separator in Bech32 alphabet
+    if not all(x in _BECH32_CHARSET for x in bech32[len_hrp + 1 :]):
+        raise Bech32Error(f&#34;Invalid Bech32 characters detected: {bech32}&#34;)
+
+    # version is defined by the index of the Bech32 character after separator
+    address_version = _BECH32_CHARSET.find(bech32[len_hrp + 1])
+    # check valid version
+    if address_version != _DIEM_BECH32_VERSION:
+        raise Bech32Error(f&#34;Version mismatch. Expected {_DIEM_BECH32_VERSION}, &#34; f&#34;but received {address_version}&#34;)
+
+    # we&#39;ve already checked that all characters are in the correct alphabet,
+    # thus, this will always succeed
+    data = [_BECH32_CHARSET.find(x) for x in bech32[len_hrp + 2 :]]
+
+    # check Bech32 checksum
+    if not _bech32_verify_checksum(hrp, [address_version] + data):
+        raise Bech32Error(f&#34;Bech32 checksum validation failed: {bech32}&#34;)
+
+    decoded_data = _convertbits(data[:-_BECH32_CHECKSUM_CHAR_SIZE], 5, 8, False)
+    # check base conversion
+    if decoded_data is None:
+        raise Bech32Error(&#34;Error converting bytes from base32&#34;)
+
+    length_data = len(decoded_data)
+    # extra check about the expected output (sub)address size in bytes
+    if length_data != _DIEM_ADDRESS_SIZE + DIEM_SUBADDRESS_SIZE:
+        raise Bech32Error(
+            f&#34;Expected {_DIEM_ADDRESS_SIZE + DIEM_SUBADDRESS_SIZE} bytes after decoding, but got: {length_data}&#34;
+        )
+
+    return (
+        address_version,
+        bytes(decoded_data[:_DIEM_ADDRESS_SIZE]),
+        bytes(decoded_data[-DIEM_SUBADDRESS_SIZE:]),
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.bech32.bech32_address_encode"><code class="name flex">
+<span>def <span class="ident">bech32_address_encode</span></span>(<span>hrp: str, address_bytes: bytes, subaddress_bytes: Optional[bytes]) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Encode a Diem address (and sub-address if provided).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>hrp</code></strong></dt>
+<dd>Bech32 human readable part</dd>
+<dt><strong><code>address_bytes</code></strong></dt>
+<dd>on-chain account address (16 bytes)</dd>
+<dt><strong><code>subaddress_bytes</code></strong></dt>
+<dd>subaddress (8 bytes). If not provided, it is set to 8 zero bytes</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Bech32 encoded address</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bech32_address_encode(hrp: str, address_bytes: bytes, subaddress_bytes: typing.Optional[bytes]) -&gt; str:
+    &#34;&#34;&#34;Encode a Diem address (and sub-address if provided).
+    Args:
+        hrp: Bech32 human readable part
+        address_bytes: on-chain account address (16 bytes)
+        subaddress_bytes: subaddress (8 bytes). If not provided, it is set to 8 zero bytes
+    Returns:
+        Bech32 encoded address
+    &#34;&#34;&#34;
+
+    # only accept correct size for Diem address
+    if len(address_bytes) != _DIEM_ADDRESS_SIZE:
+        raise Bech32Error(f&#34;Address size should be {_DIEM_ADDRESS_SIZE}, but got: {len(address_bytes)}&#34;)
+
+    # only accept correct size for Diem subaddress (if set)
+    if subaddress_bytes is not None and len(subaddress_bytes) != DIEM_SUBADDRESS_SIZE:
+        raise Bech32Error(f&#34;Subaddress size should be {DIEM_SUBADDRESS_SIZE}, but got: {len(subaddress_bytes)}&#34;)
+
+    encoding_version = _DIEM_BECH32_VERSION
+
+    # if subaddress has not been provided it&#39;s set to 8 zero bytes.
+    subaddress_final_bytes = subaddress_bytes if subaddress_bytes is not None else DIEM_ZERO_SUBADDRESS
+    total_bytes = address_bytes + subaddress_final_bytes
+
+    five_bit_data = _convertbits(total_bytes, 8, 5, True)
+    # check base conversion
+    if five_bit_data is None:
+        raise Bech32Error(&#34;Error converting bytes to base32&#34;)
+    return _bech32_encode(hrp, [encoding_version] + five_bit_data)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.identifier.bech32.Bech32Error"><code class="flex name class">
+<span>class <span class="ident">Bech32Error</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Represents an error when creating a Diem address.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Bech32Error(Exception):
+    &#34;&#34;&#34; Represents an error when creating a Diem address. &#34;&#34;&#34;
+
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.identifier" href="index.html">diem.identifier</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="diem.identifier.bech32.bech32_address_decode" href="#diem.identifier.bech32.bech32_address_decode">bech32_address_decode</a></code></li>
+<li><code><a title="diem.identifier.bech32.bech32_address_encode" href="#diem.identifier.bech32.bech32_address_encode">bech32_address_encode</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.identifier.bech32.Bech32Error" href="#diem.identifier.bech32.Bech32Error">Bech32Error</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

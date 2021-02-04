@@ -1,0 +1,1831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.serde_binary API documentation</title>
+<meta name="description" content="Module describing the &#34;binary&#34; serialization formats …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.serde_binary</code></h1>
+</header>
+<section id="section-intro">
+<p>Module describing the "binary" serialization formats.</p>
+<p>Note: This internal module is currently only meant to share code between the BCS and bincode formats. Internal APIs could change in the future.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) Facebook, Inc. and its affiliates
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+&#34;&#34;&#34;
+Module describing the &#34;binary&#34; serialization formats.
+
+Note: This internal module is currently only meant to share code between the BCS and bincode formats. Internal APIs could change in the future.
+&#34;&#34;&#34;
+
+import dataclasses
+import collections
+import io
+import typing
+from typing import get_type_hints
+
+from diem import serde_types as st
+
+
+@dataclasses.dataclass
+class BinarySerializer:
+    &#34;&#34;&#34;Serialization primitives for binary formats (abstract class).
+
+    &#34;Binary&#34; serialization formats may differ in the way they encode sequence lengths, variant
+    index, and how they sort map entries (or not).
+    &#34;&#34;&#34;
+
+    output: io.BytesIO
+    container_depth_budget: typing.Optional[int]
+    primitive_type_serializer: typing.Mapping = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        self.primitive_type_serializer = {
+            st.bool: self.serialize_bool,
+            st.uint8: self.serialize_u8,
+            st.uint16: self.serialize_u16,
+            st.uint32: self.serialize_u32,
+            st.uint64: self.serialize_u64,
+            st.uint128: self.serialize_u128,
+            st.int8: self.serialize_i8,
+            st.int16: self.serialize_i16,
+            st.int32: self.serialize_i32,
+            st.int64: self.serialize_i64,
+            st.int128: self.serialize_i128,
+            st.float32: self.serialize_f32,
+            st.float64: self.serialize_f64,
+            st.unit: self.serialize_unit,
+            st.char: self.serialize_char,
+            str: self.serialize_str,
+            bytes: self.serialize_bytes,
+        }
+
+    def serialize_bytes(self, value: bytes):
+        self.serialize_len(len(value))
+        self.output.write(value)
+
+    def serialize_str(self, value: str):
+        self.serialize_bytes(value.encode())
+
+    def serialize_unit(self, value: st.unit):
+        pass
+
+    def serialize_bool(self, value: st.bool):
+        self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=False))
+
+    def serialize_u8(self, value: st.uint8):
+        self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=False))
+
+    def serialize_u16(self, value: st.uint16):
+        self.output.write(int(value).to_bytes(2, &#34;little&#34;, signed=False))
+
+    def serialize_u32(self, value: st.uint32):
+        self.output.write(int(value).to_bytes(4, &#34;little&#34;, signed=False))
+
+    def serialize_u64(self, value: st.uint64):
+        self.output.write(int(value).to_bytes(8, &#34;little&#34;, signed=False))
+
+    def serialize_u128(self, value: st.uint128):
+        self.output.write(int(value).to_bytes(16, &#34;little&#34;, signed=False))
+
+    def serialize_i8(self, value: st.uint8):
+        self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=True))
+
+    def serialize_i16(self, value: st.uint16):
+        self.output.write(int(value).to_bytes(2, &#34;little&#34;, signed=True))
+
+    def serialize_i32(self, value: st.uint32):
+        self.output.write(int(value).to_bytes(4, &#34;little&#34;, signed=True))
+
+    def serialize_i64(self, value: st.uint64):
+        self.output.write(int(value).to_bytes(8, &#34;little&#34;, signed=True))
+
+    def serialize_i128(self, value: st.uint128):
+        self.output.write(int(value).to_bytes(16, &#34;little&#34;, signed=True))
+
+    def serialize_f32(self, value: st.float32):
+        raise NotImplementedError
+
+    def serialize_f64(self, value: st.float64):
+        raise NotImplementedError
+
+    def serialize_char(self, value: st.char):
+        raise NotImplementedError
+
+    def get_buffer_offset(self) -&gt; int:
+        return len(self.output.getbuffer())
+
+    def get_buffer(self) -&gt; bytes:
+        return self.output.getvalue()
+
+    def increase_container_depth(self):
+        if self.container_depth_budget is not None:
+            if self.container_depth_budget == 0:
+                raise st.SerializationError(&#34;Exceeded maximum container depth&#34;)
+            self.container_depth_budget -= 1
+
+    def decrease_container_depth(self):
+        if self.container_depth_budget is not None:
+            self.container_depth_budget += 1
+
+    def serialize_len(self, value: int):
+        raise NotImplementedError
+
+    def serialize_variant_index(self, value: int):
+        raise NotImplementedError
+
+    def sort_map_entries(self, offsets: typing.List[int]):
+        raise NotImplementedError
+
+    # noqa: C901
+    def serialize_any(self, obj: typing.Any, obj_type):
+        if obj_type in self.primitive_type_serializer:
+            self.primitive_type_serializer[obj_type](obj)
+
+        elif hasattr(obj_type, &#34;__origin__&#34;):  # Generic type
+            types = getattr(obj_type, &#34;__args__&#34;)
+
+            if getattr(obj_type, &#34;__origin__&#34;) == collections.abc.Sequence:  # Sequence
+                assert len(types) == 1
+                item_type = types[0]
+                self.serialize_len(len(obj))
+                for item in obj:
+                    self.serialize_any(item, item_type)
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == tuple:  # Tuple
+                for i in range(len(obj)):
+                    self.serialize_any(obj[i], types[i])
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == typing.Union:  # Option
+                assert len(types) == 2 and types[1] == type(None)
+                if obj is None:
+                    self.output.write(b&#34;\x00&#34;)
+                else:
+                    self.output.write(b&#34;\x01&#34;)
+                    self.serialize_any(obj, types[0])
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == dict:  # Map
+                assert len(types) == 2
+                self.serialize_len(len(obj))
+                offsets = []
+                for key, value in obj.items():
+                    offsets.append(self.get_buffer_offset())
+                    self.serialize_any(key, types[0])
+                    self.serialize_any(value, types[1])
+                self.sort_map_entries(offsets)
+
+            else:
+                raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+
+        else:
+            if not dataclasses.is_dataclass(obj_type):  # Enum
+                if not hasattr(obj_type, &#34;VARIANTS&#34;):
+                    raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+                if not hasattr(obj, &#34;INDEX&#34;):
+                    raise st.SerializationError(&#34;Wrong Value for the type&#34;, obj, obj_type)
+                self.serialize_variant_index(obj.__class__.INDEX)
+                # Proceed to variant
+                obj_type = obj_type.VARIANTS[obj.__class__.INDEX]
+                if not dataclasses.is_dataclass(obj_type):
+                    raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+
+            # pyre-ignore
+            if not isinstance(obj, obj_type):
+                raise st.SerializationError(&#34;Wrong Value for the type&#34;, obj, obj_type)
+
+            # Content of struct or variant
+            fields = dataclasses.fields(obj_type)
+            types = get_type_hints(obj_type)
+            self.increase_container_depth()
+            for field in fields:
+                field_value = obj.__dict__[field.name]
+                field_type = types[field.name]
+                self.serialize_any(field_value, field_type)
+            self.decrease_container_depth()
+
+
+@dataclasses.dataclass
+class BinaryDeserializer:
+    &#34;&#34;&#34;Deserialization primitives for binary formats (abstract class).
+
+    &#34;Binary&#34; serialization formats may differ in the way they encode sequence lengths, variant
+    index, and how they verify the ordering of keys in map entries (or not).
+    &#34;&#34;&#34;
+
+    input: io.BytesIO
+    container_depth_budget: typing.Optional[int]
+    primitive_type_deserializer: typing.Mapping = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        self.primitive_type_deserializer = {
+            st.bool: self.deserialize_bool,
+            st.uint8: self.deserialize_u8,
+            st.uint16: self.deserialize_u16,
+            st.uint32: self.deserialize_u32,
+            st.uint64: self.deserialize_u64,
+            st.uint128: self.deserialize_u128,
+            st.int8: self.deserialize_i8,
+            st.int16: self.deserialize_i16,
+            st.int32: self.deserialize_i32,
+            st.int64: self.deserialize_i64,
+            st.int128: self.deserialize_i128,
+            st.float32: self.deserialize_f32,
+            st.float64: self.deserialize_f64,
+            st.unit: self.deserialize_unit,
+            st.char: self.deserialize_char,
+            str: self.deserialize_str,
+            bytes: self.deserialize_bytes,
+        }
+
+    def read(self, length: int) -&gt; bytes:
+        value = self.input.read(length)
+        if value is None or len(value) &lt; length:
+            raise st.DeserializationError(&#34;Input is too short&#34;)
+        return value
+
+    def deserialize_bytes(self) -&gt; bytes:
+        length = self.deserialize_len()
+        return self.read(length)
+
+    def deserialize_str(self) -&gt; str:
+        content = self.deserialize_bytes()
+        try:
+            return content.decode()
+        except UnicodeDecodeError:
+            raise st.DeserializationError(&#34;Invalid unicode string:&#34;, content)
+
+    def deserialize_unit(self) -&gt; st.unit:
+        pass
+
+    def deserialize_bool(self) -&gt; st.bool:
+        b = int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False)
+        if b == 0:
+            return False
+        elif b == 1:
+            return True
+        else:
+            raise st.DeserializationError(&#34;Unexpected boolean value:&#34;, b)
+
+    def deserialize_u8(self) -&gt; st.uint8:
+        return st.uint8(int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u16(self) -&gt; st.uint16:
+        return st.uint16(int.from_bytes(self.read(2), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u32(self) -&gt; st.uint32:
+        return st.uint32(int.from_bytes(self.read(4), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u64(self) -&gt; st.uint64:
+        return st.uint64(int.from_bytes(self.read(8), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u128(self) -&gt; st.uint128:
+        return st.uint128(int.from_bytes(self.read(16), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_i8(self) -&gt; st.int8:
+        return st.int8(int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i16(self) -&gt; st.int16:
+        return st.int16(int.from_bytes(self.read(2), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i32(self) -&gt; st.int32:
+        return st.int32(int.from_bytes(self.read(4), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i64(self) -&gt; st.int64:
+        return st.int64(int.from_bytes(self.read(8), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i128(self) -&gt; st.int128:
+        return st.int128(int.from_bytes(self.read(16), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_f32(self) -&gt; st.float32:
+        raise NotImplementedError
+
+    def deserialize_f64(self) -&gt; st.float64:
+        raise NotImplementedError
+
+    def deserialize_char(self) -&gt; st.char:
+        raise NotImplementedError
+
+    def get_buffer_offset(self) -&gt; int:
+        return self.input.tell()
+
+    def get_remaining_buffer(self) -&gt; bytes:
+        buf = self.input.getbuffer()
+        offset = self.get_buffer_offset()
+        return bytes(buf[offset:])
+
+    def increase_container_depth(self):
+        if self.container_depth_budget is not None:
+            if self.container_depth_budget == 0:
+                raise st.DeserializationError(&#34;Exceeded maximum container depth&#34;)
+            self.container_depth_budget -= 1
+
+    def decrease_container_depth(self):
+        if self.container_depth_budget is not None:
+            self.container_depth_budget += 1
+
+    def deserialize_len(self) -&gt; int:
+        raise NotImplementedError
+
+    def deserialize_variant_index(self) -&gt; int:
+        raise NotImplementedError
+
+    def check_that_key_slices_are_increasing(
+        self, slice1: typing.Tuple[int, int], slice2: typing.Tuple[int, int]
+    ) -&gt; bool:
+        raise NotImplementedError
+
+    # noqa
+    def deserialize_any(self, obj_type) -&gt; typing.Any:
+        if obj_type in self.primitive_type_deserializer:
+            return self.primitive_type_deserializer[obj_type]()
+
+        elif hasattr(obj_type, &#34;__origin__&#34;):  # Generic type
+            types = getattr(obj_type, &#34;__args__&#34;)
+            if getattr(obj_type, &#34;__origin__&#34;) == collections.abc.Sequence:  # Sequence
+                assert len(types) == 1
+                item_type = types[0]
+                length = self.deserialize_len()
+                result = []
+                for i in range(0, length):
+                    item = self.deserialize_any(item_type)
+                    result.append(item)
+
+                return result
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == tuple:  # Tuple
+                result = []
+                for i in range(len(types)):
+                    item = self.deserialize_any(types[i])
+                    result.append(item)
+                return tuple(result)
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == typing.Union:  # Option
+                assert len(types) == 2 and types[1] == type(None)
+                tag = int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False)
+                if tag == 0:
+                    return None
+                elif tag == 1:
+                    return self.deserialize_any(types[0])
+                else:
+                    raise st.DeserializationError(&#34;Wrong tag for Option value&#34;)
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == dict:  # Map
+                assert len(types) == 2
+                length = self.deserialize_len()
+                result = dict()
+                previous_key_slice = None
+                for i in range(0, length):
+                    key_start = self.get_buffer_offset()
+                    key = self.deserialize_any(types[0])
+                    key_end = self.get_buffer_offset()
+                    value = self.deserialize_any(types[1])
+
+                    key_slice = (key_start, key_end)
+                    if previous_key_slice is not None:
+                        self.check_that_key_slices_are_increasing(previous_key_slice, key_slice)
+                    previous_key_slice = key_slice
+
+                    result[key] = value
+
+                return result
+
+            else:
+                raise st.DeserializationError(&#34;Unexpected type&#34;, obj_type)
+
+        else:
+            # handle structs
+            if dataclasses.is_dataclass(obj_type):
+                values = []
+                fields = dataclasses.fields(obj_type)
+                typing_hints = get_type_hints(obj_type)
+                self.increase_container_depth()
+                for field in fields:
+                    field_type = typing_hints[field.name]
+                    field_value = self.deserialize_any(field_type)
+                    values.append(field_value)
+                self.decrease_container_depth()
+                return obj_type(*values)
+
+            # handle variant
+            elif hasattr(obj_type, &#34;VARIANTS&#34;):
+                variant_index = self.deserialize_variant_index()
+                if variant_index not in range(len(obj_type.VARIANTS)):
+                    raise st.DeserializationError(&#34;Unexpected variant index&#34;, variant_index)
+                new_type = obj_type.VARIANTS[variant_index]
+                return self.deserialize_any(new_type)
+
+            else:
+                raise st.DeserializationError(&#34;Unexpected type&#34;, obj_type)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.serde_binary.BinaryDeserializer"><code class="flex name class">
+<span>class <span class="ident">BinaryDeserializer</span></span>
+<span>(</span><span>input: _io.BytesIO, container_depth_budget: Optional[int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deserialization primitives for binary formats (abstract class).</p>
+<p>"Binary" serialization formats may differ in the way they encode sequence lengths, variant
+index, and how they verify the ordering of keys in map entries (or not).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass
+class BinaryDeserializer:
+    &#34;&#34;&#34;Deserialization primitives for binary formats (abstract class).
+
+    &#34;Binary&#34; serialization formats may differ in the way they encode sequence lengths, variant
+    index, and how they verify the ordering of keys in map entries (or not).
+    &#34;&#34;&#34;
+
+    input: io.BytesIO
+    container_depth_budget: typing.Optional[int]
+    primitive_type_deserializer: typing.Mapping = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        self.primitive_type_deserializer = {
+            st.bool: self.deserialize_bool,
+            st.uint8: self.deserialize_u8,
+            st.uint16: self.deserialize_u16,
+            st.uint32: self.deserialize_u32,
+            st.uint64: self.deserialize_u64,
+            st.uint128: self.deserialize_u128,
+            st.int8: self.deserialize_i8,
+            st.int16: self.deserialize_i16,
+            st.int32: self.deserialize_i32,
+            st.int64: self.deserialize_i64,
+            st.int128: self.deserialize_i128,
+            st.float32: self.deserialize_f32,
+            st.float64: self.deserialize_f64,
+            st.unit: self.deserialize_unit,
+            st.char: self.deserialize_char,
+            str: self.deserialize_str,
+            bytes: self.deserialize_bytes,
+        }
+
+    def read(self, length: int) -&gt; bytes:
+        value = self.input.read(length)
+        if value is None or len(value) &lt; length:
+            raise st.DeserializationError(&#34;Input is too short&#34;)
+        return value
+
+    def deserialize_bytes(self) -&gt; bytes:
+        length = self.deserialize_len()
+        return self.read(length)
+
+    def deserialize_str(self) -&gt; str:
+        content = self.deserialize_bytes()
+        try:
+            return content.decode()
+        except UnicodeDecodeError:
+            raise st.DeserializationError(&#34;Invalid unicode string:&#34;, content)
+
+    def deserialize_unit(self) -&gt; st.unit:
+        pass
+
+    def deserialize_bool(self) -&gt; st.bool:
+        b = int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False)
+        if b == 0:
+            return False
+        elif b == 1:
+            return True
+        else:
+            raise st.DeserializationError(&#34;Unexpected boolean value:&#34;, b)
+
+    def deserialize_u8(self) -&gt; st.uint8:
+        return st.uint8(int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u16(self) -&gt; st.uint16:
+        return st.uint16(int.from_bytes(self.read(2), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u32(self) -&gt; st.uint32:
+        return st.uint32(int.from_bytes(self.read(4), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u64(self) -&gt; st.uint64:
+        return st.uint64(int.from_bytes(self.read(8), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_u128(self) -&gt; st.uint128:
+        return st.uint128(int.from_bytes(self.read(16), byteorder=&#34;little&#34;, signed=False))
+
+    def deserialize_i8(self) -&gt; st.int8:
+        return st.int8(int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i16(self) -&gt; st.int16:
+        return st.int16(int.from_bytes(self.read(2), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i32(self) -&gt; st.int32:
+        return st.int32(int.from_bytes(self.read(4), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i64(self) -&gt; st.int64:
+        return st.int64(int.from_bytes(self.read(8), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_i128(self) -&gt; st.int128:
+        return st.int128(int.from_bytes(self.read(16), byteorder=&#34;little&#34;, signed=True))
+
+    def deserialize_f32(self) -&gt; st.float32:
+        raise NotImplementedError
+
+    def deserialize_f64(self) -&gt; st.float64:
+        raise NotImplementedError
+
+    def deserialize_char(self) -&gt; st.char:
+        raise NotImplementedError
+
+    def get_buffer_offset(self) -&gt; int:
+        return self.input.tell()
+
+    def get_remaining_buffer(self) -&gt; bytes:
+        buf = self.input.getbuffer()
+        offset = self.get_buffer_offset()
+        return bytes(buf[offset:])
+
+    def increase_container_depth(self):
+        if self.container_depth_budget is not None:
+            if self.container_depth_budget == 0:
+                raise st.DeserializationError(&#34;Exceeded maximum container depth&#34;)
+            self.container_depth_budget -= 1
+
+    def decrease_container_depth(self):
+        if self.container_depth_budget is not None:
+            self.container_depth_budget += 1
+
+    def deserialize_len(self) -&gt; int:
+        raise NotImplementedError
+
+    def deserialize_variant_index(self) -&gt; int:
+        raise NotImplementedError
+
+    def check_that_key_slices_are_increasing(
+        self, slice1: typing.Tuple[int, int], slice2: typing.Tuple[int, int]
+    ) -&gt; bool:
+        raise NotImplementedError
+
+    # noqa
+    def deserialize_any(self, obj_type) -&gt; typing.Any:
+        if obj_type in self.primitive_type_deserializer:
+            return self.primitive_type_deserializer[obj_type]()
+
+        elif hasattr(obj_type, &#34;__origin__&#34;):  # Generic type
+            types = getattr(obj_type, &#34;__args__&#34;)
+            if getattr(obj_type, &#34;__origin__&#34;) == collections.abc.Sequence:  # Sequence
+                assert len(types) == 1
+                item_type = types[0]
+                length = self.deserialize_len()
+                result = []
+                for i in range(0, length):
+                    item = self.deserialize_any(item_type)
+                    result.append(item)
+
+                return result
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == tuple:  # Tuple
+                result = []
+                for i in range(len(types)):
+                    item = self.deserialize_any(types[i])
+                    result.append(item)
+                return tuple(result)
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == typing.Union:  # Option
+                assert len(types) == 2 and types[1] == type(None)
+                tag = int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False)
+                if tag == 0:
+                    return None
+                elif tag == 1:
+                    return self.deserialize_any(types[0])
+                else:
+                    raise st.DeserializationError(&#34;Wrong tag for Option value&#34;)
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == dict:  # Map
+                assert len(types) == 2
+                length = self.deserialize_len()
+                result = dict()
+                previous_key_slice = None
+                for i in range(0, length):
+                    key_start = self.get_buffer_offset()
+                    key = self.deserialize_any(types[0])
+                    key_end = self.get_buffer_offset()
+                    value = self.deserialize_any(types[1])
+
+                    key_slice = (key_start, key_end)
+                    if previous_key_slice is not None:
+                        self.check_that_key_slices_are_increasing(previous_key_slice, key_slice)
+                    previous_key_slice = key_slice
+
+                    result[key] = value
+
+                return result
+
+            else:
+                raise st.DeserializationError(&#34;Unexpected type&#34;, obj_type)
+
+        else:
+            # handle structs
+            if dataclasses.is_dataclass(obj_type):
+                values = []
+                fields = dataclasses.fields(obj_type)
+                typing_hints = get_type_hints(obj_type)
+                self.increase_container_depth()
+                for field in fields:
+                    field_type = typing_hints[field.name]
+                    field_value = self.deserialize_any(field_type)
+                    values.append(field_value)
+                self.decrease_container_depth()
+                return obj_type(*values)
+
+            # handle variant
+            elif hasattr(obj_type, &#34;VARIANTS&#34;):
+                variant_index = self.deserialize_variant_index()
+                if variant_index not in range(len(obj_type.VARIANTS)):
+                    raise st.DeserializationError(&#34;Unexpected variant index&#34;, variant_index)
+                new_type = obj_type.VARIANTS[variant_index]
+                return self.deserialize_any(new_type)
+
+            else:
+                raise st.DeserializationError(&#34;Unexpected type&#34;, obj_type)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.bcs.BcsDeserializer" href="../bcs/index.html#diem.bcs.BcsDeserializer">BcsDeserializer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.serde_binary.BinaryDeserializer.container_depth_budget"><code class="name">var <span class="ident">container_depth_budget</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.input"><code class="name">var <span class="ident">input</span> : _io.BytesIO</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.primitive_type_deserializer"><code class="name">var <span class="ident">primitive_type_deserializer</span> : Mapping</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.serde_binary.BinaryDeserializer.check_that_key_slices_are_increasing"><code class="name flex">
+<span>def <span class="ident">check_that_key_slices_are_increasing</span></span>(<span>self, slice1: Tuple[int, int], slice2: Tuple[int, int]) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_that_key_slices_are_increasing(
+    self, slice1: typing.Tuple[int, int], slice2: typing.Tuple[int, int]
+) -&gt; bool:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.decrease_container_depth"><code class="name flex">
+<span>def <span class="ident">decrease_container_depth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decrease_container_depth(self):
+    if self.container_depth_budget is not None:
+        self.container_depth_budget += 1</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_any"><code class="name flex">
+<span>def <span class="ident">deserialize_any</span></span>(<span>self, obj_type) ‑> Any</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_any(self, obj_type) -&gt; typing.Any:
+    if obj_type in self.primitive_type_deserializer:
+        return self.primitive_type_deserializer[obj_type]()
+
+    elif hasattr(obj_type, &#34;__origin__&#34;):  # Generic type
+        types = getattr(obj_type, &#34;__args__&#34;)
+        if getattr(obj_type, &#34;__origin__&#34;) == collections.abc.Sequence:  # Sequence
+            assert len(types) == 1
+            item_type = types[0]
+            length = self.deserialize_len()
+            result = []
+            for i in range(0, length):
+                item = self.deserialize_any(item_type)
+                result.append(item)
+
+            return result
+
+        elif getattr(obj_type, &#34;__origin__&#34;) == tuple:  # Tuple
+            result = []
+            for i in range(len(types)):
+                item = self.deserialize_any(types[i])
+                result.append(item)
+            return tuple(result)
+
+        elif getattr(obj_type, &#34;__origin__&#34;) == typing.Union:  # Option
+            assert len(types) == 2 and types[1] == type(None)
+            tag = int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False)
+            if tag == 0:
+                return None
+            elif tag == 1:
+                return self.deserialize_any(types[0])
+            else:
+                raise st.DeserializationError(&#34;Wrong tag for Option value&#34;)
+
+        elif getattr(obj_type, &#34;__origin__&#34;) == dict:  # Map
+            assert len(types) == 2
+            length = self.deserialize_len()
+            result = dict()
+            previous_key_slice = None
+            for i in range(0, length):
+                key_start = self.get_buffer_offset()
+                key = self.deserialize_any(types[0])
+                key_end = self.get_buffer_offset()
+                value = self.deserialize_any(types[1])
+
+                key_slice = (key_start, key_end)
+                if previous_key_slice is not None:
+                    self.check_that_key_slices_are_increasing(previous_key_slice, key_slice)
+                previous_key_slice = key_slice
+
+                result[key] = value
+
+            return result
+
+        else:
+            raise st.DeserializationError(&#34;Unexpected type&#34;, obj_type)
+
+    else:
+        # handle structs
+        if dataclasses.is_dataclass(obj_type):
+            values = []
+            fields = dataclasses.fields(obj_type)
+            typing_hints = get_type_hints(obj_type)
+            self.increase_container_depth()
+            for field in fields:
+                field_type = typing_hints[field.name]
+                field_value = self.deserialize_any(field_type)
+                values.append(field_value)
+            self.decrease_container_depth()
+            return obj_type(*values)
+
+        # handle variant
+        elif hasattr(obj_type, &#34;VARIANTS&#34;):
+            variant_index = self.deserialize_variant_index()
+            if variant_index not in range(len(obj_type.VARIANTS)):
+                raise st.DeserializationError(&#34;Unexpected variant index&#34;, variant_index)
+            new_type = obj_type.VARIANTS[variant_index]
+            return self.deserialize_any(new_type)
+
+        else:
+            raise st.DeserializationError(&#34;Unexpected type&#34;, obj_type)</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_bool"><code class="name flex">
+<span>def <span class="ident">deserialize_bool</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_bool(self) -&gt; st.bool:
+    b = int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False)
+    if b == 0:
+        return False
+    elif b == 1:
+        return True
+    else:
+        raise st.DeserializationError(&#34;Unexpected boolean value:&#34;, b)</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_bytes"><code class="name flex">
+<span>def <span class="ident">deserialize_bytes</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_bytes(self) -&gt; bytes:
+    length = self.deserialize_len()
+    return self.read(length)</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_char"><code class="name flex">
+<span>def <span class="ident">deserialize_char</span></span>(<span>self) ‑> <a title="diem.serde_types.char" href="../serde_types/index.html#diem.serde_types.char">char</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_char(self) -&gt; st.char:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_f32"><code class="name flex">
+<span>def <span class="ident">deserialize_f32</span></span>(<span>self) ‑> numpy.float32</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_f32(self) -&gt; st.float32:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_f64"><code class="name flex">
+<span>def <span class="ident">deserialize_f64</span></span>(<span>self) ‑> numpy.float64</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_f64(self) -&gt; st.float64:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_i128"><code class="name flex">
+<span>def <span class="ident">deserialize_i128</span></span>(<span>self) ‑> <a title="diem.serde_types.int128" href="../serde_types/index.html#diem.serde_types.int128">int128</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_i128(self) -&gt; st.int128:
+    return st.int128(int.from_bytes(self.read(16), byteorder=&#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_i16"><code class="name flex">
+<span>def <span class="ident">deserialize_i16</span></span>(<span>self) ‑> numpy.int16</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_i16(self) -&gt; st.int16:
+    return st.int16(int.from_bytes(self.read(2), byteorder=&#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_i32"><code class="name flex">
+<span>def <span class="ident">deserialize_i32</span></span>(<span>self) ‑> numpy.int32</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_i32(self) -&gt; st.int32:
+    return st.int32(int.from_bytes(self.read(4), byteorder=&#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_i64"><code class="name flex">
+<span>def <span class="ident">deserialize_i64</span></span>(<span>self) ‑> numpy.int64</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_i64(self) -&gt; st.int64:
+    return st.int64(int.from_bytes(self.read(8), byteorder=&#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_i8"><code class="name flex">
+<span>def <span class="ident">deserialize_i8</span></span>(<span>self) ‑> numpy.int8</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_i8(self) -&gt; st.int8:
+    return st.int8(int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_len"><code class="name flex">
+<span>def <span class="ident">deserialize_len</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_len(self) -&gt; int:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_str"><code class="name flex">
+<span>def <span class="ident">deserialize_str</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_str(self) -&gt; str:
+    content = self.deserialize_bytes()
+    try:
+        return content.decode()
+    except UnicodeDecodeError:
+        raise st.DeserializationError(&#34;Invalid unicode string:&#34;, content)</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_u128"><code class="name flex">
+<span>def <span class="ident">deserialize_u128</span></span>(<span>self) ‑> <a title="diem.serde_types.uint128" href="../serde_types/index.html#diem.serde_types.uint128">uint128</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_u128(self) -&gt; st.uint128:
+    return st.uint128(int.from_bytes(self.read(16), byteorder=&#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_u16"><code class="name flex">
+<span>def <span class="ident">deserialize_u16</span></span>(<span>self) ‑> numpy.uint16</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_u16(self) -&gt; st.uint16:
+    return st.uint16(int.from_bytes(self.read(2), byteorder=&#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_u32"><code class="name flex">
+<span>def <span class="ident">deserialize_u32</span></span>(<span>self) ‑> numpy.uint32</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_u32(self) -&gt; st.uint32:
+    return st.uint32(int.from_bytes(self.read(4), byteorder=&#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_u64"><code class="name flex">
+<span>def <span class="ident">deserialize_u64</span></span>(<span>self) ‑> numpy.uint64</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_u64(self) -&gt; st.uint64:
+    return st.uint64(int.from_bytes(self.read(8), byteorder=&#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_u8"><code class="name flex">
+<span>def <span class="ident">deserialize_u8</span></span>(<span>self) ‑> numpy.uint8</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_u8(self) -&gt; st.uint8:
+    return st.uint8(int.from_bytes(self.read(1), byteorder=&#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_unit"><code class="name flex">
+<span>def <span class="ident">deserialize_unit</span></span>(<span>self) ‑> Type[NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_unit(self) -&gt; st.unit:
+    pass</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.deserialize_variant_index"><code class="name flex">
+<span>def <span class="ident">deserialize_variant_index</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_variant_index(self) -&gt; int:
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.get_buffer_offset"><code class="name flex">
+<span>def <span class="ident">get_buffer_offset</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_buffer_offset(self) -&gt; int:
+    return self.input.tell()</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.get_remaining_buffer"><code class="name flex">
+<span>def <span class="ident">get_remaining_buffer</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_remaining_buffer(self) -&gt; bytes:
+    buf = self.input.getbuffer()
+    offset = self.get_buffer_offset()
+    return bytes(buf[offset:])</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.increase_container_depth"><code class="name flex">
+<span>def <span class="ident">increase_container_depth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def increase_container_depth(self):
+    if self.container_depth_budget is not None:
+        if self.container_depth_budget == 0:
+            raise st.DeserializationError(&#34;Exceeded maximum container depth&#34;)
+        self.container_depth_budget -= 1</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinaryDeserializer.read"><code class="name flex">
+<span>def <span class="ident">read</span></span>(<span>self, length: int) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read(self, length: int) -&gt; bytes:
+    value = self.input.read(length)
+    if value is None or len(value) &lt; length:
+        raise st.DeserializationError(&#34;Input is too short&#34;)
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer"><code class="flex name class">
+<span>class <span class="ident">BinarySerializer</span></span>
+<span>(</span><span>output: _io.BytesIO, container_depth_budget: Optional[int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Serialization primitives for binary formats (abstract class).</p>
+<p>"Binary" serialization formats may differ in the way they encode sequence lengths, variant
+index, and how they sort map entries (or not).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass
+class BinarySerializer:
+    &#34;&#34;&#34;Serialization primitives for binary formats (abstract class).
+
+    &#34;Binary&#34; serialization formats may differ in the way they encode sequence lengths, variant
+    index, and how they sort map entries (or not).
+    &#34;&#34;&#34;
+
+    output: io.BytesIO
+    container_depth_budget: typing.Optional[int]
+    primitive_type_serializer: typing.Mapping = dataclasses.field(init=False)
+
+    def __post_init__(self):
+        self.primitive_type_serializer = {
+            st.bool: self.serialize_bool,
+            st.uint8: self.serialize_u8,
+            st.uint16: self.serialize_u16,
+            st.uint32: self.serialize_u32,
+            st.uint64: self.serialize_u64,
+            st.uint128: self.serialize_u128,
+            st.int8: self.serialize_i8,
+            st.int16: self.serialize_i16,
+            st.int32: self.serialize_i32,
+            st.int64: self.serialize_i64,
+            st.int128: self.serialize_i128,
+            st.float32: self.serialize_f32,
+            st.float64: self.serialize_f64,
+            st.unit: self.serialize_unit,
+            st.char: self.serialize_char,
+            str: self.serialize_str,
+            bytes: self.serialize_bytes,
+        }
+
+    def serialize_bytes(self, value: bytes):
+        self.serialize_len(len(value))
+        self.output.write(value)
+
+    def serialize_str(self, value: str):
+        self.serialize_bytes(value.encode())
+
+    def serialize_unit(self, value: st.unit):
+        pass
+
+    def serialize_bool(self, value: st.bool):
+        self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=False))
+
+    def serialize_u8(self, value: st.uint8):
+        self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=False))
+
+    def serialize_u16(self, value: st.uint16):
+        self.output.write(int(value).to_bytes(2, &#34;little&#34;, signed=False))
+
+    def serialize_u32(self, value: st.uint32):
+        self.output.write(int(value).to_bytes(4, &#34;little&#34;, signed=False))
+
+    def serialize_u64(self, value: st.uint64):
+        self.output.write(int(value).to_bytes(8, &#34;little&#34;, signed=False))
+
+    def serialize_u128(self, value: st.uint128):
+        self.output.write(int(value).to_bytes(16, &#34;little&#34;, signed=False))
+
+    def serialize_i8(self, value: st.uint8):
+        self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=True))
+
+    def serialize_i16(self, value: st.uint16):
+        self.output.write(int(value).to_bytes(2, &#34;little&#34;, signed=True))
+
+    def serialize_i32(self, value: st.uint32):
+        self.output.write(int(value).to_bytes(4, &#34;little&#34;, signed=True))
+
+    def serialize_i64(self, value: st.uint64):
+        self.output.write(int(value).to_bytes(8, &#34;little&#34;, signed=True))
+
+    def serialize_i128(self, value: st.uint128):
+        self.output.write(int(value).to_bytes(16, &#34;little&#34;, signed=True))
+
+    def serialize_f32(self, value: st.float32):
+        raise NotImplementedError
+
+    def serialize_f64(self, value: st.float64):
+        raise NotImplementedError
+
+    def serialize_char(self, value: st.char):
+        raise NotImplementedError
+
+    def get_buffer_offset(self) -&gt; int:
+        return len(self.output.getbuffer())
+
+    def get_buffer(self) -&gt; bytes:
+        return self.output.getvalue()
+
+    def increase_container_depth(self):
+        if self.container_depth_budget is not None:
+            if self.container_depth_budget == 0:
+                raise st.SerializationError(&#34;Exceeded maximum container depth&#34;)
+            self.container_depth_budget -= 1
+
+    def decrease_container_depth(self):
+        if self.container_depth_budget is not None:
+            self.container_depth_budget += 1
+
+    def serialize_len(self, value: int):
+        raise NotImplementedError
+
+    def serialize_variant_index(self, value: int):
+        raise NotImplementedError
+
+    def sort_map_entries(self, offsets: typing.List[int]):
+        raise NotImplementedError
+
+    # noqa: C901
+    def serialize_any(self, obj: typing.Any, obj_type):
+        if obj_type in self.primitive_type_serializer:
+            self.primitive_type_serializer[obj_type](obj)
+
+        elif hasattr(obj_type, &#34;__origin__&#34;):  # Generic type
+            types = getattr(obj_type, &#34;__args__&#34;)
+
+            if getattr(obj_type, &#34;__origin__&#34;) == collections.abc.Sequence:  # Sequence
+                assert len(types) == 1
+                item_type = types[0]
+                self.serialize_len(len(obj))
+                for item in obj:
+                    self.serialize_any(item, item_type)
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == tuple:  # Tuple
+                for i in range(len(obj)):
+                    self.serialize_any(obj[i], types[i])
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == typing.Union:  # Option
+                assert len(types) == 2 and types[1] == type(None)
+                if obj is None:
+                    self.output.write(b&#34;\x00&#34;)
+                else:
+                    self.output.write(b&#34;\x01&#34;)
+                    self.serialize_any(obj, types[0])
+
+            elif getattr(obj_type, &#34;__origin__&#34;) == dict:  # Map
+                assert len(types) == 2
+                self.serialize_len(len(obj))
+                offsets = []
+                for key, value in obj.items():
+                    offsets.append(self.get_buffer_offset())
+                    self.serialize_any(key, types[0])
+                    self.serialize_any(value, types[1])
+                self.sort_map_entries(offsets)
+
+            else:
+                raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+
+        else:
+            if not dataclasses.is_dataclass(obj_type):  # Enum
+                if not hasattr(obj_type, &#34;VARIANTS&#34;):
+                    raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+                if not hasattr(obj, &#34;INDEX&#34;):
+                    raise st.SerializationError(&#34;Wrong Value for the type&#34;, obj, obj_type)
+                self.serialize_variant_index(obj.__class__.INDEX)
+                # Proceed to variant
+                obj_type = obj_type.VARIANTS[obj.__class__.INDEX]
+                if not dataclasses.is_dataclass(obj_type):
+                    raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+
+            # pyre-ignore
+            if not isinstance(obj, obj_type):
+                raise st.SerializationError(&#34;Wrong Value for the type&#34;, obj, obj_type)
+
+            # Content of struct or variant
+            fields = dataclasses.fields(obj_type)
+            types = get_type_hints(obj_type)
+            self.increase_container_depth()
+            for field in fields:
+                field_value = obj.__dict__[field.name]
+                field_type = types[field.name]
+                self.serialize_any(field_value, field_type)
+            self.decrease_container_depth()</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.bcs.BcsSerializer" href="../bcs/index.html#diem.bcs.BcsSerializer">BcsSerializer</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.serde_binary.BinarySerializer.container_depth_budget"><code class="name">var <span class="ident">container_depth_budget</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.output"><code class="name">var <span class="ident">output</span> : _io.BytesIO</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.primitive_type_serializer"><code class="name">var <span class="ident">primitive_type_serializer</span> : Mapping</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.serde_binary.BinarySerializer.decrease_container_depth"><code class="name flex">
+<span>def <span class="ident">decrease_container_depth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decrease_container_depth(self):
+    if self.container_depth_budget is not None:
+        self.container_depth_budget += 1</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.get_buffer"><code class="name flex">
+<span>def <span class="ident">get_buffer</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_buffer(self) -&gt; bytes:
+    return self.output.getvalue()</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.get_buffer_offset"><code class="name flex">
+<span>def <span class="ident">get_buffer_offset</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_buffer_offset(self) -&gt; int:
+    return len(self.output.getbuffer())</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.increase_container_depth"><code class="name flex">
+<span>def <span class="ident">increase_container_depth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def increase_container_depth(self):
+    if self.container_depth_budget is not None:
+        if self.container_depth_budget == 0:
+            raise st.SerializationError(&#34;Exceeded maximum container depth&#34;)
+        self.container_depth_budget -= 1</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_any"><code class="name flex">
+<span>def <span class="ident">serialize_any</span></span>(<span>self, obj: Any, obj_type)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_any(self, obj: typing.Any, obj_type):
+    if obj_type in self.primitive_type_serializer:
+        self.primitive_type_serializer[obj_type](obj)
+
+    elif hasattr(obj_type, &#34;__origin__&#34;):  # Generic type
+        types = getattr(obj_type, &#34;__args__&#34;)
+
+        if getattr(obj_type, &#34;__origin__&#34;) == collections.abc.Sequence:  # Sequence
+            assert len(types) == 1
+            item_type = types[0]
+            self.serialize_len(len(obj))
+            for item in obj:
+                self.serialize_any(item, item_type)
+
+        elif getattr(obj_type, &#34;__origin__&#34;) == tuple:  # Tuple
+            for i in range(len(obj)):
+                self.serialize_any(obj[i], types[i])
+
+        elif getattr(obj_type, &#34;__origin__&#34;) == typing.Union:  # Option
+            assert len(types) == 2 and types[1] == type(None)
+            if obj is None:
+                self.output.write(b&#34;\x00&#34;)
+            else:
+                self.output.write(b&#34;\x01&#34;)
+                self.serialize_any(obj, types[0])
+
+        elif getattr(obj_type, &#34;__origin__&#34;) == dict:  # Map
+            assert len(types) == 2
+            self.serialize_len(len(obj))
+            offsets = []
+            for key, value in obj.items():
+                offsets.append(self.get_buffer_offset())
+                self.serialize_any(key, types[0])
+                self.serialize_any(value, types[1])
+            self.sort_map_entries(offsets)
+
+        else:
+            raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+
+    else:
+        if not dataclasses.is_dataclass(obj_type):  # Enum
+            if not hasattr(obj_type, &#34;VARIANTS&#34;):
+                raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+            if not hasattr(obj, &#34;INDEX&#34;):
+                raise st.SerializationError(&#34;Wrong Value for the type&#34;, obj, obj_type)
+            self.serialize_variant_index(obj.__class__.INDEX)
+            # Proceed to variant
+            obj_type = obj_type.VARIANTS[obj.__class__.INDEX]
+            if not dataclasses.is_dataclass(obj_type):
+                raise st.SerializationError(&#34;Unexpected type&#34;, obj_type)
+
+        # pyre-ignore
+        if not isinstance(obj, obj_type):
+            raise st.SerializationError(&#34;Wrong Value for the type&#34;, obj, obj_type)
+
+        # Content of struct or variant
+        fields = dataclasses.fields(obj_type)
+        types = get_type_hints(obj_type)
+        self.increase_container_depth()
+        for field in fields:
+            field_value = obj.__dict__[field.name]
+            field_type = types[field.name]
+            self.serialize_any(field_value, field_type)
+        self.decrease_container_depth()</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_bool"><code class="name flex">
+<span>def <span class="ident">serialize_bool</span></span>(<span>self, value: bool)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_bool(self, value: st.bool):
+    self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_bytes"><code class="name flex">
+<span>def <span class="ident">serialize_bytes</span></span>(<span>self, value: bytes)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_bytes(self, value: bytes):
+    self.serialize_len(len(value))
+    self.output.write(value)</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_char"><code class="name flex">
+<span>def <span class="ident">serialize_char</span></span>(<span>self, value: <a title="diem.serde_types.char" href="../serde_types/index.html#diem.serde_types.char">char</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_char(self, value: st.char):
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_f32"><code class="name flex">
+<span>def <span class="ident">serialize_f32</span></span>(<span>self, value: numpy.float32)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_f32(self, value: st.float32):
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_f64"><code class="name flex">
+<span>def <span class="ident">serialize_f64</span></span>(<span>self, value: numpy.float64)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_f64(self, value: st.float64):
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_i128"><code class="name flex">
+<span>def <span class="ident">serialize_i128</span></span>(<span>self, value: <a title="diem.serde_types.uint128" href="../serde_types/index.html#diem.serde_types.uint128">uint128</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_i128(self, value: st.uint128):
+    self.output.write(int(value).to_bytes(16, &#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_i16"><code class="name flex">
+<span>def <span class="ident">serialize_i16</span></span>(<span>self, value: numpy.uint16)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_i16(self, value: st.uint16):
+    self.output.write(int(value).to_bytes(2, &#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_i32"><code class="name flex">
+<span>def <span class="ident">serialize_i32</span></span>(<span>self, value: numpy.uint32)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_i32(self, value: st.uint32):
+    self.output.write(int(value).to_bytes(4, &#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_i64"><code class="name flex">
+<span>def <span class="ident">serialize_i64</span></span>(<span>self, value: numpy.uint64)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_i64(self, value: st.uint64):
+    self.output.write(int(value).to_bytes(8, &#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_i8"><code class="name flex">
+<span>def <span class="ident">serialize_i8</span></span>(<span>self, value: numpy.uint8)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_i8(self, value: st.uint8):
+    self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=True))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_len"><code class="name flex">
+<span>def <span class="ident">serialize_len</span></span>(<span>self, value: int)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_len(self, value: int):
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_str"><code class="name flex">
+<span>def <span class="ident">serialize_str</span></span>(<span>self, value: str)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_str(self, value: str):
+    self.serialize_bytes(value.encode())</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_u128"><code class="name flex">
+<span>def <span class="ident">serialize_u128</span></span>(<span>self, value: <a title="diem.serde_types.uint128" href="../serde_types/index.html#diem.serde_types.uint128">uint128</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_u128(self, value: st.uint128):
+    self.output.write(int(value).to_bytes(16, &#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_u16"><code class="name flex">
+<span>def <span class="ident">serialize_u16</span></span>(<span>self, value: numpy.uint16)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_u16(self, value: st.uint16):
+    self.output.write(int(value).to_bytes(2, &#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_u32"><code class="name flex">
+<span>def <span class="ident">serialize_u32</span></span>(<span>self, value: numpy.uint32)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_u32(self, value: st.uint32):
+    self.output.write(int(value).to_bytes(4, &#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_u64"><code class="name flex">
+<span>def <span class="ident">serialize_u64</span></span>(<span>self, value: numpy.uint64)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_u64(self, value: st.uint64):
+    self.output.write(int(value).to_bytes(8, &#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_u8"><code class="name flex">
+<span>def <span class="ident">serialize_u8</span></span>(<span>self, value: numpy.uint8)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_u8(self, value: st.uint8):
+    self.output.write(int(value).to_bytes(1, &#34;little&#34;, signed=False))</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_unit"><code class="name flex">
+<span>def <span class="ident">serialize_unit</span></span>(<span>self, value: Type[NoneType])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_unit(self, value: st.unit):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.serialize_variant_index"><code class="name flex">
+<span>def <span class="ident">serialize_variant_index</span></span>(<span>self, value: int)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_variant_index(self, value: int):
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+<dt id="diem.serde_binary.BinarySerializer.sort_map_entries"><code class="name flex">
+<span>def <span class="ident">sort_map_entries</span></span>(<span>self, offsets: List[int])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sort_map_entries(self, offsets: typing.List[int]):
+    raise NotImplementedError</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem" href="../index.html">diem</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.serde_binary.BinaryDeserializer" href="#diem.serde_binary.BinaryDeserializer">BinaryDeserializer</a></code></h4>
+<ul class="">
+<li><code><a title="diem.serde_binary.BinaryDeserializer.check_that_key_slices_are_increasing" href="#diem.serde_binary.BinaryDeserializer.check_that_key_slices_are_increasing">check_that_key_slices_are_increasing</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.container_depth_budget" href="#diem.serde_binary.BinaryDeserializer.container_depth_budget">container_depth_budget</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.decrease_container_depth" href="#diem.serde_binary.BinaryDeserializer.decrease_container_depth">decrease_container_depth</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_any" href="#diem.serde_binary.BinaryDeserializer.deserialize_any">deserialize_any</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_bool" href="#diem.serde_binary.BinaryDeserializer.deserialize_bool">deserialize_bool</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_bytes" href="#diem.serde_binary.BinaryDeserializer.deserialize_bytes">deserialize_bytes</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_char" href="#diem.serde_binary.BinaryDeserializer.deserialize_char">deserialize_char</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_f32" href="#diem.serde_binary.BinaryDeserializer.deserialize_f32">deserialize_f32</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_f64" href="#diem.serde_binary.BinaryDeserializer.deserialize_f64">deserialize_f64</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_i128" href="#diem.serde_binary.BinaryDeserializer.deserialize_i128">deserialize_i128</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_i16" href="#diem.serde_binary.BinaryDeserializer.deserialize_i16">deserialize_i16</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_i32" href="#diem.serde_binary.BinaryDeserializer.deserialize_i32">deserialize_i32</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_i64" href="#diem.serde_binary.BinaryDeserializer.deserialize_i64">deserialize_i64</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_i8" href="#diem.serde_binary.BinaryDeserializer.deserialize_i8">deserialize_i8</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_len" href="#diem.serde_binary.BinaryDeserializer.deserialize_len">deserialize_len</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_str" href="#diem.serde_binary.BinaryDeserializer.deserialize_str">deserialize_str</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_u128" href="#diem.serde_binary.BinaryDeserializer.deserialize_u128">deserialize_u128</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_u16" href="#diem.serde_binary.BinaryDeserializer.deserialize_u16">deserialize_u16</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_u32" href="#diem.serde_binary.BinaryDeserializer.deserialize_u32">deserialize_u32</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_u64" href="#diem.serde_binary.BinaryDeserializer.deserialize_u64">deserialize_u64</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_u8" href="#diem.serde_binary.BinaryDeserializer.deserialize_u8">deserialize_u8</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_unit" href="#diem.serde_binary.BinaryDeserializer.deserialize_unit">deserialize_unit</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.deserialize_variant_index" href="#diem.serde_binary.BinaryDeserializer.deserialize_variant_index">deserialize_variant_index</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.get_buffer_offset" href="#diem.serde_binary.BinaryDeserializer.get_buffer_offset">get_buffer_offset</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.get_remaining_buffer" href="#diem.serde_binary.BinaryDeserializer.get_remaining_buffer">get_remaining_buffer</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.increase_container_depth" href="#diem.serde_binary.BinaryDeserializer.increase_container_depth">increase_container_depth</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.input" href="#diem.serde_binary.BinaryDeserializer.input">input</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.primitive_type_deserializer" href="#diem.serde_binary.BinaryDeserializer.primitive_type_deserializer">primitive_type_deserializer</a></code></li>
+<li><code><a title="diem.serde_binary.BinaryDeserializer.read" href="#diem.serde_binary.BinaryDeserializer.read">read</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.serde_binary.BinarySerializer" href="#diem.serde_binary.BinarySerializer">BinarySerializer</a></code></h4>
+<ul class="">
+<li><code><a title="diem.serde_binary.BinarySerializer.container_depth_budget" href="#diem.serde_binary.BinarySerializer.container_depth_budget">container_depth_budget</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.decrease_container_depth" href="#diem.serde_binary.BinarySerializer.decrease_container_depth">decrease_container_depth</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.get_buffer" href="#diem.serde_binary.BinarySerializer.get_buffer">get_buffer</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.get_buffer_offset" href="#diem.serde_binary.BinarySerializer.get_buffer_offset">get_buffer_offset</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.increase_container_depth" href="#diem.serde_binary.BinarySerializer.increase_container_depth">increase_container_depth</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.output" href="#diem.serde_binary.BinarySerializer.output">output</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.primitive_type_serializer" href="#diem.serde_binary.BinarySerializer.primitive_type_serializer">primitive_type_serializer</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_any" href="#diem.serde_binary.BinarySerializer.serialize_any">serialize_any</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_bool" href="#diem.serde_binary.BinarySerializer.serialize_bool">serialize_bool</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_bytes" href="#diem.serde_binary.BinarySerializer.serialize_bytes">serialize_bytes</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_char" href="#diem.serde_binary.BinarySerializer.serialize_char">serialize_char</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_f32" href="#diem.serde_binary.BinarySerializer.serialize_f32">serialize_f32</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_f64" href="#diem.serde_binary.BinarySerializer.serialize_f64">serialize_f64</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_i128" href="#diem.serde_binary.BinarySerializer.serialize_i128">serialize_i128</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_i16" href="#diem.serde_binary.BinarySerializer.serialize_i16">serialize_i16</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_i32" href="#diem.serde_binary.BinarySerializer.serialize_i32">serialize_i32</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_i64" href="#diem.serde_binary.BinarySerializer.serialize_i64">serialize_i64</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_i8" href="#diem.serde_binary.BinarySerializer.serialize_i8">serialize_i8</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_len" href="#diem.serde_binary.BinarySerializer.serialize_len">serialize_len</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_str" href="#diem.serde_binary.BinarySerializer.serialize_str">serialize_str</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_u128" href="#diem.serde_binary.BinarySerializer.serialize_u128">serialize_u128</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_u16" href="#diem.serde_binary.BinarySerializer.serialize_u16">serialize_u16</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_u32" href="#diem.serde_binary.BinarySerializer.serialize_u32">serialize_u32</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_u64" href="#diem.serde_binary.BinarySerializer.serialize_u64">serialize_u64</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_u8" href="#diem.serde_binary.BinarySerializer.serialize_u8">serialize_u8</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_unit" href="#diem.serde_binary.BinarySerializer.serialize_unit">serialize_unit</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.serialize_variant_index" href="#diem.serde_binary.BinarySerializer.serialize_variant_index">serialize_variant_index</a></code></li>
+<li><code><a title="diem.serde_binary.BinarySerializer.sort_map_entries" href="#diem.serde_binary.BinarySerializer.sort_map_entries">sort_map_entries</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

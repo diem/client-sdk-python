@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.offchain.types.payment_types API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.offchain.types.payment_types</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+import time
+import typing
+
+from dataclasses import dataclass, field as datafield
+
+from .command_types import CommandType, UUID_REGEX
+
+
+class KycDataObjectType:
+    individual = &#34;individual&#34;
+    entity = &#34;entity&#34;
+
+
+class AbortCode:
+    reject_kyc_data = &#34;rejected&#34;
+
+
+class Status:
+    # No status is yet set from this actor.
+    none = &#34;none&#34;
+    # KYC data about the subaddresses is required by this actor.
+    needs_kyc_data = &#34;needs_kyc_data&#34;
+    # Transaction is ready for settlement according to this actor
+    ready_for_settlement = &#34;ready_for_settlement&#34;
+    # Indicates the actor wishes to abort this payment, instead of settling it.
+    abort = &#34;abort&#34;
+    # KYC data resulted in a soft-match, request additional_kyc_data.
+    soft_match = &#34;soft_match&#34;
+
+
+@dataclass(frozen=True)
+class StatusObject:
+    # Status of the payment from the perspective of this actor. Required
+    status: str = datafield(
+        metadata={
+            &#34;valid-values&#34;: [
+                Status.none,
+                Status.needs_kyc_data,
+                Status.ready_for_settlement,
+                Status.abort,
+                Status.soft_match,
+            ]
+        }
+    )
+    # In the case of an abort status, this field may be used to describe the reason for the abort.
+    abort_code: typing.Optional[str] = datafield(default=None)
+    # Additional details about this error. To be used only when code is populated
+    abort_message: typing.Optional[str] = datafield(default=None)
+
+
+@dataclass(frozen=True)
+class NationalIdObject:
+    # Indicates the national ID value - for example, a social security number
+    id_value: str
+    # Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+    country: typing.Optional[str] = datafield(default=None)
+    # Indicates the type of the ID
+    type: typing.Optional[str] = datafield(default=None)
+
+
+@dataclass(frozen=True)
+class AddressObject:
+    # The city, district, suburb, town, or village
+    city: typing.Optional[str] = datafield(default=None)
+    # Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+    country: typing.Optional[str] = datafield(default=None)
+    # Address line 1
+    line1: typing.Optional[str] = datafield(default=None)
+    # Address line 2 - apartment, unit, etc.
+    line2: typing.Optional[str] = datafield(default=None)
+    # ZIP or postal code
+    postal_code: typing.Optional[str] = datafield(default=None)
+    # State, county, province, region.
+    state: typing.Optional[str] = datafield(default=None)
+
+
+@dataclass(frozen=True)
+class KycDataObject:
+    # Must be either “individual” or “entity”. Required.
+    type: str = datafield(metadata={&#34;valid-values&#34;: [KycDataObjectType.individual, KycDataObjectType.entity]})
+    # Version identifier to allow modifications to KYC data Object without needing to bump version of entire API set. Set to 1
+    payload_version: int = datafield(default=1, metadata={&#34;valid-values&#34;: [1]})
+    # Legal given name of the user for which this KYC data Object applies.
+    given_name: typing.Optional[str] = datafield(default=None)
+    # Legal surname of the user for which this KYC data Object applies.
+    surname: typing.Optional[str] = datafield(default=None)
+    # Physical address data for this account
+    address: typing.Optional[AddressObject] = datafield(default=None)
+    # Date of birth for the holder of this account. Specified as an ISO 8601 calendar date format: https:#en.wikipedia.org/wiki/ISO_8601
+    dob: typing.Optional[str] = datafield(default=None)
+    # Place of birth for this user. line1 and line2 fields should not be populated for this usage of the address Object
+    place_of_birth: typing.Optional[AddressObject] = datafield(default=None)
+    # National ID information for the holder of this account
+    national_id: typing.Optional[NationalIdObject] = datafield(default=None)
+    # Name of the legal entity. Used when subaddress represents a legal entity rather than an individual. KycDataObject should only include one of legal_entity_name OR given_name/surname
+    legal_entity_name: typing.Optional[str] = datafield(default=None)
+
+
+@dataclass(frozen=True)
+class PaymentActionObject:
+    amount: int
+    currency: str
+    action: str = datafield(default=&#34;charge&#34;, metadata={&#34;valid-values&#34;: [&#34;charge&#34;]})
+    # Unix timestamp (seconds) indicating the time that the payment Command was created.
+    timestamp: int = datafield(default_factory=lambda: int(time.time()))
+
+
+@dataclass(frozen=True)
+class PaymentActorObject:
+    address: str = datafield(metadata={&#34;write_once&#34;: True})
+    status: StatusObject
+    kyc_data: typing.Optional[KycDataObject] = datafield(default=None, metadata={&#34;write_once&#34;: True})
+    metadata: typing.Optional[typing.List[str]] = datafield(default=None)
+    additional_kyc_data: typing.Optional[str] = datafield(default=None, metadata={&#34;write_once&#34;: True})
+
+
+@dataclass(frozen=True)
+class PaymentObject:
+    reference_id: str = datafield(metadata={&#34;valid-values&#34;: UUID_REGEX})
+    sender: PaymentActorObject
+    receiver: PaymentActorObject
+    action: PaymentActionObject = datafield(metadata={&#34;write_once&#34;: True})
+    original_payment_reference_id: typing.Optional[str] = datafield(
+        default=None, metadata={&#34;immutable&#34;: True, &#34;valid-values&#34;: UUID_REGEX}
+    )
+    recipient_signature: typing.Optional[str] = datafield(default=None, metadata={&#34;write_once&#34;: True})
+    description: typing.Optional[str] = datafield(default=None, metadata={&#34;write_once&#34;: True})
+
+
+@dataclass(frozen=True)
+class PaymentCommandObject:
+    _ObjectType: str = datafield(metadata={&#34;valid-values&#34;: [CommandType.PaymentCommand]})
+    payment: PaymentObject</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.offchain.types.payment_types.AbortCode"><code class="flex name class">
+<span>class <span class="ident">AbortCode</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AbortCode:
+    reject_kyc_data = &#34;rejected&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.AbortCode.reject_kyc_data"><code class="name">var <span class="ident">reject_kyc_data</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.AddressObject"><code class="flex name class">
+<span>class <span class="ident">AddressObject</span></span>
+<span>(</span><span>city: Optional[str] = None, country: Optional[str] = None, line1: Optional[str] = None, line2: Optional[str] = None, postal_code: Optional[str] = None, state: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>AddressObject(city: Optional[str] = None, country: Optional[str] = None, line1: Optional[str] = None, line2: Optional[str] = None, postal_code: Optional[str] = None, state: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class AddressObject:
+    # The city, district, suburb, town, or village
+    city: typing.Optional[str] = datafield(default=None)
+    # Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+    country: typing.Optional[str] = datafield(default=None)
+    # Address line 1
+    line1: typing.Optional[str] = datafield(default=None)
+    # Address line 2 - apartment, unit, etc.
+    line2: typing.Optional[str] = datafield(default=None)
+    # ZIP or postal code
+    postal_code: typing.Optional[str] = datafield(default=None)
+    # State, county, province, region.
+    state: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.AddressObject.city"><code class="name">var <span class="ident">city</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.AddressObject.country"><code class="name">var <span class="ident">country</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.AddressObject.line1"><code class="name">var <span class="ident">line1</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.AddressObject.line2"><code class="name">var <span class="ident">line2</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.AddressObject.postal_code"><code class="name">var <span class="ident">postal_code</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.AddressObject.state"><code class="name">var <span class="ident">state</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject"><code class="flex name class">
+<span>class <span class="ident">KycDataObject</span></span>
+<span>(</span><span>type: str, payload_version: int = 1, given_name: Optional[str] = None, surname: Optional[str] = None, address: Optional[<a title="diem.offchain.types.payment_types.AddressObject" href="#diem.offchain.types.payment_types.AddressObject">AddressObject</a>] = None, dob: Optional[str] = None, place_of_birth: Optional[<a title="diem.offchain.types.payment_types.AddressObject" href="#diem.offchain.types.payment_types.AddressObject">AddressObject</a>] = None, national_id: Optional[<a title="diem.offchain.types.payment_types.NationalIdObject" href="#diem.offchain.types.payment_types.NationalIdObject">NationalIdObject</a>] = None, legal_entity_name: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>KycDataObject(type: str, payload_version: int = 1, given_name: Optional[str] = None, surname: Optional[str] = None, address: Optional[diem.offchain.types.payment_types.AddressObject] = None, dob: Optional[str] = None, place_of_birth: Optional[diem.offchain.types.payment_types.AddressObject] = None, national_id: Optional[diem.offchain.types.payment_types.NationalIdObject] = None, legal_entity_name: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class KycDataObject:
+    # Must be either “individual” or “entity”. Required.
+    type: str = datafield(metadata={&#34;valid-values&#34;: [KycDataObjectType.individual, KycDataObjectType.entity]})
+    # Version identifier to allow modifications to KYC data Object without needing to bump version of entire API set. Set to 1
+    payload_version: int = datafield(default=1, metadata={&#34;valid-values&#34;: [1]})
+    # Legal given name of the user for which this KYC data Object applies.
+    given_name: typing.Optional[str] = datafield(default=None)
+    # Legal surname of the user for which this KYC data Object applies.
+    surname: typing.Optional[str] = datafield(default=None)
+    # Physical address data for this account
+    address: typing.Optional[AddressObject] = datafield(default=None)
+    # Date of birth for the holder of this account. Specified as an ISO 8601 calendar date format: https:#en.wikipedia.org/wiki/ISO_8601
+    dob: typing.Optional[str] = datafield(default=None)
+    # Place of birth for this user. line1 and line2 fields should not be populated for this usage of the address Object
+    place_of_birth: typing.Optional[AddressObject] = datafield(default=None)
+    # National ID information for the holder of this account
+    national_id: typing.Optional[NationalIdObject] = datafield(default=None)
+    # Name of the legal entity. Used when subaddress represents a legal entity rather than an individual. KycDataObject should only include one of legal_entity_name OR given_name/surname
+    legal_entity_name: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.KycDataObject.address"><code class="name">var <span class="ident">address</span> : Optional[<a title="diem.offchain.types.payment_types.AddressObject" href="#diem.offchain.types.payment_types.AddressObject">AddressObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.dob"><code class="name">var <span class="ident">dob</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.given_name"><code class="name">var <span class="ident">given_name</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.legal_entity_name"><code class="name">var <span class="ident">legal_entity_name</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.national_id"><code class="name">var <span class="ident">national_id</span> : Optional[<a title="diem.offchain.types.payment_types.NationalIdObject" href="#diem.offchain.types.payment_types.NationalIdObject">NationalIdObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.payload_version"><code class="name">var <span class="ident">payload_version</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.place_of_birth"><code class="name">var <span class="ident">place_of_birth</span> : Optional[<a title="diem.offchain.types.payment_types.AddressObject" href="#diem.offchain.types.payment_types.AddressObject">AddressObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.surname"><code class="name">var <span class="ident">surname</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObject.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObjectType"><code class="flex name class">
+<span>class <span class="ident">KycDataObjectType</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class KycDataObjectType:
+    individual = &#34;individual&#34;
+    entity = &#34;entity&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.KycDataObjectType.entity"><code class="name">var <span class="ident">entity</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.KycDataObjectType.individual"><code class="name">var <span class="ident">individual</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.NationalIdObject"><code class="flex name class">
+<span>class <span class="ident">NationalIdObject</span></span>
+<span>(</span><span>id_value: str, country: Optional[str] = None, type: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>NationalIdObject(id_value: str, country: Optional[str] = None, type: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class NationalIdObject:
+    # Indicates the national ID value - for example, a social security number
+    id_value: str
+    # Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+    country: typing.Optional[str] = datafield(default=None)
+    # Indicates the type of the ID
+    type: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.NationalIdObject.country"><code class="name">var <span class="ident">country</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.NationalIdObject.id_value"><code class="name">var <span class="ident">id_value</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.NationalIdObject.type"><code class="name">var <span class="ident">type</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActionObject"><code class="flex name class">
+<span>class <span class="ident">PaymentActionObject</span></span>
+<span>(</span><span>amount: int, currency: str, action: str = 'charge', timestamp: int = &lt;factory&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>PaymentActionObject(amount: int, currency: str, action: str = 'charge', timestamp: int = <factory>)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class PaymentActionObject:
+    amount: int
+    currency: str
+    action: str = datafield(default=&#34;charge&#34;, metadata={&#34;valid-values&#34;: [&#34;charge&#34;]})
+    # Unix timestamp (seconds) indicating the time that the payment Command was created.
+    timestamp: int = datafield(default_factory=lambda: int(time.time()))</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.PaymentActionObject.action"><code class="name">var <span class="ident">action</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActionObject.amount"><code class="name">var <span class="ident">amount</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActionObject.currency"><code class="name">var <span class="ident">currency</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActionObject.timestamp"><code class="name">var <span class="ident">timestamp</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActorObject"><code class="flex name class">
+<span>class <span class="ident">PaymentActorObject</span></span>
+<span>(</span><span>address: str, status: <a title="diem.offchain.types.payment_types.StatusObject" href="#diem.offchain.types.payment_types.StatusObject">StatusObject</a>, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None, metadata: Optional[List[str]] = None, additional_kyc_data: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>PaymentActorObject(address: str, status: diem.offchain.types.payment_types.StatusObject, kyc_data: Optional[diem.offchain.types.payment_types.KycDataObject] = None, metadata: Optional[List[str]] = None, additional_kyc_data: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class PaymentActorObject:
+    address: str = datafield(metadata={&#34;write_once&#34;: True})
+    status: StatusObject
+    kyc_data: typing.Optional[KycDataObject] = datafield(default=None, metadata={&#34;write_once&#34;: True})
+    metadata: typing.Optional[typing.List[str]] = datafield(default=None)
+    additional_kyc_data: typing.Optional[str] = datafield(default=None, metadata={&#34;write_once&#34;: True})</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.PaymentActorObject.additional_kyc_data"><code class="name">var <span class="ident">additional_kyc_data</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActorObject.address"><code class="name">var <span class="ident">address</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActorObject.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActorObject.metadata"><code class="name">var <span class="ident">metadata</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentActorObject.status"><code class="name">var <span class="ident">status</span> : <a title="diem.offchain.types.payment_types.StatusObject" href="#diem.offchain.types.payment_types.StatusObject">StatusObject</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentCommandObject"><code class="flex name class">
+<span>class <span class="ident">PaymentCommandObject</span></span>
+<span>(</span><span>_ObjectType: str, payment: <a title="diem.offchain.types.payment_types.PaymentObject" href="#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>PaymentCommandObject(_ObjectType: str, payment: diem.offchain.types.payment_types.PaymentObject)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class PaymentCommandObject:
+    _ObjectType: str = datafield(metadata={&#34;valid-values&#34;: [CommandType.PaymentCommand]})
+    payment: PaymentObject</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.PaymentCommandObject.payment"><code class="name">var <span class="ident">payment</span> : <a title="diem.offchain.types.payment_types.PaymentObject" href="#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject"><code class="flex name class">
+<span>class <span class="ident">PaymentObject</span></span>
+<span>(</span><span>reference_id: str, sender: <a title="diem.offchain.types.payment_types.PaymentActorObject" href="#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a>, receiver: <a title="diem.offchain.types.payment_types.PaymentActorObject" href="#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a>, action: <a title="diem.offchain.types.payment_types.PaymentActionObject" href="#diem.offchain.types.payment_types.PaymentActionObject">PaymentActionObject</a>, original_payment_reference_id: Optional[str] = None, recipient_signature: Optional[str] = None, description: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>PaymentObject(reference_id: str, sender: diem.offchain.types.payment_types.PaymentActorObject, receiver: diem.offchain.types.payment_types.PaymentActorObject, action: diem.offchain.types.payment_types.PaymentActionObject, original_payment_reference_id: Optional[str] = None, recipient_signature: Optional[str] = None, description: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class PaymentObject:
+    reference_id: str = datafield(metadata={&#34;valid-values&#34;: UUID_REGEX})
+    sender: PaymentActorObject
+    receiver: PaymentActorObject
+    action: PaymentActionObject = datafield(metadata={&#34;write_once&#34;: True})
+    original_payment_reference_id: typing.Optional[str] = datafield(
+        default=None, metadata={&#34;immutable&#34;: True, &#34;valid-values&#34;: UUID_REGEX}
+    )
+    recipient_signature: typing.Optional[str] = datafield(default=None, metadata={&#34;write_once&#34;: True})
+    description: typing.Optional[str] = datafield(default=None, metadata={&#34;write_once&#34;: True})</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.PaymentObject.action"><code class="name">var <span class="ident">action</span> : <a title="diem.offchain.types.payment_types.PaymentActionObject" href="#diem.offchain.types.payment_types.PaymentActionObject">PaymentActionObject</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject.description"><code class="name">var <span class="ident">description</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject.original_payment_reference_id"><code class="name">var <span class="ident">original_payment_reference_id</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject.receiver"><code class="name">var <span class="ident">receiver</span> : <a title="diem.offchain.types.payment_types.PaymentActorObject" href="#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject.recipient_signature"><code class="name">var <span class="ident">recipient_signature</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject.reference_id"><code class="name">var <span class="ident">reference_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.PaymentObject.sender"><code class="name">var <span class="ident">sender</span> : <a title="diem.offchain.types.payment_types.PaymentActorObject" href="#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.Status"><code class="flex name class">
+<span>class <span class="ident">Status</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Status:
+    # No status is yet set from this actor.
+    none = &#34;none&#34;
+    # KYC data about the subaddresses is required by this actor.
+    needs_kyc_data = &#34;needs_kyc_data&#34;
+    # Transaction is ready for settlement according to this actor
+    ready_for_settlement = &#34;ready_for_settlement&#34;
+    # Indicates the actor wishes to abort this payment, instead of settling it.
+    abort = &#34;abort&#34;
+    # KYC data resulted in a soft-match, request additional_kyc_data.
+    soft_match = &#34;soft_match&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.Status.abort"><code class="name">var <span class="ident">abort</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.Status.needs_kyc_data"><code class="name">var <span class="ident">needs_kyc_data</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.Status.none"><code class="name">var <span class="ident">none</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.Status.ready_for_settlement"><code class="name">var <span class="ident">ready_for_settlement</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.Status.soft_match"><code class="name">var <span class="ident">soft_match</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.payment_types.StatusObject"><code class="flex name class">
+<span>class <span class="ident">StatusObject</span></span>
+<span>(</span><span>status: str, abort_code: Optional[str] = None, abort_message: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>StatusObject(status: str, abort_code: Optional[str] = None, abort_message: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class StatusObject:
+    # Status of the payment from the perspective of this actor. Required
+    status: str = datafield(
+        metadata={
+            &#34;valid-values&#34;: [
+                Status.none,
+                Status.needs_kyc_data,
+                Status.ready_for_settlement,
+                Status.abort,
+                Status.soft_match,
+            ]
+        }
+    )
+    # In the case of an abort status, this field may be used to describe the reason for the abort.
+    abort_code: typing.Optional[str] = datafield(default=None)
+    # Additional details about this error. To be used only when code is populated
+    abort_message: typing.Optional[str] = datafield(default=None)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.payment_types.StatusObject.abort_code"><code class="name">var <span class="ident">abort_code</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.StatusObject.abort_message"><code class="name">var <span class="ident">abort_message</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.payment_types.StatusObject.status"><code class="name">var <span class="ident">status</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.offchain.types" href="index.html">diem.offchain.types</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.AbortCode" href="#diem.offchain.types.payment_types.AbortCode">AbortCode</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.AbortCode.reject_kyc_data" href="#diem.offchain.types.payment_types.AbortCode.reject_kyc_data">reject_kyc_data</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.AddressObject" href="#diem.offchain.types.payment_types.AddressObject">AddressObject</a></code></h4>
+<ul class="two-column">
+<li><code><a title="diem.offchain.types.payment_types.AddressObject.city" href="#diem.offchain.types.payment_types.AddressObject.city">city</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.AddressObject.country" href="#diem.offchain.types.payment_types.AddressObject.country">country</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.AddressObject.line1" href="#diem.offchain.types.payment_types.AddressObject.line1">line1</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.AddressObject.line2" href="#diem.offchain.types.payment_types.AddressObject.line2">line2</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.AddressObject.postal_code" href="#diem.offchain.types.payment_types.AddressObject.postal_code">postal_code</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.AddressObject.state" href="#diem.offchain.types.payment_types.AddressObject.state">state</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.KycDataObject" href="#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></code></h4>
+<ul class="two-column">
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.address" href="#diem.offchain.types.payment_types.KycDataObject.address">address</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.dob" href="#diem.offchain.types.payment_types.KycDataObject.dob">dob</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.given_name" href="#diem.offchain.types.payment_types.KycDataObject.given_name">given_name</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.legal_entity_name" href="#diem.offchain.types.payment_types.KycDataObject.legal_entity_name">legal_entity_name</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.national_id" href="#diem.offchain.types.payment_types.KycDataObject.national_id">national_id</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.payload_version" href="#diem.offchain.types.payment_types.KycDataObject.payload_version">payload_version</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.place_of_birth" href="#diem.offchain.types.payment_types.KycDataObject.place_of_birth">place_of_birth</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.surname" href="#diem.offchain.types.payment_types.KycDataObject.surname">surname</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObject.type" href="#diem.offchain.types.payment_types.KycDataObject.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.KycDataObjectType" href="#diem.offchain.types.payment_types.KycDataObjectType">KycDataObjectType</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.KycDataObjectType.entity" href="#diem.offchain.types.payment_types.KycDataObjectType.entity">entity</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.KycDataObjectType.individual" href="#diem.offchain.types.payment_types.KycDataObjectType.individual">individual</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.NationalIdObject" href="#diem.offchain.types.payment_types.NationalIdObject">NationalIdObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.NationalIdObject.country" href="#diem.offchain.types.payment_types.NationalIdObject.country">country</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.NationalIdObject.id_value" href="#diem.offchain.types.payment_types.NationalIdObject.id_value">id_value</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.NationalIdObject.type" href="#diem.offchain.types.payment_types.NationalIdObject.type">type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.PaymentActionObject" href="#diem.offchain.types.payment_types.PaymentActionObject">PaymentActionObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.PaymentActionObject.action" href="#diem.offchain.types.payment_types.PaymentActionObject.action">action</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActionObject.amount" href="#diem.offchain.types.payment_types.PaymentActionObject.amount">amount</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActionObject.currency" href="#diem.offchain.types.payment_types.PaymentActionObject.currency">currency</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActionObject.timestamp" href="#diem.offchain.types.payment_types.PaymentActionObject.timestamp">timestamp</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.PaymentActorObject" href="#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.PaymentActorObject.additional_kyc_data" href="#diem.offchain.types.payment_types.PaymentActorObject.additional_kyc_data">additional_kyc_data</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActorObject.address" href="#diem.offchain.types.payment_types.PaymentActorObject.address">address</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActorObject.kyc_data" href="#diem.offchain.types.payment_types.PaymentActorObject.kyc_data">kyc_data</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActorObject.metadata" href="#diem.offchain.types.payment_types.PaymentActorObject.metadata">metadata</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentActorObject.status" href="#diem.offchain.types.payment_types.PaymentActorObject.status">status</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.PaymentCommandObject" href="#diem.offchain.types.payment_types.PaymentCommandObject">PaymentCommandObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.PaymentCommandObject.payment" href="#diem.offchain.types.payment_types.PaymentCommandObject.payment">payment</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.PaymentObject" href="#diem.offchain.types.payment_types.PaymentObject">PaymentObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.action" href="#diem.offchain.types.payment_types.PaymentObject.action">action</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.description" href="#diem.offchain.types.payment_types.PaymentObject.description">description</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.original_payment_reference_id" href="#diem.offchain.types.payment_types.PaymentObject.original_payment_reference_id">original_payment_reference_id</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.receiver" href="#diem.offchain.types.payment_types.PaymentObject.receiver">receiver</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.recipient_signature" href="#diem.offchain.types.payment_types.PaymentObject.recipient_signature">recipient_signature</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.reference_id" href="#diem.offchain.types.payment_types.PaymentObject.reference_id">reference_id</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.PaymentObject.sender" href="#diem.offchain.types.payment_types.PaymentObject.sender">sender</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.Status" href="#diem.offchain.types.payment_types.Status">Status</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.Status.abort" href="#diem.offchain.types.payment_types.Status.abort">abort</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.Status.needs_kyc_data" href="#diem.offchain.types.payment_types.Status.needs_kyc_data">needs_kyc_data</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.Status.none" href="#diem.offchain.types.payment_types.Status.none">none</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.Status.ready_for_settlement" href="#diem.offchain.types.payment_types.Status.ready_for_settlement">ready_for_settlement</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.Status.soft_match" href="#diem.offchain.types.payment_types.Status.soft_match">soft_match</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.payment_types.StatusObject" href="#diem.offchain.types.payment_types.StatusObject">StatusObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.payment_types.StatusObject.abort_code" href="#diem.offchain.types.payment_types.StatusObject.abort_code">abort_code</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.StatusObject.abort_message" href="#diem.offchain.types.payment_types.StatusObject.abort_message">abort_message</a></code></li>
+<li><code><a title="diem.offchain.types.payment_types.StatusObject.status" href="#diem.offchain.types.payment_types.StatusObject.status">status</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

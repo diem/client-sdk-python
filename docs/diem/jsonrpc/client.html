@@ -1,0 +1,2226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.jsonrpc.client API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.jsonrpc.client</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+
+import time
+import copy
+import dataclasses
+import google.protobuf.json_format as parser
+import requests
+import threading
+import typing
+import random
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+
+from .. import diem_types, utils
+from . import jsonrpc_pb2 as rpc
+from . import constants
+
+
+DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
+DEFAULT_TIMEOUT_SECS: float = 30.0
+DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS: float = 30.0
+DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS: float = 0.2
+
+
+class JsonRpcError(Exception):
+    pass
+
+
+class NetworkError(Exception):
+    pass
+
+
+class InvalidServerResponse(Exception):
+    pass
+
+
+class StaleResponseError(Exception):
+    pass
+
+
+class TransactionHashMismatchError(Exception):
+    pass
+
+
+class TransactionExecutionFailed(Exception):
+    pass
+
+
+class TransactionExpired(Exception):
+    pass
+
+
+class WaitForTransactionTimeout(Exception):
+    pass
+
+
+class AccountNotFoundError(ValueError):
+    pass
+
+
+@dataclasses.dataclass
+class State:
+    chain_id: int
+    version: int
+    timestamp_usecs: int
+
+
+@dataclasses.dataclass
+class Retry:
+    max_retries: int
+    delay_secs: float
+    exception: typing.Type[Exception]
+
+    def execute(self, fn: typing.Callable):  # pyre-ignore
+        tries = 0
+        while tries &lt; self.max_retries:
+            tries += 1
+            try:
+                return fn()
+            except self.exception as e:
+                if tries &lt; self.max_retries:
+                    # simplest backoff strategy: tries * delay
+                    time.sleep(self.delay_secs * tries)
+                else:
+                    raise e
+
+
+class RequestStrategy:
+    &#34;&#34;&#34;RequestStrategy base class
+
+    It implements the simplest strategy: direct send http request
+    &#34;&#34;&#34;
+
+    def send_request(
+        self, client: &#34;Client&#34;, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    ) -&gt; typing.Dict[str, typing.Any]:
+        return client._send_http_request(client._url, request, ignore_stale_response)
+
+
+class RequestWithBackups(RequestStrategy):
+    &#34;&#34;&#34;RequestWithBackups implements strategies for primary-backup model.
+
+    First we send same request to primary and one of random picked backup urls in parallel.
+    Then we have 2 different strategies for how we handle responses:
+
+    1. first success: return first completed success response.
+    2. fallback: wait for primary response completed, if it failed, fallback to backup response.
+
+    Default is first success strategy, passing fallback=True in constructor to enable fallback strategy.
+
+    Errors cause failures:
+
+    1. http request error
+    2. http response error
+    3. response body is not json
+    4. StaleResponseError: this is included for making sure we always prefer to pick non-stale response.
+
+    Initialize Client:
+
+    ```python
+    from concurrent.futures import ThreadPoolExecutor
+    from diem import jsonrpc
+
+    # This controls how many concurrent requests we can sent. It is shared for all jsonrpc.Client requests.
+    executor = ThreadPoolExecutor(5)
+    jsonrpc.Client(
+        &lt;primary-json-rpc-server-url&gt;
+        rs=jsonrpc.RequestWithBackups(backups=[&lt;backup-json-rpc-server-url&gt;...], executor=executor),
+    )
+    ```
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        backups: typing.List[str],
+        executor: ThreadPoolExecutor,
+        fallback: bool = False,
+    ) -&gt; None:
+        self._backups = backups
+        self._executor = executor
+        self._fallback = fallback
+
+    def send_request(
+        self, client: &#34;Client&#34;, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    ) -&gt; typing.Dict[str, typing.Any]:
+        primary = self._executor.submit(client._send_http_request, client._url, request, ignore_stale_response)
+        backup = self._executor.submit(
+            client._send_http_request, random.choice(self._backups), request, ignore_stale_response
+        )
+
+        if self._fallback:
+            return self._fallback_to_backup(primary, backup)
+        return self._first_success(primary, backup)
+
+    def _fallback_to_backup(self, primary: Future, backup: Future) -&gt; typing.Dict[str, typing.Any]:
+        try:
+            return primary.result()
+        except Exception:
+            return backup.result()
+
+    def _first_success(self, primary: Future, backup: Future) -&gt; typing.Dict[str, typing.Any]:
+        futures = as_completed({primary, backup})
+        first = next(futures)
+        try:
+            return first.result()
+        except Exception:
+            return next(futures).result()
+
+
+class Client:
+    &#34;&#34;&#34;Diem JSON-RPC API client
+
+    [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        server_url: str,
+        session: typing.Optional[requests.Session] = None,
+        timeout: typing.Optional[typing.Tuple[float, float]] = None,
+        retry: typing.Optional[Retry] = None,
+        rs: typing.Optional[RequestStrategy] = None,
+    ) -&gt; None:
+        self._url: str = server_url
+        self._session: requests.Session = session or requests.Session()
+        self._timeout: typing.Tuple[float, float] = timeout or (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
+        self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
+        self._lock = threading.Lock()
+        self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
+        self._rs: RequestStrategy = rs or RequestStrategy()
+
+    # high level functions
+
+    def get_parent_vasp_account(
+        self, vasp_account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -&gt; rpc.Account:
+        &#34;&#34;&#34;get parent_vasp account
+
+        accepts child/parent vasp account address, returns parent vasp account
+
+        raise ValueError if given account address is not ChildVASP or ParentVASP account
+        address
+        raise AccountNotFoundError if no account found by given account address, or
+        could not find the account by the parent_vasp_address found in ChildVASP account.
+        &#34;&#34;&#34;
+
+        account = self.must_get_account(vasp_account_address)
+
+        if account.role.type == constants.ACCOUNT_ROLE_PARENT_VASP:
+            return account
+        if account.role.type == constants.ACCOUNT_ROLE_CHILD_VASP:
+            return self.get_parent_vasp_account(account.role.parent_vasp_address)
+
+        hex = utils.account_address_hex(vasp_account_address)
+        raise ValueError(f&#34;given account address({hex}) is not a VASP account: {account}&#34;)
+
+    def get_base_url_and_compliance_key(
+        self, account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -&gt; typing.Tuple[str, Ed25519PublicKey]:
+        &#34;&#34;&#34;get base_url and compliance key
+
+        ParentVASP or Designated Dealer account role has base_url and compliance key setup, which
+        are used for offchain API communication.
+        &#34;&#34;&#34;
+        account = self.must_get_account(account_address)
+
+        if account.role.compliance_key and account.role.base_url:
+            key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(account.role.compliance_key))
+            return (account.role.base_url, key)
+        if account.role.parent_vasp_address:
+            return self.get_base_url_and_compliance_key(account.role.parent_vasp_address)
+
+        raise ValueError(f&#34;could not find base_url and compliance_key from account: {account}&#34;)
+
+    def must_get_account(self, account_address: typing.Union[diem_types.AccountAddress, str]) -&gt; rpc.Account:
+        &#34;&#34;&#34;must_get_account raises AccountNotFoundError if account could not be found by given address&#34;&#34;&#34;
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f&#34;account not found by address: {hex}&#34;)
+        return account
+
+    def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -&gt; int:
+        &#34;&#34;&#34;get on-chain account sequence number
+
+        Calls get_account to find on-chain account information and return it&#39;s sequence.
+        Raises AccountNotFoundError if get_account returns None
+        &#34;&#34;&#34;
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f&#34;account not found by address: {hex}&#34;)
+
+        return int(account.sequence_number)
+
+    # low level functions
+
+    def get_last_known_state(self) -&gt; State:
+        &#34;&#34;&#34;get last known server state
+
+        All JSON-RPC service response contains chain_id, latest ledger state version and
+        ledger state timestamp usecs.
+        Returns a state with all -1 values if the client never called server after initialized.
+        Last known state is used for tracking server response, making sure we won&#39;t hit stale
+        server.
+        &#34;&#34;&#34;
+
+        with self._lock:
+            return copy.copy(self._last_known_server_state)
+
+    def update_last_known_state(self, chain_id: int, version: int, timestamp_usecs: int) -&gt; None:
+        &#34;&#34;&#34;update last known server state
+
+        Raises InvalidServerResponse if given chain_id mismatches with previous value
+
+        Raises StaleResponseError if version or timestamp_usecs is less than previous values
+        &#34;&#34;&#34;
+
+        with self._lock:
+            curr = self._last_known_server_state
+            if curr.chain_id != -1 and curr.chain_id != chain_id:
+                raise InvalidServerResponse(f&#34;last known chain id {curr.chain_id}, &#34; f&#34;but got {chain_id}&#34;)
+            if curr.version &gt; version:
+                raise StaleResponseError(f&#34;last known version {curr.version} &gt; {version}&#34;)
+            if curr.timestamp_usecs &gt; timestamp_usecs:
+                raise StaleResponseError(f&#34;last known timestamp_usecs {curr.timestamp_usecs} &gt; {timestamp_usecs}&#34;)
+
+            self._last_known_server_state = State(
+                chain_id=chain_id,
+                version=version,
+                timestamp_usecs=timestamp_usecs,
+            )
+
+    def get_metadata(
+        self,
+        version: typing.Optional[int] = None,
+    ) -&gt; rpc.Metadata:
+        &#34;&#34;&#34;get block metadata
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md)
+        &#34;&#34;&#34;
+
+        params = [int(version)] if version else []
+        return self.execute(&#34;get_metadata&#34;, params, _parse_obj(lambda: rpc.Metadata()))
+
+    def get_currencies(self) -&gt; typing.List[rpc.CurrencyInfo]:
+        &#34;&#34;&#34;get currencies
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_currencies.md)
+        &#34;&#34;&#34;
+
+        return self.execute(&#34;get_currencies&#34;, [], _parse_list(lambda: rpc.CurrencyInfo()))
+
+    def get_account(
+        self, account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -&gt; typing.Optional[rpc.Account]:
+        &#34;&#34;&#34;get on-chain account information
+
+        Returns None if account not found
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account.md)
+        &#34;&#34;&#34;
+
+        address = utils.account_address_hex(account_address)
+        return self.execute(&#34;get_account&#34;, [address], _parse_obj(lambda: rpc.Account()))
+
+    def get_account_transaction(
+        self,
+        account_address: typing.Union[diem_types.AccountAddress, str],
+        sequence: int,
+        include_events: typing.Optional[bool] = None,
+    ) -&gt; typing.Optional[rpc.Transaction]:
+        &#34;&#34;&#34;get on-chain account transaction by sequence number
+
+        Returns None if transaction is not found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transaction.md)
+        &#34;&#34;&#34;
+
+        address = utils.account_address_hex(account_address)
+        params = [address, int(sequence), bool(include_events)]
+        return self.execute(&#34;get_account_transaction&#34;, params, _parse_obj(lambda: rpc.Transaction()))
+
+    def get_account_transactions(
+        self,
+        account_address: typing.Union[diem_types.AccountAddress, str],
+        sequence: int,
+        limit: int,
+        include_events: typing.Optional[bool] = None,
+    ) -&gt; typing.List[rpc.Transaction]:
+        &#34;&#34;&#34;get on-chain account transactions by start sequence number and limit size
+
+        Returns empty list if no transactions found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transactions.md)
+        &#34;&#34;&#34;
+
+        address = utils.account_address_hex(account_address)
+        params = [address, int(sequence), int(limit), bool(include_events)]
+        return self.execute(&#34;get_account_transactions&#34;, params, _parse_list(lambda: rpc.Transaction()))
+
+    def get_transactions(
+        self,
+        start_version: int,
+        limit: int,
+        include_events: typing.Optional[bool] = None,
+    ) -&gt; typing.List[rpc.Transaction]:
+        &#34;&#34;&#34;get transactions
+
+        Returns empty list if no transactions found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_transactions.md)
+        &#34;&#34;&#34;
+
+        params = [int(start_version), int(limit), bool(include_events)]
+        return self.execute(&#34;get_transactions&#34;, params, _parse_list(lambda: rpc.Transaction()))
+
+    def get_events(self, event_stream_key: str, start: int, limit: int) -&gt; typing.List[rpc.Event]:
+        &#34;&#34;&#34;get events
+
+        Returns empty list if no events found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_events.md)
+        &#34;&#34;&#34;
+
+        params = [event_stream_key, int(start), int(limit)]
+        return self.execute(&#34;get_events&#34;, params, _parse_list(lambda: rpc.Event()))
+
+    def get_state_proof(self, version: int) -&gt; rpc.StateProof:
+        params = [int(version)]
+        return self.execute(&#34;get_state_proof&#34;, params, _parse_obj(lambda: rpc.StateProof()))
+
+    def get_account_state_with_proof(
+        self,
+        account_address: diem_types.AccountAddress,
+        version: typing.Optional[int] = None,
+        ledger_version: typing.Optional[int] = None,
+    ) -&gt; rpc.AccountStateWithProof:
+        address = utils.account_address_hex(account_address)
+        params = [address, version, ledger_version]
+        return self.execute(&#34;get_account_state_with_proof&#34;, params, _parse_obj(lambda: rpc.AccountStateWithProof()))
+
+    def submit(
+        self,
+        txn: typing.Union[diem_types.SignedTransaction, str],
+    ) -&gt; None:
+        &#34;&#34;&#34;submit signed transaction
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+        &#34;&#34;&#34;
+
+        if isinstance(txn, diem_types.SignedTransaction):
+            return self.submit(txn.bcs_serialize().hex())
+
+        self.execute(&#34;submit&#34;, [txn], result_parser=None)
+
+    def wait_for_transaction(
+        self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
+    ) -&gt; rpc.Transaction:
+        &#34;&#34;&#34;wait for transaction executed
+
+        Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
+        Raises TransactionExpired if server responses new block timestamp is after signed transaction
+        expiration_timestamp_secs.
+
+        Raises TransactionExecutionFailed if found transaction and it&#39;s vm_status (execution result)
+        is not success.
+
+        Raises TransactionHashMismatchError if found transaction by account address and sequence
+        number, but the transaction hash does not match the transactoin hash given in parameter.
+        This means the executed transaction is from another process (which submitted transaction
+        with same account address and sequence).
+        &#34;&#34;&#34;
+
+        if isinstance(txn, str):
+            txn_obj = diem_types.SignedTransaction.bcs_deserialize(bytes.fromhex(txn))
+            return self.wait_for_transaction(txn_obj, timeout_secs)
+
+        return self.wait_for_transaction2(
+            txn.raw_txn.sender,
+            txn.raw_txn.sequence_number,
+            txn.raw_txn.expiration_timestamp_secs,
+            utils.transaction_hash(txn),
+            timeout_secs,
+        )
+
+    def wait_for_transaction2(
+        self,
+        address: diem_types.AccountAddress,
+        seq: int,
+        expiration_time_secs: int,
+        txn_hash: str,
+        timeout_secs: typing.Optional[float] = None,
+        wait_duration_secs: typing.Optional[float] = None,
+    ) -&gt; rpc.Transaction:
+        &#34;&#34;&#34;wait for transaction executed
+
+        Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
+        Raises TransactionExpired if server responses new block timestamp is after signed transaction
+        expiration_timestamp_secs.
+
+        Raises TransactionExecutionFailed if found transaction and it&#39;s vm_status (execution result)
+        is not success.
+
+        Raises TransactionHashMismatchError if found transaction by account address and sequence
+        number, but the transaction hash does not match the transactoin hash given in parameter.
+        This means the executed transaction is from another process (which submitted transaction
+        with same account address and sequence).
+        &#34;&#34;&#34;
+
+        max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
+        while time.time() &lt; max_wait:
+            txn = self.get_account_transaction(address, seq, True)
+            if txn is not None:
+                if txn.hash != txn_hash:
+                    raise TransactionHashMismatchError(f&#34;expected hash {txn_hash}, but got {txn.hash}&#34;)
+                if txn.vm_status.type != constants.VM_STATUS_EXECUTED:
+                    raise TransactionExecutionFailed(f&#34;VM status: {txn.vm_status}&#34;)
+                return txn
+            state = self.get_last_known_state()
+            if expiration_time_secs * 1_000_000 &lt;= state.timestamp_usecs:
+                raise TransactionExpired(
+                    f&#34;latest server ledger timestamp_usecs {state.timestamp_usecs}, &#34;
+                    f&#34;transaction expires at {expiration_time_secs}&#34;
+                )
+            time.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
+
+        raise WaitForTransactionTimeout()
+
+    # pyre-ignore
+    def execute(
+        self,
+        method: str,
+        params: typing.List[typing.Any],  # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
+        ignore_stale_response: typing.Optional[bool] = None,
+    ):
+        &#34;&#34;&#34;execute JSON-RPC method call
+
+        This method handles StableResponseError with retry.
+        Should only be called by get methods.
+        &#34;&#34;&#34;
+
+        return self._retry.execute(
+            lambda: self.execute_without_retry(method, params, result_parser, ignore_stale_response)
+        )
+
+    # pyre-ignore
+    def execute_without_retry(
+        self,
+        method: str,
+        params: typing.List[typing.Any],  # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
+        ignore_stale_response: typing.Optional[bool] = None,
+    ):
+        &#34;&#34;&#34;execute JSON-RPC method call without retry any error.
+
+
+        Raises InvalidServerResponse if server response does not match
+        [JSON-RPC SPEC 2.0](https://www.jsonrpc.org/specification), or response result can&#39;t be parsed.
+
+        Raises StaleResponseError if ignore_stale_response is True, otherwise ignores it and continue.
+
+        Raises JsonRpcError if server JSON-RPC response with error object.
+
+        Raises NetworkError if send http request failed, or received server response status is not 200.
+        &#34;&#34;&#34;
+
+        request = {
+            &#34;jsonrpc&#34;: &#34;2.0&#34;,
+            &#34;id&#34;: 1,
+            &#34;method&#34;: method,
+            &#34;params&#34;: params or [],
+        }
+        try:
+            json = self._rs.send_request(self, request, ignore_stale_response or False)
+            if &#34;error&#34; in json:
+                err = json[&#34;error&#34;]
+                raise JsonRpcError(f&#34;{err}&#34;)
+
+            if &#34;result&#34; in json:
+                if result_parser:
+                    return result_parser(json[&#34;result&#34;])
+                return
+
+            raise InvalidServerResponse(f&#34;No error or result in response: {json}&#34;)
+        except requests.RequestException as e:
+            raise NetworkError(f&#34;Error in connecting to server: {e}\nPlease retry...&#34;)
+        except parser.ParseError as e:
+            raise InvalidServerResponse(f&#34;Parse result failed: {e}, response: {json}&#34;)
+
+    def _send_http_request(
+        self,
+        url: str,
+        request: typing.Dict[str, typing.Any],
+        ignore_stale_response: bool,
+    ) -&gt; typing.Dict[str, typing.Any]:
+        response = self._session.post(url, json=request, timeout=self._timeout)
+        response.raise_for_status()
+        try:
+            json = response.json()
+        except ValueError as e:
+            raise InvalidServerResponse(f&#34;Parse response as json failed: {e}, response: {response.text}&#34;)
+
+        # check stable response before check jsonrpc error
+        try:
+            self.update_last_known_state(
+                json.get(&#34;diem_chain_id&#34;),
+                json.get(&#34;diem_ledger_version&#34;),
+                json.get(&#34;diem_ledger_timestampusec&#34;),
+            )
+        except StaleResponseError as e:
+            if not ignore_stale_response:
+                raise e
+
+        return json
+
+
+def _parse_obj(factory):  # pyre-ignore
+    return lambda result: parser.ParseDict(result, factory(), ignore_unknown_fields=True) if result else None
+
+
+def _parse_list(factory):  # pyre-ignore
+    parser = _parse_obj(factory)
+    return lambda result: list(map(parser, result)) if result else []</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.jsonrpc.client.AccountNotFoundError"><code class="flex name class">
+<span>class <span class="ident">AccountNotFoundError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AccountNotFoundError(ValueError):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.Client"><code class="flex name class">
+<span>class <span class="ident">Client</span></span>
+<span>(</span><span>server_url: str, session: Optional[requests.sessions.Session] = None, timeout: Optional[Tuple[float, float]] = None, retry: Optional[<a title="diem.jsonrpc.client.Retry" href="#diem.jsonrpc.client.Retry">Retry</a>] = None, rs: Optional[<a title="diem.jsonrpc.client.RequestStrategy" href="#diem.jsonrpc.client.RequestStrategy">RequestStrategy</a>] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Diem JSON-RPC API client</p>
+<p><a href="https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md">SPEC</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Client:
+    &#34;&#34;&#34;Diem JSON-RPC API client
+
+    [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        server_url: str,
+        session: typing.Optional[requests.Session] = None,
+        timeout: typing.Optional[typing.Tuple[float, float]] = None,
+        retry: typing.Optional[Retry] = None,
+        rs: typing.Optional[RequestStrategy] = None,
+    ) -&gt; None:
+        self._url: str = server_url
+        self._session: requests.Session = session or requests.Session()
+        self._timeout: typing.Tuple[float, float] = timeout or (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
+        self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
+        self._lock = threading.Lock()
+        self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
+        self._rs: RequestStrategy = rs or RequestStrategy()
+
+    # high level functions
+
+    def get_parent_vasp_account(
+        self, vasp_account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -&gt; rpc.Account:
+        &#34;&#34;&#34;get parent_vasp account
+
+        accepts child/parent vasp account address, returns parent vasp account
+
+        raise ValueError if given account address is not ChildVASP or ParentVASP account
+        address
+        raise AccountNotFoundError if no account found by given account address, or
+        could not find the account by the parent_vasp_address found in ChildVASP account.
+        &#34;&#34;&#34;
+
+        account = self.must_get_account(vasp_account_address)
+
+        if account.role.type == constants.ACCOUNT_ROLE_PARENT_VASP:
+            return account
+        if account.role.type == constants.ACCOUNT_ROLE_CHILD_VASP:
+            return self.get_parent_vasp_account(account.role.parent_vasp_address)
+
+        hex = utils.account_address_hex(vasp_account_address)
+        raise ValueError(f&#34;given account address({hex}) is not a VASP account: {account}&#34;)
+
+    def get_base_url_and_compliance_key(
+        self, account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -&gt; typing.Tuple[str, Ed25519PublicKey]:
+        &#34;&#34;&#34;get base_url and compliance key
+
+        ParentVASP or Designated Dealer account role has base_url and compliance key setup, which
+        are used for offchain API communication.
+        &#34;&#34;&#34;
+        account = self.must_get_account(account_address)
+
+        if account.role.compliance_key and account.role.base_url:
+            key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(account.role.compliance_key))
+            return (account.role.base_url, key)
+        if account.role.parent_vasp_address:
+            return self.get_base_url_and_compliance_key(account.role.parent_vasp_address)
+
+        raise ValueError(f&#34;could not find base_url and compliance_key from account: {account}&#34;)
+
+    def must_get_account(self, account_address: typing.Union[diem_types.AccountAddress, str]) -&gt; rpc.Account:
+        &#34;&#34;&#34;must_get_account raises AccountNotFoundError if account could not be found by given address&#34;&#34;&#34;
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f&#34;account not found by address: {hex}&#34;)
+        return account
+
+    def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -&gt; int:
+        &#34;&#34;&#34;get on-chain account sequence number
+
+        Calls get_account to find on-chain account information and return it&#39;s sequence.
+        Raises AccountNotFoundError if get_account returns None
+        &#34;&#34;&#34;
+
+        account = self.get_account(account_address)
+        if account is None:
+            hex = utils.account_address_hex(account_address)
+            raise AccountNotFoundError(f&#34;account not found by address: {hex}&#34;)
+
+        return int(account.sequence_number)
+
+    # low level functions
+
+    def get_last_known_state(self) -&gt; State:
+        &#34;&#34;&#34;get last known server state
+
+        All JSON-RPC service response contains chain_id, latest ledger state version and
+        ledger state timestamp usecs.
+        Returns a state with all -1 values if the client never called server after initialized.
+        Last known state is used for tracking server response, making sure we won&#39;t hit stale
+        server.
+        &#34;&#34;&#34;
+
+        with self._lock:
+            return copy.copy(self._last_known_server_state)
+
+    def update_last_known_state(self, chain_id: int, version: int, timestamp_usecs: int) -&gt; None:
+        &#34;&#34;&#34;update last known server state
+
+        Raises InvalidServerResponse if given chain_id mismatches with previous value
+
+        Raises StaleResponseError if version or timestamp_usecs is less than previous values
+        &#34;&#34;&#34;
+
+        with self._lock:
+            curr = self._last_known_server_state
+            if curr.chain_id != -1 and curr.chain_id != chain_id:
+                raise InvalidServerResponse(f&#34;last known chain id {curr.chain_id}, &#34; f&#34;but got {chain_id}&#34;)
+            if curr.version &gt; version:
+                raise StaleResponseError(f&#34;last known version {curr.version} &gt; {version}&#34;)
+            if curr.timestamp_usecs &gt; timestamp_usecs:
+                raise StaleResponseError(f&#34;last known timestamp_usecs {curr.timestamp_usecs} &gt; {timestamp_usecs}&#34;)
+
+            self._last_known_server_state = State(
+                chain_id=chain_id,
+                version=version,
+                timestamp_usecs=timestamp_usecs,
+            )
+
+    def get_metadata(
+        self,
+        version: typing.Optional[int] = None,
+    ) -&gt; rpc.Metadata:
+        &#34;&#34;&#34;get block metadata
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md)
+        &#34;&#34;&#34;
+
+        params = [int(version)] if version else []
+        return self.execute(&#34;get_metadata&#34;, params, _parse_obj(lambda: rpc.Metadata()))
+
+    def get_currencies(self) -&gt; typing.List[rpc.CurrencyInfo]:
+        &#34;&#34;&#34;get currencies
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_currencies.md)
+        &#34;&#34;&#34;
+
+        return self.execute(&#34;get_currencies&#34;, [], _parse_list(lambda: rpc.CurrencyInfo()))
+
+    def get_account(
+        self, account_address: typing.Union[diem_types.AccountAddress, str]
+    ) -&gt; typing.Optional[rpc.Account]:
+        &#34;&#34;&#34;get on-chain account information
+
+        Returns None if account not found
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account.md)
+        &#34;&#34;&#34;
+
+        address = utils.account_address_hex(account_address)
+        return self.execute(&#34;get_account&#34;, [address], _parse_obj(lambda: rpc.Account()))
+
+    def get_account_transaction(
+        self,
+        account_address: typing.Union[diem_types.AccountAddress, str],
+        sequence: int,
+        include_events: typing.Optional[bool] = None,
+    ) -&gt; typing.Optional[rpc.Transaction]:
+        &#34;&#34;&#34;get on-chain account transaction by sequence number
+
+        Returns None if transaction is not found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transaction.md)
+        &#34;&#34;&#34;
+
+        address = utils.account_address_hex(account_address)
+        params = [address, int(sequence), bool(include_events)]
+        return self.execute(&#34;get_account_transaction&#34;, params, _parse_obj(lambda: rpc.Transaction()))
+
+    def get_account_transactions(
+        self,
+        account_address: typing.Union[diem_types.AccountAddress, str],
+        sequence: int,
+        limit: int,
+        include_events: typing.Optional[bool] = None,
+    ) -&gt; typing.List[rpc.Transaction]:
+        &#34;&#34;&#34;get on-chain account transactions by start sequence number and limit size
+
+        Returns empty list if no transactions found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transactions.md)
+        &#34;&#34;&#34;
+
+        address = utils.account_address_hex(account_address)
+        params = [address, int(sequence), int(limit), bool(include_events)]
+        return self.execute(&#34;get_account_transactions&#34;, params, _parse_list(lambda: rpc.Transaction()))
+
+    def get_transactions(
+        self,
+        start_version: int,
+        limit: int,
+        include_events: typing.Optional[bool] = None,
+    ) -&gt; typing.List[rpc.Transaction]:
+        &#34;&#34;&#34;get transactions
+
+        Returns empty list if no transactions found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_transactions.md)
+        &#34;&#34;&#34;
+
+        params = [int(start_version), int(limit), bool(include_events)]
+        return self.execute(&#34;get_transactions&#34;, params, _parse_list(lambda: rpc.Transaction()))
+
+    def get_events(self, event_stream_key: str, start: int, limit: int) -&gt; typing.List[rpc.Event]:
+        &#34;&#34;&#34;get events
+
+        Returns empty list if no events found
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_events.md)
+        &#34;&#34;&#34;
+
+        params = [event_stream_key, int(start), int(limit)]
+        return self.execute(&#34;get_events&#34;, params, _parse_list(lambda: rpc.Event()))
+
+    def get_state_proof(self, version: int) -&gt; rpc.StateProof:
+        params = [int(version)]
+        return self.execute(&#34;get_state_proof&#34;, params, _parse_obj(lambda: rpc.StateProof()))
+
+    def get_account_state_with_proof(
+        self,
+        account_address: diem_types.AccountAddress,
+        version: typing.Optional[int] = None,
+        ledger_version: typing.Optional[int] = None,
+    ) -&gt; rpc.AccountStateWithProof:
+        address = utils.account_address_hex(account_address)
+        params = [address, version, ledger_version]
+        return self.execute(&#34;get_account_state_with_proof&#34;, params, _parse_obj(lambda: rpc.AccountStateWithProof()))
+
+    def submit(
+        self,
+        txn: typing.Union[diem_types.SignedTransaction, str],
+    ) -&gt; None:
+        &#34;&#34;&#34;submit signed transaction
+
+        See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+        &#34;&#34;&#34;
+
+        if isinstance(txn, diem_types.SignedTransaction):
+            return self.submit(txn.bcs_serialize().hex())
+
+        self.execute(&#34;submit&#34;, [txn], result_parser=None)
+
+    def wait_for_transaction(
+        self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
+    ) -&gt; rpc.Transaction:
+        &#34;&#34;&#34;wait for transaction executed
+
+        Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
+        Raises TransactionExpired if server responses new block timestamp is after signed transaction
+        expiration_timestamp_secs.
+
+        Raises TransactionExecutionFailed if found transaction and it&#39;s vm_status (execution result)
+        is not success.
+
+        Raises TransactionHashMismatchError if found transaction by account address and sequence
+        number, but the transaction hash does not match the transactoin hash given in parameter.
+        This means the executed transaction is from another process (which submitted transaction
+        with same account address and sequence).
+        &#34;&#34;&#34;
+
+        if isinstance(txn, str):
+            txn_obj = diem_types.SignedTransaction.bcs_deserialize(bytes.fromhex(txn))
+            return self.wait_for_transaction(txn_obj, timeout_secs)
+
+        return self.wait_for_transaction2(
+            txn.raw_txn.sender,
+            txn.raw_txn.sequence_number,
+            txn.raw_txn.expiration_timestamp_secs,
+            utils.transaction_hash(txn),
+            timeout_secs,
+        )
+
+    def wait_for_transaction2(
+        self,
+        address: diem_types.AccountAddress,
+        seq: int,
+        expiration_time_secs: int,
+        txn_hash: str,
+        timeout_secs: typing.Optional[float] = None,
+        wait_duration_secs: typing.Optional[float] = None,
+    ) -&gt; rpc.Transaction:
+        &#34;&#34;&#34;wait for transaction executed
+
+        Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
+        Raises TransactionExpired if server responses new block timestamp is after signed transaction
+        expiration_timestamp_secs.
+
+        Raises TransactionExecutionFailed if found transaction and it&#39;s vm_status (execution result)
+        is not success.
+
+        Raises TransactionHashMismatchError if found transaction by account address and sequence
+        number, but the transaction hash does not match the transactoin hash given in parameter.
+        This means the executed transaction is from another process (which submitted transaction
+        with same account address and sequence).
+        &#34;&#34;&#34;
+
+        max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
+        while time.time() &lt; max_wait:
+            txn = self.get_account_transaction(address, seq, True)
+            if txn is not None:
+                if txn.hash != txn_hash:
+                    raise TransactionHashMismatchError(f&#34;expected hash {txn_hash}, but got {txn.hash}&#34;)
+                if txn.vm_status.type != constants.VM_STATUS_EXECUTED:
+                    raise TransactionExecutionFailed(f&#34;VM status: {txn.vm_status}&#34;)
+                return txn
+            state = self.get_last_known_state()
+            if expiration_time_secs * 1_000_000 &lt;= state.timestamp_usecs:
+                raise TransactionExpired(
+                    f&#34;latest server ledger timestamp_usecs {state.timestamp_usecs}, &#34;
+                    f&#34;transaction expires at {expiration_time_secs}&#34;
+                )
+            time.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
+
+        raise WaitForTransactionTimeout()
+
+    # pyre-ignore
+    def execute(
+        self,
+        method: str,
+        params: typing.List[typing.Any],  # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
+        ignore_stale_response: typing.Optional[bool] = None,
+    ):
+        &#34;&#34;&#34;execute JSON-RPC method call
+
+        This method handles StableResponseError with retry.
+        Should only be called by get methods.
+        &#34;&#34;&#34;
+
+        return self._retry.execute(
+            lambda: self.execute_without_retry(method, params, result_parser, ignore_stale_response)
+        )
+
+    # pyre-ignore
+    def execute_without_retry(
+        self,
+        method: str,
+        params: typing.List[typing.Any],  # pyre-ignore
+        result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
+        ignore_stale_response: typing.Optional[bool] = None,
+    ):
+        &#34;&#34;&#34;execute JSON-RPC method call without retry any error.
+
+
+        Raises InvalidServerResponse if server response does not match
+        [JSON-RPC SPEC 2.0](https://www.jsonrpc.org/specification), or response result can&#39;t be parsed.
+
+        Raises StaleResponseError if ignore_stale_response is True, otherwise ignores it and continue.
+
+        Raises JsonRpcError if server JSON-RPC response with error object.
+
+        Raises NetworkError if send http request failed, or received server response status is not 200.
+        &#34;&#34;&#34;
+
+        request = {
+            &#34;jsonrpc&#34;: &#34;2.0&#34;,
+            &#34;id&#34;: 1,
+            &#34;method&#34;: method,
+            &#34;params&#34;: params or [],
+        }
+        try:
+            json = self._rs.send_request(self, request, ignore_stale_response or False)
+            if &#34;error&#34; in json:
+                err = json[&#34;error&#34;]
+                raise JsonRpcError(f&#34;{err}&#34;)
+
+            if &#34;result&#34; in json:
+                if result_parser:
+                    return result_parser(json[&#34;result&#34;])
+                return
+
+            raise InvalidServerResponse(f&#34;No error or result in response: {json}&#34;)
+        except requests.RequestException as e:
+            raise NetworkError(f&#34;Error in connecting to server: {e}\nPlease retry...&#34;)
+        except parser.ParseError as e:
+            raise InvalidServerResponse(f&#34;Parse result failed: {e}, response: {json}&#34;)
+
+    def _send_http_request(
+        self,
+        url: str,
+        request: typing.Dict[str, typing.Any],
+        ignore_stale_response: bool,
+    ) -&gt; typing.Dict[str, typing.Any]:
+        response = self._session.post(url, json=request, timeout=self._timeout)
+        response.raise_for_status()
+        try:
+            json = response.json()
+        except ValueError as e:
+            raise InvalidServerResponse(f&#34;Parse response as json failed: {e}, response: {response.text}&#34;)
+
+        # check stable response before check jsonrpc error
+        try:
+            self.update_last_known_state(
+                json.get(&#34;diem_chain_id&#34;),
+                json.get(&#34;diem_ledger_version&#34;),
+                json.get(&#34;diem_ledger_timestampusec&#34;),
+            )
+        except StaleResponseError as e:
+            if not ignore_stale_response:
+                raise e
+
+        return json</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.jsonrpc.client.Client.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>self, method: str, params: List[Any], result_parser: Optional[Callable] = None, ignore_stale_response: Optional[bool] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>execute JSON-RPC method call</p>
+<p>This method handles StableResponseError with retry.
+Should only be called by get methods.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def execute(
+    self,
+    method: str,
+    params: typing.List[typing.Any],  # pyre-ignore
+    result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
+    ignore_stale_response: typing.Optional[bool] = None,
+):
+    &#34;&#34;&#34;execute JSON-RPC method call
+
+    This method handles StableResponseError with retry.
+    Should only be called by get methods.
+    &#34;&#34;&#34;
+
+    return self._retry.execute(
+        lambda: self.execute_without_retry(method, params, result_parser, ignore_stale_response)
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.execute_without_retry"><code class="name flex">
+<span>def <span class="ident">execute_without_retry</span></span>(<span>self, method: str, params: List[Any], result_parser: Optional[Callable] = None, ignore_stale_response: Optional[bool] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>execute JSON-RPC method call without retry any error.</p>
+<p>Raises InvalidServerResponse if server response does not match
+<a href="https://www.jsonrpc.org/specification">JSON-RPC SPEC 2.0</a>, or response result can't be parsed.</p>
+<p>Raises StaleResponseError if ignore_stale_response is True, otherwise ignores it and continue.</p>
+<p>Raises JsonRpcError if server JSON-RPC response with error object.</p>
+<p>Raises NetworkError if send http request failed, or received server response status is not 200.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def execute_without_retry(
+    self,
+    method: str,
+    params: typing.List[typing.Any],  # pyre-ignore
+    result_parser: typing.Optional[typing.Callable] = None,  # pyre-ignore
+    ignore_stale_response: typing.Optional[bool] = None,
+):
+    &#34;&#34;&#34;execute JSON-RPC method call without retry any error.
+
+
+    Raises InvalidServerResponse if server response does not match
+    [JSON-RPC SPEC 2.0](https://www.jsonrpc.org/specification), or response result can&#39;t be parsed.
+
+    Raises StaleResponseError if ignore_stale_response is True, otherwise ignores it and continue.
+
+    Raises JsonRpcError if server JSON-RPC response with error object.
+
+    Raises NetworkError if send http request failed, or received server response status is not 200.
+    &#34;&#34;&#34;
+
+    request = {
+        &#34;jsonrpc&#34;: &#34;2.0&#34;,
+        &#34;id&#34;: 1,
+        &#34;method&#34;: method,
+        &#34;params&#34;: params or [],
+    }
+    try:
+        json = self._rs.send_request(self, request, ignore_stale_response or False)
+        if &#34;error&#34; in json:
+            err = json[&#34;error&#34;]
+            raise JsonRpcError(f&#34;{err}&#34;)
+
+        if &#34;result&#34; in json:
+            if result_parser:
+                return result_parser(json[&#34;result&#34;])
+            return
+
+        raise InvalidServerResponse(f&#34;No error or result in response: {json}&#34;)
+    except requests.RequestException as e:
+        raise NetworkError(f&#34;Error in connecting to server: {e}\nPlease retry...&#34;)
+    except parser.ParseError as e:
+        raise InvalidServerResponse(f&#34;Parse result failed: {e}, response: {json}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_account"><code class="name flex">
+<span>def <span class="ident">get_account</span></span>(<span>self, account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> Optional[jsonrpc_pb2.Account]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get on-chain account information</p>
+<p>Returns None if account not found
+See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account(
+    self, account_address: typing.Union[diem_types.AccountAddress, str]
+) -&gt; typing.Optional[rpc.Account]:
+    &#34;&#34;&#34;get on-chain account information
+
+    Returns None if account not found
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account.md)
+    &#34;&#34;&#34;
+
+    address = utils.account_address_hex(account_address)
+    return self.execute(&#34;get_account&#34;, [address], _parse_obj(lambda: rpc.Account()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_account_sequence"><code class="name flex">
+<span>def <span class="ident">get_account_sequence</span></span>(<span>self, account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get on-chain account sequence number</p>
+<p>Calls get_account to find on-chain account information and return it's sequence.
+Raises AccountNotFoundError if get_account returns None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -&gt; int:
+    &#34;&#34;&#34;get on-chain account sequence number
+
+    Calls get_account to find on-chain account information and return it&#39;s sequence.
+    Raises AccountNotFoundError if get_account returns None
+    &#34;&#34;&#34;
+
+    account = self.get_account(account_address)
+    if account is None:
+        hex = utils.account_address_hex(account_address)
+        raise AccountNotFoundError(f&#34;account not found by address: {hex}&#34;)
+
+    return int(account.sequence_number)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_account_state_with_proof"><code class="name flex">
+<span>def <span class="ident">get_account_state_with_proof</span></span>(<span>self, account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, version: Optional[int] = None, ledger_version: Optional[int] = None) ‑> jsonrpc_pb2.AccountStateWithProof</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_state_with_proof(
+    self,
+    account_address: diem_types.AccountAddress,
+    version: typing.Optional[int] = None,
+    ledger_version: typing.Optional[int] = None,
+) -&gt; rpc.AccountStateWithProof:
+    address = utils.account_address_hex(account_address)
+    params = [address, version, ledger_version]
+    return self.execute(&#34;get_account_state_with_proof&#34;, params, _parse_obj(lambda: rpc.AccountStateWithProof()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_account_transaction"><code class="name flex">
+<span>def <span class="ident">get_account_transaction</span></span>(<span>self, account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str], sequence: int, include_events: Optional[bool] = None) ‑> Optional[jsonrpc_pb2.Transaction]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get on-chain account transaction by sequence number</p>
+<p>Returns None if transaction is not found</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transaction.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_transaction(
+    self,
+    account_address: typing.Union[diem_types.AccountAddress, str],
+    sequence: int,
+    include_events: typing.Optional[bool] = None,
+) -&gt; typing.Optional[rpc.Transaction]:
+    &#34;&#34;&#34;get on-chain account transaction by sequence number
+
+    Returns None if transaction is not found
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transaction.md)
+    &#34;&#34;&#34;
+
+    address = utils.account_address_hex(account_address)
+    params = [address, int(sequence), bool(include_events)]
+    return self.execute(&#34;get_account_transaction&#34;, params, _parse_obj(lambda: rpc.Transaction()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_account_transactions"><code class="name flex">
+<span>def <span class="ident">get_account_transactions</span></span>(<span>self, account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str], sequence: int, limit: int, include_events: Optional[bool] = None) ‑> List[jsonrpc_pb2.Transaction]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get on-chain account transactions by start sequence number and limit size</p>
+<p>Returns empty list if no transactions found</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transactions.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_transactions(
+    self,
+    account_address: typing.Union[diem_types.AccountAddress, str],
+    sequence: int,
+    limit: int,
+    include_events: typing.Optional[bool] = None,
+) -&gt; typing.List[rpc.Transaction]:
+    &#34;&#34;&#34;get on-chain account transactions by start sequence number and limit size
+
+    Returns empty list if no transactions found
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_account_transactions.md)
+    &#34;&#34;&#34;
+
+    address = utils.account_address_hex(account_address)
+    params = [address, int(sequence), int(limit), bool(include_events)]
+    return self.execute(&#34;get_account_transactions&#34;, params, _parse_list(lambda: rpc.Transaction()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_base_url_and_compliance_key"><code class="name flex">
+<span>def <span class="ident">get_base_url_and_compliance_key</span></span>(<span>self, account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> Tuple[str, cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get base_url and compliance key</p>
+<p>ParentVASP or Designated Dealer account role has base_url and compliance key setup, which
+are used for offchain API communication.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_base_url_and_compliance_key(
+    self, account_address: typing.Union[diem_types.AccountAddress, str]
+) -&gt; typing.Tuple[str, Ed25519PublicKey]:
+    &#34;&#34;&#34;get base_url and compliance key
+
+    ParentVASP or Designated Dealer account role has base_url and compliance key setup, which
+    are used for offchain API communication.
+    &#34;&#34;&#34;
+    account = self.must_get_account(account_address)
+
+    if account.role.compliance_key and account.role.base_url:
+        key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(account.role.compliance_key))
+        return (account.role.base_url, key)
+    if account.role.parent_vasp_address:
+        return self.get_base_url_and_compliance_key(account.role.parent_vasp_address)
+
+    raise ValueError(f&#34;could not find base_url and compliance_key from account: {account}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_currencies"><code class="name flex">
+<span>def <span class="ident">get_currencies</span></span>(<span>self) ‑> List[jsonrpc_pb2.CurrencyInfo]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get currencies</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_currencies.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_currencies(self) -&gt; typing.List[rpc.CurrencyInfo]:
+    &#34;&#34;&#34;get currencies
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_currencies.md)
+    &#34;&#34;&#34;
+
+    return self.execute(&#34;get_currencies&#34;, [], _parse_list(lambda: rpc.CurrencyInfo()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_events"><code class="name flex">
+<span>def <span class="ident">get_events</span></span>(<span>self, event_stream_key: str, start: int, limit: int) ‑> List[jsonrpc_pb2.Event]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get events</p>
+<p>Returns empty list if no events found</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_events.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_events(self, event_stream_key: str, start: int, limit: int) -&gt; typing.List[rpc.Event]:
+    &#34;&#34;&#34;get events
+
+    Returns empty list if no events found
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_events.md)
+    &#34;&#34;&#34;
+
+    params = [event_stream_key, int(start), int(limit)]
+    return self.execute(&#34;get_events&#34;, params, _parse_list(lambda: rpc.Event()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_last_known_state"><code class="name flex">
+<span>def <span class="ident">get_last_known_state</span></span>(<span>self) ‑> <a title="diem.jsonrpc.client.State" href="#diem.jsonrpc.client.State">State</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>get last known server state</p>
+<p>All JSON-RPC service response contains chain_id, latest ledger state version and
+ledger state timestamp usecs.
+Returns a state with all -1 values if the client never called server after initialized.
+Last known state is used for tracking server response, making sure we won't hit stale
+server.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_last_known_state(self) -&gt; State:
+    &#34;&#34;&#34;get last known server state
+
+    All JSON-RPC service response contains chain_id, latest ledger state version and
+    ledger state timestamp usecs.
+    Returns a state with all -1 values if the client never called server after initialized.
+    Last known state is used for tracking server response, making sure we won&#39;t hit stale
+    server.
+    &#34;&#34;&#34;
+
+    with self._lock:
+        return copy.copy(self._last_known_server_state)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_metadata"><code class="name flex">
+<span>def <span class="ident">get_metadata</span></span>(<span>self, version: Optional[int] = None) ‑> jsonrpc_pb2.Metadata</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get block metadata</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_metadata(
+    self,
+    version: typing.Optional[int] = None,
+) -&gt; rpc.Metadata:
+    &#34;&#34;&#34;get block metadata
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md)
+    &#34;&#34;&#34;
+
+    params = [int(version)] if version else []
+    return self.execute(&#34;get_metadata&#34;, params, _parse_obj(lambda: rpc.Metadata()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_parent_vasp_account"><code class="name flex">
+<span>def <span class="ident">get_parent_vasp_account</span></span>(<span>self, vasp_account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> jsonrpc_pb2.Account</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get parent_vasp account</p>
+<p>accepts child/parent vasp account address, returns parent vasp account</p>
+<p>raise ValueError if given account address is not ChildVASP or ParentVASP account
+address
+raise AccountNotFoundError if no account found by given account address, or
+could not find the account by the parent_vasp_address found in ChildVASP account.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_parent_vasp_account(
+    self, vasp_account_address: typing.Union[diem_types.AccountAddress, str]
+) -&gt; rpc.Account:
+    &#34;&#34;&#34;get parent_vasp account
+
+    accepts child/parent vasp account address, returns parent vasp account
+
+    raise ValueError if given account address is not ChildVASP or ParentVASP account
+    address
+    raise AccountNotFoundError if no account found by given account address, or
+    could not find the account by the parent_vasp_address found in ChildVASP account.
+    &#34;&#34;&#34;
+
+    account = self.must_get_account(vasp_account_address)
+
+    if account.role.type == constants.ACCOUNT_ROLE_PARENT_VASP:
+        return account
+    if account.role.type == constants.ACCOUNT_ROLE_CHILD_VASP:
+        return self.get_parent_vasp_account(account.role.parent_vasp_address)
+
+    hex = utils.account_address_hex(vasp_account_address)
+    raise ValueError(f&#34;given account address({hex}) is not a VASP account: {account}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_state_proof"><code class="name flex">
+<span>def <span class="ident">get_state_proof</span></span>(<span>self, version: int) ‑> jsonrpc_pb2.StateProof</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_state_proof(self, version: int) -&gt; rpc.StateProof:
+    params = [int(version)]
+    return self.execute(&#34;get_state_proof&#34;, params, _parse_obj(lambda: rpc.StateProof()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.get_transactions"><code class="name flex">
+<span>def <span class="ident">get_transactions</span></span>(<span>self, start_version: int, limit: int, include_events: Optional[bool] = None) ‑> List[jsonrpc_pb2.Transaction]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get transactions</p>
+<p>Returns empty list if no transactions found</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_transactions.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_transactions(
+    self,
+    start_version: int,
+    limit: int,
+    include_events: typing.Optional[bool] = None,
+) -&gt; typing.List[rpc.Transaction]:
+    &#34;&#34;&#34;get transactions
+
+    Returns empty list if no transactions found
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_transactions.md)
+    &#34;&#34;&#34;
+
+    params = [int(start_version), int(limit), bool(include_events)]
+    return self.execute(&#34;get_transactions&#34;, params, _parse_list(lambda: rpc.Transaction()))</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.must_get_account"><code class="name flex">
+<span>def <span class="ident">must_get_account</span></span>(<span>self, account_address: Union[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, str]) ‑> jsonrpc_pb2.Account</span>
+</code></dt>
+<dd>
+<div class="desc"><p>must_get_account raises AccountNotFoundError if account could not be found by given address</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def must_get_account(self, account_address: typing.Union[diem_types.AccountAddress, str]) -&gt; rpc.Account:
+    &#34;&#34;&#34;must_get_account raises AccountNotFoundError if account could not be found by given address&#34;&#34;&#34;
+
+    account = self.get_account(account_address)
+    if account is None:
+        hex = utils.account_address_hex(account_address)
+        raise AccountNotFoundError(f&#34;account not found by address: {hex}&#34;)
+    return account</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.submit"><code class="name flex">
+<span>def <span class="ident">submit</span></span>(<span>self, txn: Union[<a title="diem.diem_types.SignedTransaction" href="../diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a>, str]) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>submit signed transaction</p>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md">JSON-RPC API Doc</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def submit(
+    self,
+    txn: typing.Union[diem_types.SignedTransaction, str],
+) -&gt; None:
+    &#34;&#34;&#34;submit signed transaction
+
+    See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+    &#34;&#34;&#34;
+
+    if isinstance(txn, diem_types.SignedTransaction):
+        return self.submit(txn.bcs_serialize().hex())
+
+    self.execute(&#34;submit&#34;, [txn], result_parser=None)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.update_last_known_state"><code class="name flex">
+<span>def <span class="ident">update_last_known_state</span></span>(<span>self, chain_id: int, version: int, timestamp_usecs: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>update last known server state</p>
+<p>Raises InvalidServerResponse if given chain_id mismatches with previous value</p>
+<p>Raises StaleResponseError if version or timestamp_usecs is less than previous values</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_last_known_state(self, chain_id: int, version: int, timestamp_usecs: int) -&gt; None:
+    &#34;&#34;&#34;update last known server state
+
+    Raises InvalidServerResponse if given chain_id mismatches with previous value
+
+    Raises StaleResponseError if version or timestamp_usecs is less than previous values
+    &#34;&#34;&#34;
+
+    with self._lock:
+        curr = self._last_known_server_state
+        if curr.chain_id != -1 and curr.chain_id != chain_id:
+            raise InvalidServerResponse(f&#34;last known chain id {curr.chain_id}, &#34; f&#34;but got {chain_id}&#34;)
+        if curr.version &gt; version:
+            raise StaleResponseError(f&#34;last known version {curr.version} &gt; {version}&#34;)
+        if curr.timestamp_usecs &gt; timestamp_usecs:
+            raise StaleResponseError(f&#34;last known timestamp_usecs {curr.timestamp_usecs} &gt; {timestamp_usecs}&#34;)
+
+        self._last_known_server_state = State(
+            chain_id=chain_id,
+            version=version,
+            timestamp_usecs=timestamp_usecs,
+        )</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.wait_for_transaction"><code class="name flex">
+<span>def <span class="ident">wait_for_transaction</span></span>(<span>self, txn: Union[<a title="diem.diem_types.SignedTransaction" href="../diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a>, str], timeout_secs: Optional[float] = None) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"><p>wait for transaction executed</p>
+<p>Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.</p>
+<p>Raises TransactionExpired if server responses new block timestamp is after signed transaction
+expiration_timestamp_secs.</p>
+<p>Raises TransactionExecutionFailed if found transaction and it's vm_status (execution result)
+is not success.</p>
+<p>Raises TransactionHashMismatchError if found transaction by account address and sequence
+number, but the transaction hash does not match the transactoin hash given in parameter.
+This means the executed transaction is from another process (which submitted transaction
+with same account address and sequence).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for_transaction(
+    self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
+) -&gt; rpc.Transaction:
+    &#34;&#34;&#34;wait for transaction executed
+
+    Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
+    Raises TransactionExpired if server responses new block timestamp is after signed transaction
+    expiration_timestamp_secs.
+
+    Raises TransactionExecutionFailed if found transaction and it&#39;s vm_status (execution result)
+    is not success.
+
+    Raises TransactionHashMismatchError if found transaction by account address and sequence
+    number, but the transaction hash does not match the transactoin hash given in parameter.
+    This means the executed transaction is from another process (which submitted transaction
+    with same account address and sequence).
+    &#34;&#34;&#34;
+
+    if isinstance(txn, str):
+        txn_obj = diem_types.SignedTransaction.bcs_deserialize(bytes.fromhex(txn))
+        return self.wait_for_transaction(txn_obj, timeout_secs)
+
+    return self.wait_for_transaction2(
+        txn.raw_txn.sender,
+        txn.raw_txn.sequence_number,
+        txn.raw_txn.expiration_timestamp_secs,
+        utils.transaction_hash(txn),
+        timeout_secs,
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.client.Client.wait_for_transaction2"><code class="name flex">
+<span>def <span class="ident">wait_for_transaction2</span></span>(<span>self, address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, seq: int, expiration_time_secs: int, txn_hash: str, timeout_secs: Optional[float] = None, wait_duration_secs: Optional[float] = None) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"><p>wait for transaction executed</p>
+<p>Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.</p>
+<p>Raises TransactionExpired if server responses new block timestamp is after signed transaction
+expiration_timestamp_secs.</p>
+<p>Raises TransactionExecutionFailed if found transaction and it's vm_status (execution result)
+is not success.</p>
+<p>Raises TransactionHashMismatchError if found transaction by account address and sequence
+number, but the transaction hash does not match the transactoin hash given in parameter.
+This means the executed transaction is from another process (which submitted transaction
+with same account address and sequence).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for_transaction2(
+    self,
+    address: diem_types.AccountAddress,
+    seq: int,
+    expiration_time_secs: int,
+    txn_hash: str,
+    timeout_secs: typing.Optional[float] = None,
+    wait_duration_secs: typing.Optional[float] = None,
+) -&gt; rpc.Transaction:
+    &#34;&#34;&#34;wait for transaction executed
+
+    Raises WaitForTransactionTimeout if waited timeout_secs and no expected transaction found.
+
+    Raises TransactionExpired if server responses new block timestamp is after signed transaction
+    expiration_timestamp_secs.
+
+    Raises TransactionExecutionFailed if found transaction and it&#39;s vm_status (execution result)
+    is not success.
+
+    Raises TransactionHashMismatchError if found transaction by account address and sequence
+    number, but the transaction hash does not match the transactoin hash given in parameter.
+    This means the executed transaction is from another process (which submitted transaction
+    with same account address and sequence).
+    &#34;&#34;&#34;
+
+    max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
+    while time.time() &lt; max_wait:
+        txn = self.get_account_transaction(address, seq, True)
+        if txn is not None:
+            if txn.hash != txn_hash:
+                raise TransactionHashMismatchError(f&#34;expected hash {txn_hash}, but got {txn.hash}&#34;)
+            if txn.vm_status.type != constants.VM_STATUS_EXECUTED:
+                raise TransactionExecutionFailed(f&#34;VM status: {txn.vm_status}&#34;)
+            return txn
+        state = self.get_last_known_state()
+        if expiration_time_secs * 1_000_000 &lt;= state.timestamp_usecs:
+            raise TransactionExpired(
+                f&#34;latest server ledger timestamp_usecs {state.timestamp_usecs}, &#34;
+                f&#34;transaction expires at {expiration_time_secs}&#34;
+            )
+        time.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
+
+    raise WaitForTransactionTimeout()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.jsonrpc.client.InvalidServerResponse"><code class="flex name class">
+<span>class <span class="ident">InvalidServerResponse</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidServerResponse(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.JsonRpcError"><code class="flex name class">
+<span>class <span class="ident">JsonRpcError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class JsonRpcError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.NetworkError"><code class="flex name class">
+<span>class <span class="ident">NetworkError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class NetworkError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.RequestStrategy"><code class="flex name class">
+<span>class <span class="ident">RequestStrategy</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>RequestStrategy base class</p>
+<p>It implements the simplest strategy: direct send http request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RequestStrategy:
+    &#34;&#34;&#34;RequestStrategy base class
+
+    It implements the simplest strategy: direct send http request
+    &#34;&#34;&#34;
+
+    def send_request(
+        self, client: &#34;Client&#34;, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    ) -&gt; typing.Dict[str, typing.Any]:
+        return client._send_http_request(client._url, request, ignore_stale_response)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.jsonrpc.client.RequestWithBackups" href="#diem.jsonrpc.client.RequestWithBackups">RequestWithBackups</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.jsonrpc.client.RequestStrategy.send_request"><code class="name flex">
+<span>def <span class="ident">send_request</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="#diem.jsonrpc.client.Client">Client</a>, request: Dict[str, Any], ignore_stale_response: bool) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_request(
+    self, client: &#34;Client&#34;, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+) -&gt; typing.Dict[str, typing.Any]:
+    return client._send_http_request(client._url, request, ignore_stale_response)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.jsonrpc.client.RequestWithBackups"><code class="flex name class">
+<span>class <span class="ident">RequestWithBackups</span></span>
+<span>(</span><span>backups: List[str], executor: concurrent.futures.thread.ThreadPoolExecutor, fallback: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>RequestWithBackups implements strategies for primary-backup model.</p>
+<p>First we send same request to primary and one of random picked backup urls in parallel.
+Then we have 2 different strategies for how we handle responses:</p>
+<ol>
+<li>first success: return first completed success response.</li>
+<li>fallback: wait for primary response completed, if it failed, fallback to backup response.</li>
+</ol>
+<p>Default is first success strategy, passing fallback=True in constructor to enable fallback strategy.</p>
+<p>Errors cause failures:</p>
+<ol>
+<li>http request error</li>
+<li>http response error</li>
+<li>response body is not json</li>
+<li>StaleResponseError: this is included for making sure we always prefer to pick non-stale response.</li>
+</ol>
+<p>Initialize Client:</p>
+<pre><code class="language-python">from concurrent.futures import ThreadPoolExecutor
+from diem import jsonrpc
+
+# This controls how many concurrent requests we can sent. It is shared for all jsonrpc.Client requests.
+executor = ThreadPoolExecutor(5)
+jsonrpc.Client(
+    &lt;primary-json-rpc-server-url&gt;
+    rs=jsonrpc.RequestWithBackups(backups=[&lt;backup-json-rpc-server-url&gt;...], executor=executor),
+)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RequestWithBackups(RequestStrategy):
+    &#34;&#34;&#34;RequestWithBackups implements strategies for primary-backup model.
+
+    First we send same request to primary and one of random picked backup urls in parallel.
+    Then we have 2 different strategies for how we handle responses:
+
+    1. first success: return first completed success response.
+    2. fallback: wait for primary response completed, if it failed, fallback to backup response.
+
+    Default is first success strategy, passing fallback=True in constructor to enable fallback strategy.
+
+    Errors cause failures:
+
+    1. http request error
+    2. http response error
+    3. response body is not json
+    4. StaleResponseError: this is included for making sure we always prefer to pick non-stale response.
+
+    Initialize Client:
+
+    ```python
+    from concurrent.futures import ThreadPoolExecutor
+    from diem import jsonrpc
+
+    # This controls how many concurrent requests we can sent. It is shared for all jsonrpc.Client requests.
+    executor = ThreadPoolExecutor(5)
+    jsonrpc.Client(
+        &lt;primary-json-rpc-server-url&gt;
+        rs=jsonrpc.RequestWithBackups(backups=[&lt;backup-json-rpc-server-url&gt;...], executor=executor),
+    )
+    ```
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        backups: typing.List[str],
+        executor: ThreadPoolExecutor,
+        fallback: bool = False,
+    ) -&gt; None:
+        self._backups = backups
+        self._executor = executor
+        self._fallback = fallback
+
+    def send_request(
+        self, client: &#34;Client&#34;, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    ) -&gt; typing.Dict[str, typing.Any]:
+        primary = self._executor.submit(client._send_http_request, client._url, request, ignore_stale_response)
+        backup = self._executor.submit(
+            client._send_http_request, random.choice(self._backups), request, ignore_stale_response
+        )
+
+        if self._fallback:
+            return self._fallback_to_backup(primary, backup)
+        return self._first_success(primary, backup)
+
+    def _fallback_to_backup(self, primary: Future, backup: Future) -&gt; typing.Dict[str, typing.Any]:
+        try:
+            return primary.result()
+        except Exception:
+            return backup.result()
+
+    def _first_success(self, primary: Future, backup: Future) -&gt; typing.Dict[str, typing.Any]:
+        futures = as_completed({primary, backup})
+        first = next(futures)
+        try:
+            return first.result()
+        except Exception:
+            return next(futures).result()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.jsonrpc.client.RequestStrategy" href="#diem.jsonrpc.client.RequestStrategy">RequestStrategy</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.jsonrpc.client.RequestWithBackups.send_request"><code class="name flex">
+<span>def <span class="ident">send_request</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="#diem.jsonrpc.client.Client">Client</a>, request: Dict[str, Any], ignore_stale_response: bool) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_request(
+    self, client: &#34;Client&#34;, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+) -&gt; typing.Dict[str, typing.Any]:
+    primary = self._executor.submit(client._send_http_request, client._url, request, ignore_stale_response)
+    backup = self._executor.submit(
+        client._send_http_request, random.choice(self._backups), request, ignore_stale_response
+    )
+
+    if self._fallback:
+        return self._fallback_to_backup(primary, backup)
+    return self._first_success(primary, backup)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.jsonrpc.client.Retry"><code class="flex name class">
+<span>class <span class="ident">Retry</span></span>
+<span>(</span><span>max_retries: int, delay_secs: float, exception: Type[Exception])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retry(max_retries: int, delay_secs: float, exception: Type[Exception])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass
+class Retry:
+    max_retries: int
+    delay_secs: float
+    exception: typing.Type[Exception]
+
+    def execute(self, fn: typing.Callable):  # pyre-ignore
+        tries = 0
+        while tries &lt; self.max_retries:
+            tries += 1
+            try:
+                return fn()
+            except self.exception as e:
+                if tries &lt; self.max_retries:
+                    # simplest backoff strategy: tries * delay
+                    time.sleep(self.delay_secs * tries)
+                else:
+                    raise e</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.jsonrpc.client.Retry.delay_secs"><code class="name">var <span class="ident">delay_secs</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.jsonrpc.client.Retry.exception"><code class="name">var <span class="ident">exception</span> : Type[Exception]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.jsonrpc.client.Retry.max_retries"><code class="name">var <span class="ident">max_retries</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.jsonrpc.client.Retry.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>self, fn: Callable)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def execute(self, fn: typing.Callable):  # pyre-ignore
+    tries = 0
+    while tries &lt; self.max_retries:
+        tries += 1
+        try:
+            return fn()
+        except self.exception as e:
+            if tries &lt; self.max_retries:
+                # simplest backoff strategy: tries * delay
+                time.sleep(self.delay_secs * tries)
+            else:
+                raise e</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.jsonrpc.client.StaleResponseError"><code class="flex name class">
+<span>class <span class="ident">StaleResponseError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StaleResponseError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.State"><code class="flex name class">
+<span>class <span class="ident">State</span></span>
+<span>(</span><span>chain_id: int, version: int, timestamp_usecs: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>State(chain_id: int, version: int, timestamp_usecs: int)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass
+class State:
+    chain_id: int
+    version: int
+    timestamp_usecs: int</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.jsonrpc.client.State.chain_id"><code class="name">var <span class="ident">chain_id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.jsonrpc.client.State.timestamp_usecs"><code class="name">var <span class="ident">timestamp_usecs</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.jsonrpc.client.State.version"><code class="name">var <span class="ident">version</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.jsonrpc.client.TransactionExecutionFailed"><code class="flex name class">
+<span>class <span class="ident">TransactionExecutionFailed</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TransactionExecutionFailed(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.TransactionExpired"><code class="flex name class">
+<span>class <span class="ident">TransactionExpired</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TransactionExpired(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.TransactionHashMismatchError"><code class="flex name class">
+<span>class <span class="ident">TransactionHashMismatchError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TransactionHashMismatchError(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.jsonrpc.client.WaitForTransactionTimeout"><code class="flex name class">
+<span>class <span class="ident">WaitForTransactionTimeout</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WaitForTransactionTimeout(Exception):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.jsonrpc" href="index.html">diem.jsonrpc</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.jsonrpc.client.AccountNotFoundError" href="#diem.jsonrpc.client.AccountNotFoundError">AccountNotFoundError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.Client" href="#diem.jsonrpc.client.Client">Client</a></code></h4>
+<ul class="">
+<li><code><a title="diem.jsonrpc.client.Client.execute" href="#diem.jsonrpc.client.Client.execute">execute</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.execute_without_retry" href="#diem.jsonrpc.client.Client.execute_without_retry">execute_without_retry</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_account" href="#diem.jsonrpc.client.Client.get_account">get_account</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_account_sequence" href="#diem.jsonrpc.client.Client.get_account_sequence">get_account_sequence</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_account_state_with_proof" href="#diem.jsonrpc.client.Client.get_account_state_with_proof">get_account_state_with_proof</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_account_transaction" href="#diem.jsonrpc.client.Client.get_account_transaction">get_account_transaction</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_account_transactions" href="#diem.jsonrpc.client.Client.get_account_transactions">get_account_transactions</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_base_url_and_compliance_key" href="#diem.jsonrpc.client.Client.get_base_url_and_compliance_key">get_base_url_and_compliance_key</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_currencies" href="#diem.jsonrpc.client.Client.get_currencies">get_currencies</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_events" href="#diem.jsonrpc.client.Client.get_events">get_events</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_last_known_state" href="#diem.jsonrpc.client.Client.get_last_known_state">get_last_known_state</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_metadata" href="#diem.jsonrpc.client.Client.get_metadata">get_metadata</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_parent_vasp_account" href="#diem.jsonrpc.client.Client.get_parent_vasp_account">get_parent_vasp_account</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_state_proof" href="#diem.jsonrpc.client.Client.get_state_proof">get_state_proof</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.get_transactions" href="#diem.jsonrpc.client.Client.get_transactions">get_transactions</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.must_get_account" href="#diem.jsonrpc.client.Client.must_get_account">must_get_account</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.submit" href="#diem.jsonrpc.client.Client.submit">submit</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.update_last_known_state" href="#diem.jsonrpc.client.Client.update_last_known_state">update_last_known_state</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.wait_for_transaction" href="#diem.jsonrpc.client.Client.wait_for_transaction">wait_for_transaction</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Client.wait_for_transaction2" href="#diem.jsonrpc.client.Client.wait_for_transaction2">wait_for_transaction2</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.InvalidServerResponse" href="#diem.jsonrpc.client.InvalidServerResponse">InvalidServerResponse</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.JsonRpcError" href="#diem.jsonrpc.client.JsonRpcError">JsonRpcError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.NetworkError" href="#diem.jsonrpc.client.NetworkError">NetworkError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.RequestStrategy" href="#diem.jsonrpc.client.RequestStrategy">RequestStrategy</a></code></h4>
+<ul class="">
+<li><code><a title="diem.jsonrpc.client.RequestStrategy.send_request" href="#diem.jsonrpc.client.RequestStrategy.send_request">send_request</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.RequestWithBackups" href="#diem.jsonrpc.client.RequestWithBackups">RequestWithBackups</a></code></h4>
+<ul class="">
+<li><code><a title="diem.jsonrpc.client.RequestWithBackups.send_request" href="#diem.jsonrpc.client.RequestWithBackups.send_request">send_request</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.Retry" href="#diem.jsonrpc.client.Retry">Retry</a></code></h4>
+<ul class="">
+<li><code><a title="diem.jsonrpc.client.Retry.delay_secs" href="#diem.jsonrpc.client.Retry.delay_secs">delay_secs</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Retry.exception" href="#diem.jsonrpc.client.Retry.exception">exception</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Retry.execute" href="#diem.jsonrpc.client.Retry.execute">execute</a></code></li>
+<li><code><a title="diem.jsonrpc.client.Retry.max_retries" href="#diem.jsonrpc.client.Retry.max_retries">max_retries</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.StaleResponseError" href="#diem.jsonrpc.client.StaleResponseError">StaleResponseError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.State" href="#diem.jsonrpc.client.State">State</a></code></h4>
+<ul class="">
+<li><code><a title="diem.jsonrpc.client.State.chain_id" href="#diem.jsonrpc.client.State.chain_id">chain_id</a></code></li>
+<li><code><a title="diem.jsonrpc.client.State.timestamp_usecs" href="#diem.jsonrpc.client.State.timestamp_usecs">timestamp_usecs</a></code></li>
+<li><code><a title="diem.jsonrpc.client.State.version" href="#diem.jsonrpc.client.State.version">version</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.TransactionExecutionFailed" href="#diem.jsonrpc.client.TransactionExecutionFailed">TransactionExecutionFailed</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.TransactionExpired" href="#diem.jsonrpc.client.TransactionExpired">TransactionExpired</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.TransactionHashMismatchError" href="#diem.jsonrpc.client.TransactionHashMismatchError">TransactionHashMismatchError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.jsonrpc.client.WaitForTransactionTimeout" href="#diem.jsonrpc.client.WaitForTransactionTimeout">WaitForTransactionTimeout</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

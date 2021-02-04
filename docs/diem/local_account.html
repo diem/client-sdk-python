@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.local_account API documentation</title>
+<meta name="description" content="Provides LocalAccount class for holding local account private key …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.local_account</code></h1>
+</header>
+<section id="section-intro">
+<p>Provides LocalAccount class for holding local account private key.</p>
+<p>LocalAccount provides operations we need for creating auth key, account address and signing
+raw transaction.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+&#34;&#34;&#34;Provides LocalAccount class for holding local account private key.
+
+LocalAccount provides operations we need for creating auth key, account address and signing
+raw transaction.
+&#34;&#34;&#34;
+
+from . import (
+    diem_types,
+    utils,
+)
+
+from .auth_key import AuthKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+
+
+class LocalAccount:
+    &#34;&#34;&#34;LocalAccount is like a wallet account
+
+    WARN: This is handy class for creating tests for your application, but may not ideal for your
+    production code, because it uses a specific implementaion of ed25519 and requires loading your
+    private key into memory and hand over to code from external.
+    You should always choose more secure way to handle your private key
+    (e.g. https://en.wikipedia.org/wiki/Hardware_security_module) in production and do not give
+    your private key to any code from external if possible.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def generate() -&gt; &#34;LocalAccount&#34;:
+        &#34;&#34;&#34;Generate a random private key and initialize local account&#34;&#34;&#34;
+
+        private_key = Ed25519PrivateKey.generate()
+        return LocalAccount(private_key)
+
+    @staticmethod
+    def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
+        return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))
+
+    private_key: Ed25519PrivateKey
+    compliance_key: Ed25519PrivateKey
+
+    def __init__(self, private_key: Ed25519PrivateKey) -&gt; None:
+        self.private_key = private_key
+        self.compliance_key = Ed25519PrivateKey.generate()
+
+    @property
+    def auth_key(self) -&gt; AuthKey:
+        return AuthKey.from_public_key(self.public_key)
+
+    @property
+    def account_address(self) -&gt; diem_types.AccountAddress:
+        return self.auth_key.account_address()
+
+    @property
+    def public_key_bytes(self) -&gt; bytes:
+        return utils.public_key_bytes(self.public_key)
+
+    @property
+    def public_key(self) -&gt; Ed25519PublicKey:
+        return self.private_key.public_key()
+
+    @property
+    def compliance_public_key_bytes(self) -&gt; bytes:
+        return utils.public_key_bytes(self.compliance_key.public_key())
+
+    def sign(self, txn: diem_types.RawTransaction) -&gt; diem_types.SignedTransaction:
+        &#34;&#34;&#34;Create signed transaction for given raw transaction&#34;&#34;&#34;
+
+        signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
+        return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.local_account.LocalAccount"><code class="flex name class">
+<span>class <span class="ident">LocalAccount</span></span>
+<span>(</span><span>private_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>LocalAccount is like a wallet account</p>
+<p>WARN: This is handy class for creating tests for your application, but may not ideal for your
+production code, because it uses a specific implementaion of ed25519 and requires loading your
+private key into memory and hand over to code from external.
+You should always choose more secure way to handle your private key
+(e.g. <a href="https://en.wikipedia.org/wiki/Hardware_security_module">https://en.wikipedia.org/wiki/Hardware_security_module</a>) in production and do not give
+your private key to any code from external if possible.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LocalAccount:
+    &#34;&#34;&#34;LocalAccount is like a wallet account
+
+    WARN: This is handy class for creating tests for your application, but may not ideal for your
+    production code, because it uses a specific implementaion of ed25519 and requires loading your
+    private key into memory and hand over to code from external.
+    You should always choose more secure way to handle your private key
+    (e.g. https://en.wikipedia.org/wiki/Hardware_security_module) in production and do not give
+    your private key to any code from external if possible.
+    &#34;&#34;&#34;
+
+    @staticmethod
+    def generate() -&gt; &#34;LocalAccount&#34;:
+        &#34;&#34;&#34;Generate a random private key and initialize local account&#34;&#34;&#34;
+
+        private_key = Ed25519PrivateKey.generate()
+        return LocalAccount(private_key)
+
+    @staticmethod
+    def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
+        return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))
+
+    private_key: Ed25519PrivateKey
+    compliance_key: Ed25519PrivateKey
+
+    def __init__(self, private_key: Ed25519PrivateKey) -&gt; None:
+        self.private_key = private_key
+        self.compliance_key = Ed25519PrivateKey.generate()
+
+    @property
+    def auth_key(self) -&gt; AuthKey:
+        return AuthKey.from_public_key(self.public_key)
+
+    @property
+    def account_address(self) -&gt; diem_types.AccountAddress:
+        return self.auth_key.account_address()
+
+    @property
+    def public_key_bytes(self) -&gt; bytes:
+        return utils.public_key_bytes(self.public_key)
+
+    @property
+    def public_key(self) -&gt; Ed25519PublicKey:
+        return self.private_key.public_key()
+
+    @property
+    def compliance_public_key_bytes(self) -&gt; bytes:
+        return utils.public_key_bytes(self.compliance_key.public_key())
+
+    def sign(self, txn: diem_types.RawTransaction) -&gt; diem_types.SignedTransaction:
+        &#34;&#34;&#34;Create signed transaction for given raw transaction&#34;&#34;&#34;
+
+        signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
+        return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.local_account.LocalAccount.compliance_key"><code class="name">var <span class="ident">compliance_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.local_account.LocalAccount.private_key"><code class="name">var <span class="ident">private_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.local_account.LocalAccount.from_private_key_hex"><code class="name flex">
+<span>def <span class="ident">from_private_key_hex</span></span>(<span>key: str) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
+    return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.generate"><code class="name flex">
+<span>def <span class="ident">generate</span></span>(<span>) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate a random private key and initialize local account</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def generate() -&gt; &#34;LocalAccount&#34;:
+    &#34;&#34;&#34;Generate a random private key and initialize local account&#34;&#34;&#34;
+
+    private_key = Ed25519PrivateKey.generate()
+    return LocalAccount(private_key)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="diem.local_account.LocalAccount.account_address"><code class="name">var <span class="ident">account_address</span> : <a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def account_address(self) -&gt; diem_types.AccountAddress:
+    return self.auth_key.account_address()</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.auth_key"><code class="name">var <span class="ident">auth_key</span> : <a title="diem.auth_key.AuthKey" href="auth_key.html#diem.auth_key.AuthKey">AuthKey</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def auth_key(self) -&gt; AuthKey:
+    return AuthKey.from_public_key(self.public_key)</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.compliance_public_key_bytes"><code class="name">var <span class="ident">compliance_public_key_bytes</span> : bytes</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def compliance_public_key_bytes(self) -&gt; bytes:
+    return utils.public_key_bytes(self.compliance_key.public_key())</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.public_key"><code class="name">var <span class="ident">public_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def public_key(self) -&gt; Ed25519PublicKey:
+    return self.private_key.public_key()</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.public_key_bytes"><code class="name">var <span class="ident">public_key_bytes</span> : bytes</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def public_key_bytes(self) -&gt; bytes:
+    return utils.public_key_bytes(self.public_key)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.local_account.LocalAccount.sign"><code class="name flex">
+<span>def <span class="ident">sign</span></span>(<span>self, txn: <a title="diem.diem_types.RawTransaction" href="diem_types/index.html#diem.diem_types.RawTransaction">RawTransaction</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create signed transaction for given raw transaction</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sign(self, txn: diem_types.RawTransaction) -&gt; diem_types.SignedTransaction:
+    &#34;&#34;&#34;Create signed transaction for given raw transaction&#34;&#34;&#34;
+
+    signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
+    return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem" href="index.html">diem</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></code></h4>
+<ul class="">
+<li><code><a title="diem.local_account.LocalAccount.account_address" href="#diem.local_account.LocalAccount.account_address">account_address</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.auth_key" href="#diem.local_account.LocalAccount.auth_key">auth_key</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.compliance_key" href="#diem.local_account.LocalAccount.compliance_key">compliance_key</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.compliance_public_key_bytes" href="#diem.local_account.LocalAccount.compliance_public_key_bytes">compliance_public_key_bytes</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.from_private_key_hex" href="#diem.local_account.LocalAccount.from_private_key_hex">from_private_key_hex</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.generate" href="#diem.local_account.LocalAccount.generate">generate</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.private_key" href="#diem.local_account.LocalAccount.private_key">private_key</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.public_key" href="#diem.local_account.LocalAccount.public_key">public_key</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.public_key_bytes" href="#diem.local_account.LocalAccount.public_key_bytes">public_key_bytes</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.sign" href="#diem.local_account.LocalAccount.sign">sign</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

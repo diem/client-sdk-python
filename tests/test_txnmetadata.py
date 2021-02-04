@@ -172,7 +172,7 @@ def test_refund_metadata():
     txn_version = 12343
     reason = diem_types.RefundReason__UserInitiatedFullRefund()
     ret = txnmetadata.refund_metadata(txn_version, reason)
-    assert ret.hex() == "0400373000000000000004"
+    assert ret.hex() == "0400373000000000000003"
 
     metadata = diem_types.Metadata.bcs_deserialize(ret)
     assert metadata.value.value.transaction_version == txn_version

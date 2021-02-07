@@ -60,7 +60,7 @@ class WalletApp:
         """generate a WalletApp running on testnet"""
 
         offchain_service_port = offchain.http_server.get_available_port()
-        account = testnet.gen_vasp_account(client, f"http://localhost:{offchain_service_port}")
+        account = testnet.gen_account(client, base_url=f"http://localhost:{offchain_service_port}")
         w = WalletApp(
             name=name,
             jsonrpc_client=client,

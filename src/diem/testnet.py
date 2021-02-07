@@ -23,7 +23,7 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing, time
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier, LocalAccount
 
 
 JSON_RPC_URL: str = "http://testnet.diem.com/v1"
@@ -32,6 +32,7 @@ CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
 TEST_CURRENCY_CODE: str = "XUS"
+HRP: str = identifier.TDM
 
 
 def create_client() -> jsonrpc.Client:
@@ -40,22 +41,12 @@ def create_client() -> jsonrpc.Client:
     return jsonrpc.Client(JSON_RPC_URL)
 
 
-def gen_vasp_account(client: jsonrpc.Client, base_url: str) -> LocalAccount:
-    account = gen_account(client)
-    exec_txn(
-        client,
-        account,
-        stdlib.encode_rotate_dual_attestation_info_script(
-            new_url=base_url.encode("utf-8"), new_key=account.compliance_public_key_bytes
-        ),
-    )
-    return account
-
-
-def gen_account(client: jsonrpc.Client, dd_account: bool = False) -> LocalAccount:
+def gen_account(
+    client: jsonrpc.Client, dd_account: bool = False, base_url: typing.Optional[str] = None
+) -> LocalAccount:
     """generates a Testnet onchain account"""
 
-    return Faucet(client).gen_account(dd_account=dd_account)
+    return Faucet(client).gen_account(dd_account=dd_account, base_url=base_url)
 
 
 def gen_child_vasp(
@@ -117,10 +108,23 @@ class Faucet:
         self._retry: jsonrpc.Retry = retry or jsonrpc.Retry(5, 0.2, Exception)
         self._session: requests.Session = requests.Session()
 
-    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE, dd_account: bool = False) -> LocalAccount:
+    def gen_account(
+        self, currency_code: str = TEST_CURRENCY_CODE, dd_account: bool = False, base_url: typing.Optional[str] = None
+    ) -> LocalAccount:
         account = LocalAccount.generate()
         self.mint(account.auth_key.hex(), 100_000_000_000, currency_code, dd_account)
+        if base_url:
+            self.rotate_dual_attestation_info(account, base_url)
         return account
+
+    def rotate_dual_attestation_info(self, account: LocalAccount, base_url: str):
+        exec_txn(
+            self._client,
+            account,
+            stdlib.encode_rotate_dual_attestation_info_script(
+                new_url=base_url.encode("utf-8"), new_key=account.compliance_public_key_bytes
+            ),
+        )
 
     def mint(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
         self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code, dd_account))

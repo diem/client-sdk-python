@@ -196,3 +196,10 @@ def test_intent_identifier_decode_errors(hrp_addresses):
     # hrp not match
     with pytest.raises(identifier.InvalidIntentIdentifierError):
         identifier.decode_intent("diem://%s?am=2&c=XUS" % (enocded_addr_with_none_subaddr), "xdm")
+
+
+def test_remove_subaddress(hrp_addresses):
+    hrp, enocded_addr_with_none_subaddr, enocded_addr_with_subaddr = hrp_addresses
+    assert identifier.remove_subaddress(enocded_addr_with_none_subaddr) == identifier.remove_subaddress(
+        enocded_addr_with_subaddr
+    )

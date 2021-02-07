@@ -9,3 +9,7 @@ DIEM_ZERO_SUBADDRESS: bytes = b"\0" * DIEM_SUBADDRESS_SIZE
 
 def gen_subaddress() -> bytes:
     return secrets.token_bytes(DIEM_SUBADDRESS_SIZE)
+
+
+def remove_subaddress(account_identifier: str) -> str:
+    return account_identifier[: len(account_identifier) - 20]

@@ -16,7 +16,7 @@ from . import bech32
 from .. import diem_types, utils, chain_ids
 
 from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
-from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
+from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress, remove_subaddress
 
 DM = "dm"  # mainnet
 TDM = "tdm"  # testnet

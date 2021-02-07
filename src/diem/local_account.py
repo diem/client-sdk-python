@@ -14,6 +14,7 @@ from . import (
 
 from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from typing import Optional
 
 
 class LocalAccount:
@@ -35,15 +36,21 @@ class LocalAccount:
         return LocalAccount(private_key)
 
     @staticmethod
-    def from_private_key_hex(key: str) -> "LocalAccount":
+    def from_keys(key: str, compliance_key: str) -> "LocalAccount":
+        pkey = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key))
+        ckey = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(compliance_key))
+        return LocalAccount(pkey, ckey)
+
+    @staticmethod
+    def from_private_key_hex(key: str, compliance_key: str = None) -> "LocalAccount":
         return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))
 
     private_key: Ed25519PrivateKey
     compliance_key: Ed25519PrivateKey
 
-    def __init__(self, private_key: Ed25519PrivateKey) -> None:
+    def __init__(self, private_key: Ed25519PrivateKey, compliance_key: Optional[Ed25519PrivateKey] = None) -> None:
         self.private_key = private_key
-        self.compliance_key = Ed25519PrivateKey.generate()
+        self.compliance_key = compliance_key or Ed25519PrivateKey.generate()
 
     @property
     def auth_key(self) -> AuthKey:

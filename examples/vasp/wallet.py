@@ -60,7 +60,7 @@ class WalletApp:
         """generate a WalletApp running on testnet"""
 
         offchain_service_port = offchain.http_server.get_available_port()
-        account = testnet.gen_vasp_account(client, f"http://localhost:{offchain_service_port}")
+        account = testnet.gen_account(client, base_url=f"http://localhost:{offchain_service_port}")
         w = WalletApp(
             name=name,
             jsonrpc_client=client,
@@ -208,9 +208,8 @@ class WalletApp:
         command = typing.cast(offchain.PaymentCommand, command)
         child_vasp = self._find_child_vasp(command.sender_account_address(self.hrp))
         assert command.payment.recipient_signature
-        testnet.exec_txn(
+        child_vasp.submit_and_wait_for_txn(
             self.jsonrpc_client,
-            child_vasp,
             stdlib.encode_peer_to_peer_with_metadata_script(
                 currency=utils.currency_code(command.payment.action.currency),
                 payee=command.receiver_account_address(self.hrp),

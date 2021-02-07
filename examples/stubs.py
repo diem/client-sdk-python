@@ -1,12 +1,11 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-import time, typing
+import typing
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from diem import (
     identifier,
     jsonrpc,
-    diem_types,
     stdlib,
     testnet,
     utils,
@@ -29,8 +28,6 @@ class CustodialApp:
     _children: typing.List[LocalAccount]
     _users: typing.List[bytes]
 
-    compliance_key: typing.Optional[Ed25519PrivateKey]
-
     def __init__(
         self,
         parent_vasp: LocalAccount,
@@ -42,11 +39,15 @@ class CustodialApp:
         self._children = []
         self._users = []
 
+    @property
+    def compliance_key(self) -> Ed25519PrivateKey:
+        return self._parent_vasp.compliance_key
+
     def add_child_vasp(self) -> jsonrpc.Transaction:
         child_vasp = LocalAccount.generate()
         self._children.append(child_vasp)
-        txn = self.create_transaction(
-            self._parent_vasp,
+        return self._parent_vasp.submit_and_wait_for_txn(
+            self._client,
             stdlib.encode_create_child_vasp_account_script(
                 coin_type=utils.currency_code(testnet.TEST_CURRENCY_CODE),
                 child_address=child_vasp.account_address,
@@ -54,21 +55,10 @@ class CustodialApp:
                 add_all_currencies=False,
                 child_initial_balance=2_000_000_000,
             ),
-            testnet.TEST_CURRENCY_CODE,
         )
-
-        return self.submit_and_wait(self._parent_vasp.sign(txn))
 
     def init_compliance_keys(self) -> jsonrpc.Transaction:
-        self.compliance_key = Ed25519PrivateKey.generate()
-        txn = self.create_transaction(
-            self._parent_vasp,
-            stdlib.encode_rotate_dual_attestation_info_script(
-                new_url=b"http://helloworld.org", new_key=utils.public_key_bytes(self.compliance_key.public_key())
-            ),
-            testnet.TEST_CURRENCY_CODE,
-        )
-        return self.submit_and_wait(self._parent_vasp.sign(txn))
+        return self._parent_vasp.rotate_dual_attestation_info(self._client, "http://helloworld.org")
 
     def add_user(self):
         self._users.append(identifier.gen_subaddress())
@@ -83,28 +73,5 @@ class CustodialApp:
     def find_user_sub_address_by_id(self, user_id: int) -> bytes:
         return self._users[user_id]
 
-    def get_sequence_number(self, account: LocalAccount) -> int:
-        return self._client.get_account_sequence(account.account_address)
-
     def available_child_vasp(self) -> LocalAccount:
         return self._children[0]
-
-    def submit_and_wait(
-        self,
-        txn: typing.Union[diem_types.SignedTransaction, str],
-    ) -> jsonrpc.Transaction:
-        self._client.submit(txn)
-        return self._client.wait_for_transaction(txn)
-
-    def create_transaction(self, sender, script, currency) -> diem_types.RawTransaction:
-        sender_account_sequence = self.get_sequence_number(sender)
-        return diem_types.RawTransaction(
-            sender=sender.account_address,
-            sequence_number=sender_account_sequence,
-            payload=diem_types.TransactionPayload__Script(script),
-            max_gas_amount=1_000_000,
-            gas_unit_price=0,
-            gas_currency_code=currency,
-            expiration_timestamp_secs=int(time.time()) + 30,
-            chain_id=self._chain_id,
-        )

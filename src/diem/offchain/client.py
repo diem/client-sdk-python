@@ -50,7 +50,7 @@ class Client:
     >>> from diem import offchain, jsonrpc, testnet, LocalAccount
     >>>
     >>> jsonrpc_client = testnet.create_client()
-    >>> account = testnet.gen_vasp_account(client, "http://vasp.com/offchain")
+    >>> account = testnet.gen_account(client, base_url="http://vasp.com/offchain")
     >>> compliance_key_account_address = account.account_address
     >>> client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
     ```

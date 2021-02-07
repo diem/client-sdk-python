@@ -33,11 +33,7 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
     )
 
     sender = sender_custodial.available_child_vasp()
-    txn = sender_custodial.create_transaction(sender, script, intent.currency_code)
-
-    signed_txn = sender.sign(txn)
-    client.submit(signed_txn)
-    executed_txn = client.wait_for_transaction(signed_txn)
+    executed_txn = sender.submit_and_wait_for_txn(client, script)
 
     # start to refund the transaction
 
@@ -60,6 +56,5 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
 
     # receiver is sender of refund txn
     sender = receiver_custodial.available_child_vasp()
-    txn = receiver_custodial.create_transaction(sender, refund_txn_script, currency_code)
-    refund_executed_txn = receiver_custodial.submit_and_wait(sender.sign(txn))
+    refund_executed_txn = sender.submit_and_wait_for_txn(client, refund_txn_script)
     assert refund_executed_txn is not None

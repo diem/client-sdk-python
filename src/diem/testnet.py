@@ -21,9 +21,9 @@ account: LocalAccount = faucet.gen_account()
 """
 
 import requests
-import typing, time
+import typing
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier, LocalAccount
 
 
 JSON_RPC_URL: str = "http://testnet.diem.com/v1"
@@ -32,6 +32,7 @@ CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
 TEST_CURRENCY_CODE: str = "XUS"
+HRP: str = identifier.TDM
 
 
 def create_client() -> jsonrpc.Client:
@@ -41,21 +42,18 @@ def create_client() -> jsonrpc.Client:
 
 
 def gen_vasp_account(client: jsonrpc.Client, base_url: str) -> LocalAccount:
-    account = gen_account(client)
-    exec_txn(
-        client,
-        account,
-        stdlib.encode_rotate_dual_attestation_info_script(
-            new_url=base_url.encode("utf-8"), new_key=account.compliance_public_key_bytes
-        ),
-    )
-    return account
+    raise Exception("deprecated: use `gen_account` instead")
 
 
-def gen_account(client: jsonrpc.Client, dd_account: bool = False) -> LocalAccount:
+def gen_account(
+    client: jsonrpc.Client, dd_account: bool = False, base_url: typing.Optional[str] = None
+) -> LocalAccount:
     """generates a Testnet onchain account"""
 
-    return Faucet(client).gen_account(dd_account=dd_account)
+    account = Faucet(client).gen_account(dd_account=dd_account)
+    if base_url:
+        account.rotate_dual_attestation_info(client, base_url)
+    return account
 
 
 def gen_child_vasp(
@@ -65,9 +63,8 @@ def gen_child_vasp(
     currency: str = TEST_CURRENCY_CODE,
 ) -> LocalAccount:
     child_vasp = LocalAccount.generate()
-    exec_txn(
+    parent_vasp.submit_and_wait_for_txn(
         client,
-        parent_vasp,
         stdlib.encode_create_child_vasp_account_script(
             coin_type=utils.currency_code(currency),
             child_address=child_vasp.account_address,
@@ -77,27 +74,6 @@ def gen_child_vasp(
         ),
     )
     return child_vasp
-
-
-def exec_txn(client: jsonrpc.Client, sender: LocalAccount, script: diem_types.Script) -> jsonrpc.Transaction:
-    """create, submit and wait for the transaction"""
-
-    sender_account_sequence = client.get_account_sequence(sender.account_address)
-    expire = 30
-    txn = sender.sign(
-        diem_types.RawTransaction(  # pyre-ignore
-            sender=sender.account_address,
-            sequence_number=diem_types.st.uint64(sender_account_sequence),
-            payload=diem_types.TransactionPayload__Script(value=script),
-            max_gas_amount=1_000_000,
-            gas_unit_price=0,
-            gas_currency_code=TEST_CURRENCY_CODE,
-            expiration_timestamp_secs=int(time.time()) + expire,
-            chain_id=CHAIN_ID,
-        )
-    )
-    client.submit(txn)
-    return client.wait_for_transaction(txn, timeout_secs=expire)
 
 
 class Faucet:

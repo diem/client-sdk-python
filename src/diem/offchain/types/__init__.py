@@ -57,24 +57,30 @@ _OBJECT_TYPE_FIELD_NAME = "_ObjectType"
 
 
 def to_json(obj: T, indent: typing.Optional[int] = None) -> str:
-    return json.dumps(_delete_none(dataclasses.asdict(obj)), indent=indent)
+    if dataclasses.is_dataclass(obj):
+        raw = dataclasses.asdict(obj)
+    elif isinstance(obj, list):
+        raw = list(map(dataclasses.asdict, obj))
+    else:
+        raw = obj
+    return json.dumps(_delete_none(raw), indent=indent)
 
 
 def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -> T:
-    return from_json_obj(json.loads(data), klass, "")
+    return from_dict(json.loads(data), klass)
 
 
-def from_json_obj(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str) -> T:  # pyre-ignore
+def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str = "") -> T:  # pyre-ignore
     if klass is None or _is_union(klass):
         if not isinstance(obj, dict):
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
             raise FieldError(code, field_path, f"expect json object, but got {type(obj).__name__}: {obj}")
         klass = _find_object_type(obj, field_path)
-    return _from_json_obj(obj, klass, field_path)
+    return _from_dict(obj, klass, field_path)
 
 
-def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -> typing.Any:  # pyre-ignore
-    if not isinstance(obj, dict):
+def _from_dict(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -> typing.Any:  # pyre-ignore
+    if not isinstance(obj, dict) or not dataclasses.is_dataclass(klass):
         item_type = None
         if hasattr(klass, "__origin__") and klass.__origin__ == list and hasattr(klass, "__args__"):
             item_type = klass.__args__[0]
@@ -83,14 +89,14 @@ def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: 
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
             raise FieldError(code, field_path, f"expect type {klass.__name__}, but got {type(obj).__name__}")
         if klass == list and item_type:
-            return [from_json_obj(item, item_type, field_path) for item in obj]
+            return [from_dict(item, item_type, field_path) for item in obj]
         return obj
 
     unknown_fields = list(obj.keys())
     for field in dataclasses.fields(klass):
         if field.name in unknown_fields:
             unknown_fields.remove(field.name)
-        obj[field.name] = _field_value_from_json_obj(field, obj, field_path)
+        obj[field.name] = _field_value_from_dict(field, obj, field_path)
 
     if len(unknown_fields) > 0:
         unknown_fields.sort()
@@ -100,7 +106,7 @@ def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: 
     return klass(**obj)
 
 
-def _field_value_from_json_obj(field: dataclasses.Field, obj: typing.Any, field_path: str) -> typing.Any:  # pyre-ignore
+def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path: str) -> typing.Any:  # pyre-ignore
     full_name = _join_field_path(field_path, field.name)
     field_type = field.type
     args = field.type.__args__ if hasattr(field.type, "__args__") else []
@@ -121,7 +127,7 @@ def _field_value_from_json_obj(field: dataclasses.Field, obj: typing.Any, field_
             raise FieldError(
                 ErrorCode.invalid_field_value, full_name, f"{val} does not match pattern {valid_values.pattern}"
             )
-    return from_json_obj(val, field_type, full_name)
+    return from_dict(val, field_type, full_name)
 
 
 def _join_field_path(path: str, field: str) -> str:

@@ -419,7 +419,7 @@ class ScriptCall__CreateChildVaspAccount(ScriptCall):
     coin_type: diem_types.TypeTag
     child_address: diem_types.AccountAddress
     auth_key_prefix: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
     child_initial_balance: st.uint64
 
 
@@ -476,7 +476,7 @@ class ScriptCall__CreateDesignatedDealer(ScriptCall):
     addr: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
 
 
 @dataclass(frozen=True)
@@ -530,7 +530,7 @@ class ScriptCall__CreateParentVaspAccount(ScriptCall):
     new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
 
 
 @dataclass(frozen=True)
@@ -1636,7 +1636,7 @@ class ScriptCall__UpdateMintingAbility(ScriptCall):
     """
 
     currency: diem_types.TypeTag
-    allow_minting: st.bool
+    allow_minting: bool
 
 
 from diem.diem_types import (
@@ -2031,7 +2031,7 @@ def encode_create_child_vasp_account_script(
     coin_type: TypeTag,
     child_address: AccountAddress,
     auth_key_prefix: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
     child_initial_balance: st.uint64,
 ) -> Script:
     """# Summary
@@ -2108,7 +2108,7 @@ def encode_create_designated_dealer_script(
     addr: AccountAddress,
     auth_key_prefix: bytes,
     human_name: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
 ) -> Script:
     """# Summary
     Creates a Designated Dealer account with the provided information, and initializes it with
@@ -2174,7 +2174,7 @@ def encode_create_parent_vasp_account_script(
     new_account_address: AccountAddress,
     auth_key_prefix: bytes,
     human_name: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
 ) -> Script:
     """# Summary
     Creates a Parent VASP account with the specified human name.
@@ -3388,7 +3388,7 @@ def encode_update_exchange_rate_script(
     )
 
 
-def encode_update_minting_ability_script(currency: TypeTag, allow_minting: st.bool) -> Script:
+def encode_update_minting_ability_script(currency: TypeTag, allow_minting: bool) -> Script:
     """# Summary
     Script to allow or disallow minting of new coins in a specified currency.
 
@@ -3832,7 +3832,7 @@ SCRIPT_DECODER_MAP: typing.Dict[bytes, typing.Callable[[Script], ScriptCall]] = 
 }
 
 
-def decode_bool_argument(arg: TransactionArgument) -> st.bool:
+def decode_bool_argument(arg: TransactionArgument) -> bool:
     if not isinstance(arg, TransactionArgument__Bool):
         raise ValueError("Was expecting a Bool argument")
     return arg.value

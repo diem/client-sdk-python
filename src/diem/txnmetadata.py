@@ -51,6 +51,23 @@ def travel_rule(
     return (metadata.bcs_serialize(), signing_msg)
 
 
+def decode_structure(
+    bytes_or_str: typing.Union[bytes, str]
+) -> typing.Union[None, diem_types.GeneralMetadataV0, diem_types.TravelRuleMetadataV0, diem_types.RefundMetadataV0]:
+    """Decode given metadata bytes of string into structure types
+
+    Returns None if:
+    1. given param is empty or None
+    2. metadata type is non-structured or undefined
+    """
+
+    if not bytes_or_str:
+        return None
+    b = bytes_or_str if isinstance(bytes_or_str, bytes) else bytes.fromhex(bytes_or_str)
+    metadata = diem_types.Metadata.bcs_deserialize(b)
+    return metadata.decode_structure()
+
+
 def refund_metadata(original_transaction_version: int, reason: diem_types.RefundReason) -> bytes:
     """Create refund metadata for peer to peer transaction script
 

@@ -117,7 +117,7 @@ class WalletApp:
             description=desc,
         )
         self.save_command(command)
-        return command.reference_id()
+        return command.id()
 
     def gen_intent_id(
         self,
@@ -141,7 +141,7 @@ class WalletApp:
                 )
 
             inbound_command = self.offchain_client.process_inbound_request(request_sender_address, request_bytes)
-            cid = inbound_command.id()
+            cid = inbound_command.cid()
             self.save_command(inbound_command)
             resp = offchain.reply_request(cid)
             code = 200
@@ -277,10 +277,10 @@ class WalletApp:
 
     def _enqueue_follow_up_action(self, command: offchain.Command) -> None:
         if command.follow_up_action():
-            self.task_queue.append(lambda app: app._offchain_business_action(command.reference_id()))
+            self.task_queue.append(lambda app: app._offchain_business_action(command.id()))
 
-    def _offchain_business_action(self, ref_id: str) -> BgResult:
-        command = self.saved_commands[ref_id]
+    def _offchain_business_action(self, cmd_id: str) -> BgResult:
+        command = self.saved_commands[cmd_id]
         action = command.follow_up_action()
         if not action:
             raise ValueError(f"no follow up action for the command {command}")
@@ -305,17 +305,17 @@ class WalletApp:
         atomic process(read and write) command by the reference id.
         """
 
-        lock = self.lock(command.reference_id())
+        lock = self.lock(command.id())
         if not lock.acquire(blocking=False):
-            msg = f"command(reference_id={command.reference_id()}) is locked"
+            msg = f"command(id={id}) is locked"
             raise offchain.command_error(offchain.ErrorCode.conflict, msg)
 
         try:
-            prior = self.saved_commands.get(command.reference_id())
+            prior = self.saved_commands.get(command.id())
             if command == prior:
                 return
             command.validate(prior)
-            self.saved_commands[command.reference_id()] = command
+            self.saved_commands[command.id()] = command
             if command.is_inbound():
                 self._enqueue_follow_up_action(command)
             else:  # outbound
@@ -323,8 +323,8 @@ class WalletApp:
         finally:
             lock.release()
 
-    def lock(self, ref_id: str) -> threading.Lock:
-        return self.locks.setdefault(ref_id, threading.Lock())
+    def lock(self, cmd_id: str) -> threading.Lock:
+        return self.locks.setdefault(cmd_id, threading.Lock())
 
     # ---------------------- users ---------------------------
 

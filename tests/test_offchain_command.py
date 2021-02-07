@@ -73,3 +73,15 @@ def test_new_command_raises_value_error_if_metadata_is_not_list(factory):
     cmd = factory.new_sender_payment_command()
     with pytest.raises(ValueError):
         cmd.new_command(metadata="hello")
+
+
+def test_global_unique_id(factory):
+    cmd = factory.new_sender_payment_command()
+    assert cmd.id()
+    assert cmd.id() == cmd.id()
+
+    new_cmd = cmd.new_command(metadata=["hello"])
+    assert cmd.id() == new_cmd.id()
+
+    diff_address_cmd = factory.new_sender_payment_command()
+    assert diff_address_cmd.id() != cmd.id()

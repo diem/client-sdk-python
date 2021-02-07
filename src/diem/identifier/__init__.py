@@ -15,7 +15,7 @@ from typing import List
 from . import bech32
 from .. import diem_types, utils, chain_ids
 
-from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
+from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error, _DIEM_BECH32_SIZE
 from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
 
 DM = "dm"  # mainnet
@@ -162,6 +162,14 @@ def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.Ac
     if subaddress_bytes != DIEM_ZERO_SUBADDRESS:
         return (address, subaddress_bytes)
     return (address, None)
+
+
+def decode_hrp(encoded_address: str) -> str:
+    if len(encoded_address) not in _DIEM_BECH32_SIZE:
+        raise ValueError("Invalid account identifier address size: {encoded_address}")
+    if encoded_address[:2] == DM:
+        return DM
+    return encoded_address[:3]
 
 
 def decode_account_address(encoded_address: str, hrp: str) -> diem_types.AccountAddress:

@@ -337,7 +337,7 @@ class WalletApp:
     def gen_user_account_id(self, user_name: str) -> str:
         subaddress = identifier.gen_subaddress()
         self.users[user_name].subaddresses.append(subaddress)
-        return identifier.encode_account(self._available_child_vasp().account_address, subaddress, self.hrp)
+        return self._available_child_vasp().account_identifier(subaddress)
 
     # ---------------------- child vasps ---------------------------
 

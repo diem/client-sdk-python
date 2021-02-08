@@ -64,9 +64,7 @@ class CustodialApp:
         self._users.append(identifier.gen_subaddress())
 
     def payment(self, user_id: int, amount: int) -> str:
-        account_id = identifier.encode_account(
-            self._children[0].account_address, self._users[user_id], identifier.TDM  # testnet HRP
-        )
+        account_id = self._children[0].account_identifier(self._users[user_id])
         return identifier.encode_intent(account_id, testnet.TEST_CURRENCY_CODE, amount)
 
     # TODO: change to generate sub address for user when needed

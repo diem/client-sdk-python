@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import utils, LocalAccount
+from diem import identifier, utils, LocalAccount
 
 
 def test_from_private_key_hex():
@@ -40,3 +40,12 @@ def test_from_dict_generate_keys():
     assert account
     assert account.private_key
     assert account.compliance_key
+
+
+def test_account_identifier():
+    account = LocalAccount()
+    assert account.account_identifier() == identifier.encode_account(account.account_address, None, account.hrp)
+    subaddress = identifier.gen_subaddress()
+    assert account.account_identifier(subaddress) == identifier.encode_account(
+        account.account_address, subaddress, account.hrp
+    )

@@ -88,7 +88,7 @@ class WalletApp:
         &#34;&#34;&#34;generate a WalletApp running on testnet&#34;&#34;&#34;
 
         offchain_service_port = offchain.http_server.get_available_port()
-        account = testnet.gen_vasp_account(client, f&#34;http://localhost:{offchain_service_port}&#34;)
+        account = testnet.gen_account(client, base_url=f&#34;http://localhost:{offchain_service_port}&#34;)
         w = WalletApp(
             name=name,
             jsonrpc_client=client,
@@ -116,7 +116,12 @@ class WalletApp:
 
     def __post_init__(self) -&gt; None:
         self.compliance_key = self.parent_vasp.compliance_key
-        self.offchain_client = offchain.Client(self.parent_vasp.account_address, self.jsonrpc_client, self.hrp)
+        self.offchain_client = offchain.Client(
+            self.parent_vasp.account_address,
+            self.jsonrpc_client,
+            self.hrp,
+            supported_currency_codes=[testnet.TEST_CURRENCY_CODE],
+        )
 
     # --------------------- end user interaction --------------------------
 
@@ -231,9 +236,8 @@ class WalletApp:
         command = typing.cast(offchain.PaymentCommand, command)
         child_vasp = self._find_child_vasp(command.sender_account_address(self.hrp))
         assert command.payment.recipient_signature
-        testnet.exec_txn(
+        child_vasp.submit_and_wait_for_txn(
             self.jsonrpc_client,
-            child_vasp,
             stdlib.encode_peer_to_peer_with_metadata_script(
                 currency=utils.currency_code(command.payment.action.currency),
                 payee=command.receiver_account_address(self.hrp),
@@ -361,7 +365,7 @@ class WalletApp:
     def gen_user_account_id(self, user_name: str) -&gt; str:
         subaddress = identifier.gen_subaddress()
         self.users[user_name].subaddresses.append(subaddress)
-        return identifier.encode_account(self._available_child_vasp().account_address, subaddress, self.hrp)
+        return self._available_child_vasp().account_identifier(subaddress)
 
     # ---------------------- child vasps ---------------------------
 
@@ -544,7 +548,7 @@ class WalletApp:
         &#34;&#34;&#34;generate a WalletApp running on testnet&#34;&#34;&#34;
 
         offchain_service_port = offchain.http_server.get_available_port()
-        account = testnet.gen_vasp_account(client, f&#34;http://localhost:{offchain_service_port}&#34;)
+        account = testnet.gen_account(client, base_url=f&#34;http://localhost:{offchain_service_port}&#34;)
         w = WalletApp(
             name=name,
             jsonrpc_client=client,
@@ -572,7 +576,12 @@ class WalletApp:
 
     def __post_init__(self) -&gt; None:
         self.compliance_key = self.parent_vasp.compliance_key
-        self.offchain_client = offchain.Client(self.parent_vasp.account_address, self.jsonrpc_client, self.hrp)
+        self.offchain_client = offchain.Client(
+            self.parent_vasp.account_address,
+            self.jsonrpc_client,
+            self.hrp,
+            supported_currency_codes=[testnet.TEST_CURRENCY_CODE],
+        )
 
     # --------------------- end user interaction --------------------------
 
@@ -687,9 +696,8 @@ class WalletApp:
         command = typing.cast(offchain.PaymentCommand, command)
         child_vasp = self._find_child_vasp(command.sender_account_address(self.hrp))
         assert command.payment.recipient_signature
-        testnet.exec_txn(
+        child_vasp.submit_and_wait_for_txn(
             self.jsonrpc_client,
-            child_vasp,
             stdlib.encode_peer_to_peer_with_metadata_script(
                 currency=utils.currency_code(command.payment.action.currency),
                 payee=command.receiver_account_address(self.hrp),
@@ -817,7 +825,7 @@ class WalletApp:
     def gen_user_account_id(self, user_name: str) -&gt; str:
         subaddress = identifier.gen_subaddress()
         self.users[user_name].subaddresses.append(subaddress)
-        return identifier.encode_account(self._available_child_vasp().account_address, subaddress, self.hrp)
+        return self._available_child_vasp().account_identifier(subaddress)
 
     # ---------------------- child vasps ---------------------------
 
@@ -905,7 +913,7 @@ def generate(name: str, client: jsonrpc.Client) -&gt; &#34;WalletApp&#34;:
     &#34;&#34;&#34;generate a WalletApp running on testnet&#34;&#34;&#34;
 
     offchain_service_port = offchain.http_server.get_available_port()
-    account = testnet.gen_vasp_account(client, f&#34;http://localhost:{offchain_service_port}&#34;)
+    account = testnet.gen_account(client, base_url=f&#34;http://localhost:{offchain_service_port}&#34;)
     w = WalletApp(
         name=name,
         jsonrpc_client=client,
@@ -994,7 +1002,7 @@ def generate(name: str, client: jsonrpc.Client) -&gt; &#34;WalletApp&#34;:
 <pre><code class="python">def gen_user_account_id(self, user_name: str) -&gt; str:
     subaddress = identifier.gen_subaddress()
     self.users[user_name].subaddresses.append(subaddress)
-    return identifier.encode_account(self._available_child_vasp().account_address, subaddress, self.hrp)</code></pre>
+    return self._available_child_vasp().account_identifier(subaddress)</code></pre>
 </details>
 </dd>
 <dt id="examples.vasp.wallet.WalletApp.lock"><code class="name flex">

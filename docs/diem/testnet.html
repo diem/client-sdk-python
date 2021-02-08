@@ -63,9 +63,9 @@ account: LocalAccount = faucet.gen_account()
 &#34;&#34;&#34;
 
 import requests
-import typing, time
+import typing
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier, LocalAccount
 
 
 JSON_RPC_URL: str = &#34;http://testnet.diem.com/v1&#34;
@@ -74,6 +74,7 @@ CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address(&#34;000000000000000000000000000000dd&#34;)
 TEST_CURRENCY_CODE: str = &#34;XUS&#34;
+HRP: str = identifier.TDM
 
 
 def create_client() -&gt; jsonrpc.Client:
@@ -83,21 +84,18 @@ def create_client() -&gt; jsonrpc.Client:
 
 
 def gen_vasp_account(client: jsonrpc.Client, base_url: str) -&gt; LocalAccount:
-    account = gen_account(client)
-    exec_txn(
-        client,
-        account,
-        stdlib.encode_rotate_dual_attestation_info_script(
-            new_url=base_url.encode(&#34;utf-8&#34;), new_key=account.compliance_public_key_bytes
-        ),
-    )
-    return account
+    raise Exception(&#34;deprecated: use `gen_account` instead&#34;)
 
 
-def gen_account(client: jsonrpc.Client, dd_account: bool = False) -&gt; LocalAccount:
+def gen_account(
+    client: jsonrpc.Client, dd_account: bool = False, base_url: typing.Optional[str] = None
+) -&gt; LocalAccount:
     &#34;&#34;&#34;generates a Testnet onchain account&#34;&#34;&#34;
 
-    return Faucet(client).gen_account(dd_account=dd_account)
+    account = Faucet(client).gen_account(dd_account=dd_account)
+    if base_url:
+        account.rotate_dual_attestation_info(client, base_url)
+    return account
 
 
 def gen_child_vasp(
@@ -107,9 +105,8 @@ def gen_child_vasp(
     currency: str = TEST_CURRENCY_CODE,
 ) -&gt; LocalAccount:
     child_vasp = LocalAccount.generate()
-    exec_txn(
+    parent_vasp.submit_and_wait_for_txn(
         client,
-        parent_vasp,
         stdlib.encode_create_child_vasp_account_script(
             coin_type=utils.currency_code(currency),
             child_address=child_vasp.account_address,
@@ -119,27 +116,6 @@ def gen_child_vasp(
         ),
     )
     return child_vasp
-
-
-def exec_txn(client: jsonrpc.Client, sender: LocalAccount, script: diem_types.Script) -&gt; jsonrpc.Transaction:
-    &#34;&#34;&#34;create, submit and wait for the transaction&#34;&#34;&#34;
-
-    sender_account_sequence = client.get_account_sequence(sender.account_address)
-    expire = 30
-    txn = sender.sign(
-        diem_types.RawTransaction(  # pyre-ignore
-            sender=sender.account_address,
-            sequence_number=diem_types.st.uint64(sender_account_sequence),
-            payload=diem_types.TransactionPayload__Script(value=script),
-            max_gas_amount=1_000_000,
-            gas_unit_price=0,
-            gas_currency_code=TEST_CURRENCY_CODE,
-            expiration_timestamp_secs=int(time.time()) + expire,
-            chain_id=CHAIN_ID,
-        )
-    )
-    client.submit(txn)
-    return client.wait_for_transaction(txn, timeout_secs=expire)
 
 
 class Faucet:
@@ -210,38 +186,8 @@ class Faucet:
     return jsonrpc.Client(JSON_RPC_URL)</code></pre>
 </details>
 </dd>
-<dt id="diem.testnet.exec_txn"><code class="name flex">
-<span>def <span class="ident">exec_txn</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, sender: <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> jsonrpc_pb2.Transaction</span>
-</code></dt>
-<dd>
-<div class="desc"><p>create, submit and wait for the transaction</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def exec_txn(client: jsonrpc.Client, sender: LocalAccount, script: diem_types.Script) -&gt; jsonrpc.Transaction:
-    &#34;&#34;&#34;create, submit and wait for the transaction&#34;&#34;&#34;
-
-    sender_account_sequence = client.get_account_sequence(sender.account_address)
-    expire = 30
-    txn = sender.sign(
-        diem_types.RawTransaction(  # pyre-ignore
-            sender=sender.account_address,
-            sequence_number=diem_types.st.uint64(sender_account_sequence),
-            payload=diem_types.TransactionPayload__Script(value=script),
-            max_gas_amount=1_000_000,
-            gas_unit_price=0,
-            gas_currency_code=TEST_CURRENCY_CODE,
-            expiration_timestamp_secs=int(time.time()) + expire,
-            chain_id=CHAIN_ID,
-        )
-    )
-    client.submit(txn)
-    return client.wait_for_transaction(txn, timeout_secs=expire)</code></pre>
-</details>
-</dd>
 <dt id="diem.testnet.gen_account"><code class="name flex">
-<span>def <span class="ident">gen_account</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, dd_account: bool = False) ‑> <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a></span>
+<span>def <span class="ident">gen_account</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, dd_account: bool = False, base_url: Optional[str] = None) ‑> <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>generates a Testnet onchain account</p></div>
@@ -249,10 +195,15 @@ class Faucet:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def gen_account(client: jsonrpc.Client, dd_account: bool = False) -&gt; LocalAccount:
+<pre><code class="python">def gen_account(
+    client: jsonrpc.Client, dd_account: bool = False, base_url: typing.Optional[str] = None
+) -&gt; LocalAccount:
     &#34;&#34;&#34;generates a Testnet onchain account&#34;&#34;&#34;
 
-    return Faucet(client).gen_account(dd_account=dd_account)</code></pre>
+    account = Faucet(client).gen_account(dd_account=dd_account)
+    if base_url:
+        account.rotate_dual_attestation_info(client, base_url)
+    return account</code></pre>
 </details>
 </dd>
 <dt id="diem.testnet.gen_child_vasp"><code class="name flex">
@@ -271,9 +222,8 @@ class Faucet:
     currency: str = TEST_CURRENCY_CODE,
 ) -&gt; LocalAccount:
     child_vasp = LocalAccount.generate()
-    exec_txn(
+    parent_vasp.submit_and_wait_for_txn(
         client,
-        parent_vasp,
         stdlib.encode_create_child_vasp_account_script(
             coin_type=utils.currency_code(currency),
             child_address=child_vasp.account_address,
@@ -295,15 +245,7 @@ class Faucet:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def gen_vasp_account(client: jsonrpc.Client, base_url: str) -&gt; LocalAccount:
-    account = gen_account(client)
-    exec_txn(
-        client,
-        account,
-        stdlib.encode_rotate_dual_attestation_info_script(
-            new_url=base_url.encode(&#34;utf-8&#34;), new_key=account.compliance_public_key_bytes
-        ),
-    )
-    return account</code></pre>
+    raise Exception(&#34;deprecated: use `gen_account` instead&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -416,7 +358,6 @@ class Faucet:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="diem.testnet.create_client" href="#diem.testnet.create_client">create_client</a></code></li>
-<li><code><a title="diem.testnet.exec_txn" href="#diem.testnet.exec_txn">exec_txn</a></code></li>
 <li><code><a title="diem.testnet.gen_account" href="#diem.testnet.gen_account">gen_account</a></code></li>
 <li><code><a title="diem.testnet.gen_child_vasp" href="#diem.testnet.gen_child_vasp">gen_child_vasp</a></code></li>
 <li><code><a title="diem.testnet.gen_vasp_account" href="#diem.testnet.gen_vasp_account">gen_vasp_account</a></code></li>

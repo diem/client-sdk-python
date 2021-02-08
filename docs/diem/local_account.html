@@ -38,17 +38,22 @@ LocalAccount provides operations we need for creating auth key, account address 
 raw transaction.
 &#34;&#34;&#34;
 
-from . import (
-    diem_types,
-    utils,
-)
+from . import diem_types, jsonrpc, utils, stdlib, identifier
+from .serde_types import uint64
 
 from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
+from typing import Dict, Optional
+from dataclasses import dataclass, field
+from copy import copy
+import time
 
 
+@dataclass
 class LocalAccount:
     &#34;&#34;&#34;LocalAccount is like a wallet account
+
+    Some default values are initialized for testnet.
 
     WARN: This is handy class for creating tests for your application, but may not ideal for your
     production code, because it uses a specific implementaion of ed25519 and requires loading your
@@ -62,19 +67,36 @@ class LocalAccount:
     def generate() -&gt; &#34;LocalAccount&#34;:
         &#34;&#34;&#34;Generate a random private key and initialize local account&#34;&#34;&#34;
 
-        private_key = Ed25519PrivateKey.generate()
-        return LocalAccount(private_key)
+        return LocalAccount()
 
     @staticmethod
     def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
-        return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))
+        return LocalAccount.from_dict({&#34;private_key&#34;: key})
 
-    private_key: Ed25519PrivateKey
-    compliance_key: Ed25519PrivateKey
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -&gt; &#34;LocalAccount&#34;:
+        &#34;&#34;&#34;from a dict that is created by LocalAccount#to_dict
 
-    def __init__(self, private_key: Ed25519PrivateKey) -&gt; None:
-        self.private_key = private_key
-        self.compliance_key = Ed25519PrivateKey.generate()
+        The private_key and compliance_key values are hex-encoded bytes; they will
+        be loaded by `Ed25519PrivateKey.from_private_bytes`.
+        &#34;&#34;&#34;
+
+        dic = copy(dic)
+        for name in [&#34;private_key&#34;, &#34;compliance_key&#34;]:
+            if name not in dic:
+                continue
+            key = dic[name]
+            dic[name] = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key))
+        return LocalAccount(**dic)  # pyre-ignore
+
+    private_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
+    compliance_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
+
+    hrp: str = field(default=identifier.TDM)
+    txn_gas_currency_code: str = field(default=&#34;XDX&#34;)
+    txn_max_gas_amount: int = field(default=1_000_000)
+    txn_gas_unit_price: int = field(default=0)
+    txn_expire_duration_secs: int = field(default=30)
 
     @property
     def auth_key(self) -&gt; AuthKey:
@@ -96,11 +118,58 @@ class LocalAccount:
     def compliance_public_key_bytes(self) -&gt; bytes:
         return utils.public_key_bytes(self.compliance_key.public_key())
 
+    def account_identifier(self, subaddress: Optional[bytes] = None) -&gt; str:
+        return identifier.encode_account(self.account_address, subaddress, self.hrp)
+
     def sign(self, txn: diem_types.RawTransaction) -&gt; diem_types.SignedTransaction:
         &#34;&#34;&#34;Create signed transaction for given raw transaction&#34;&#34;&#34;
 
         signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
-        return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
+        return utils.create_signed_transaction(txn, self.public_key_bytes, signature)
+
+    def create_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+        sequence_number = client.get_account_sequence(self.account_address)
+        chain_id = client.get_last_known_state().chain_id
+        return self.sign(
+            diem_types.RawTransaction(  # pyre-ignore
+                sender=self.account_address,
+                sequence_number=uint64(sequence_number),
+                payload=diem_types.TransactionPayload__Script(value=script),
+                max_gas_amount=uint64(self.txn_max_gas_amount),
+                gas_unit_price=uint64(self.txn_gas_unit_price),
+                gas_currency_code=self.txn_gas_currency_code,
+                expiration_timestamp_secs=uint64(int(time.time()) + self.txn_expire_duration_secs),
+                chain_id=diem_types.ChainId.from_int(chain_id),
+            )
+        )
+
+    def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+        txn = self.create_txn(client, script)
+        client.submit(txn)
+        return txn
+
+    def submit_and_wait_for_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; jsonrpc.Transaction:
+        txn = self.submit_txn(client, script)
+        return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
+
+    def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -&gt; jsonrpc.Transaction:
+        return self.submit_and_wait_for_txn(
+            client,
+            stdlib.encode_rotate_dual_attestation_info_script(
+                new_url=base_url.encode(&#34;utf-8&#34;), new_key=self.compliance_public_key_bytes
+            ),
+        )
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        &#34;&#34;&#34;export to a string only dictionary for saving and importing as config
+
+        private keys will be exported as hex-encded raw key bytes.
+        &#34;&#34;&#34;
+
+        d = copy(self.__dict__)
+        d[&#34;private_key&#34;] = utils.private_key_bytes(self.private_key).hex()
+        d[&#34;compliance_key&#34;] = utils.private_key_bytes(self.compliance_key).hex()
+        return d</code></pre>
 </details>
 </section>
 <section>
@@ -114,10 +183,11 @@ class LocalAccount:
 <dl>
 <dt id="diem.local_account.LocalAccount"><code class="flex name class">
 <span>class <span class="ident">LocalAccount</span></span>
-<span>(</span><span>private_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey)</span>
+<span>(</span><span>private_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey = &lt;factory&gt;, compliance_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey = &lt;factory&gt;, hrp: str = 'tdm', txn_gas_currency_code: str = 'XDX', txn_max_gas_amount: int = 1000000, txn_gas_unit_price: int = 0, txn_expire_duration_secs: int = 30)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>LocalAccount is like a wallet account</p>
+<p>Some default values are initialized for testnet.</p>
 <p>WARN: This is handy class for creating tests for your application, but may not ideal for your
 production code, because it uses a specific implementaion of ed25519 and requires loading your
 private key into memory and hand over to code from external.
@@ -128,8 +198,11 @@ your private key to any code from external if possible.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class LocalAccount:
+<pre><code class="python">@dataclass
+class LocalAccount:
     &#34;&#34;&#34;LocalAccount is like a wallet account
+
+    Some default values are initialized for testnet.
 
     WARN: This is handy class for creating tests for your application, but may not ideal for your
     production code, because it uses a specific implementaion of ed25519 and requires loading your
@@ -143,19 +216,36 @@ your private key to any code from external if possible.</p></div>
     def generate() -&gt; &#34;LocalAccount&#34;:
         &#34;&#34;&#34;Generate a random private key and initialize local account&#34;&#34;&#34;
 
-        private_key = Ed25519PrivateKey.generate()
-        return LocalAccount(private_key)
+        return LocalAccount()
 
     @staticmethod
     def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
-        return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))
+        return LocalAccount.from_dict({&#34;private_key&#34;: key})
 
-    private_key: Ed25519PrivateKey
-    compliance_key: Ed25519PrivateKey
+    @staticmethod
+    def from_dict(dic: Dict[str, str]) -&gt; &#34;LocalAccount&#34;:
+        &#34;&#34;&#34;from a dict that is created by LocalAccount#to_dict
 
-    def __init__(self, private_key: Ed25519PrivateKey) -&gt; None:
-        self.private_key = private_key
-        self.compliance_key = Ed25519PrivateKey.generate()
+        The private_key and compliance_key values are hex-encoded bytes; they will
+        be loaded by `Ed25519PrivateKey.from_private_bytes`.
+        &#34;&#34;&#34;
+
+        dic = copy(dic)
+        for name in [&#34;private_key&#34;, &#34;compliance_key&#34;]:
+            if name not in dic:
+                continue
+            key = dic[name]
+            dic[name] = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key))
+        return LocalAccount(**dic)  # pyre-ignore
+
+    private_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
+    compliance_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
+
+    hrp: str = field(default=identifier.TDM)
+    txn_gas_currency_code: str = field(default=&#34;XDX&#34;)
+    txn_max_gas_amount: int = field(default=1_000_000)
+    txn_gas_unit_price: int = field(default=0)
+    txn_expire_duration_secs: int = field(default=30)
 
     @property
     def auth_key(self) -&gt; AuthKey:
@@ -177,11 +267,58 @@ your private key to any code from external if possible.</p></div>
     def compliance_public_key_bytes(self) -&gt; bytes:
         return utils.public_key_bytes(self.compliance_key.public_key())
 
+    def account_identifier(self, subaddress: Optional[bytes] = None) -&gt; str:
+        return identifier.encode_account(self.account_address, subaddress, self.hrp)
+
     def sign(self, txn: diem_types.RawTransaction) -&gt; diem_types.SignedTransaction:
         &#34;&#34;&#34;Create signed transaction for given raw transaction&#34;&#34;&#34;
 
         signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
-        return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
+        return utils.create_signed_transaction(txn, self.public_key_bytes, signature)
+
+    def create_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+        sequence_number = client.get_account_sequence(self.account_address)
+        chain_id = client.get_last_known_state().chain_id
+        return self.sign(
+            diem_types.RawTransaction(  # pyre-ignore
+                sender=self.account_address,
+                sequence_number=uint64(sequence_number),
+                payload=diem_types.TransactionPayload__Script(value=script),
+                max_gas_amount=uint64(self.txn_max_gas_amount),
+                gas_unit_price=uint64(self.txn_gas_unit_price),
+                gas_currency_code=self.txn_gas_currency_code,
+                expiration_timestamp_secs=uint64(int(time.time()) + self.txn_expire_duration_secs),
+                chain_id=diem_types.ChainId.from_int(chain_id),
+            )
+        )
+
+    def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+        txn = self.create_txn(client, script)
+        client.submit(txn)
+        return txn
+
+    def submit_and_wait_for_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; jsonrpc.Transaction:
+        txn = self.submit_txn(client, script)
+        return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
+
+    def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -&gt; jsonrpc.Transaction:
+        return self.submit_and_wait_for_txn(
+            client,
+            stdlib.encode_rotate_dual_attestation_info_script(
+                new_url=base_url.encode(&#34;utf-8&#34;), new_key=self.compliance_public_key_bytes
+            ),
+        )
+
+    def to_dict(self) -&gt; Dict[str, str]:
+        &#34;&#34;&#34;export to a string only dictionary for saving and importing as config
+
+        private keys will be exported as hex-encded raw key bytes.
+        &#34;&#34;&#34;
+
+        d = copy(self.__dict__)
+        d[&#34;private_key&#34;] = utils.private_key_bytes(self.private_key).hex()
+        d[&#34;compliance_key&#34;] = utils.private_key_bytes(self.compliance_key).hex()
+        return d</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -189,13 +326,61 @@ your private key to any code from external if possible.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="diem.local_account.LocalAccount.hrp"><code class="name">var <span class="ident">hrp</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="diem.local_account.LocalAccount.private_key"><code class="name">var <span class="ident">private_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.local_account.LocalAccount.txn_expire_duration_secs"><code class="name">var <span class="ident">txn_expire_duration_secs</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.local_account.LocalAccount.txn_gas_currency_code"><code class="name">var <span class="ident">txn_gas_currency_code</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.local_account.LocalAccount.txn_gas_unit_price"><code class="name">var <span class="ident">txn_gas_unit_price</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.local_account.LocalAccount.txn_max_gas_amount"><code class="name">var <span class="ident">txn_max_gas_amount</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
+<dt id="diem.local_account.LocalAccount.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>dic: Dict[str, str]) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>from a dict that is created by LocalAccount#to_dict</p>
+<p>The private_key and compliance_key values are hex-encoded bytes; they will
+be loaded by <code>Ed25519PrivateKey.from_private_bytes</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_dict(dic: Dict[str, str]) -&gt; &#34;LocalAccount&#34;:
+    &#34;&#34;&#34;from a dict that is created by LocalAccount#to_dict
+
+    The private_key and compliance_key values are hex-encoded bytes; they will
+    be loaded by `Ed25519PrivateKey.from_private_bytes`.
+    &#34;&#34;&#34;
+
+    dic = copy(dic)
+    for name in [&#34;private_key&#34;, &#34;compliance_key&#34;]:
+        if name not in dic:
+            continue
+        key = dic[name]
+        dic[name] = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key))
+    return LocalAccount(**dic)  # pyre-ignore</code></pre>
+</details>
+</dd>
 <dt id="diem.local_account.LocalAccount.from_private_key_hex"><code class="name flex">
 <span>def <span class="ident">from_private_key_hex</span></span>(<span>key: str) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
@@ -207,7 +392,7 @@ your private key to any code from external if possible.</p></div>
 </summary>
 <pre><code class="python">@staticmethod
 def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
-    return LocalAccount(Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key)))</code></pre>
+    return LocalAccount.from_dict({&#34;private_key&#34;: key})</code></pre>
 </details>
 </dd>
 <dt id="diem.local_account.LocalAccount.generate"><code class="name flex">
@@ -223,8 +408,7 @@ def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
 def generate() -&gt; &#34;LocalAccount&#34;:
     &#34;&#34;&#34;Generate a random private key and initialize local account&#34;&#34;&#34;
 
-    private_key = Ed25519PrivateKey.generate()
-    return LocalAccount(private_key)</code></pre>
+    return LocalAccount()</code></pre>
 </details>
 </dd>
 </dl>
@@ -293,6 +477,63 @@ def public_key_bytes(self) -&gt; bytes:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="diem.local_account.LocalAccount.account_identifier"><code class="name flex">
+<span>def <span class="ident">account_identifier</span></span>(<span>self, subaddress: Optional[bytes] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def account_identifier(self, subaddress: Optional[bytes] = None) -&gt; str:
+    return identifier.encode_account(self.account_address, subaddress, self.hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.create_txn"><code class="name flex">
+<span>def <span class="ident">create_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+    sequence_number = client.get_account_sequence(self.account_address)
+    chain_id = client.get_last_known_state().chain_id
+    return self.sign(
+        diem_types.RawTransaction(  # pyre-ignore
+            sender=self.account_address,
+            sequence_number=uint64(sequence_number),
+            payload=diem_types.TransactionPayload__Script(value=script),
+            max_gas_amount=uint64(self.txn_max_gas_amount),
+            gas_unit_price=uint64(self.txn_gas_unit_price),
+            gas_currency_code=self.txn_gas_currency_code,
+            expiration_timestamp_secs=uint64(int(time.time()) + self.txn_expire_duration_secs),
+            chain_id=diem_types.ChainId.from_int(chain_id),
+        )
+    )</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.rotate_dual_attestation_info"><code class="name flex">
+<span>def <span class="ident">rotate_dual_attestation_info</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -&gt; jsonrpc.Transaction:
+    return self.submit_and_wait_for_txn(
+        client,
+        stdlib.encode_rotate_dual_attestation_info_script(
+            new_url=base_url.encode(&#34;utf-8&#34;), new_key=self.compliance_public_key_bytes
+        ),
+    )</code></pre>
+</details>
+</dd>
 <dt id="diem.local_account.LocalAccount.sign"><code class="name flex">
 <span>def <span class="ident">sign</span></span>(<span>self, txn: <a title="diem.diem_types.RawTransaction" href="diem_types/index.html#diem.diem_types.RawTransaction">RawTransaction</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
 </code></dt>
@@ -307,6 +548,57 @@ def public_key_bytes(self) -&gt; bytes:
 
     signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
     return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.submit_and_wait_for_txn"><code class="name flex">
+<span>def <span class="ident">submit_and_wait_for_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> jsonrpc_pb2.Transaction</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def submit_and_wait_for_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; jsonrpc.Transaction:
+    txn = self.submit_txn(client, script)
+    return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.submit_txn"><code class="name flex">
+<span>def <span class="ident">submit_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+    txn = self.create_txn(client, script)
+    client.submit(txn)
+    return txn</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>export to a string only dictionary for saving and importing as config</p>
+<p>private keys will be exported as hex-encded raw key bytes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, str]:
+    &#34;&#34;&#34;export to a string only dictionary for saving and importing as config
+
+    private keys will be exported as hex-encded raw key bytes.
+    &#34;&#34;&#34;
+
+    d = copy(self.__dict__)
+    d[&#34;private_key&#34;] = utils.private_key_bytes(self.private_key).hex()
+    d[&#34;compliance_key&#34;] = utils.private_key_bytes(self.compliance_key).hex()
+    return d</code></pre>
 </details>
 </dd>
 </dl>
@@ -331,15 +623,27 @@ def public_key_bytes(self) -&gt; bytes:
 <h4><code><a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></code></h4>
 <ul class="">
 <li><code><a title="diem.local_account.LocalAccount.account_address" href="#diem.local_account.LocalAccount.account_address">account_address</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.account_identifier" href="#diem.local_account.LocalAccount.account_identifier">account_identifier</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.auth_key" href="#diem.local_account.LocalAccount.auth_key">auth_key</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.compliance_key" href="#diem.local_account.LocalAccount.compliance_key">compliance_key</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.compliance_public_key_bytes" href="#diem.local_account.LocalAccount.compliance_public_key_bytes">compliance_public_key_bytes</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.create_txn" href="#diem.local_account.LocalAccount.create_txn">create_txn</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.from_dict" href="#diem.local_account.LocalAccount.from_dict">from_dict</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.from_private_key_hex" href="#diem.local_account.LocalAccount.from_private_key_hex">from_private_key_hex</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.generate" href="#diem.local_account.LocalAccount.generate">generate</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.hrp" href="#diem.local_account.LocalAccount.hrp">hrp</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.private_key" href="#diem.local_account.LocalAccount.private_key">private_key</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.public_key" href="#diem.local_account.LocalAccount.public_key">public_key</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.public_key_bytes" href="#diem.local_account.LocalAccount.public_key_bytes">public_key_bytes</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.rotate_dual_attestation_info" href="#diem.local_account.LocalAccount.rotate_dual_attestation_info">rotate_dual_attestation_info</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.sign" href="#diem.local_account.LocalAccount.sign">sign</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.submit_and_wait_for_txn" href="#diem.local_account.LocalAccount.submit_and_wait_for_txn">submit_and_wait_for_txn</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.submit_txn" href="#diem.local_account.LocalAccount.submit_txn">submit_txn</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.to_dict" href="#diem.local_account.LocalAccount.to_dict">to_dict</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.txn_expire_duration_secs" href="#diem.local_account.LocalAccount.txn_expire_duration_secs">txn_expire_duration_secs</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.txn_gas_currency_code" href="#diem.local_account.LocalAccount.txn_gas_currency_code">txn_gas_currency_code</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.txn_gas_unit_price" href="#diem.local_account.LocalAccount.txn_gas_unit_price">txn_gas_unit_price</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.txn_max_gas_amount" href="#diem.local_account.LocalAccount.txn_max_gas_amount">txn_max_gas_amount</a></code></li>
 </ul>
 </li>
 </ul>

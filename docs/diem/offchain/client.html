@@ -78,7 +78,7 @@ class Client:
     &gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
     &gt;&gt;&gt;
     &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
-    &gt;&gt;&gt; account = testnet.gen_vasp_account(client, &#34;http://vasp.com/offchain&#34;)
+    &gt;&gt;&gt; account = testnet.gen_account(client, base_url=&#34;http://vasp.com/offchain&#34;)
     &gt;&gt;&gt; compliance_key_account_address = account.account_address
     &gt;&gt;&gt; client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
     ```
@@ -113,6 +113,7 @@ class Client:
     my_compliance_key_account_address: diem_types.AccountAddress
     jsonrpc_client: jsonrpc.Client
     hrp: str
+    supported_currency_codes: typing.Optional[typing.List[str]] = dataclasses.field(default=None)
     session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
     timeout: typing.Tuple[float, float] = dataclasses.field(
         default_factory=lambda: (
@@ -211,6 +212,21 @@ class Client:
 
     def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
         currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if action.currency not in currency_codes:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f&#34;currency code is invalid: {action.currency}&#34;,
+                &#34;command.payment.action.currency&#34;,
+            )
+
+        if action.currency not in supported_codes:
+            raise command_error(
+                ErrorCode.unsupported_currency,
+                f&#34;currency code is not supported: {action.currency}&#34;,
+                &#34;command.payment.action.currency&#34;,
+            )
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
             if info.code == action.currency:
@@ -221,12 +237,6 @@ class Client:
                         % (action.amount, info.to_xdx_exchange_rate, limit),
                         &#34;command.payment.action.amount&#34;,
                     )
-                return
-        raise command_error(
-            ErrorCode.invalid_field_value,
-            f&#34;currency code is invalid: {action.currency}&#34;,
-            &#34;command.payment.action.currency&#34;,
-        )
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
         self.validate_actor_address(&#34;sender&#34;, payment.sender)
@@ -275,6 +285,12 @@ class Client:
         return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
 
 
+def _filter_supported_currency_codes(
+    supported_codes: typing.Optional[typing.List[str]], codes: typing.List[str]
+) -&gt; typing.List[str]:
+    return list(filter(lambda code: supported_codes is None or code in supported_codes, codes))
+
+
 def _deserialize_jws(
     content_bytes: bytes,
     klass: typing.Type[jws.T],
@@ -312,7 +328,7 @@ def _is_under_the_threshold(limit: int, rate: float, amount: int) -&gt; bool:
 <dl>
 <dt id="diem.offchain.client.Client"><code class="flex name class">
 <span>class <span class="ident">Client</span></span>
-<span>(</span><span>my_compliance_key_account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, jsonrpc_client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, hrp: str, session: requests.sessions.Session = &lt;factory&gt;, timeout: Tuple[float, float] = &lt;factory&gt;)</span>
+<span>(</span><span>my_compliance_key_account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, jsonrpc_client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, hrp: str, supported_currency_codes: Optional[List[str]] = None, session: requests.sessions.Session = &lt;factory&gt;, timeout: Tuple[float, float] = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Client for communicating with offchain service.</p>
@@ -321,7 +337,7 @@ def _is_under_the_threshold(limit: int, rate: float, amount: int) -&gt; bool:
 <pre><code>&gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
 &gt;&gt;&gt;
 &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
-&gt;&gt;&gt; account = testnet.gen_vasp_account(client, &quot;http://vasp.com/offchain&quot;)
+&gt;&gt;&gt; account = testnet.gen_account(client, base_url=&quot;http://vasp.com/offchain&quot;)
 &gt;&gt;&gt; compliance_key_account_address = account.account_address
 &gt;&gt;&gt; client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
 </code></pre>
@@ -361,7 +377,7 @@ class Client:
     &gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
     &gt;&gt;&gt;
     &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
-    &gt;&gt;&gt; account = testnet.gen_vasp_account(client, &#34;http://vasp.com/offchain&#34;)
+    &gt;&gt;&gt; account = testnet.gen_account(client, base_url=&#34;http://vasp.com/offchain&#34;)
     &gt;&gt;&gt; compliance_key_account_address = account.account_address
     &gt;&gt;&gt; client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
     ```
@@ -396,6 +412,7 @@ class Client:
     my_compliance_key_account_address: diem_types.AccountAddress
     jsonrpc_client: jsonrpc.Client
     hrp: str
+    supported_currency_codes: typing.Optional[typing.List[str]] = dataclasses.field(default=None)
     session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
     timeout: typing.Tuple[float, float] = dataclasses.field(
         default_factory=lambda: (
@@ -494,6 +511,21 @@ class Client:
 
     def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
         currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if action.currency not in currency_codes:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f&#34;currency code is invalid: {action.currency}&#34;,
+                &#34;command.payment.action.currency&#34;,
+            )
+
+        if action.currency not in supported_codes:
+            raise command_error(
+                ErrorCode.unsupported_currency,
+                f&#34;currency code is not supported: {action.currency}&#34;,
+                &#34;command.payment.action.currency&#34;,
+            )
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
             if info.code == action.currency:
@@ -504,12 +536,6 @@ class Client:
                         % (action.amount, info.to_xdx_exchange_rate, limit),
                         &#34;command.payment.action.amount&#34;,
                     )
-                return
-        raise command_error(
-            ErrorCode.invalid_field_value,
-            f&#34;currency code is invalid: {action.currency}&#34;,
-            &#34;command.payment.action.currency&#34;,
-        )
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
         self.validate_actor_address(&#34;sender&#34;, payment.sender)
@@ -576,6 +602,10 @@ class Client:
 <div class="desc"></div>
 </dd>
 <dt id="diem.offchain.client.Client.session"><code class="name">var <span class="ident">session</span> : requests.sessions.Session</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.client.Client.supported_currency_codes"><code class="name">var <span class="ident">supported_currency_codes</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -814,6 +844,21 @@ class Client:
 </summary>
 <pre><code class="python">def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
     currencies = self.jsonrpc_client.get_currencies()
+    currency_codes = list(map(lambda c: c.code, currencies))
+    supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+    if action.currency not in currency_codes:
+        raise command_error(
+            ErrorCode.invalid_field_value,
+            f&#34;currency code is invalid: {action.currency}&#34;,
+            &#34;command.payment.action.currency&#34;,
+        )
+
+    if action.currency not in supported_codes:
+        raise command_error(
+            ErrorCode.unsupported_currency,
+            f&#34;currency code is not supported: {action.currency}&#34;,
+            &#34;command.payment.action.currency&#34;,
+        )
     limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
     for info in currencies:
         if info.code == action.currency:
@@ -823,13 +868,7 @@ class Client:
                     &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
                     % (action.amount, info.to_xdx_exchange_rate, limit),
                     &#34;command.payment.action.amount&#34;,
-                )
-            return
-    raise command_error(
-        ErrorCode.invalid_field_value,
-        f&#34;currency code is invalid: {action.currency}&#34;,
-        &#34;command.payment.action.currency&#34;,
-    )</code></pre>
+                )</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.client.Client.validate_recipient_signature"><code class="name flex">
@@ -925,6 +964,7 @@ class Client:
 <li><code><a title="diem.offchain.client.Client.send_command" href="#diem.offchain.client.Client.send_command">send_command</a></code></li>
 <li><code><a title="diem.offchain.client.Client.send_request" href="#diem.offchain.client.Client.send_request">send_request</a></code></li>
 <li><code><a title="diem.offchain.client.Client.session" href="#diem.offchain.client.Client.session">session</a></code></li>
+<li><code><a title="diem.offchain.client.Client.supported_currency_codes" href="#diem.offchain.client.Client.supported_currency_codes">supported_currency_codes</a></code></li>
 <li><code><a title="diem.offchain.client.Client.timeout" href="#diem.offchain.client.Client.timeout">timeout</a></code></li>
 <li><code><a title="diem.offchain.client.Client.validate_actor_address" href="#diem.offchain.client.Client.validate_actor_address">validate_actor_address</a></code></li>
 <li><code><a title="diem.offchain.client.Client.validate_addresses" href="#diem.offchain.client.Client.validate_addresses">validate_addresses</a></code></li>

@@ -447,7 +447,7 @@ class ScriptCall__CreateChildVaspAccount(ScriptCall):
     coin_type: diem_types.TypeTag
     child_address: diem_types.AccountAddress
     auth_key_prefix: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
     child_initial_balance: st.uint64
 
 
@@ -504,7 +504,7 @@ class ScriptCall__CreateDesignatedDealer(ScriptCall):
     addr: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
 
 
 @dataclass(frozen=True)
@@ -558,7 +558,7 @@ class ScriptCall__CreateParentVaspAccount(ScriptCall):
     new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
 
 
 @dataclass(frozen=True)
@@ -1664,7 +1664,7 @@ class ScriptCall__UpdateMintingAbility(ScriptCall):
     &#34;&#34;&#34;
 
     currency: diem_types.TypeTag
-    allow_minting: st.bool
+    allow_minting: bool
 
 
 from diem.diem_types import (
@@ -2059,7 +2059,7 @@ def encode_create_child_vasp_account_script(
     coin_type: TypeTag,
     child_address: AccountAddress,
     auth_key_prefix: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
     child_initial_balance: st.uint64,
 ) -&gt; Script:
     &#34;&#34;&#34;# Summary
@@ -2136,7 +2136,7 @@ def encode_create_designated_dealer_script(
     addr: AccountAddress,
     auth_key_prefix: bytes,
     human_name: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
 ) -&gt; Script:
     &#34;&#34;&#34;# Summary
     Creates a Designated Dealer account with the provided information, and initializes it with
@@ -2202,7 +2202,7 @@ def encode_create_parent_vasp_account_script(
     new_account_address: AccountAddress,
     auth_key_prefix: bytes,
     human_name: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
 ) -&gt; Script:
     &#34;&#34;&#34;# Summary
     Creates a Parent VASP account with the specified human name.
@@ -3416,7 +3416,7 @@ def encode_update_exchange_rate_script(
     )
 
 
-def encode_update_minting_ability_script(currency: TypeTag, allow_minting: st.bool) -&gt; Script:
+def encode_update_minting_ability_script(currency: TypeTag, allow_minting: bool) -&gt; Script:
     &#34;&#34;&#34;# Summary
     Script to allow or disallow minting of new coins in a specified currency.
 
@@ -3860,7 +3860,7 @@ SCRIPT_DECODER_MAP: typing.Dict[bytes, typing.Callable[[Script], ScriptCall]] = 
 }
 
 
-def decode_bool_argument(arg: TransactionArgument) -&gt; st.bool:
+def decode_bool_argument(arg: TransactionArgument) -&gt; bool:
     if not isinstance(arg, TransactionArgument__Bool):
         raise ValueError(&#34;Was expecting a Bool argument&#34;)
     return arg.value
@@ -3978,7 +3978,7 @@ def decode_u8vector_argument(arg: TransactionArgument) -&gt; bytes:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def decode_bool_argument(arg: TransactionArgument) -&gt; st.bool:
+<pre><code class="python">def decode_bool_argument(arg: TransactionArgument) -&gt; bool:
     if not isinstance(arg, TransactionArgument__Bool):
         raise ValueError(&#34;Was expecting a Bool argument&#34;)
     return arg.value</code></pre>
@@ -5730,7 +5730,7 @@ and payee field being <code>child_address</code>. This is emitted on the new Chi
     coin_type: TypeTag,
     child_address: AccountAddress,
     auth_key_prefix: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
     child_initial_balance: st.uint64,
 ) -&gt; Script:
     &#34;&#34;&#34;# Summary
@@ -5932,7 +5932,7 @@ account.</p>
     addr: AccountAddress,
     auth_key_prefix: bytes,
     human_name: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
 ) -&gt; Script:
     &#34;&#34;&#34;# Summary
     Creates a Designated Dealer account with the provided information, and initializes it with
@@ -6123,7 +6123,7 @@ also be added. This can only be invoked by an TreasuryCompliance account.
     new_account_address: AccountAddress,
     auth_key_prefix: bytes,
     human_name: bytes,
-    add_all_currencies: st.bool,
+    add_all_currencies: bool,
 ) -&gt; Script:
     &#34;&#34;&#34;# Summary
     Creates a Parent VASP account with the specified human name.
@@ -9718,7 +9718,7 @@ This transaction needs to be sent by the Treasury Compliance account.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def encode_update_minting_ability_script(currency: TypeTag, allow_minting: st.bool) -&gt; Script:
+<pre><code class="python">def encode_update_minting_ability_script(currency: TypeTag, allow_minting: bool) -&gt; Script:
     &#34;&#34;&#34;# Summary
     Script to allow or disallow minting of new coins in a specified currency.
 
@@ -11161,7 +11161,7 @@ class ScriptCall__CreateChildVaspAccount(ScriptCall):
     coin_type: diem_types.TypeTag
     child_address: diem_types.AccountAddress
     auth_key_prefix: bytes
-    add_all_currencies: st.bool
+    add_all_currencies: bool
     child_initial_balance: st.uint64</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -11371,7 +11371,7 @@ class ScriptCall__CreateDesignatedDealer(ScriptCall):
     addr: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
-    add_all_currencies: st.bool</code></pre>
+    add_all_currencies: bool</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -11582,7 +11582,7 @@ class ScriptCall__CreateParentVaspAccount(ScriptCall):
     new_account_address: diem_types.AccountAddress
     auth_key_prefix: bytes
     human_name: bytes
-    add_all_currencies: st.bool</code></pre>
+    add_all_currencies: bool</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -15506,7 +15506,7 @@ class ScriptCall__UpdateMintingAbility(ScriptCall):
     &#34;&#34;&#34;
 
     currency: diem_types.TypeTag
-    allow_minting: st.bool</code></pre>
+    allow_minting: bool</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

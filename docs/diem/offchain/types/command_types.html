@@ -103,6 +103,9 @@ class ErrorCode:
     invalid_http_header = &#34;invalid_http_header&#34;
     invalid_recipient_signature = &#34;invalid_recipient_signature&#34;
 
+    # Field payment.action.currency value is a valid Diem currency code, but it is not supported / acceptable by the receiver VASP.
+    unsupported_currency = &#34;unsupported_currency&#34;
+
 
 class OffChainErrorType:
     &#34;&#34;&#34;command_error occurs in response to a Command failing to be applied -
@@ -360,7 +363,10 @@ class CommandResponseObject:
 
     missing_http_header = &#34;missing_http_header&#34;
     invalid_http_header = &#34;invalid_http_header&#34;
-    invalid_recipient_signature = &#34;invalid_recipient_signature&#34;</code></pre>
+    invalid_recipient_signature = &#34;invalid_recipient_signature&#34;
+
+    # Field payment.action.currency value is a valid Diem currency code, but it is not supported / acceptable by the receiver VASP.
+    unsupported_currency = &#34;unsupported_currency&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -433,6 +439,10 @@ class CommandResponseObject:
 <div class="desc"></div>
 </dd>
 <dt id="diem.offchain.types.command_types.ErrorCode.unknown_field"><code class="name">var <span class="ident">unknown_field</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.unsupported_currency"><code class="name">var <span class="ident">unsupported_currency</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -600,6 +610,7 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.unknown_address" href="#diem.offchain.types.command_types.ErrorCode.unknown_address">unknown_address</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.unknown_command_type" href="#diem.offchain.types.command_types.ErrorCode.unknown_command_type">unknown_command_type</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.unknown_field" href="#diem.offchain.types.command_types.ErrorCode.unknown_field">unknown_field</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.unsupported_currency" href="#diem.offchain.types.command_types.ErrorCode.unsupported_currency">unsupported_currency</a></code></li>
 </ul>
 </li>
 <li>

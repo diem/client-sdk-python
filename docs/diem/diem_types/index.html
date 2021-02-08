@@ -333,6 +333,21 @@ class Metadata:
             raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
         return v
 
+    def decode_structure(self) -&gt; typing.Union[None, &#34;GeneralMetadataV0&#34;, &#34;TravelRuleMetadataV0&#34;, &#34;RefundMetadataV0&#34;]:
+        &#34;&#34;&#34;decode metadata structure
+
+        Returns None for a non-structure type or undefined
+        &#34;&#34;&#34;
+
+        type_index = type(self).INDEX
+        if type_index == 1:
+            return typing.cast(GeneralMetadataV0, self.value.value)
+        elif type_index == 2:
+            return typing.cast(TravelRuleMetadataV0, self.value.value)
+        elif type_index == 4:
+            return typing.cast(RefundMetadataV0, self.value.value)
+        return None
+
 
 @dataclass(frozen=True)
 class Metadata__Undefined(Metadata):
@@ -674,7 +689,7 @@ class TransactionArgument__U8Vector(TransactionArgument):
 @dataclass(frozen=True)
 class TransactionArgument__Bool(TransactionArgument):
     INDEX = 5  # type: int
-    value: st.bool
+    value: bool
 
 
 TransactionArgument.VARIANTS = [
@@ -2245,7 +2260,22 @@ def bcs_deserialize(input: bytes) -&gt; &#34;Identifier&#34;:
         v, buffer = bcs.deserialize(input, Metadata)
         if buffer:
             raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
-        return v</code></pre>
+        return v
+
+    def decode_structure(self) -&gt; typing.Union[None, &#34;GeneralMetadataV0&#34;, &#34;TravelRuleMetadataV0&#34;, &#34;RefundMetadataV0&#34;]:
+        &#34;&#34;&#34;decode metadata structure
+
+        Returns None for a non-structure type or undefined
+        &#34;&#34;&#34;
+
+        type_index = type(self).INDEX
+        if type_index == 1:
+            return typing.cast(GeneralMetadataV0, self.value.value)
+        elif type_index == 2:
+            return typing.cast(TravelRuleMetadataV0, self.value.value)
+        elif type_index == 4:
+            return typing.cast(RefundMetadataV0, self.value.value)
+        return None</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -2297,6 +2327,32 @@ def bcs_deserialize(input: bytes) -&gt; &#34;Metadata&#34;:
     return bcs.serialize(self, Metadata)</code></pre>
 </details>
 </dd>
+<dt id="diem.diem_types.Metadata.decode_structure"><code class="name flex">
+<span>def <span class="ident">decode_structure</span></span>(<span>self) ‑> Union[NoneType, <a title="diem.diem_types.GeneralMetadataV0" href="#diem.diem_types.GeneralMetadataV0">GeneralMetadataV0</a>, <a title="diem.diem_types.TravelRuleMetadataV0" href="#diem.diem_types.TravelRuleMetadataV0">TravelRuleMetadataV0</a>, <a title="diem.diem_types.RefundMetadataV0" href="#diem.diem_types.RefundMetadataV0">RefundMetadataV0</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>decode metadata structure</p>
+<p>Returns None for a non-structure type or undefined</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_structure(self) -&gt; typing.Union[None, &#34;GeneralMetadataV0&#34;, &#34;TravelRuleMetadataV0&#34;, &#34;RefundMetadataV0&#34;]:
+    &#34;&#34;&#34;decode metadata structure
+
+    Returns None for a non-structure type or undefined
+    &#34;&#34;&#34;
+
+    type_index = type(self).INDEX
+    if type_index == 1:
+        return typing.cast(GeneralMetadataV0, self.value.value)
+    elif type_index == 2:
+        return typing.cast(TravelRuleMetadataV0, self.value.value)
+    elif type_index == 4:
+        return typing.cast(RefundMetadataV0, self.value.value)
+    return None</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 <dt id="diem.diem_types.Metadata__GeneralMetadata"><code class="flex name class">
@@ -2329,6 +2385,14 @@ class Metadata__GeneralMetadata(Metadata):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="diem.diem_types.Metadata__RefundMetadata"><code class="flex name class">
 <span>class <span class="ident">Metadata__RefundMetadata</span></span>
@@ -2360,6 +2424,14 @@ class Metadata__RefundMetadata(Metadata):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="diem.diem_types.Metadata__TravelRuleMetadata"><code class="flex name class">
 <span>class <span class="ident">Metadata__TravelRuleMetadata</span></span>
@@ -2391,6 +2463,14 @@ class Metadata__TravelRuleMetadata(Metadata):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="diem.diem_types.Metadata__Undefined"><code class="flex name class">
 <span>class <span class="ident">Metadata__Undefined</span></span>
@@ -2417,6 +2497,14 @@ class Metadata__Undefined(Metadata):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="diem.diem_types.Metadata__UnstructuredBytesMetadata"><code class="flex name class">
 <span>class <span class="ident">Metadata__UnstructuredBytesMetadata</span></span>
@@ -2448,6 +2536,14 @@ class Metadata__UnstructuredBytesMetadata(Metadata):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="diem.diem_types.Module"><code class="flex name class">
 <span>class <span class="ident">Module</span></span>
@@ -3562,7 +3658,7 @@ class TransactionArgument__Address(TransactionArgument):
 <pre><code class="python">@dataclass(frozen=True)
 class TransactionArgument__Bool(TransactionArgument):
     INDEX = 5  # type: int
-    value: st.bool</code></pre>
+    value: bool</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -5295,6 +5391,7 @@ class WriteSetPayload__Script(WriteSetPayload):
 <li><code><a title="diem.diem_types.Metadata.VARIANTS" href="#diem.diem_types.Metadata.VARIANTS">VARIANTS</a></code></li>
 <li><code><a title="diem.diem_types.Metadata.bcs_deserialize" href="#diem.diem_types.Metadata.bcs_deserialize">bcs_deserialize</a></code></li>
 <li><code><a title="diem.diem_types.Metadata.bcs_serialize" href="#diem.diem_types.Metadata.bcs_serialize">bcs_serialize</a></code></li>
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
 </ul>
 </li>
 <li>

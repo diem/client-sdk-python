@@ -10,7 +10,7 @@ from diem.offchain import (
     CommandResponseError,
     PaymentActionObject,
 )
-from diem import LocalAccount, identifier, testnet
+from diem import LocalAccount, testnet
 from ..vasp.wallet import ActionResult
 import dataclasses, requests, json, copy, pytest, uuid
 
@@ -363,7 +363,7 @@ def test_missing_x_request_id(sender_app, receiver_app):
 
 def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, receiver_app):
     account = LocalAccount.generate()
-    account_id = identifier.encode_account(account.account_address, None, sender_app.hrp)
+    account_id = account.account_identifier()
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["sender"]["address"] = account_id
     resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
@@ -372,7 +372,7 @@ def test_could_not_find_onchain_account_by_x_request_sender_address(sender_app, 
 
 def test_could_not_find_compliance_key_of_x_request_sender_address(sender_app, receiver_app):
     account = testnet.gen_account(testnet.create_client())
-    account_id = identifier.encode_account(account.account_address, None, sender_app.hrp)
+    account_id = account.account_identifier()
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["command"]["payment"]["sender"]["address"] = account_id
     resp = send_request(request, sender_app, receiver_app, "failure", sender_address=account_id)
@@ -535,8 +535,7 @@ def send_request_json(
     if sender_address is None:
         subaddresses = sender_app.users["foo"].subaddresses
         subaddress = subaddresses[len(subaddresses) - 1] if len(subaddresses) > 0 else None
-        account_address = sender_app._available_child_vasp().account_address
-        sender_address = identifier.encode_account(account_address, subaddress, sender_app.hrp)
+        sender_address = sender_app._available_child_vasp().account_identifier(subaddress)
     return send_request_json_with_headers(
         request_json,
         sender_app,

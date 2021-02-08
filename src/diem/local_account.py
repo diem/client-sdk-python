@@ -7,12 +7,12 @@ LocalAccount provides operations we need for creating auth key, account address 
 raw transaction.
 """
 
-from . import diem_types, jsonrpc, utils, stdlib
+from . import diem_types, jsonrpc, utils, stdlib, identifier
 from .serde_types import uint64
 
 from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from typing import Dict
+from typing import Dict, Optional
 from dataclasses import dataclass, field
 from copy import copy
 import time
@@ -61,6 +61,7 @@ class LocalAccount:
     private_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
     compliance_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
 
+    hrp: str = field(default=identifier.TDM)
     txn_gas_currency_code: str = field(default="XDX")
     txn_max_gas_amount: int = field(default=1_000_000)
     txn_gas_unit_price: int = field(default=0)
@@ -85,6 +86,9 @@ class LocalAccount:
     @property
     def compliance_public_key_bytes(self) -> bytes:
         return utils.public_key_bytes(self.compliance_key.public_key())
+
+    def account_identifier(self, subaddress: Optional[bytes] = None) -> str:
+        return identifier.encode_account(self.account_address, subaddress, self.hrp)
 
     def sign(self, txn: diem_types.RawTransaction) -> diem_types.SignedTransaction:
         """Create signed transaction for given raw transaction"""

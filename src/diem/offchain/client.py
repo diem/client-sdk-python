@@ -47,7 +47,7 @@ class Client:
 
     Initialization:
     ```
-    >>> from diem import offchain, jsonrpc, testnet, LocalAccount
+    >>> from diem import offchain, testnet
     >>>
     >>> jsonrpc_client = testnet.create_client()
     >>> account = testnet.gen_account(client, base_url="http://vasp.com/offchain")
@@ -98,10 +98,10 @@ class Client:
     def __post_init__(self) -> None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
-    def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
+    def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
         return self.send_request(
-            request_sender_address=command.my_actor_address,
-            opponent_account_id=command.opponent_actor_obj().address,
+            request_sender_address=command.my_address(),
+            opponent_account_id=command.opponent_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 

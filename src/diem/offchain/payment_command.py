@@ -84,6 +84,17 @@ class PaymentCommand(Command):
         except FieldError as e:
             raise command_error(e.code, str(e), e.field) from e
 
+    def my_address(self) -> str:
+        return self.my_actor_address
+
+    def opponent_address(self) -> str:
+        return self.opponent_actor_obj().address
+
+    def new_request(self) -> CommandRequestObject:
+        return new_payment_request(self.payment, self._cid)
+
+    # the followings are PaymentCommand specific methods
+
     def validate_state_trigger_actor(self) -> None:
         if self.inbound and self.opponent_actor() != self.state_trigger_actor():
             raise command_error(
@@ -139,11 +150,6 @@ class PaymentCommand(Command):
             changes["recipient_signature"] = recipient_signature
         new_payment = dataclasses.replace(self.payment, **changes)
         return PaymentCommand(my_actor_address=self.my_actor_address, payment=new_payment, inbound=inbound)
-
-    def new_request(self) -> CommandRequestObject:
-        return new_payment_request(self.payment, self._cid)
-
-    # the followings are PaymentCommand specific methods
 
     def is_sender(self) -> bool:
         return self.payment.sender.address == self.my_actor_address

@@ -6,6 +6,10 @@
 
 [API Reference](https://diem.github.io/client-sdk-python/diem)
 
+## Pypi package
+
+https://pypi.org/project/diem/
+
 ## Examples
 
 ```python3

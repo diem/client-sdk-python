@@ -307,7 +307,7 @@ class WalletApp:
 
         lock = self.lock(command.id())
         if not lock.acquire(blocking=False):
-            msg = f"command(id={id}) is locked"
+            msg = "command(id=%s) is locked" % command.id()
             raise offchain.command_error(offchain.ErrorCode.conflict, msg)
 
         try:

@@ -12,4 +12,6 @@ def decode_structure(self) -> typing.Union[None, 'GeneralMetadataV0', 'TravelRul
         return typing.cast(TravelRuleMetadataV0, self.value.value)
     elif type_index == 4:
         return typing.cast(RefundMetadataV0, self.value.value)
+    elif type_index == 5:
+        return typing.cast(CoinTradeMetadataV0, self.value.value)
     return None

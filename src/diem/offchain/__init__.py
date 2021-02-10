@@ -53,10 +53,6 @@ from .command import Command
 from .payment_command import PaymentCommand
 from .funds_pull_pre_approval_command import FundsPullPreApprovalCommand
 
-import typing
-
-CommandVariant = typing.Union[FundsPullPreApprovalCommand, PaymentCommand]
-
 from .client import Client, CommandResponseError
 
 from . import jws, http_server, state, payment_state

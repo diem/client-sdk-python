@@ -30,7 +30,7 @@ from .. import jsonrpc, diem_types, identifier, utils
 
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
-DEFAULT_TIMEOUT_SECS: float = 5.0
+DEFAULT_TIMEOUT_SECS: float = 30.0
 
 
 class CommandResponseError(Exception):

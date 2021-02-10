@@ -10,7 +10,7 @@ with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name="diem",
-    version="1.2.3",
+    version="1.2.4",
     description="The Python Client SDK for Diem",
     long_description=long_description,
     long_description_content_type='text/markdown',

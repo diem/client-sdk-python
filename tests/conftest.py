@@ -37,18 +37,14 @@ class Factory:
     def new_payment_object(self, sender=LocalAccount.generate(), receiver=LocalAccount.generate()):
         amount = 1_000_000_000_000
         currency = testnet.TEST_CURRENCY_CODE
-        sender_account_id = identifier.encode_account(sender.account_address, identifier.gen_subaddress(), self.hrp())
+        sender_account_id = sender.account_identifier(identifier.gen_subaddress())
         sender_kyc_data = offchain.individual_kyc_data(
             given_name="Jack",
             surname="G",
             address=offchain.AddressObject(city="San Francisco"),
         )
 
-        receiver_account_id = identifier.encode_account(
-            receiver.account_address,
-            identifier.gen_subaddress(),
-            self.hrp(),
-        )
+        receiver_account_id = receiver.account_identifier(identifier.gen_subaddress())
 
         return offchain.new_payment_object(
             sender_account_id,

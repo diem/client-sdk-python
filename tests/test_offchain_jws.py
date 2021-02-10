@@ -23,7 +23,9 @@ def test_serialize_deserialize():
 
 
 def test_deserialize_error_if_not_3_parts():
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match="invalid JWS compact message: header.payload, expect 3 parts: <header>.<payload>.<signature>"
+    ):
         offchain.jws.deserialize(
             b".".join([b"header", b"payload"]),
             offchain.CommandResponseObject,

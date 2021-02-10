@@ -7,8 +7,8 @@ from diem import offchain, testnet
 def test_send_and_deserialize_request(factory, command_type):
     client = testnet.create_client()
     receiver_port = offchain.http_server.get_available_port()
-    sender = testnet.gen_vasp_account(client, "http://localhost:8888")
-    receiver = testnet.gen_vasp_account(client, f"http://localhost:{receiver_port}")
+    sender = testnet.gen_account(client, base_url="http://localhost:8888")
+    receiver = testnet.gen_account(client, base_url=f"http://localhost:{receiver_port}")
     sender_client = factory.create_offchain_client(sender, client)
     receiver_client = factory.create_offchain_client(receiver, client)
 
@@ -22,3 +22,17 @@ def test_send_and_deserialize_request(factory, command_type):
     command = factory.new_command(command_type, sender, receiver)
     resp = sender_client.send_command(command, sender.compliance_key.sign)
     assert resp
+
+
+def test_is_under_the_threshold():
+    assert offchain.client._is_under_the_threshold(2, 0.2, 1)
+    assert offchain.client._is_under_the_threshold(2, 0.2, 5)
+    assert not offchain.client._is_under_the_threshold(2, 0.2, 6)
+    assert not offchain.client._is_under_the_threshold(2, 0.2, 10)
+
+
+def test_filter_supported_currency_codes():
+    assert ["XUS", "XDX"] == offchain.client._filter_supported_currency_codes(None, ["XUS", "XDX"])
+    assert ["XUS"] == offchain.client._filter_supported_currency_codes(["XUS"], ["XUS", "XDX"])
+    assert ["XDX"] == offchain.client._filter_supported_currency_codes(None, ["XDX"])
+    assert [] == offchain.client._filter_supported_currency_codes(["XUS"], ["XDX"])

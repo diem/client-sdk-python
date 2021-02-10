@@ -166,3 +166,26 @@ def test_event_metadata_is_none_or_empty():
         sequence_number=32,
     )
     assert txnmetadata.refund_metadata_from_event(event) == b""
+
+
+def test_refund_metadata():
+    txn_version = 12343
+    reason = diem_types.RefundReason__UserInitiatedFullRefund()
+    ret = txnmetadata.refund_metadata(txn_version, reason)
+    assert ret.hex() == "0400373000000000000003"
+
+
+def test_decode_structure():
+    assert txnmetadata.decode_structure(None) is None
+    assert txnmetadata.decode_structure("") is None
+    assert txnmetadata.decode_structure(b"") is None
+
+    gm = txnmetadata.decode_structure("010001088f8b82153010a1bd0000")
+    assert isinstance(gm, diem_types.GeneralMetadataV0)
+    tr = txnmetadata.decode_structure("020001166f666620636861696e207265666572656e6365206964")
+    assert isinstance(tr, diem_types.TravelRuleMetadataV0)
+    refund = txnmetadata.decode_structure("0400373000000000000003")
+    assert isinstance(refund, diem_types.RefundMetadataV0)
+
+    # UnstructuredBytesMetadata
+    assert txnmetadata.decode_structure("03010461626364") is None

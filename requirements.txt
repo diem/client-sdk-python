@@ -5,7 +5,7 @@ protobuf==3.12.4
 pytest
 pylama
 black
-pyre-check
+pyre-check==0.0.58
 pytest-cov
 mypy-protobuf
 pdoc3

@@ -122,7 +122,7 @@ def test_get_account_transaction_by_hex_encoded_account_address():
 
 def test_get_account_transaction_include_events():
     client = testnet.create_client()
-    account = testnet.gen_vasp_account(client, "http://baseurl")
+    account = testnet.gen_account(client, base_url="http://baseurl")
 
     txn = client.get_account_transaction(account.account_address, 0, include_events=True)
     assert txn is not None
@@ -164,7 +164,7 @@ def test_get_account_transactions_by_hex_encoded_account_address():
 
 def test_get_account_transactions_with_events():
     client = testnet.create_client()
-    account = testnet.gen_vasp_account(client, "url")
+    account = testnet.gen_account(client, base_url="url")
     txns = client.get_account_transactions(account.account_address, 0, 1, include_events=True)
     assert txns is not None
     assert isinstance(txns, list)
@@ -270,12 +270,8 @@ def test_submit_create_child_vasp():
 def test_submit_failed():
     client = testnet.create_client()
 
-    parent_vasp = LocalAccount.generate()
-    child_vasp = LocalAccount.generate()
-    signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
-
     with pytest.raises(jsonrpc.JsonRpcError):
-        client.submit(signed_txn)
+        client.submit("invalid txn")
 
 
 def test_wait_for_transaction_hash_mismatched_and_execution_failed():
@@ -343,9 +339,9 @@ def test_get_parent_vasp_account_with_non_vasp_account_address():
         client.get_parent_vasp_account(utils.TREASURY_ADDRESS)
 
 
-def test_gen_vasp_account():
+def test_gen_account():
     client = testnet.create_client()
-    account = testnet.gen_vasp_account(client, "http://hello.com")
+    account = testnet.gen_account(client, base_url="http://hello.com")
     child_vasp = testnet.gen_child_vasp(client, account)
 
     assert client.get_account(account.account_address).role.type == "parent_vasp"
@@ -355,7 +351,7 @@ def test_gen_vasp_account():
 def test_get_base_url_and_compliance_key():
     client = testnet.create_client()
 
-    parent_vasp = testnet.gen_vasp_account(client, "http://hello.com")
+    parent_vasp = testnet.gen_account(client, base_url="http://hello.com")
     child_vasp = testnet.gen_child_vasp(client, parent_vasp)
 
     base_url, key = client.get_base_url_and_compliance_key(child_vasp.account_address)

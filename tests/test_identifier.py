@@ -31,7 +31,7 @@ def hrp_addresses(request):
 
 
 def test_identifier_hrps():
-    assert identifier.HRPS == {1: "dm", 2: "tdm", 3: "tdm", 4: "tdm", 20: "pdm"}
+    assert identifier.HRPS == {1: "dm", 2: "tdm", 3: "tdm", 4: "tdm"}
 
 
 def test_encode_addr_success(hrp_addresses):

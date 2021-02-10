@@ -61,7 +61,14 @@ publish: dist
 	./venv/bin/python3 -m twine upload dist/*
 
 docs: init install
-	rm -rf docs
+	rm -rf docs/diem
+	rm -rf docs/examples
 	./venv/bin/python3 -m pdoc diem --html -o docs
+	./venv/bin/python3 -m pdoc examples --html -o docs
+	rm -rf docs/examples/tests
 
-.PHONY: init check lint format install test cover build diemtypes protobuf gen dist pylama docs
+server:
+	examples/vasp/server.sh -p 8080
+
+
+.PHONY: init check lint format install test cover build diemtypes protobuf gen dist pylama docs server

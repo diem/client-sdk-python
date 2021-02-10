@@ -1,18 +1,19 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-from json.decoder import JSONDecodeError
 
 import dataclasses
+import math
 import requests
 import typing
 import uuid
-from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-from . import jws, http_header, Command, CommandVariant, FundPullPreApprovalCommandObject, FundPullPreApprovalObject
-from .error import command_error, protocol_error, Error
-from .funds_pull_pre_approval_command import FundsPullPreApprovalCommand
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from cryptography.exceptions import InvalidSignature
+from json.decoder import JSONDecodeError
+
+from .command import Command
 from .payment_command import PaymentCommand
+from .funds_pull_pre_approval_command import FundsPullPreApprovalCommand
 from .types import (
     CommandType,
     CommandRequestObject,
@@ -21,10 +22,13 @@ from .types import (
     PaymentObject,
     PaymentActorObject,
     PaymentActionObject,
+    PaymentCommandObject,
     ErrorCode,
     FieldError,
-    PaymentCommandObject,
 )
+from .error import command_error, protocol_error, Error
+
+from . import jws, http_header, FundPullPreApprovalCommandObject, FundPullPreApprovalObject
 from .. import jsonrpc, diem_types, identifier, utils
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
@@ -39,9 +43,51 @@ class CommandResponseError(Exception):
 
 @dataclasses.dataclass
 class Client:
+    """Client for communicating with offchain service.
+
+    Provides outbound and inbound request handlings and convertings between bytes and offchain data types.
+
+    Initialization:
+    ```
+    >>> from diem import offchain, jsonrpc, testnet, LocalAccount
+    >>>
+    >>> jsonrpc_client = testnet.create_client()
+    >>> account = testnet.gen_account(client, base_url="http://vasp.com/offchain")
+    >>> compliance_key_account_address = account.account_address
+    >>> client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    ```
+
+    Send command:
+    ```
+    >>> # for command: offchain.PaymentCommand
+    >>> client.send_command(command, account.compliance_key.sign)
+    ```
+
+    Pre-process inbound request data:
+    ```
+    from http import server
+    from diem.offchain import X_REQUEST_ID, X_REQUEST_SENDER_ADDRESS
+
+    class Handler(server.BaseHTTPRequestHandler):
+        def do_POST(self):
+            x_request_id = self.headers[X_REQUEST_ID]
+            jws_key_address = self.headers[X_REQUEST_SENDER_ADDRESS]
+            length = int(self.headers["content-length"])
+            content = self.rfile.read(length)
+
+            command = client.process_inbound_request(jws_key_address, content)
+            # validate and save command
+            ...
+
+    ```
+
+    See example [Wallet#process_inbound_request](https://diem.github.io/client-sdk-python/examples/vasp/wallet.html#examples.vasp.wallet.WalletApp.process_inbound_request) for full example of how to process inbound request.
+    """
+
     my_compliance_key_account_address: diem_types.AccountAddress
     jsonrpc_client: jsonrpc.Client
     hrp: str
+    supported_currency_codes: typing.Optional[typing.List[str]] = dataclasses.field(default=None)
     session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
     timeout: typing.Tuple[float, float] = dataclasses.field(
         default_factory=lambda: (
@@ -82,36 +128,53 @@ class Client:
             raise CommandResponseError(cmd_resp)
         return cmd_resp
 
-    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> CommandVariant:
+    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
+        """Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        Raises `diem.offchain.error.Error` with `protocol_error` when:
+
+        - `request_sender_address` is not provided.
+        - Cannot find on-chain account by the `request_sender_address`.
+        - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
+        - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
+        - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
+        - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+
+        Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
+
+        - `diem.offchain.types.payment_types.PaymentObject.sender` or `diem.offchain.types.payment_types.PaymentObject.sender`.address is invalid.
+        - `request_sender_address` is not sender or receiver actor address.
+        - For initial payment object, the `diem.offchain.types.payment_types.PaymentActionObject.amount` is under dual attestation limit (travel rule limit).
+        - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
+
+        """
+
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
         try:
             _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
         except ValueError as e:
-            raise protocol_error(ErrorCode.invalid_x_request_sender_address, str(e)) from e
+            raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
 
-        command_request_object = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
-
-        if command_request_object.command_type == CommandType.PaymentCommand:
-            payment = typing.cast(PaymentCommandObject, command_request_object.command).payment
+        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+        if request.command_type == CommandType.PaymentCommand:
+            payment = typing.cast(PaymentCommandObject, request.command).payment
             self.validate_addresses(payment, request_sender_address)
-            cmd = self.create_inbound_payment_command(command_request_object.cid, payment)
+            cmd = self.create_inbound_payment_command(request.cid, payment)
             if cmd.is_initial():
                 self.validate_dual_attestation_limit(cmd.payment.action)
             elif cmd.is_rsend():
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
-        elif command_request_object.command_type == CommandType.FundPullPreApprovalCommand:
+        elif request.command_type == CommandType.FundPullPreApprovalCommand:
             fund_pull_pre_approval = typing.cast(
-                FundPullPreApprovalCommandObject, command_request_object.command
+                FundPullPreApprovalCommandObject, request.command
             ).fund_pull_pre_approval
-            return self.create_inbound_funds_pull_pre_approval_command(
-                command_request_object.cid, fund_pull_pre_approval
-            )
+            return self.create_inbound_funds_pull_pre_approval_command(request.cid, fund_pull_pre_approval)
 
         raise command_error(
             ErrorCode.unknown_command_type,
-            f"unknown command_type: {command_request_object.command_type}",
+            f"unknown command_type: {request.command_type}",
         )
 
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -> None:
@@ -128,22 +191,31 @@ class Client:
 
     def validate_dual_attestation_limit(self, action: PaymentActionObject) -> None:
         currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if action.currency not in currency_codes:
+            raise command_error(
+                ErrorCode.invalid_field_value,
+                f"currency code is invalid: {action.currency}",
+                "command.payment.action.currency",
+            )
+
+        if action.currency not in supported_codes:
+            raise command_error(
+                ErrorCode.unsupported_currency,
+                f"currency code is not supported: {action.currency}",
+                "command.payment.action.currency",
+            )
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
             if info.code == action.currency:
-                approx_xdx_microdiem_value = info.to_xdx_exchange_rate * action.amount
-                if approx_xdx_microdiem_value < limit:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
                     raise command_error(
                         ErrorCode.no_kyc_needed,
-                        f"payment amount is under travel rule threshold {limit}",
+                        "payment amount is %s (rate: %s) under travel rule threshold %s"
+                        % (action.amount, info.to_xdx_exchange_rate, limit),
                         "command.payment.action.amount",
                     )
-                return
-        raise command_error(
-            ErrorCode.invalid_field_value,
-            f"currency code is invalid: {action.currency}",
-            "command.payment.action.currency",
-        )
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -> None:
         self.validate_actor_address("sender", payment.sender)
@@ -163,7 +235,7 @@ class Client:
     def validate_request_sender_address(self, request_sender_address: str, addresses: typing.List[str]) -> None:
         if request_sender_address not in addresses:
             raise command_error(
-                ErrorCode.invalid_x_request_sender_address,
+                ErrorCode.invalid_http_header,
                 f"address {request_sender_address} is not one of {addresses}",
             )
 
@@ -173,7 +245,7 @@ class Client:
         if self.is_my_account_id(obj.receiver.address):
             return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
 
-        raise command_error(ErrorCode.unknown_actor_address, "unknown actor addresses: {obj}")
+        raise command_error(ErrorCode.unknown_address, "unknown actor addresses: {obj}")
 
     def is_my_account_id(self, account_id: str) -> bool:
         account_address, _ = identifier.decode_account(account_id, self.hrp)
@@ -208,6 +280,12 @@ class Client:
         raise command_error(ErrorCode.unknown_actor_address, "unknown actor addresses: {obj}")
 
 
+def _filter_supported_currency_codes(
+    supported_codes: typing.Optional[typing.List[str]], codes: typing.List[str]
+) -> typing.List[str]:
+    return list(filter(lambda code: supported_codes is None or code in supported_codes, codes))
+
+
 def _deserialize_jws(
     content_bytes: bytes,
     klass: typing.Type[jws.T],
@@ -224,3 +302,11 @@ def _deserialize_jws(
         raise error_fn(ErrorCode.invalid_jws_signature, f"invalid jws signature: {e}", None) from e
     except ValueError as e:
         raise error_fn(ErrorCode.invalid_jws, f"deserialize JWS bytes failed: {e}", None) from e
+
+
+def _is_under_the_threshold(limit: int, rate: float, amount: int) -> bool:
+    # use ceil of the xdx exchanged amount to ensure a valid amount
+    # is not considered as under the threshold because of float number
+    # transport or calculation difference comparing with Move module
+    # implementation.
+    return math.ceil(rate * amount) < limit

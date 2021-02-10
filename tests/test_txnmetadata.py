@@ -175,6 +175,14 @@ def test_refund_metadata():
     assert ret.hex() == "0400373000000000000003"
 
 
+def test_coin_trade_metadata():
+    trade_ids = ["abc", "efg"]
+    ret = txnmetadata.coin_trade_metadata(trade_ids)
+    assert ret.hex() == "0500020361626303656667"
+    metadata = txnmetadata.decode_structure(ret)
+    assert metadata.trade_ids == trade_ids
+
+
 def test_decode_structure():
     assert txnmetadata.decode_structure(None) is None
     assert txnmetadata.decode_structure("") is None

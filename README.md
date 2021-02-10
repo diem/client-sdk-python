@@ -62,6 +62,16 @@ run specific test:
 TEST=<test file / test name> make test
 ```
 
+## Re-generate diem_types, stdlib, jsonrpc response data structures
+
+```
+git submodule update --init diem
+cd diem
+git pull origin master
+cd ..
+make gen
+``
+
 ## Modules Overview
 
 > SPEC = specification

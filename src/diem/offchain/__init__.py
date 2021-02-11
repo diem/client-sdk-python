@@ -43,6 +43,7 @@ from .types import (
     entity_kyc_data,
     to_json,
     from_json,
+    from_dict,
     validate_write_once_fields,
     FundPullPreApprovalType,
 )

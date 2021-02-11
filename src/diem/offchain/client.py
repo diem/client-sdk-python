@@ -32,7 +32,7 @@ from . import jws, http_header, FundPullPreApprovalCommandObject, FundPullPreApp
 from .. import jsonrpc, diem_types, identifier, utils
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
-DEFAULT_TIMEOUT_SECS: float = 5.0
+DEFAULT_TIMEOUT_SECS: float = 30.0
 
 
 class CommandResponseError(Exception):
@@ -49,7 +49,7 @@ class Client:
 
     Initialization:
     ```
-    >>> from diem import offchain, jsonrpc, testnet, LocalAccount
+    >>> from diem import offchain, testnet
     >>>
     >>> jsonrpc_client = testnet.create_client()
     >>> account = testnet.gen_account(client, base_url="http://vasp.com/offchain")
@@ -241,9 +241,9 @@ class Client:
 
     def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -> PaymentCommand:
         if self.is_my_account_id(obj.sender.address):
-            return PaymentCommand(cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
+            return PaymentCommand(_cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
         if self.is_my_account_id(obj.receiver.address):
-            return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
+            return PaymentCommand(_cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
 
         raise command_error(ErrorCode.unknown_address, "unknown actor addresses: {obj}")
 

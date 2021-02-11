@@ -14,7 +14,7 @@ def test_send_and_deserialize_request(factory, command_type):
 
     def process_inbound_request(x_request_id: str, jws_key_address: str, content: bytes):
         command = receiver_client.process_inbound_request(jws_key_address, content)
-        resp = offchain.reply_request(command.cid)
+        resp = offchain.reply_request(command.cid())
         return (200, offchain.jws.serialize(resp, receiver.compliance_key.sign))
 
     offchain.http_server.start_local(receiver_port, process_inbound_request)

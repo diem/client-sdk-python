@@ -99,6 +99,17 @@ def refund_metadata(original_transaction_version: int, reason: diem_types.Refund
     return metadata.bcs_serialize()
 
 
+def coin_trade_metadata(trade_ids: typing.List[str]) -> bytes:
+    """Create `diem_types.Metadata__CoinTradeMetadata` with `diem_types.CoinTradeMetadataV0`"""
+
+    metadata = diem_types.Metadata__CoinTradeMetadata(
+        value=diem_types.CoinTradeMetadata__CoinTradeMetadataV0(
+            value=diem_types.CoinTradeMetadataV0(trade_ids=trade_ids)
+        )
+    )
+    return metadata.bcs_serialize()
+
+
 def general_metadata(
     from_subaddress: typing.Optional[bytes] = None,
     to_subaddress: typing.Optional[bytes] = None,

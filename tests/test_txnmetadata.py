@@ -175,6 +175,14 @@ def test_refund_metadata():
     assert ret.hex() == "0400373000000000000003"
 
 
+def test_coin_trade_metadata():
+    trade_ids = ["abc", "efg"]
+    ret = txnmetadata.coin_trade_metadata(trade_ids)
+    assert ret.hex() == "0500020361626303656667"
+    metadata = txnmetadata.decode_structure(ret)
+    assert metadata.trade_ids == trade_ids
+
+
 def test_decode_structure():
     assert txnmetadata.decode_structure(None) is None
     assert txnmetadata.decode_structure("") is None
@@ -186,6 +194,8 @@ def test_decode_structure():
     assert isinstance(tr, diem_types.TravelRuleMetadataV0)
     refund = txnmetadata.decode_structure("0400373000000000000003")
     assert isinstance(refund, diem_types.RefundMetadataV0)
+    trade = txnmetadata.decode_structure("050000")
+    assert isinstance(trade, diem_types.CoinTradeMetadataV0)
 
     # UnstructuredBytesMetadata
     assert txnmetadata.decode_structure("03010461626364") is None

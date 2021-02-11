@@ -132,6 +132,46 @@ class ChangeSet:
         return v
 
 
+class CoinTradeMetadata:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[CoinTradeMetadata]]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, CoinTradeMetadata)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "CoinTradeMetadata":
+        v, buffer = bcs.deserialize(input, CoinTradeMetadata)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
+class CoinTradeMetadata__CoinTradeMetadataV0(CoinTradeMetadata):
+    INDEX = 0  # type: int
+    value: "CoinTradeMetadataV0"
+
+
+CoinTradeMetadata.VARIANTS = [
+    CoinTradeMetadata__CoinTradeMetadataV0,
+]
+
+
+@dataclass(frozen=True)
+class CoinTradeMetadataV0:
+    trade_ids: typing.Sequence[str]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, CoinTradeMetadataV0)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "CoinTradeMetadataV0":
+        v, buffer = bcs.deserialize(input, CoinTradeMetadataV0)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
 class ContractEvent:
     VARIANTS = []  # type: typing.Sequence[typing.Type[ContractEvent]]
 
@@ -318,6 +358,8 @@ class Metadata:
             return typing.cast(TravelRuleMetadataV0, self.value.value)
         elif type_index == 4:
             return typing.cast(RefundMetadataV0, self.value.value)
+        elif type_index == 5:
+            return typing.cast(CoinTradeMetadataV0, self.value.value)
         return None
 
 
@@ -351,12 +393,19 @@ class Metadata__RefundMetadata(Metadata):
     value: "RefundMetadata"
 
 
+@dataclass(frozen=True)
+class Metadata__CoinTradeMetadata(Metadata):
+    INDEX = 5  # type: int
+    value: "CoinTradeMetadata"
+
+
 Metadata.VARIANTS = [
     Metadata__Undefined,
     Metadata__GeneralMetadata,
     Metadata__TravelRuleMetadata,
     Metadata__UnstructuredBytesMetadata,
     Metadata__RefundMetadata,
+    Metadata__CoinTradeMetadata,
 ]
 
 

@@ -59,7 +59,13 @@ make test
 run specific test:
 
 ```
-TEST=<test file / test name> make test
+make test t=<test file / test name match pattern>
+```
+
+run with local docker testnet:
+
+```
+make test t=<test file / test name match pattern> dt=1
 ```
 
 ## Re-generate diem_types, stdlib, jsonrpc response data structures

@@ -95,6 +95,7 @@ def test_serialize_deserialize_preapproval():
     command = offchain.FundsPullPreApprovalCommand(
         my_actor_address=preapproval.address,
         funds_pull_pre_approval=preapproval,
+        inbound=False,
     )
     request = command.new_request()
 

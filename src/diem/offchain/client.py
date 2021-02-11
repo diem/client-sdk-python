@@ -268,16 +268,20 @@ class Client:
     ) -> FundsPullPreApprovalCommand:
         if self.is_my_account_id(fund_pull_pre_approval.address):
             return FundsPullPreApprovalCommand(
-                my_actor_address=fund_pull_pre_approval.address, cid=cid, funds_pull_pre_approval=fund_pull_pre_approval
+                _cid=cid,
+                my_actor_address=fund_pull_pre_approval.address,
+                funds_pull_pre_approval=fund_pull_pre_approval,
+                inbound=True,
             )
         elif self.is_my_account_id(fund_pull_pre_approval.biller_address):
             return FundsPullPreApprovalCommand(
+                _cid=cid,
                 my_actor_address=fund_pull_pre_approval.biller_address,
-                cid=cid,
                 funds_pull_pre_approval=fund_pull_pre_approval,
+                inbound=True,
             )
 
-        raise command_error(ErrorCode.unknown_actor_address, "unknown actor addresses: {obj}")
+        raise command_error(ErrorCode.unknown_address, "unknown actor addresses: {obj}")
 
 
 def _filter_supported_currency_codes(

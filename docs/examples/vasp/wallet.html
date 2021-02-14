@@ -335,7 +335,7 @@ class WalletApp:
 
         lock = self.lock(command.reference_id())
         if not lock.acquire(blocking=False):
-            msg = f&#34;command(reference_id={command.reference_id()}) is locked&#34;
+            msg = &#34;command(reference_id=%s) is locked&#34; % command.reference_id()
             raise offchain.command_error(offchain.ErrorCode.conflict, msg)
 
         try:
@@ -795,7 +795,7 @@ class WalletApp:
 
         lock = self.lock(command.reference_id())
         if not lock.acquire(blocking=False):
-            msg = f&#34;command(reference_id={command.reference_id()}) is locked&#34;
+            msg = &#34;command(reference_id=%s) is locked&#34; % command.reference_id()
             raise offchain.command_error(offchain.ErrorCode.conflict, msg)
 
         try:
@@ -1122,7 +1122,7 @@ atomic process(read and write) command by the reference id.</p></div>
 
     lock = self.lock(command.reference_id())
     if not lock.acquire(blocking=False):
-        msg = f&#34;command(reference_id={command.reference_id()}) is locked&#34;
+        msg = &#34;command(reference_id=%s) is locked&#34; % command.reference_id()
         raise offchain.command_error(offchain.ErrorCode.conflict, msg)
 
     try:

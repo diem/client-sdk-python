@@ -130,6 +130,17 @@ def refund_metadata(original_transaction_version: int, reason: diem_types.Refund
     return metadata.bcs_serialize()
 
 
+def coin_trade_metadata(trade_ids: typing.List[str]) -&gt; bytes:
+    &#34;&#34;&#34;Create `diem_types.Metadata__CoinTradeMetadata` with `diem_types.CoinTradeMetadataV0`&#34;&#34;&#34;
+
+    metadata = diem_types.Metadata__CoinTradeMetadata(
+        value=diem_types.CoinTradeMetadata__CoinTradeMetadataV0(
+            value=diem_types.CoinTradeMetadataV0(trade_ids=trade_ids)
+        )
+    )
+    return metadata.bcs_serialize()
+
+
 def general_metadata(
     from_subaddress: typing.Optional[bytes] = None,
     to_subaddress: typing.Optional[bytes] = None,
@@ -228,6 +239,26 @@ def refund_metadata_from_event(event: jsonrpc.Event) -&gt; typing.Optional[bytes
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="diem.txnmetadata.coin_trade_metadata"><code class="name flex">
+<span>def <span class="ident">coin_trade_metadata</span></span>(<span>trade_ids: List[str]) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create <code>diem_types.Metadata__CoinTradeMetadata</code> with <code>diem_types.CoinTradeMetadataV0</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def coin_trade_metadata(trade_ids: typing.List[str]) -&gt; bytes:
+    &#34;&#34;&#34;Create `diem_types.Metadata__CoinTradeMetadata` with `diem_types.CoinTradeMetadataV0`&#34;&#34;&#34;
+
+    metadata = diem_types.Metadata__CoinTradeMetadata(
+        value=diem_types.CoinTradeMetadata__CoinTradeMetadataV0(
+            value=diem_types.CoinTradeMetadataV0(trade_ids=trade_ids)
+        )
+    )
+    return metadata.bcs_serialize()</code></pre>
+</details>
+</dd>
 <dt id="diem.txnmetadata.decode_structure"><code class="name flex">
 <span>def <span class="ident">decode_structure</span></span>(<span>bytes_or_str: Union[bytes, str]) ‑> Union[NoneType, <a title="diem.diem_types.GeneralMetadataV0" href="diem_types/index.html#diem.diem_types.GeneralMetadataV0">GeneralMetadataV0</a>, <a title="diem.diem_types.TravelRuleMetadataV0" href="diem_types/index.html#diem.diem_types.TravelRuleMetadataV0">TravelRuleMetadataV0</a>, <a title="diem.diem_types.RefundMetadataV0" href="diem_types/index.html#diem.diem_types.RefundMetadataV0">RefundMetadataV0</a>]</span>
 </code></dt>
@@ -572,6 +603,7 @@ class Attest:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="diem.txnmetadata.coin_trade_metadata" href="#diem.txnmetadata.coin_trade_metadata">coin_trade_metadata</a></code></li>
 <li><code><a title="diem.txnmetadata.decode_structure" href="#diem.txnmetadata.decode_structure">decode_structure</a></code></li>
 <li><code><a title="diem.txnmetadata.find_refund_reference_event" href="#diem.txnmetadata.find_refund_reference_event">find_refund_reference_event</a></code></li>
 <li><code><a title="diem.txnmetadata.general_metadata" href="#diem.txnmetadata.general_metadata">general_metadata</a></code></li>

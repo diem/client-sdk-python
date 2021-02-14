@@ -160,6 +160,46 @@ class ChangeSet:
         return v
 
 
+class CoinTradeMetadata:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[CoinTradeMetadata]]
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, CoinTradeMetadata)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;CoinTradeMetadata&#34;:
+        v, buffer = bcs.deserialize(input, CoinTradeMetadata)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v
+
+
+@dataclass(frozen=True)
+class CoinTradeMetadata__CoinTradeMetadataV0(CoinTradeMetadata):
+    INDEX = 0  # type: int
+    value: &#34;CoinTradeMetadataV0&#34;
+
+
+CoinTradeMetadata.VARIANTS = [
+    CoinTradeMetadata__CoinTradeMetadataV0,
+]
+
+
+@dataclass(frozen=True)
+class CoinTradeMetadataV0:
+    trade_ids: typing.Sequence[str]
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, CoinTradeMetadataV0)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;CoinTradeMetadataV0&#34;:
+        v, buffer = bcs.deserialize(input, CoinTradeMetadataV0)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v
+
+
 class ContractEvent:
     VARIANTS = []  # type: typing.Sequence[typing.Type[ContractEvent]]
 
@@ -346,6 +386,8 @@ class Metadata:
             return typing.cast(TravelRuleMetadataV0, self.value.value)
         elif type_index == 4:
             return typing.cast(RefundMetadataV0, self.value.value)
+        elif type_index == 5:
+            return typing.cast(CoinTradeMetadataV0, self.value.value)
         return None
 
 
@@ -379,12 +421,19 @@ class Metadata__RefundMetadata(Metadata):
     value: &#34;RefundMetadata&#34;
 
 
+@dataclass(frozen=True)
+class Metadata__CoinTradeMetadata(Metadata):
+    INDEX = 5  # type: int
+    value: &#34;CoinTradeMetadata&#34;
+
+
 Metadata.VARIANTS = [
     Metadata__Undefined,
     Metadata__GeneralMetadata,
     Metadata__TravelRuleMetadata,
     Metadata__UnstructuredBytesMetadata,
     Metadata__RefundMetadata,
+    Metadata__CoinTradeMetadata,
 ]
 
 
@@ -1537,6 +1586,175 @@ def bcs_deserialize(input: bytes) -&gt; &#34;ChangeSet&#34;:
 </dd>
 </dl>
 </dd>
+<dt id="diem.diem_types.CoinTradeMetadata"><code class="flex name class">
+<span>class <span class="ident">CoinTradeMetadata</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CoinTradeMetadata:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[CoinTradeMetadata]]
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, CoinTradeMetadata)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;CoinTradeMetadata&#34;:
+        v, buffer = bcs.deserialize(input, CoinTradeMetadata)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0" href="#diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0">CoinTradeMetadata__CoinTradeMetadataV0</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadata.VARIANTS"><code class="name">var <span class="ident">VARIANTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadata.bcs_deserialize"><code class="name flex">
+<span>def <span class="ident">bcs_deserialize</span></span>(<span>input: bytes) ‑> <a title="diem.diem_types.CoinTradeMetadata" href="#diem.diem_types.CoinTradeMetadata">CoinTradeMetadata</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def bcs_deserialize(input: bytes) -&gt; &#34;CoinTradeMetadata&#34;:
+    v, buffer = bcs.deserialize(input, CoinTradeMetadata)
+    if buffer:
+        raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+    return v</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadata.bcs_serialize"><code class="name flex">
+<span>def <span class="ident">bcs_serialize</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bcs_serialize(self) -&gt; bytes:
+    return bcs.serialize(self, CoinTradeMetadata)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.diem_types.CoinTradeMetadataV0"><code class="flex name class">
+<span>class <span class="ident">CoinTradeMetadataV0</span></span>
+<span>(</span><span>trade_ids: Sequence[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>CoinTradeMetadataV0(trade_ids: Sequence[str])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class CoinTradeMetadataV0:
+    trade_ids: typing.Sequence[str]
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, CoinTradeMetadataV0)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;CoinTradeMetadataV0&#34;:
+        v, buffer = bcs.deserialize(input, CoinTradeMetadataV0)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadataV0.trade_ids"><code class="name">var <span class="ident">trade_ids</span> : Sequence[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadataV0.bcs_deserialize"><code class="name flex">
+<span>def <span class="ident">bcs_deserialize</span></span>(<span>input: bytes) ‑> <a title="diem.diem_types.CoinTradeMetadataV0" href="#diem.diem_types.CoinTradeMetadataV0">CoinTradeMetadataV0</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def bcs_deserialize(input: bytes) -&gt; &#34;CoinTradeMetadataV0&#34;:
+    v, buffer = bcs.deserialize(input, CoinTradeMetadataV0)
+    if buffer:
+        raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+    return v</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadataV0.bcs_serialize"><code class="name flex">
+<span>def <span class="ident">bcs_serialize</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bcs_serialize(self) -&gt; bytes:
+    return bcs.serialize(self, CoinTradeMetadataV0)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0"><code class="flex name class">
+<span>class <span class="ident">CoinTradeMetadata__CoinTradeMetadataV0</span></span>
+<span>(</span><span>value: <a title="diem.diem_types.CoinTradeMetadataV0" href="#diem.diem_types.CoinTradeMetadataV0">CoinTradeMetadataV0</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>CoinTradeMetadata__CoinTradeMetadataV0(value: 'CoinTradeMetadataV0')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class CoinTradeMetadata__CoinTradeMetadataV0(CoinTradeMetadata):
+    INDEX = 0  # type: int
+    value: &#34;CoinTradeMetadataV0&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.diem_types.CoinTradeMetadata" href="#diem.diem_types.CoinTradeMetadata">CoinTradeMetadata</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0.INDEX"><code class="name">var <span class="ident">INDEX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0.value"><code class="name">var <span class="ident">value</span> : <a title="diem.diem_types.CoinTradeMetadataV0" href="#diem.diem_types.CoinTradeMetadataV0">CoinTradeMetadataV0</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="diem.diem_types.ContractEvent"><code class="flex name class">
 <span>class <span class="ident">ContractEvent</span></span>
 </code></dt>
@@ -2275,10 +2493,13 @@ def bcs_deserialize(input: bytes) -&gt; &#34;Identifier&#34;:
             return typing.cast(TravelRuleMetadataV0, self.value.value)
         elif type_index == 4:
             return typing.cast(RefundMetadataV0, self.value.value)
+        elif type_index == 5:
+            return typing.cast(CoinTradeMetadataV0, self.value.value)
         return None</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="diem.diem_types.Metadata__CoinTradeMetadata" href="#diem.diem_types.Metadata__CoinTradeMetadata">Metadata__CoinTradeMetadata</a></li>
 <li><a title="diem.diem_types.Metadata__GeneralMetadata" href="#diem.diem_types.Metadata__GeneralMetadata">Metadata__GeneralMetadata</a></li>
 <li><a title="diem.diem_types.Metadata__RefundMetadata" href="#diem.diem_types.Metadata__RefundMetadata">Metadata__RefundMetadata</a></li>
 <li><a title="diem.diem_types.Metadata__TravelRuleMetadata" href="#diem.diem_types.Metadata__TravelRuleMetadata">Metadata__TravelRuleMetadata</a></li>
@@ -2350,10 +2571,51 @@ def bcs_deserialize(input: bytes) -&gt; &#34;Metadata&#34;:
         return typing.cast(TravelRuleMetadataV0, self.value.value)
     elif type_index == 4:
         return typing.cast(RefundMetadataV0, self.value.value)
+    elif type_index == 5:
+        return typing.cast(CoinTradeMetadataV0, self.value.value)
     return None</code></pre>
 </details>
 </dd>
 </dl>
+</dd>
+<dt id="diem.diem_types.Metadata__CoinTradeMetadata"><code class="flex name class">
+<span>class <span class="ident">Metadata__CoinTradeMetadata</span></span>
+<span>(</span><span>value: <a title="diem.diem_types.CoinTradeMetadata" href="#diem.diem_types.CoinTradeMetadata">CoinTradeMetadata</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Metadata__CoinTradeMetadata(value: 'CoinTradeMetadata')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class Metadata__CoinTradeMetadata(Metadata):
+    INDEX = 5  # type: int
+    value: &#34;CoinTradeMetadata&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.Metadata__CoinTradeMetadata.INDEX"><code class="name">var <span class="ident">INDEX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.Metadata__CoinTradeMetadata.value"><code class="name">var <span class="ident">value</span> : <a title="diem.diem_types.CoinTradeMetadata" href="#diem.diem_types.CoinTradeMetadata">CoinTradeMetadata</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="diem.diem_types.Metadata" href="#diem.diem_types.Metadata">Metadata</a></b></code>:
+<ul class="hlist">
+<li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="diem.diem_types.Metadata__GeneralMetadata"><code class="flex name class">
 <span>class <span class="ident">Metadata__GeneralMetadata</span></span>
@@ -5295,6 +5557,29 @@ class WriteSetPayload__Script(WriteSetPayload):
 </ul>
 </li>
 <li>
+<h4><code><a title="diem.diem_types.CoinTradeMetadata" href="#diem.diem_types.CoinTradeMetadata">CoinTradeMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="diem.diem_types.CoinTradeMetadata.VARIANTS" href="#diem.diem_types.CoinTradeMetadata.VARIANTS">VARIANTS</a></code></li>
+<li><code><a title="diem.diem_types.CoinTradeMetadata.bcs_deserialize" href="#diem.diem_types.CoinTradeMetadata.bcs_deserialize">bcs_deserialize</a></code></li>
+<li><code><a title="diem.diem_types.CoinTradeMetadata.bcs_serialize" href="#diem.diem_types.CoinTradeMetadata.bcs_serialize">bcs_serialize</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.diem_types.CoinTradeMetadataV0" href="#diem.diem_types.CoinTradeMetadataV0">CoinTradeMetadataV0</a></code></h4>
+<ul class="">
+<li><code><a title="diem.diem_types.CoinTradeMetadataV0.bcs_deserialize" href="#diem.diem_types.CoinTradeMetadataV0.bcs_deserialize">bcs_deserialize</a></code></li>
+<li><code><a title="diem.diem_types.CoinTradeMetadataV0.bcs_serialize" href="#diem.diem_types.CoinTradeMetadataV0.bcs_serialize">bcs_serialize</a></code></li>
+<li><code><a title="diem.diem_types.CoinTradeMetadataV0.trade_ids" href="#diem.diem_types.CoinTradeMetadataV0.trade_ids">trade_ids</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0" href="#diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0">CoinTradeMetadata__CoinTradeMetadataV0</a></code></h4>
+<ul class="">
+<li><code><a title="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0.INDEX" href="#diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0.INDEX">INDEX</a></code></li>
+<li><code><a title="diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0.value" href="#diem.diem_types.CoinTradeMetadata__CoinTradeMetadataV0.value">value</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="diem.diem_types.ContractEvent" href="#diem.diem_types.ContractEvent">ContractEvent</a></code></h4>
 <ul class="">
 <li><code><a title="diem.diem_types.ContractEvent.VARIANTS" href="#diem.diem_types.ContractEvent.VARIANTS">VARIANTS</a></code></li>
@@ -5392,6 +5677,13 @@ class WriteSetPayload__Script(WriteSetPayload):
 <li><code><a title="diem.diem_types.Metadata.bcs_deserialize" href="#diem.diem_types.Metadata.bcs_deserialize">bcs_deserialize</a></code></li>
 <li><code><a title="diem.diem_types.Metadata.bcs_serialize" href="#diem.diem_types.Metadata.bcs_serialize">bcs_serialize</a></code></li>
 <li><code><a title="diem.diem_types.Metadata.decode_structure" href="#diem.diem_types.Metadata.decode_structure">decode_structure</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.diem_types.Metadata__CoinTradeMetadata" href="#diem.diem_types.Metadata__CoinTradeMetadata">Metadata__CoinTradeMetadata</a></code></h4>
+<ul class="">
+<li><code><a title="diem.diem_types.Metadata__CoinTradeMetadata.INDEX" href="#diem.diem_types.Metadata__CoinTradeMetadata.INDEX">INDEX</a></code></li>
+<li><code><a title="diem.diem_types.Metadata__CoinTradeMetadata.value" href="#diem.diem_types.Metadata__CoinTradeMetadata.value">value</a></code></li>
 </ul>
 </li>
 <li>

@@ -85,24 +85,30 @@ _OBJECT_TYPE_FIELD_NAME = &#34;_ObjectType&#34;
 
 
 def to_json(obj: T, indent: typing.Optional[int] = None) -&gt; str:
-    return json.dumps(_delete_none(dataclasses.asdict(obj)), indent=indent)
+    if dataclasses.is_dataclass(obj):
+        raw = dataclasses.asdict(obj)
+    elif isinstance(obj, list):
+        raw = list(map(dataclasses.asdict, obj))
+    else:
+        raw = obj
+    return json.dumps(_delete_none(raw), indent=indent)
 
 
 def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -&gt; T:
-    return from_json_obj(json.loads(data), klass, &#34;&#34;)
+    return from_dict(json.loads(data), klass)
 
 
-def from_json_obj(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str) -&gt; T:  # pyre-ignore
+def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str = &#34;&#34;) -&gt; T:  # pyre-ignore
     if klass is None or _is_union(klass):
         if not isinstance(obj, dict):
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
             raise FieldError(code, field_path, f&#34;expect json object, but got {type(obj).__name__}: {obj}&#34;)
         klass = _find_object_type(obj, field_path)
-    return _from_json_obj(obj, klass, field_path)
+    return _from_dict(obj, klass, field_path)
 
 
-def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -&gt; typing.Any:  # pyre-ignore
-    if not isinstance(obj, dict):
+def _from_dict(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str) -&gt; typing.Any:  # pyre-ignore
+    if not isinstance(obj, dict) or not dataclasses.is_dataclass(klass):
         item_type = None
         if hasattr(klass, &#34;__origin__&#34;) and klass.__origin__ == list and hasattr(klass, &#34;__args__&#34;):
             item_type = klass.__args__[0]
@@ -111,14 +117,14 @@ def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: 
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
             raise FieldError(code, field_path, f&#34;expect type {klass.__name__}, but got {type(obj).__name__}&#34;)
         if klass == list and item_type:
-            return [from_json_obj(item, item_type, field_path) for item in obj]
+            return [from_dict(item, item_type, field_path) for item in obj]
         return obj
 
     unknown_fields = list(obj.keys())
     for field in dataclasses.fields(klass):
         if field.name in unknown_fields:
             unknown_fields.remove(field.name)
-        obj[field.name] = _field_value_from_json_obj(field, obj, field_path)
+        obj[field.name] = _field_value_from_dict(field, obj, field_path)
 
     if len(unknown_fields) &gt; 0:
         unknown_fields.sort()
@@ -128,7 +134,7 @@ def _from_json_obj(obj: typing.Any, klass: typing.Type[typing.Any], field_path: 
     return klass(**obj)
 
 
-def _field_value_from_json_obj(field: dataclasses.Field, obj: typing.Any, field_path: str) -&gt; typing.Any:  # pyre-ignore
+def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path: str) -&gt; typing.Any:  # pyre-ignore
     full_name = _join_field_path(field_path, field.name)
     field_type = field.type
     args = field.type.__args__ if hasattr(field.type, &#34;__args__&#34;) else []
@@ -149,7 +155,7 @@ def _field_value_from_json_obj(field: dataclasses.Field, obj: typing.Any, field_
             raise FieldError(
                 ErrorCode.invalid_field_value, full_name, f&#34;{val} does not match pattern {valid_values.pattern}&#34;
             )
-    return from_json_obj(val, field_type, full_name)
+    return from_dict(val, field_type, full_name)
 
 
 def _join_field_path(path: str, field: str) -&gt; str:
@@ -358,6 +364,24 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
     )</code></pre>
 </details>
 </dd>
+<dt id="diem.offchain.types.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>obj: Any, klass: Optional[Type[~T]], field_path: str = '') ‑> ~T</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str = &#34;&#34;) -&gt; T:  # pyre-ignore
+    if klass is None or _is_union(klass):
+        if not isinstance(obj, dict):
+            code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
+            raise FieldError(code, field_path, f&#34;expect json object, but got {type(obj).__name__}: {obj}&#34;)
+        klass = _find_object_type(obj, field_path)
+    return _from_dict(obj, klass, field_path)</code></pre>
+</details>
+</dd>
 <dt id="diem.offchain.types.from_json"><code class="name flex">
 <span>def <span class="ident">from_json</span></span>(<span>data: str, klass: Optional[Type[~T]] = None) ‑> ~T</span>
 </code></dt>
@@ -368,25 +392,7 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -&gt; T:
-    return from_json_obj(json.loads(data), klass, &#34;&#34;)</code></pre>
-</details>
-</dd>
-<dt id="diem.offchain.types.from_json_obj"><code class="name flex">
-<span>def <span class="ident">from_json_obj</span></span>(<span>obj: Any, klass: Optional[Type[~T]], field_path: str) ‑> ~T</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def from_json_obj(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str) -&gt; T:  # pyre-ignore
-    if klass is None or _is_union(klass):
-        if not isinstance(obj, dict):
-            code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
-            raise FieldError(code, field_path, f&#34;expect json object, but got {type(obj).__name__}: {obj}&#34;)
-        klass = _find_object_type(obj, field_path)
-    return _from_json_obj(obj, klass, field_path)</code></pre>
+    return from_dict(json.loads(data), klass)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.types.individual_kyc_data"><code class="name flex">
@@ -561,7 +567,13 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_json(obj: T, indent: typing.Optional[int] = None) -&gt; str:
-    return json.dumps(_delete_none(dataclasses.asdict(obj)), indent=indent)</code></pre>
+    if dataclasses.is_dataclass(obj):
+        raw = dataclasses.asdict(obj)
+    elif isinstance(obj, list):
+        raw = list(map(dataclasses.asdict, obj))
+    else:
+        raw = obj
+    return json.dumps(_delete_none(raw), indent=indent)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.types.validate_write_once_fields"><code class="name flex">
@@ -675,8 +687,8 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="diem.offchain.types.entity_kyc_data" href="#diem.offchain.types.entity_kyc_data">entity_kyc_data</a></code></li>
+<li><code><a title="diem.offchain.types.from_dict" href="#diem.offchain.types.from_dict">from_dict</a></code></li>
 <li><code><a title="diem.offchain.types.from_json" href="#diem.offchain.types.from_json">from_json</a></code></li>
-<li><code><a title="diem.offchain.types.from_json_obj" href="#diem.offchain.types.from_json_obj">from_json_obj</a></code></li>
 <li><code><a title="diem.offchain.types.individual_kyc_data" href="#diem.offchain.types.individual_kyc_data">individual_kyc_data</a></code></li>
 <li><code><a title="diem.offchain.types.new_payment_object" href="#diem.offchain.types.new_payment_object">new_payment_object</a></code></li>
 <li><code><a title="diem.offchain.types.new_payment_request" href="#diem.offchain.types.new_payment_request">new_payment_request</a></code></li>

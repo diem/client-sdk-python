@@ -48,6 +48,8 @@ from . import constants
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
 DEFAULT_TIMEOUT_SECS: float = 30.0
+DEFAULT_MAX_RETRIES: int = 15
+DEFAULT_RETRY_DELAY: float = 0.2
 DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS: float = 30.0
 DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS: float = 0.2
 
@@ -216,7 +218,7 @@ class Client:
         self._timeout: typing.Tuple[float, float] = timeout or (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
         self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
         self._lock = threading.Lock()
-        self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
+        self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
 
     # high level functions
@@ -677,7 +679,7 @@ def _parse_list(factory):  # pyre-ignore
         self._timeout: typing.Tuple[float, float] = timeout or (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
         self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
         self._lock = threading.Lock()
-        self._retry: Retry = retry or Retry(5, 0.2, StaleResponseError)
+        self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
 
     # high level functions

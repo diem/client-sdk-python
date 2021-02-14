@@ -31,6 +31,7 @@
 
 from abc import ABC, abstractmethod
 from .action import Action
+from .types import CommandRequestObject
 
 import typing
 
@@ -38,6 +39,7 @@ import typing
 class Command(ABC):
     @abstractmethod
     def id(self) -&gt; str:
+        &#34;&#34;&#34;Returns cid of command object&#34;&#34;&#34;
         ...
 
     @abstractmethod
@@ -53,12 +55,21 @@ class Command(ABC):
         ...
 
     @abstractmethod
-    def new_command(self) -&gt; &#34;Command&#34;:
-        &#34;&#34;&#34;sub-class should define **kwargs for creating new command from current instance&#34;&#34;&#34;
+    def new_request(self) -&gt; CommandRequestObject:
         ...
 
     @abstractmethod
     def validate(self, prior: typing.Optional[&#34;Command&#34;]) -&gt; None:
+        ...
+
+    @abstractmethod
+    def my_address(self) -&gt; str:
+        &#34;&#34;&#34;Returns my account identifier used for sending command request&#34;&#34;&#34;
+        ...
+
+    @abstractmethod
+    def opponent_address(self) -&gt; str:
+        &#34;&#34;&#34;Returns the opponent account identifier that receives the command request&#34;&#34;&#34;
         ...</code></pre>
 </details>
 </section>
@@ -84,6 +95,7 @@ inheritance.</p></div>
 <pre><code class="python">class Command(ABC):
     @abstractmethod
     def id(self) -&gt; str:
+        &#34;&#34;&#34;Returns cid of command object&#34;&#34;&#34;
         ...
 
     @abstractmethod
@@ -99,12 +111,21 @@ inheritance.</p></div>
         ...
 
     @abstractmethod
-    def new_command(self) -&gt; &#34;Command&#34;:
-        &#34;&#34;&#34;sub-class should define **kwargs for creating new command from current instance&#34;&#34;&#34;
+    def new_request(self) -&gt; CommandRequestObject:
         ...
 
     @abstractmethod
     def validate(self, prior: typing.Optional[&#34;Command&#34;]) -&gt; None:
+        ...
+
+    @abstractmethod
+    def my_address(self) -&gt; str:
+        &#34;&#34;&#34;Returns my account identifier used for sending command request&#34;&#34;&#34;
+        ...
+
+    @abstractmethod
+    def opponent_address(self) -&gt; str:
+        &#34;&#34;&#34;Returns the opponent account identifier that receives the command request&#34;&#34;&#34;
         ...</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -135,13 +156,14 @@ def follow_up_action(self) -&gt; typing.Optional[Action]:
 <span>def <span class="ident">id</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns cid of command object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
 def id(self) -&gt; str:
+    &#34;&#34;&#34;Returns cid of command object&#34;&#34;&#34;
     ...</code></pre>
 </details>
 </dd>
@@ -159,18 +181,47 @@ def is_inbound(self) -&gt; bool:
     ...</code></pre>
 </details>
 </dd>
-<dt id="diem.offchain.command.Command.new_command"><code class="name flex">
-<span>def <span class="ident">new_command</span></span>(<span>self) ‑> <a title="diem.offchain.command.Command" href="#diem.offchain.command.Command">Command</a></span>
+<dt id="diem.offchain.command.Command.my_address"><code class="name flex">
+<span>def <span class="ident">my_address</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"><p>sub-class should define **kwargs for creating new command from current instance</p></div>
+<div class="desc"><p>Returns my account identifier used for sending command request</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@abstractmethod
-def new_command(self) -&gt; &#34;Command&#34;:
-    &#34;&#34;&#34;sub-class should define **kwargs for creating new command from current instance&#34;&#34;&#34;
+def my_address(self) -&gt; str:
+    &#34;&#34;&#34;Returns my account identifier used for sending command request&#34;&#34;&#34;
+    ...</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.command.Command.new_request"><code class="name flex">
+<span>def <span class="ident">new_request</span></span>(<span>self) ‑> <a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def new_request(self) -&gt; CommandRequestObject:
+    ...</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.command.Command.opponent_address"><code class="name flex">
+<span>def <span class="ident">opponent_address</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the opponent account identifier that receives the command request</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def opponent_address(self) -&gt; str:
+    &#34;&#34;&#34;Returns the opponent account identifier that receives the command request&#34;&#34;&#34;
     ...</code></pre>
 </details>
 </dd>
@@ -226,7 +277,9 @@ def validate(self, prior: typing.Optional[&#34;Command&#34;]) -&gt; None:
 <li><code><a title="diem.offchain.command.Command.follow_up_action" href="#diem.offchain.command.Command.follow_up_action">follow_up_action</a></code></li>
 <li><code><a title="diem.offchain.command.Command.id" href="#diem.offchain.command.Command.id">id</a></code></li>
 <li><code><a title="diem.offchain.command.Command.is_inbound" href="#diem.offchain.command.Command.is_inbound">is_inbound</a></code></li>
-<li><code><a title="diem.offchain.command.Command.new_command" href="#diem.offchain.command.Command.new_command">new_command</a></code></li>
+<li><code><a title="diem.offchain.command.Command.my_address" href="#diem.offchain.command.Command.my_address">my_address</a></code></li>
+<li><code><a title="diem.offchain.command.Command.new_request" href="#diem.offchain.command.Command.new_request">new_request</a></code></li>
+<li><code><a title="diem.offchain.command.Command.opponent_address" href="#diem.offchain.command.Command.opponent_address">opponent_address</a></code></li>
 <li><code><a title="diem.offchain.command.Command.reference_id" href="#diem.offchain.command.Command.reference_id">reference_id</a></code></li>
 <li><code><a title="diem.offchain.command.Command.validate" href="#diem.offchain.command.Command.validate">validate</a></code></li>
 </ul>

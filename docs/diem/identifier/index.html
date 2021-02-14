@@ -45,7 +45,7 @@ from typing import List
 from . import bech32
 from .. import diem_types, utils, chain_ids
 
-from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error
+from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error, _DIEM_BECH32_SIZE
 from .subaddress import DIEM_SUBADDRESS_SIZE, DIEM_ZERO_SUBADDRESS, gen_subaddress
 
 DM = &#34;dm&#34;  # mainnet
@@ -194,6 +194,14 @@ def decode_account(encoded_address: str, hrp: str) -&gt; typing.Tuple[diem_types
     return (address, None)
 
 
+def decode_hrp(encoded_address: str) -&gt; str:
+    if len(encoded_address) not in _DIEM_BECH32_SIZE:
+        raise ValueError(&#34;Invalid account identifier address size: {encoded_address}&#34;)
+    if encoded_address[:2] == DM:
+        return DM
+    return encoded_address[:3]
+
+
 def decode_account_address(encoded_address: str, hrp: str) -&gt; diem_types.AccountAddress:
     address, _ = decode_account(encoded_address, hrp)
     return address
@@ -271,6 +279,23 @@ def decode_account_subaddress(encoded_address: str, hrp: str) -&gt; typing.Optio
 <pre><code class="python">def decode_account_subaddress(encoded_address: str, hrp: str) -&gt; typing.Optional[bytes]:
     _, subaddress = decode_account(encoded_address, hrp)
     return subaddress</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.decode_hrp"><code class="name flex">
+<span>def <span class="ident">decode_hrp</span></span>(<span>encoded_address: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_hrp(encoded_address: str) -&gt; str:
+    if len(encoded_address) not in _DIEM_BECH32_SIZE:
+        raise ValueError(&#34;Invalid account identifier address size: {encoded_address}&#34;)
+    if encoded_address[:2] == DM:
+        return DM
+    return encoded_address[:3]</code></pre>
 </details>
 </dd>
 <dt id="diem.identifier.decode_intent"><code class="name flex">
@@ -508,6 +533,7 @@ def account_id(self) -&gt; str:
 <li><code><a title="diem.identifier.decode_account" href="#diem.identifier.decode_account">decode_account</a></code></li>
 <li><code><a title="diem.identifier.decode_account_address" href="#diem.identifier.decode_account_address">decode_account_address</a></code></li>
 <li><code><a title="diem.identifier.decode_account_subaddress" href="#diem.identifier.decode_account_subaddress">decode_account_subaddress</a></code></li>
+<li><code><a title="diem.identifier.decode_hrp" href="#diem.identifier.decode_hrp">decode_hrp</a></code></li>
 <li><code><a title="diem.identifier.decode_intent" href="#diem.identifier.decode_intent">decode_intent</a></code></li>
 <li><code><a title="diem.identifier.encode_account" href="#diem.identifier.encode_account">encode_account</a></code></li>
 <li><code><a title="diem.identifier.encode_intent" href="#diem.identifier.encode_intent">encode_intent</a></code></li>

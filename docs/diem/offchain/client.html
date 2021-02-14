@@ -58,7 +58,7 @@ from .. import jsonrpc, diem_types, identifier, utils
 
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
-DEFAULT_TIMEOUT_SECS: float = 5.0
+DEFAULT_TIMEOUT_SECS: float = 30.0
 
 
 class CommandResponseError(Exception):
@@ -75,7 +75,7 @@ class Client:
 
     Initialization:
     ```
-    &gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
+    &gt;&gt;&gt; from diem import offchain, testnet
     &gt;&gt;&gt;
     &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
     &gt;&gt;&gt; account = testnet.gen_account(client, base_url=&#34;http://vasp.com/offchain&#34;)
@@ -126,10 +126,10 @@ class Client:
     def __post_init__(self) -&gt; None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
-    def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
+    def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
         return self.send_request(
-            request_sender_address=command.my_actor_address,
-            opponent_account_id=command.opponent_actor_obj().address,
+            request_sender_address=command.my_address(),
+            opponent_account_id=command.opponent_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 
@@ -334,7 +334,7 @@ def _is_under_the_threshold(limit: int, rate: float, amount: int) -&gt; bool:
 <div class="desc"><p>Client for communicating with offchain service.</p>
 <p>Provides outbound and inbound request handlings and convertings between bytes and offchain data types.</p>
 <p>Initialization:</p>
-<pre><code>&gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
+<pre><code>&gt;&gt;&gt; from diem import offchain, testnet
 &gt;&gt;&gt;
 &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
 &gt;&gt;&gt; account = testnet.gen_account(client, base_url=&quot;http://vasp.com/offchain&quot;)
@@ -374,7 +374,7 @@ class Client:
 
     Initialization:
     ```
-    &gt;&gt;&gt; from diem import offchain, jsonrpc, testnet, LocalAccount
+    &gt;&gt;&gt; from diem import offchain, testnet
     &gt;&gt;&gt;
     &gt;&gt;&gt; jsonrpc_client = testnet.create_client()
     &gt;&gt;&gt; account = testnet.gen_account(client, base_url=&#34;http://vasp.com/offchain&#34;)
@@ -425,10 +425,10 @@ class Client:
     def __post_init__(self) -&gt; None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
-    def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
+    def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
         return self.send_request(
-            request_sender_address=command.my_actor_address,
-            opponent_account_id=command.opponent_actor_obj().address,
+            request_sender_address=command.my_address(),
+            opponent_account_id=command.opponent_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 
@@ -751,7 +751,7 @@ class Client:
 </details>
 </dd>
 <dt id="diem.offchain.client.Client.send_command"><code class="name flex">
-<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a>, sign: Callable[[bytes], bytes]) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+<span>def <span class="ident">send_command</span></span>(<span>self, command: <a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a>, sign: Callable[[bytes], bytes]) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -759,10 +759,10 @@ class Client:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def send_command(self, command: PaymentCommand, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
+<pre><code class="python">def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
     return self.send_request(
-        request_sender_address=command.my_actor_address,
-        opponent_account_id=command.opponent_actor_obj().address,
+        request_sender_address=command.my_address(),
+        opponent_account_id=command.opponent_address(),
         request_bytes=jws.serialize(command.new_request(), sign),
     )</code></pre>
 </details>

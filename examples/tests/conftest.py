@@ -52,7 +52,7 @@ def assert_final_status(sender_app, receiver_app):
 
         ref_id = list(sender_cmd.keys())[0]
         sender_record = sender_cmd[ref_id]
-        assert sender_record.cid() == receiver_cmd[ref_id].cid()
+        assert sender_record.id() == receiver_cmd[ref_id].id()
         assert sender_record.payment == receiver_cmd[ref_id].payment
 
         assert sender_record.payment.sender.status.status == final_status["sender"]

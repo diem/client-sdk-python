@@ -21,7 +21,7 @@ def test_send_and_deserialize_request(factory, command_type):
 
     def process_inbound_request(_, jws_key_address: str, content: bytes):
         command = receiver_client.process_inbound_request(jws_key_address, content)
-        resp = offchain.reply_request(command.cid())
+        resp = offchain.reply_request(command.id())
         return 200, offchain.jws.serialize(resp, receiver.compliance_key.sign)
 
     offchain.http_server.start_local(receiver_port, process_inbound_request)
@@ -58,7 +58,7 @@ def test_incoming_payment_command_type_mismatch(factory):
     wrong_type = offchain.CommandType.FundPullPreApprovalCommand
 
     request = offchain.CommandRequestObject(
-        cid=command.cid(),
+        cid=command.id(),
         command_type=wrong_type,
         command=offchain.PaymentCommandObject(
             _ObjectType=offchain.CommandType.PaymentCommand,
@@ -84,7 +84,7 @@ def test_incoming_fppa_command_type_mismatch(factory):
     wrong_type = offchain.CommandType.PaymentCommand
 
     request = offchain.CommandRequestObject(
-        cid=command.cid(),
+        cid=command.id(),
         command_type=wrong_type,
         command=offchain.FundPullPreApprovalCommandObject(
             _ObjectType=offchain.CommandType.FundPullPreApprovalCommand,

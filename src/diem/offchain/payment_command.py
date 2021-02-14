@@ -30,7 +30,7 @@ class PaymentCommand(Command):
     my_actor_address: str
     payment: PaymentObject
     inbound: bool
-    _cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
+    cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
 
     @staticmethod
     def init(
@@ -58,10 +58,7 @@ class PaymentCommand(Command):
         )
 
     def id(self) -> str:
-        return self.make_global_unique_id(self.payment.sender.address, self.payment.receiver.address)
-
-    def cid(self) -> str:
-        return self._cid
+        return self.cid
 
     def command_type(self) -> str:
         return CommandType.PaymentCommand
@@ -95,7 +92,7 @@ class PaymentCommand(Command):
         return self.opponent_actor_obj().address
 
     def new_request(self) -> CommandRequestObject:
-        return new_payment_request(self.payment, self._cid)
+        return new_payment_request(self.payment, self.cid)
 
     # the followings are PaymentCommand specific methods
 
@@ -229,4 +226,4 @@ class PaymentCommand(Command):
         )
 
     def __str__(self) -> str:
-        return f"[payment#{self._cid} {self.my_actor_address} {summary(self.payment)}]"
+        return f"[payment#{self.cid} {self.my_actor_address} {summary(self.payment)}]"

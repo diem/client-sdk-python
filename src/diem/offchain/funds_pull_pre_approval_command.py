@@ -16,15 +16,10 @@ class FundsPullPreApprovalCommand(Command):
     my_actor_address: str
     funds_pull_pre_approval: FundPullPreApprovalObject
     inbound: bool
-    _cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
+    cid: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4()))
 
     def id(self) -> str:
-        return self.make_global_unique_id(
-            self.funds_pull_pre_approval.address, self.funds_pull_pre_approval.biller_address
-        )
-
-    def cid(self) -> str:
-        return self._cid
+        return self.cid
 
     def command_type(self) -> str:
         return CommandType.FundPullPreApprovalCommand
@@ -51,4 +46,4 @@ class FundsPullPreApprovalCommand(Command):
             return self.funds_pull_pre_approval.biller_address
 
     def new_request(self) -> CommandRequestObject:
-        return new_funds_pull_pre_approval_request(funds_pull_pre_approval=self.funds_pull_pre_approval, cid=self._cid)
+        return new_funds_pull_pre_approval_request(funds_pull_pre_approval=self.funds_pull_pre_approval, cid=self.cid)

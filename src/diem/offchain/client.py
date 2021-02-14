@@ -241,9 +241,9 @@ class Client:
 
     def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -> PaymentCommand:
         if self.is_my_account_id(obj.sender.address):
-            return PaymentCommand(_cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
+            return PaymentCommand(cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
         if self.is_my_account_id(obj.receiver.address):
-            return PaymentCommand(_cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
+            return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
 
         raise command_error(ErrorCode.unknown_address, "unknown actor addresses: {obj}")
 
@@ -268,14 +268,14 @@ class Client:
     ) -> FundsPullPreApprovalCommand:
         if self.is_my_account_id(fund_pull_pre_approval.address):
             return FundsPullPreApprovalCommand(
-                _cid=cid,
+                cid=cid,
                 my_actor_address=fund_pull_pre_approval.address,
                 funds_pull_pre_approval=fund_pull_pre_approval,
                 inbound=True,
             )
         elif self.is_my_account_id(fund_pull_pre_approval.biller_address):
             return FundsPullPreApprovalCommand(
-                _cid=cid,
+                cid=cid,
                 my_actor_address=fund_pull_pre_approval.biller_address,
                 funds_pull_pre_approval=fund_pull_pre_approval,
                 inbound=True,

@@ -16,13 +16,6 @@ from diem.offchain import (
 )
 
 
-@pytest.fixture(
-    scope="module", params=[offchain.CommandType.PaymentCommand, offchain.CommandType.FundPullPreApprovalCommand]
-)
-def command_type(request):
-    return request.param
-
-
 @pytest.fixture(scope="session", autouse=True)
 def setup_testnet():
     if getenv("dt"):

@@ -107,6 +107,7 @@ class Factory:
                 self.hrp(),
             ),
             funds_pull_pre_approval=funds_pull_pre_approval,
+            inbound=False,
         )
 
     def new_command(self, command_type, sender, receiver):

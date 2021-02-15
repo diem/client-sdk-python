@@ -6,9 +6,11 @@ import typing
 import uuid
 
 from . import FundPullPreApprovalObject, CommandType, CommandRequestObject
+from . import funds_pull_pre_approval_command_state as state_machine
 from .command import Command
+from .error import command_error
 from .payment_state import Action
-from .types import new_funds_pull_pre_approval_request
+from .types import new_funds_pull_pre_approval_request, ErrorCode, FieldError, validate_write_once_fields
 
 
 @dataclasses.dataclass(frozen=True)
@@ -34,7 +36,32 @@ class FundsPullPreApprovalCommand(Command):
         return self.funds_pull_pre_approval.funds_pull_pre_approval_id
 
     def validate(self, prior: typing.Optional["Command"]) -> None:
+        prior = typing.cast(FundsPullPreApprovalCommand, prior)
+        try:
+            if prior:
+                self.validate_transition(prior)
+                self.validate_write_once_fields(prior)
+            else:
+                self.validate_is_initial()
+        except FieldError as e:
+            raise command_error(e.code, str(e), e.field) from e
         pass
+
+    def validate_is_initial(self) -> None:
+        if not state_machine.is_valid_initial_status(self.funds_pull_pre_approval.status):
+            msg = f"{self} is not in a valid initial state"
+            raise command_error(ErrorCode.invalid_initial_or_prior_not_found, msg)
+
+    def validate_transition(self, prior: "FundsPullPreApprovalCommand") -> None:
+        current_status = prior.funds_pull_pre_approval.status
+        next_status = self.funds_pull_pre_approval.status
+        if not state_machine.is_valid_transition(current_status, next_status):
+            raise command_error(ErrorCode.invalid_transition, f"can not transit from {prior} to {self}")
+
+    def validate_write_once_fields(self, prior: "FundsPullPreApprovalCommand") -> None:
+        validate_write_once_fields(
+            "funds_pull_pre_approval", self.funds_pull_pre_approval, prior.funds_pull_pre_approval
+        )
 
     def my_address(self) -> str:
         return self.my_actor_address

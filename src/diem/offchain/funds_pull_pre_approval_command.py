@@ -45,7 +45,6 @@ class FundsPullPreApprovalCommand(Command):
                 self.validate_is_initial()
         except FieldError as e:
             raise command_error(e.code, str(e), e.field) from e
-        pass
 
     def validate_is_initial(self) -> None:
         if not state_machine.is_valid_initial_status(self.funds_pull_pre_approval.status):

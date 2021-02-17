@@ -27,7 +27,7 @@ DEFAULT_RETRY_DELAY: float = 0.2
 DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS: float = 30.0
 DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS: float = 0.2
 
-USER_AGENT_HTTP_HEADER: str = "diem-client-sdk-java / %s" % VERSION
+USER_AGENT_HTTP_HEADER: str = "diem-client-sdk-python / %s" % VERSION
 
 
 class JsonRpcError(Exception):

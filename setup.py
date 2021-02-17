@@ -2,15 +2,21 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import re
 from setuptools import setup
 
 this_directory = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+# Regex the file directly as we can not import it due to
+# src/diem/__init__.py importing from external repo not in requirements.txt
+with open(os.path.join(this_directory, "src", "diem", "__VERSION__.py"), encoding='utf-8') as f:
+    version = re.search(r'VERSION = "(.*?)"', f.read(), re.MULTILINE).group(1)
+
 setup(
     name="diem",
-    version="1.2.5",
+    version=version,
     description="The Python Client SDK for Diem",
     long_description=long_description,
     long_description_content_type='text/markdown',

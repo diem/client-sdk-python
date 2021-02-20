@@ -76,7 +76,7 @@ cd diem
 git pull origin master
 cd ..
 make gen
-``
+```
 
 ## Modules Overview
 

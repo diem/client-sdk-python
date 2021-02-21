@@ -154,6 +154,22 @@ def test_intent_identifier(hrp_addresses):
     assert account_id == intent.account_id
 
 
+def test_intent_identifier_without_params(hrp_addresses):
+    hrp, enocded_addr_with_none_subaddr, enocded_addr_with_subaddr = hrp_addresses
+    account_id = identifier.encode_account(test_onchain_address, None, hrp)
+    intent_id = identifier.encode_intent(account_id)
+    assert intent_id == "diem://%s" % enocded_addr_with_none_subaddr
+
+    intent = identifier.decode_intent(intent_id, hrp)
+    assert intent.account_address == utils.account_address(test_onchain_address)
+    assert intent.account_address_bytes.hex() == test_onchain_address
+    assert intent.sub_address is None
+    assert intent.currency_code is None
+    assert intent.amount is None
+
+    assert account_id == intent.account_id
+
+
 def test_intent_identifier_with_sub_address(hrp_addresses):
     hrp, enocded_addr_with_none_subaddr, enocded_addr_with_subaddr = hrp_addresses
     account_id = identifier.encode_account(test_onchain_address, test_sub_address, hrp)
@@ -167,27 +183,29 @@ def test_intent_identifier_with_sub_address(hrp_addresses):
     assert intent.amount == 123
 
 
+def test_intent_identifier_with_one_param():
+    account_id = "dm1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqqd8p9cq"
+    intent_id = identifier.encode_intent(account_id, currency_code="XUS")
+    assert intent_id == "diem://%s?c=%s" % (account_id, "XUS")
+    intent_id = identifier.encode_intent(account_id, currency_code="")
+    assert intent_id == "diem://%s" % account_id
+    intent_id = identifier.encode_intent(account_id, amount=122)
+    assert intent_id == "diem://%s?am=%s" % (account_id, 122)
+    intent_id = identifier.encode_intent(account_id, amount=0)
+    assert intent_id == "diem://%s" % account_id
+    intent_id = identifier.encode_intent(account_id, amount=-1)
+    assert intent_id == "diem://%s" % account_id
+
+
 def test_intent_identifier_decode_errors(hrp_addresses):
     hrp, enocded_addr_with_none_subaddr, enocded_addr_with_subaddr = hrp_addresses
     # amount is not int
     with pytest.raises(identifier.InvalidIntentIdentifierError):
         identifier.decode_intent("diem://%s?c=XUS&am=str" % (enocded_addr_with_none_subaddr), hrp)
 
-    # amount not exist
-    with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("diem://%s?c=XUS" % (enocded_addr_with_none_subaddr), hrp)
-
     # too many amount
     with pytest.raises(identifier.InvalidIntentIdentifierError):
         identifier.decode_intent("diem://%s?c=XUS&am=2&am=3" % (enocded_addr_with_none_subaddr), hrp)
-
-    # amount is none
-    with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("diem://%s?c=XUS&am=" % (enocded_addr_with_none_subaddr), hrp)
-
-    # currency code not exist
-    with pytest.raises(identifier.InvalidIntentIdentifierError):
-        identifier.decode_intent("diem://%s?am=2" % (enocded_addr_with_none_subaddr), hrp)
 
     # scheme not match
     with pytest.raises(identifier.InvalidIntentIdentifierError):

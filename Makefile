@@ -69,12 +69,12 @@ server:
 	examples/vasp/server.sh -p 8080
 
 docker:
-	docker-compose -f docker/testnet/docker-compose.yaml up --detach
+	docker-compose -f diem/docker/compose/validator-testnet/docker-compose.yaml up --detach
 
 docker-down:
-	docker-compose -f docker/testnet/docker-compose.yaml down -v
+	docker-compose -f diem/docker/compose/validator-testnet/docker-compose.yaml down -v
 
 docker-stop:
-	docker-compose -f docker/testnet/docker-compose.yaml stop
+	docker-compose -f diem/docker/compose/validator-testnet/docker-compose.yaml stop
 
 .PHONY: init lint format test cover build diemtypes protobuf gen dist docs server docker docker-down docker-stop

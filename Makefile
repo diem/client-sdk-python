@@ -38,7 +38,7 @@ diemtypes:
 		--diem-package-name diem \
 		--target-source-dir src/diem \
 		--with-custom-diem-code diem-types-ext/*.py \
-		-- "diem/language/stdlib/compiled/transaction_scripts/abi"
+		-- "diem/language/diem-framework/compiled/legacy/transaction_scripts/abi"
 
 protobuf:
 	mkdir -p src/diem/jsonrpc

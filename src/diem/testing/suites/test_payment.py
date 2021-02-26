@@ -21,8 +21,8 @@ def test_payment_under_threshold_succeed(
     sender_client = clients.target if actor == "sender" else clients.stub
     receiver_client = clients.stub if actor == "sender" else clients.target
 
-    sender = sender_client.create_account({currency: amount}, kyc_data=receiver_client.new_kyc_data())
-    receiver = receiver_client.create_account(kyc_data=sender_client.new_kyc_data())
+    sender = sender_client.create_account({currency: amount})
+    receiver = receiver_client.create_account()
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 

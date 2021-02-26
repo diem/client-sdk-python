@@ -26,7 +26,6 @@ def test_create_account_with_kyc_data_and_balances(target_client: RestClient, cu
 @pytest.mark.parametrize(  # pyre-ignore
     "err_msg, kyc_data, balances",
     [
-        ("'kyc_data' is required", None, None),
         ("'kyc_data' must be JSON-encoded KycDataObject", "invalid json", None),
         ("'kyc_data' must be JSON-encoded KycDataObject", "{}", None),
         ("'currency' is invalid", "sample", {"invalid": 11}),

@@ -254,7 +254,7 @@ class App(BackgroundTasks):
     def create_account(self, data: JsonInput) -> Account:
         account = self.store.create(
             Account,
-            kyc_data=data.get("kyc_data", str, self._validate_kyc_data),
+            kyc_data=data.get_nullable("kyc_data", str, self._validate_kyc_data),
         )
         balances = data.get_nullable("balances", dict)
         if balances:

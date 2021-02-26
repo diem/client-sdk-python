@@ -14,10 +14,13 @@ class Base:
 
 @dataclass
 class Account(Base):
-    kyc_data: str
+    kyc_data: Optional[str] = field(default=None)
 
     def kyc_data_object(self) -> offchain.KycDataObject:
-        return offchain.from_json(self.kyc_data, offchain.KycDataObject)
+        if self.kyc_data:
+            return offchain.from_json(str(self.kyc_data), offchain.KycDataObject)
+        else:
+            return offchain.individual_kyc_data()
 
 
 @dataclass

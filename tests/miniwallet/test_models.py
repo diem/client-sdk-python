@@ -21,6 +21,8 @@ def test_match_kyc_data():
 
 
 def test_decode_account_kyc_data():
+    assert Account(id="1").kyc_data_object() == offchain.individual_kyc_data()
+
     sample = KycSample.gen("foo")
     account = Account(id="1", kyc_data=sample.minimum)
     assert account.kyc_data_object()

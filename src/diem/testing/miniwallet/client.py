@@ -25,8 +25,10 @@ class RestClient:
         self.session.mount(self.server_url, HTTPAdapter(max_retries=retry))
         return self
 
-    def create_account(self, balances: Dict[str, int] = {}, kyc_data: Optional[str] = None) -> "AccountResource":
-        account = self.create("/accounts", kyc_data=kyc_data or self.new_kyc_data(), balances=balances)
+    def create_account(
+        self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
+    ) -> "AccountResource":
+        account = self.create("/accounts", kyc_data=kyc_data, balances=balances)
         return AccountResource(client=self, id=account["id"], kyc_data=account["kyc_data"])
 
     def new_soft_match_kyc_data(self) -> str:
@@ -122,7 +124,7 @@ class AccountResource:
         ret = asdict(event)
         try:
             ret["data"] = json.loads(event.data)
-            if event.type == "created_account":
+            if "kyc_data" in ret["data"]:
                 ret["data"]["kyc_data"] = json.loads(ret["data"]["kyc_data"])
         except json.decoder.JSONDecodeError:
             pass

@@ -99,6 +99,17 @@ paths:
                 $ref: '#/components/schemas/PaymentURI'
         400:
           $ref: '#/components/responses/ClientError'
+  /kyc_sample:
+    get:
+      operationId: get-kyc-sample
+      summary: returns KycSample data for creating test account.
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KycSample'
   /accounts/{account_id}/events:
     get:
       operationId: get-events
@@ -121,17 +132,6 @@ paths:
                   $ref: '#/components/schemas/Event'
         400:
           $ref: '#/components/responses/ClientError'
-  /kyc_sample:
-    get:
-      operationId: get-kyc-sample
-      summary: returns KycSample data for creating test account.
-      responses:
-        200:
-          description: success
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/KycSample'
 components:
   responses:
     ClientError:
@@ -160,6 +160,7 @@ components:
       properties:
         id:
           type: string
+          readOnly: true
         kyc_data:
           type: string
         balances:

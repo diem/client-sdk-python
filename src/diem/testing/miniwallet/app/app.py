@@ -137,8 +137,12 @@ class BackgroundTasks(OffChainAPI):
                     self._send_internal_payment_txn(txn)
                 else:
                     self._send_external_payment_txn(txn)
+            except jsonrpc.JsonRpcError as e:
+                msg = "ignore error %s when sending transaction %s, retry later"
+                self.logger.info(msg % (e, txn), exc_info=True)
             except Exception as e:
-                self.logger.exception(e)
+                msg = "send pending transaction failed with %s, cancel transaction %s."
+                self.logger.error(msg % (e, txn), exc_info=True)
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
 
     def _send_internal_payment_txn(self, txn: Transaction) -> None:

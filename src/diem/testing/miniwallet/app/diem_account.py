@@ -11,7 +11,6 @@ from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, Loca
 class DiemAccount:
     account: LocalAccount
     client: jsonrpc.Client
-    retry: jsonrpc.Retry = field(default_factory=lambda: jsonrpc.Retry(3, 0.1, jsonrpc.JsonRpcError))
 
     def general_metadata(self, from_subaddress: bytes, payee: str) -> Tuple[bytes, bytes]:
         to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
@@ -30,4 +29,4 @@ class DiemAccount:
             metadata=metadata[0],
             metadata_signature=metadata[1],
         )
-        return self.retry.execute(lambda: self.account.submit_txn(self.client, script).bcs_serialize().hex())
+        return self.account.submit_txn(self.client, script).bcs_serialize().hex()

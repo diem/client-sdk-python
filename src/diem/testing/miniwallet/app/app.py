@@ -132,6 +132,7 @@ class BackgroundTasks(OffChainAPI):
 
     def _send_pending_payments(self) -> None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
+            self.logger.info("processing %s" % txn)
             try:
                 if self.offchain.is_my_account_id(str(txn.payee)):
                     self._send_internal_payment_txn(txn)
@@ -175,7 +176,13 @@ class BackgroundTasks(OffChainAPI):
             self._start_external_payment_txn(txn)
 
     def _start_external_payment_txn(self, txn: Transaction) -> None:
-        if txn.subaddress_hex:
+        if not txn.subaddress_hex:
+            self.store.update(txn, subaddress_hex=self._gen_subaddress().hex())
+        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+            if not txn.signed_transaction:
+                signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
+                self.store.update(txn, signed_transaction=signed_txn)
+        else:
             if txn.reference_id:
                 cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
                 if cmd.is_sender:
@@ -185,23 +192,18 @@ class BackgroundTasks(OffChainAPI):
                     elif cmd.is_ready:
                         signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
                         self.store.update(txn, signed_transaction=signed_txn)
-            return
-
-        self.store.update(txn, subaddress_hex=self._gen_subaddress().hex())
-        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
-            self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self._txn_metadata(txn)))
-        else:
-            account = self.store.find(Account, id=txn.account_id)
-            command = offchain.PaymentCommand.init(
-                sender_account_id=self.diem_account.account.account_identifier(txn.subaddress()),
-                sender_kyc_data=account.kyc_data_object(),
-                currency=txn.currency,
-                amount=txn.amount,
-                receiver_account_id=str(txn.payee),
-            )
-            self.store.update(txn, reference_id=command.reference_id())
-            self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
-            self._create_payment_command(txn.account_id, command)
+            else:
+                account = self.store.find(Account, id=txn.account_id)
+                command = offchain.PaymentCommand.init(
+                    sender_account_id=self.diem_account.account.account_identifier(txn.subaddress()),
+                    sender_kyc_data=account.kyc_data_object(),
+                    currency=txn.currency,
+                    amount=txn.amount,
+                    receiver_account_id=str(txn.payee),
+                )
+                self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
+                self._create_payment_command(txn.account_id, command)
+                self.store.update(txn, reference_id=command.reference_id())
 
     def _process_offchain_commands(self) -> None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)

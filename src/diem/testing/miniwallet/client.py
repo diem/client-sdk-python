@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, replace, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
@@ -106,7 +106,7 @@ class AccountResource:
 
         self.wait_for(fn)
 
-    def wait_for(self, fn: Callable[[], None], max_tries: int = 100, delay: float = 0.1) -> None:
+    def wait_for(self, fn: Callable[[], None], max_tries: int = 10, delay: float = 0.1) -> None:
         tries = 0
         while True:
             tries += 1
@@ -114,22 +114,19 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries >= max_tries:
-                    self.print_events()
-                    raise TimeoutError(str(e)) from e
+                    events = json.dumps(list(map(self.event_asdict, self.events())), indent=2)
+                    raise TimeoutError("%s, events: \n%s" % (e, events)) from e
                 time.sleep(delay)
 
-    def print_events(self) -> None:
+    def event_asdict(self, event: Event) -> Dict[str, Any]:
+        ret = asdict(event)
         try:
-            events = self.events()
-            self.info("=== events(len=%s) happend in the account(%s) ===" % (len(events), self.id))
-            for e in events:
-                self.info("event[%s] %s:" % (e.id, e.type))
-                try:
-                    self.info(json.dumps(json.loads(e.data), indent=2))
-                except Exception:
-                    self.info(e.data)
-        except Exception:
+            ret["data"] = json.loads(event.data)
+            if event.type == "created_account":
+                ret["data"]["kyc_data"] = json.loads(ret["data"]["kyc_data"])
+        except json.decoder.JSONDecodeError:
             pass
+        return ret
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.client.logger.info(*args, **kwargs)

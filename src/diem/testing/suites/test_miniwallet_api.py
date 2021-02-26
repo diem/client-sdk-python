@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import Account, Transaction, RestClient
-from diem.testing.miniwallet.app.falcon import OPENAPI_SPEC_PATH
 from diem import identifier
 from typing import Optional, Dict
 from .envs import should_test_debug_api, is_self_check
@@ -256,5 +255,5 @@ def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) 
 
 @pytest.mark.skipif(bool(not is_self_check()), reason="self check is not enabled")
 def test_openapi_spec(target_client: RestClient) -> None:
-    resp = target_client.send("GET", OPENAPI_SPEC_PATH)
+    resp = target_client.send("GET", "/openapi.yaml")
     assert resp.text

@@ -106,7 +106,7 @@ class AccountResource:
 
         self.wait_for(fn)
 
-    def wait_for(self, fn: Callable[[], None], max_tries: int = 10, delay: float = 0.1) -> None:
+    def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -> None:
         tries = 0
         while True:
             tries += 1

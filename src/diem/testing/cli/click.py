@@ -50,7 +50,8 @@ def start_server(
     show_default=False,
 )
 @click.option("--test-debug-api", "-d", default=False, help="Run tests for debug APIs.", type=bool)
-def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_api: bool) -> None:
+@click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool)
+def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_api: bool, verbose: bool) -> None:
     configure_testnet(jsonrpc, faucet)
     os.environ[envs.TARGET_URL] = target
     if test_debug_api:
@@ -58,6 +59,9 @@ def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_ap
 
     args = [arg for arg in re.compile("\\s+").split(pytest_args) if arg]
     args = ["--pyargs", "diem.testing.suites"] + args
+    if verbose:
+        args.append("--log-level=INFO")
+
     code = pytest.main(args)
     sys.stdout.flush()
     raise SystemExit(code)

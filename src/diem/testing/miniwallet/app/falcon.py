@@ -9,8 +9,7 @@ from .... import offchain
 import falcon, json, traceback, logging, pathlib
 
 
-OPENAPI_SPEC: str = pathlib.Path(__file__).resolve().parent.joinpath("openapi.yaml").read_text()
-OPENAPI_SPEC_PATH: str = "/openapi.yaml"
+base_path: str = str(pathlib.Path(__file__).resolve().parent.joinpath("static"))
 
 
 @dataclass
@@ -84,16 +83,15 @@ class Endpoints:
             resp.status = falcon.HTTP_400
         resp.body = self.app.jws_serialize(resp_obj)
 
-
-def openapi(req: falcon.Request, resp: falcon.Response) -> None:
-    resp.content_type = "application/yaml"
-    resp.body = OPENAPI_SPEC
+    def on_get_index(self, req: falcon.Request, resp: falcon.Response) -> None:
+        raise falcon.HTTPMovedPermanently("/index.html")
 
 
 def falcon_api(app: App, enable_debug_api: bool = False) -> falcon.API:
     endpoints = Endpoints(app=app)
     api = falcon.API(middleware=[LoggerMiddleware(logger=app.logger)])
-    api.add_sink(openapi, prefix=OPENAPI_SPEC_PATH)
+    api.add_static_route("/", base_path)
+    api.add_route("/", endpoints, suffix="index")
     api.add_route("/accounts", endpoints, suffix="accounts")
     for res in ["balances", "payments", "payment_uris", "events"]:
         if res != "events" or enable_debug_api:

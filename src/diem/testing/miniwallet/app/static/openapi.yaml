@@ -1,7 +1,9 @@
 openapi: 3.0.1
 info:
-  title: Mini Wallet
-  description: Mini Wallet API Specification
+  title: Mini Wallet API Specification
+  description: >
+      MiniWallet is a highly simplified wallet application backend service API.
+      The API is a minimum interface for wallet applications to do peer to peer payment.
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -29,7 +31,7 @@ paths:
           $ref: '#/components/responses/ClientError'
   /accounts/{account_id}/balances:
     get:
-      operationId: get-balances
+      operationId: balances
       summary: Get account balances by account id
       parameters:
       - name: account_id
@@ -82,7 +84,7 @@ paths:
   /accounts/{account_id}/payment_uris:
     post:
       operationId: gen-payment-uri
-      summary: generate a payment URI for receiving funds
+      summary: Generate a payment URI for receiving funds
       parameters:
       - name: account_id
         in: path
@@ -101,8 +103,8 @@ paths:
           $ref: '#/components/responses/ClientError'
   /kyc_sample:
     get:
-      operationId: get-kyc-sample
-      summary: returns KycSample data for creating test account.
+      operationId: kyc-sample
+      summary: Returns a set of KYC data that can be used for testing different behaviors during off-chain KYC data exchanging process. The data is used for counterparty wallet application to setup their test account's KYC data.
       responses:
         200:
           description: success
@@ -155,7 +157,6 @@ components:
     Account:
       required:
       - id
-      - kyc_data
       type: object
       properties:
         id:
@@ -163,6 +164,18 @@ components:
           readOnly: true
         kyc_data:
           type: string
+          description: >
+              KYC data should be valid JSON that can be deserialized into Diem off-chain KycDataObject
+              listed at https://dip.diem.com/dip-1/#kycdataobject.
+
+              When the account is required to provide KYC data during off-chain KYC exchange process,
+              server should deserialize this string into KycDataObject and send to counterparty service.
+
+              This data is setup counterparty wallet application to evaluate, server should not raise error
+              for the case it does not meet any business criterias.
+              Server should accept it as KYC data of the account created, and send it to counterparty
+              service during off-chain KYC exchange process to trigger specific action by the counterparty's
+              KYC data evaluation process.
         balances:
           writeOnly: True
           type: object
@@ -191,7 +204,13 @@ components:
           type: integer
         payment_uri:
           type: string
-          description: 'Diem account identifier defined in DIP-5'
+          description: >
+              Diem intent identifier defined in DIP-5.
+
+              Server should create a new subaddress for the account, and then encode it with
+              an onchain account address as new payment URI.
+              The currency and amount in the request body should also be encoded into this
+              URI if they are provided.
           readOnly: true
     Payment:
       required:
@@ -217,7 +236,10 @@ components:
           type: integer
         payee:
           type: string
-          description: The receiver of the payment, [Account Identifier]
+          description: >
+              The receiver address of the payment.
+              Only support account identifier defined in DIP-5 for now.
+              We will add Diem ID support in the future when the protocol related is stablized.
     KycSample:
       description: KYC data sample for clients to create accounts to do off-chain KYC data exchanging tests.
       required:

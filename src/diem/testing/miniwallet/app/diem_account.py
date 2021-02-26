@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple
 from .models import Transaction
 from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, LocalAccount

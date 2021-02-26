@@ -1,5 +1,2 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-
-recursive-include src *.py
-recursive-include src *.yaml

@@ -2,10 +2,14 @@ requests==2.20.0
 cryptography==3.3.2
 numpy==1.18
 protobuf==3.12.4
-pytest
+pytest==6.2.1
+click==7.1
 pylama
 black
 pyre-check==0.0.58
 pytest-cov
 mypy-protobuf
 pdoc3
+falcon
+waitress
+pygount

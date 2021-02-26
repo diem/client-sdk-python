@@ -49,3 +49,18 @@ def test_account_identifier():
     assert account.account_identifier(subaddress) == identifier.encode_account(
         account.account_address, subaddress, account.hrp
     )
+
+
+def test_decode_account_identifier():
+    account = LocalAccount()
+
+    id1 = account.account_identifier()
+    address, subaddress = account.decode_account_identifier(id1)
+    assert address == account.account_address
+    assert subaddress is None
+
+    subaddress = identifier.gen_subaddress()
+    id2 = account.account_identifier(subaddress)
+    address, subaddress = account.decode_account_identifier(id2)
+    assert address == account.account_address
+    assert subaddress == subaddress

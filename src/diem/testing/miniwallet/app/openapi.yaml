@@ -1,0 +1,284 @@
+openapi: 3.0.1
+info:
+  title: Mini Wallet
+  description: Mini Wallet API Specification
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.1
+paths:
+  /accounts:
+    post:
+      summary: Add a new account with initial deposit balances
+      operationId: create-account
+      requestBody:
+        description: Account KYC data and initial deposit balances
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+        required: true
+      responses:
+        201:
+          description: Account is created; balances are deposit to account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+        400:
+          $ref: '#/components/responses/ClientError'
+  /accounts/{account_id}/balances:
+    get:
+      operationId: get-balances
+      summary: Get account balances by account id
+      parameters:
+      - name: account_id
+        in: path
+        description: ID of account balances
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Returns account balances
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  XUS:
+                    type: integer
+                  XDX:
+                    type: integer
+        400:
+          $ref: '#/components/responses/ClientError'
+  /accounts/{account_id}/payments:
+    post:
+      operationId: send-payment
+      summary: Send a payment to a payee
+      parameters:
+      - name: account_id
+        in: path
+        description: ID of the Account as payer
+        required: true
+        schema:
+          type: string
+      requestBody:
+        description: Payment currency, amount and payee
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Payment'
+        required: true
+      responses:
+        202:
+          description: Server accepted the sending payment request; server can choose to send the payment in sync or async; client should expect the payment will be sent in short time, but not necessary the time received the response. Client should wait for the account balances updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        400:
+          $ref: '#/components/responses/ClientError'
+  /accounts/{account_id}/payment_uris:
+    post:
+      operationId: gen-payment-uri
+      summary: generate a payment URI for receiving funds
+      parameters:
+      - name: account_id
+        in: path
+        description: ID of the Account receiving the funds
+        required: true
+        schema:
+          type: string
+      responses:
+        201:
+          description: A new payment URI is created, and returned. Client can use it for receiving payment.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentURI'
+        400:
+          $ref: '#/components/responses/ClientError'
+  /accounts/{account_id}/events:
+    get:
+      operationId: get-events
+      summary: Get all events recorded for the account; this is optional debug endpoint.
+      parameters:
+      - name: account_id
+        in: path
+        description: ID of the account associated with events
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        400:
+          $ref: '#/components/responses/ClientError'
+  /kyc_sample:
+    get:
+      operationId: get-kyc-sample
+      summary: returns KycSample data for creating test account.
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KycSample'
+components:
+  responses:
+    ClientError:
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: error message
+              stacktrace:
+                type: string
+                description: stacktrace of the error
+        text/plain:
+          schema:
+            type: string
+            example: error message and stacktrace
+  schemas:
+    Account:
+      required:
+      - id
+      - kyc_data
+      type: object
+      properties:
+        id:
+          type: string
+        kyc_data:
+          type: string
+        balances:
+          writeOnly: True
+          type: object
+          properties:
+            XUS:
+              type: integer
+            XDX:
+              type: integer
+    PaymentURI:
+      required:
+      - id
+      - account_id
+      - payment_uri
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        account_id:
+          type: string
+          readOnly: true
+        currency:
+          type: string
+          enum: ["XUS", "XDX"]
+        amount:
+          type: integer
+        payment_uri:
+          type: string
+          description: 'Diem account identifier defined in DIP-5'
+          readOnly: true
+    Payment:
+      required:
+      - id
+      - account_id
+      - amount
+      - currency
+      - payee
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        account_id:
+          type: string
+          readOnly: true
+        currency:
+          type: string
+          enum:
+          - XUS
+          - XDX
+        amount:
+          type: integer
+        payee:
+          type: string
+          description: The receiver of the payment, [Account Identifier]
+    KycSample:
+      description: KYC data sample for clients to create accounts to do off-chain KYC data exchanging tests.
+      required:
+      - minimum
+      - reject
+      - soft_match
+      - soft_reject
+      type: object
+      properties:
+        minimum:
+          type: string
+          description: JSON-encoded [KycDataObject]. When a counterparty service provides
+            KYC data like this sample and not match any other types samples, server
+            will accept the KYC data and ready_for_settlement for the PaymentCommand.
+          readOnly: true
+        reject:
+          type: string
+          description: JSON-encoded [KycDataObject]. When a counterparty service provides
+            KYC data like this sample, server will abort the PaymentCommand.
+          readOnly: true
+        soft_match:
+          type: string
+          description: JSON-encoded [KycDataObject]. When a counterparty service provides
+            KYC data like this sample, server will first soft_match and then ready_for_settlement
+            for any additional KYC data provided.
+          readOnly: true
+        soft_reject:
+          type: string
+          description: JSON-encoded [KycDataObject]. When a counterparty service provides
+            KYC data like this sample, server will first soft_match and then abort
+            the PaymentCommand.
+          readOnly: true
+    Event:
+      description: Event is optional to implement; it is log of what happened in the
+        system. Useful when the test failed. It's free to add any kind of event type and
+        data.
+      required:
+      - id
+      - account_id
+      - type
+      - data
+      - timestamp
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        account_id:
+          type: string
+          readOnly: true
+        type:
+          type: string
+          description: Event type, used for decoding data.
+          readOnly: true
+        data:
+          type: string
+          description: Event data can be human readable message, JSON-encoded string
+            or any other format. However, one event type should only have one data
+            format.
+          readOnly: true
+        timestamp:
+          type: integer
+          description: Milliseconds since the unix epoch. The time event object is
+            created by the system.
+          readOnly: true

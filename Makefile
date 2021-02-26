@@ -13,15 +13,18 @@ black:
 
 lint:
 	./venv/bin/pylama src tests examples
-	./venv/bin/pyre --search-path venv/lib/python3.9/site-packages check
+	./venv/bin/pyre --search-path venv/lib/python3.7/site-packages --search-path venv/lib/python3.8/site-packages --search-path venv/lib/python3.9/site-packages check
 
 format:
 	./venv/bin/python -m black src tests examples
 
-test: format lint runtest
+test: format runtest
 
 runtest:
-	./venv/bin/pytest tests/test_* examples/* -k "$(t)" $(args)
+	DMW_SELF_CHECK=Y ./venv/bin/pytest src/diem/testing/suites tests examples -k "$(t)" $(args)
+
+profile:
+	./venv/bin/python -m profile -m pytest tests examples -k "$(t)" $(args)
 
 cover:
 	./venv/bin/pytest --cov-report html --cov=src tests/test_* examples/*

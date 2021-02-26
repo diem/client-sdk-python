@@ -12,7 +12,7 @@ from .serde_types import uint64
 
 from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from dataclasses import dataclass, field
 from copy import copy
 import time
@@ -89,6 +89,9 @@ class LocalAccount:
 
     def account_identifier(self, subaddress: Optional[bytes] = None) -> str:
         return identifier.encode_account(self.account_address, subaddress, self.hrp)
+
+    def decode_account_identifier(self, encoded_id: str) -> Tuple[diem_types.AccountAddress, Optional[bytes]]:
+        return identifier.decode_account(encoded_id, self.hrp)
 
     def sign(self, txn: diem_types.RawTransaction) -> diem_types.SignedTransaction:
         """Create signed transaction for given raw transaction"""

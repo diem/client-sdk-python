@@ -78,6 +78,12 @@ def sub_address(addr: typing.Union[str, bytes]) -> bytes:
     return ret
 
 
+def hex(b: typing.Optional[bytes]) -> str:
+    """convert an optional bytes into hex-encoded str, returns "" if bytes is None"""
+
+    return b.hex() if b else ""
+
+
 def public_key_bytes(public_key: Ed25519PublicKey) -> bytes:
     """convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into raw bytes"""
 
@@ -172,3 +178,11 @@ def balance(account: jsonrpc.Account, currency: str) -> int:
         if b.currency == currency:
             return b.amount
     return 0
+
+
+def to_snake(o: typing.Any) -> str:  # pyre-ignore
+    if isinstance(o, str):
+        return "".join(["_" + i.lower() if i.isupper() else i for i in o]).lstrip("_")
+    elif hasattr(o, "__name__"):
+        return to_snake(getattr(o, "__name__"))
+    return to_snake(type(o))

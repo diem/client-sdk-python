@@ -83,3 +83,15 @@ def test_balance():
     assert utils.balance(account, "XUS") == 32
     assert utils.balance(account, "XDX") == 33
     assert utils.balance(account, "unknown") == 0
+
+
+def test_to_snake():
+    assert utils.to_snake("AbcEfg") == "abc_efg"
+    assert utils.to_snake("ABC") == "a_b_c"
+    assert utils.to_snake(TypeError) == "type_error"
+    assert utils.to_snake(TypeError("hello")) == "type_error"
+
+
+def test_hex():
+    assert utils.hex(None) == ""
+    assert utils.hex(b"abcd") == "61626364"

@@ -73,3 +73,9 @@ def test_new_command_raises_value_error_if_metadata_is_not_list(factory):
     cmd = factory.new_sender_payment_command()
     with pytest.raises(ValueError):
         cmd.new_command(metadata="hello")
+
+
+def test_my_subaddress(factory):
+    cmd = factory.new_sender_payment_command()
+    _, subaddress = identifier.decode_account(cmd.payment.sender.address, factory.hrp())
+    assert cmd.my_subaddress(factory.hrp()) == subaddress

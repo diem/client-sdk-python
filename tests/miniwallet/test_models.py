@@ -34,7 +34,6 @@ def test_payment_uri_intent_identifier():
         id="1",
         account_id="2",
         payment_uri="diem://dm1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4us2vfufk",
-        subaddress_hex="cf64428bdeb62af2",
     )
     assert uri.intent("dm")
     assert uri.intent("dm").sub_address.hex() == "cf64428bdeb62af2"

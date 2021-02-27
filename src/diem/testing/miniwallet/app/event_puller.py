@@ -5,7 +5,7 @@ from copy import copy
 from dataclasses import dataclass, field
 from typing import Dict, Callable, Any
 from .store import InMemoryStore
-from .models import Transaction, PaymentUri, PaymentCommand
+from .models import Transaction, Subaddress, PaymentCommand
 from .... import jsonrpc, diem_types, txnmetadata
 
 
@@ -37,7 +37,7 @@ class EventPuller:
     def save_payment_txn(self, event: jsonrpc.Event) -> None:
         metadata = txnmetadata.decode_structure(event.data.metadata)
         if isinstance(metadata, diem_types.GeneralMetadataV0) and metadata.to_subaddress:
-            res = self.store.find(PaymentUri, subaddress_hex=metadata.to_subaddress.hex())
+            res = self.store.find(Subaddress, subaddress_hex=metadata.to_subaddress.hex())
             return self._create_txn(event, account_id=res.account_id, subaddress_hex=res.subaddress_hex)
         if isinstance(metadata, diem_types.TravelRuleMetadataV0) and metadata.off_chain_reference_id:
             cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)

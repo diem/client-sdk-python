@@ -6,7 +6,7 @@ from typing import List, Tuple, Dict, Optional, Any
 from json.decoder import JSONDecodeError
 from .store import InMemoryStore, NotFoundError
 from .diem_account import DiemAccount
-from .models import PaymentUri, Account, Transaction, Event, KycSample, Payment, PaymentCommand
+from .models import PaymentUri, Subaddress, Account, Transaction, Event, KycSample, Payment, PaymentCommand
 from .event_puller import EventPuller
 from .json_input import JsonInput
 from .... import jsonrpc, offchain, utils, LocalAccount, identifier
@@ -89,7 +89,7 @@ class OffChainAPI(Base):
                 self._update_payment_command(cmd, new_offchain_cmd)
         except NotFoundError:
             subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.account.hrp))
-            account_id = self.store.find(PaymentUri, subaddress_hex=subaddress).account_id
+            account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
             self._create_payment_command(account_id, new_offchain_cmd, validate=True)
 
     def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -> None:
@@ -148,10 +148,10 @@ class BackgroundTasks(OffChainAPI):
 
     def _send_internal_payment_txn(self, txn: Transaction) -> None:
         _, payee_subaddress = self.diem_account.account.decode_account_identifier(str(txn.payee))
-        rp = self.store.find(PaymentUri, subaddress_hex=utils.hex(payee_subaddress))
+        subaddress = self.store.find(Subaddress, subaddress_hex=utils.hex(payee_subaddress))
         self.store.create(
             Transaction,
-            account_id=rp.account_id,
+            account_id=subaddress.account_id,
             currency=txn.currency,
             amount=txn.amount,
             status=Transaction.Status.completed,
@@ -277,7 +277,8 @@ class App(BackgroundTasks):
         sub = self._gen_subaddress()
         diem_acc_id = self.diem_account.account.account_identifier(sub)
         uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return self.store.create(PaymentUri, account_id=account_id, subaddress_hex=sub.hex(), payment_uri=uri)
+        sub = self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
 
     def get_account_balances(self, account_id: str) -> Dict[str, int]:
         self.store.find(Account, id=account_id)

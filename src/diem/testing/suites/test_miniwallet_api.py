@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import Account, Transaction, RestClient
-from diem import identifier
 from typing import Optional, Dict
 from .envs import should_test_debug_api, is_self_check
 from .clients import Clients
@@ -49,12 +48,9 @@ def test_create_account_payment_uri(target_client: RestClient, hrp: str) -> None
     account = target_client.create_account()
     ret = account.create_payment_uri()
     assert ret.account_id == account.id
-    assert ret.subaddress_hex
-    assert ret.intent(hrp).account_id
-    address, subaddress = identifier.decode_account(ret.intent(hrp).account_id, hrp)
-    assert address
-    assert subaddress
-    assert ret.subaddress_hex == subaddress.hex()
+    intent = ret.intent(hrp)
+    assert intent.account_address
+    assert intent.subaddress
 
 
 def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -> None:

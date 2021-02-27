@@ -45,8 +45,8 @@ def test_find_all():
 
 def test_find_all_by_matching_default_none():
     s = store.InMemoryStore()
-    uri = s.create(PaymentUri, account_id="1", subaddress_hex="subaddress", payment_uri="payment uri")
-    assert s.find_all(PaymentUri, currency=None, subaddress_hex="subaddress") == [uri]
+    uri = s.create(PaymentUri, account_id="1", payment_uri="payment uri")
+    assert s.find_all(PaymentUri, currency=None, account_id="1") == [uri]
     assert s.find_all(PaymentUri, currency="XUS") == []
 
 
@@ -89,27 +89,25 @@ def test_next_id():
 
 def test_create_should_create_record_event():
     s = store.InMemoryStore()
-    s.create(PaymentUri, account_id="1", subaddress_hex="subaddress", payment_uri="payment uri")
+    s.create(PaymentUri, account_id="1", payment_uri="payment uri")
     events = s.find_all(Event)
     assert len(events) == 1
     assert events[0].account_id == "1"
     assert events[0].type == "created_payment_uri"
-    assert (
-        events[0].data == '{"account_id": "1", "subaddress_hex": "subaddress", "payment_uri": "payment uri", "id": "1"}'
-    )
+    assert events[0].data == '{"account_id": "1", "payment_uri": "payment uri", "id": "1"}'
 
 
 def test_update():
     s = store.InMemoryStore()
-    uri = s.create(PaymentUri, account_id="1", subaddress_hex="subaddress", payment_uri="payment uri")
-    s.update(uri, subaddress_hex="abc")
-    assert uri.subaddress_hex == "abc"
-    assert s.find(PaymentUri, id=uri.id).subaddress_hex == "abc"
+    uri = s.create(PaymentUri, account_id="1", payment_uri="payment uri")
+    s.update(uri, payment_uri="abc")
+    assert uri.payment_uri == "abc"
+    assert s.find(PaymentUri, id=uri.id).payment_uri == "abc"
     events = s.find_all(Event)
     assert len(events) == 2
     assert events[1].account_id == "1"
     assert events[1].type == "updated_payment_uri"
-    assert events[1].data == '{"subaddress_hex": "abc", "id": "1"}'
+    assert events[1].data == '{"payment_uri": "abc", "id": "1"}'
 
 
 def test_record_create_account_event():
@@ -123,7 +121,7 @@ def test_record_create_account_event():
 
 def test_update_obj_not_found():
     s = store.InMemoryStore()
-    uri = s.create(PaymentUri, account_id="1", subaddress_hex="subaddress", payment_uri="payment uri")
+    uri = s.create(PaymentUri, account_id="1", payment_uri="payment uri")
     uri.id = "unknown"
     with pytest.raises(store.NotFoundError):
-        s.update(uri, subaddress_hex="abc")
+        s.update(uri, payment_uri="abc")

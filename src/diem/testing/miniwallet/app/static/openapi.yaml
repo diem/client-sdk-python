@@ -53,9 +53,14 @@ paths:
     post:
       summary: Create a new account
       description: >
-          * `kyc_data` is only required for testing off-chain KYC
-            data exchanging process.
-          * Client should stores the response account id for all
+          * When the account is required to provide KYC data during off-chain KYC exchange process,
+            server should use `kyc_data` property value as KycDataObject and send to counterparty service.
+          * Server should not raise error for the case `kyc_data` property value is valid but
+            it does not meet its business criterias.
+          * `balances` property values are the initial deposit to the account.
+          * Client should call [get account balances endpoint](#get-/accounts/-account_id-/balances)
+            to check account balances after the account is created.
+          * Client should store the response account id for all
             the operations to the account.
           * MiniWallet Test Suite isolates test data by creating new account for
             each test case.
@@ -66,7 +71,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Account'
+              $ref: '#/components/schemas/CreateAccountRequest'
         required: true
       responses:
         201:
@@ -96,12 +101,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  XUS:
-                    type: integer
-                  XDX:
-                    type: integer
+                $ref: '#/components/schemas/Balances'
         400:
           $ref: '#/components/responses/ClientError'
   /accounts/{account_id}/payments:
@@ -130,9 +130,9 @@ paths:
 
 
               * Server may reflect the result on account balances immediately as the fund is considered as
-                in the progress of transfering out and should not be used for other purpose.
+                in the process of transferring out and should not be used for other purpose.
               * A client should expect the payment will be sent in short time after received the response,
-                but it is not a limit to server to complete the payment before respond the request.
+                but it is not a limit to the server to complete the payment before respond the request.
               * A client can confirm the payment is completed by the following ways:
                 1. Both sender and receiver account balances are updated accordingly.
                 2. Sender or receiver application exposes an event by [get account events endpoint](#get-/accounts/-account_id-/events).
@@ -176,7 +176,7 @@ paths:
       description: >
           KYC sample data can be used for testing different behaviors during
           off-chain KYC data exchanging process. The data is used for counterparty wallet
-          application to setup their test account's KYC data.
+          application to set up their test account's KYC data.
       responses:
         200:
           description: success
@@ -199,15 +199,15 @@ paths:
 
           The followings are events implemented by the python SDK **MiniWallet** application:
 
-            | Event Type                | Data Type | Description                                                                                 |
-            |---------------------------|-----------|---------------------------------------------------------------------------------------------|
-            | `info`                    | string    | Human readable message for whatever happened.                                               |
-            | `created_account`         | JSON      | An account is created.                                                                      |
-            | `created_transaction`     | JSON      | An incoming or outgoing transaction is created.                                             |
-            | `updated_transaction`     | JSON      | Outgoing transaction is updated due to events of Diem transaction is submitted or executed. |
-            | `created_payment_uri`     | JSON      | A PaymentURI is created.                                                                    |
-            | `created_payment_command` | JSON      | Off-chain payment command is created.                                                       |
-            | `updated_payment_command` | JSON      | Off-chain payment command is updated.                                                       |
+            | Event Type                | Data Attribute Type | Description                                                                       |
+            |---------------------------|---------------------|-----------------------------------------------------------------------------------|
+            | `info`                    | string              | Human readable message for whatever happened.                                     |
+            | `created_account`         | JSON-encoded string | An account is created.                                                            |
+            | `created_transaction`     | JSON-encoded string | An incoming or outgoing transaction is created.                                   |
+            | `updated_transaction`     | JSON-encoded string | Outgoing transactions are updated due to Diem transactions being submitted or executed. |
+            | `created_payment_uri`     | JSON-encoded string | A PaymentURI is created.                                                          |
+            | `created_payment_command` | JSON-encoded string | Off-chain payment command is created.                                             |
+            | `updated_payment_command` | JSON-encoded string | Off-chain payment command is updated.                                             |
 
       parameters:
       - name: account_id
@@ -247,6 +247,21 @@ components:
             type: string
             example: error message and stacktrace
   schemas:
+    Balances:
+      type: object
+      writeOnly: true
+      properties:
+        XUS:
+          type: integer
+          example: 1000000000
+        XDX:
+          type: integer
+    KycDataObject:
+      type: string
+      description: >
+        KycDataObject should be valid object that matches Diem off-chain KycDataObject
+        listed at https://dip.diem.com/dip-1/#kycdataobject.
+      example: "{\"type\": \"individual\", \"payload_version\": 1, \"given_name\": \"Tom\", \"surname\": \"Jack\"}"
     Account:
       required:
       - id
@@ -256,29 +271,14 @@ components:
           type: string
           readOnly: true
         kyc_data:
-          type: string
-          description: >
-              KYC data should be valid JSON that can be deserialized into Diem off-chain KycDataObject
-              listed at https://dip.diem.com/dip-1/#kycdataobject.
-
-              When the account is required to provide KYC data during off-chain KYC exchange process,
-              server should deserialize this string into KycDataObject and send to counterparty service.
-
-              This data is setup counterparty wallet application to evaluate, server should not raise error
-              for the case it does not meet any business criterias.
-              Server should accept it as KYC data of the account created, and send it to counterparty
-              service during off-chain KYC exchange process to trigger specific action by the counterparty's
-              KYC data evaluation process.
-          example: "{\"type\": \"individual\", \"payload_version\": 1, \"given_name\": \"Tom\", \"surname\": \"Jack\"}"
+          $ref: '#/components/schemas/KycDataObject'
+    CreateAccountRequest:
+      type: object
+      properties:
+        kyc_data:
+          $ref: '#/components/schemas/KycDataObject'
         balances:
-          writeOnly: True
-          type: object
-          properties:
-            XUS:
-              type: integer
-              example: 1000000000
-            XDX:
-              type: integer
+          $ref: '#/components/schemas/Balances'
     PaymentURI:
       required:
       - id
@@ -303,7 +303,7 @@ components:
               Diem intent identifier defined in DIP-5.
 
               Server should create a new subaddress for the account, and then encode it with
-              an onchain account address as new payment URI.
+              an onchain account address as a new payment URI.
               The currency and amount in the request body should also be encoded into this
               URI if they are provided.
           readOnly: true
@@ -334,9 +334,22 @@ components:
           description: >
               The receiver address of the payment.
               Only support account identifier defined in DIP-5 for now.
-              We will add Diem ID support in the future when the protocol related is stablized.
+              We will add Diem ID support in the future when the protocol related is stabilized.
     KycSample:
-      description: KYC data sample for clients to create accounts to do off-chain KYC data exchanging tests.
+      description: >
+          KYC data sample for clients to create accounts to do off-chain KYC data exchanging tests.
+
+          1. `minimum` property value should be minimum valid `KycDataObject` that can pass server's
+            KYC evaluation without any additional actions during the off-chain KYC data exchange
+            process.
+          2. `reject` property value should be an example of `KycDataObject` that will be rejected
+            by server if it is presented in a counterparty service's KYC data.
+          3. `soft_match` property value should be an example of `KycDataObject` that will trigger
+            `soft_match` process and pass KYC evaluation after `additional_kyc_data` is provided
+            by counterparty service.
+          4. `soft_reject` provided value should be an example of `KycDataObject` that will trigger
+            `soft_match` process and then be rejected by KYC evaluation after `additional_kyc_data`
+            is provided.
       required:
       - minimum
       - reject
@@ -345,36 +358,13 @@ components:
       type: object
       properties:
         minimum:
-          type: string
-          description: >
-              JSON-encoded [KycDataObject]. When a counterparty service provides
-              KYC data matches this sample and not match any other types samples, server
-              should accept the KYC data and set it's actor status to ready_for_settlement
-              for the PaymentCommand.
-          readOnly: true
+          $ref: '#/components/schemas/KycDataObject'
         reject:
-          type: string
-          description: >
-              JSON-encoded [KycDataObject]. When a counterparty service provides
-              KYC data matches this sample, server should reject the counterparty actor's KYC
-              data by set it's PaymentCommand actor status to abort.
-          readOnly: true
+          $ref: '#/components/schemas/KycDataObject'
         soft_match:
-          type: string
-          description: >
-              JSON-encoded [KycDataObject]. When a counterparty service provides
-              KYC data matches this sample, server should first set it's PaymentCommand
-              actor status to soft_match, and then set status to ready_for_settlement after
-              received counterparty service's additional KYC data.
-          readOnly: true
+          $ref: '#/components/schemas/KycDataObject'
         soft_reject:
-          type: string
-          description: >
-              JSON-encoded [KycDataObject]. When a counterparty service provides
-              KYC data matches this sample, server should first set it's PaymentCommand actor
-              status to soft_match, and then set status to abort after received counterparty
-              service's additional KYC data.
-          readOnly: true
+          $ref: '#/components/schemas/KycDataObject'
     Event:
       description: >
           Event is optional to implement; it is log of what happened in the

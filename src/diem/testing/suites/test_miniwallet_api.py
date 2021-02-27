@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import Account, Transaction, RestClient
-from typing import Optional, Dict
+from typing import Optional, Dict, Any, Union
 from .envs import should_test_debug_api, is_self_check
 from .clients import Clients
 import pytest, requests, time, json
@@ -23,25 +23,40 @@ def test_create_account_with_kyc_data_and_balances(target_client: RestClient, cu
 
 
 @pytest.mark.parametrize(  # pyre-ignore
-    "err_msg, kyc_data, balances",
+    "err_msg, kyc_data",
     [
-        ("'kyc_data' must be JSON-encoded KycDataObject", "invalid json", None),
-        ("'kyc_data' must be JSON-encoded KycDataObject", "{}", None),
-        ("'currency' is invalid", "sample", {"invalid": 11}),
-        ("'currency' is invalid", "sample", {22: 11}),
-        ("'amount' value must be greater than or equal to zero", "sample", {"XUS": -11}),
-        ("'amount' type must be 'int'", "sample", {"XUS": "11"}),
+        ("'kyc_data' must be JSON-encoded KycDataObject", "invalid json"),
+        ("'kyc_data' must be JSON-encoded KycDataObject", "{}"),
+        ("'kyc_data' type must be 'str'", {}),
     ],
 )
-def test_create_account_with_invalid_data(
-    target_client: RestClient, currency: str, err_msg: str, kyc_data: Optional[str], balances: Optional[Dict[str, int]]
+def test_create_account_with_invalid_kyc_data(
+    target_client: RestClient, currency: str, err_msg: str, kyc_data: Union[str, Dict[str, Any]]
 ) -> None:
-    if kyc_data == "sample":
-        kyc_data = target_client.new_kyc_data()
+    with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
+        target_client.create("/accounts", kyc_data=kyc_data)
+    if is_self_check():
+        assert err_msg in einfo.value.response.text
+
+
+@pytest.mark.parametrize(
+    "err_msg, balances",
+    [
+        ("'currency' is invalid", {"invalid": 11}),
+        ("'currency' is invalid", {22: 11}),
+        ("'amount' value must be greater than or equal to zero", {"XUS": -11}),
+        ("'amount' type must be 'int'", {"XUS": "11"}),
+    ],
+)
+def test_create_account_with_invalid_balances(
+    target_client: RestClient, currency: str, err_msg: str, balances: Optional[Dict[str, int]]
+) -> None:
+    kyc_data = target_client.new_kyc_data()
 
     with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
         target_client.create("/accounts", kyc_data=kyc_data, balances=balances)
-    assert err_msg in einfo.value.response.text
+    if is_self_check():
+        assert err_msg in einfo.value.response.text
 
 
 def test_create_account_payment_uri(target_client: RestClient, hrp: str) -> None:
@@ -142,7 +157,10 @@ def test_send_payment_payee_is_invalid(clients: Clients, currency: str, invalid_
     index = len(sender.events())
     with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
         sender.send_payment(currency, 1, invalid_payee)
-    assert "'payee' is invalid account identifier" in einfo.value.response.text
+
+    if is_self_check():
+        assert "'payee' is invalid account identifier" in einfo.value.response.text
+
     assert sender.balance(currency) == 100
     assert sender.events(index) == []
 
@@ -157,7 +175,8 @@ def test_return_client_error_if_send_payment_more_than_account_balance(
     index = len(sender.events())
     with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
         sender.send_payment(currency, 101, payment_uri.intent(hrp).account_id)
-    assert "account balance not enough" in einfo.value.response.text
+    if is_self_check():
+        assert "account balance not enough" in einfo.value.response.text
     assert sender.balance(currency) == 100
     assert sender.events(index) == []
 

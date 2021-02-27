@@ -43,7 +43,8 @@ class AppConfig:
             faucet = testnet.Faucet(client)
             faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
         if not acc or self.need_rotate(acc):
-            self.logger.info("rotate dual attestation info for  %s" % self.account.account_address.to_hex())
+            self.logger.info("rotate dual attestation info for %s" % self.account.account_address.to_hex())
+            self.logger.info("set base url to: %s" % self.server_url)
             self.account.rotate_dual_attestation_info(client, self.server_url)
 
     def need_funds(self, account: jsonrpc.Account) -> bool:

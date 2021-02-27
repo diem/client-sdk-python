@@ -65,7 +65,7 @@ class AppConfig:
         api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
         def serve() -> None:
-            self.logger.info("serving at %s:%s" % (self.host, self.port))
+            self.logger.info("serving at http://%s:%s" % (self.host, self.port))
             waitress.serve(api, host=self.host, port=self.port, clear_untrusted_proxy_headers=True, _quiet=True)
 
         t = threading.Thread(target=serve, daemon=True)

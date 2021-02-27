@@ -20,8 +20,8 @@ def main() -> None:
 @click.option("--name", "-n", default="mini-wallet", help="Application name.")
 @click.option("--host", "-h", default="localhost", help="Start server host.")
 @click.option("--port", "-p", default=8888, help="Start server port.")
-@click.option("--jsonrpc", "-j", default="http://localhost:8080/v1", help="Diem fullnode JSON-RPC URL.")
-@click.option("--faucet", "-f", default="http://localhost:8000/mint", help="Testnet faucet URL.")
+@click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
+@click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option("--logfile", "-l", default=None, help="Log to a file instead of printing into console.")
 @click.option("--enable-debug-api", "-o", default=True, help="Enable debug API.", type=bool)
 def start_server(
@@ -41,8 +41,8 @@ def start_server(
 
 @click.command()
 @click.option("--target", "-t", default="http://localhost:8888", help="Target mini-wallet application URL.")
-@click.option("--jsonrpc", "-j", default="http://localhost:8080/v1", help="Diem fullnode JSON-RPC URL.")
-@click.option("--faucet", "-f", default="http://localhost:8000/mint", help="Testnet faucet URL.")
+@click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
+@click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option(
     "--pytest-args",
     default="",
@@ -70,6 +70,8 @@ def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_ap
 def configure_testnet(jsonrpc: str, faucet: str) -> None:
     testnet.JSON_RPC_URL = jsonrpc
     testnet.FAUCET_URL = faucet
+    print("Diem JSON-RPC URL: %s" % testnet.JSON_RPC_URL)
+    print("Diem Testnet Faucet URL: %s" % testnet.FAUCET_URL)
 
 
 main.add_command(start_server)

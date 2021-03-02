@@ -2,61 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import Account, Transaction, RestClient
-from typing import Optional, Dict, Any, Union
 from .envs import should_test_debug_api, is_self_check
 from .clients import Clients
 import pytest, requests, time, json
-
-
-def test_create_account_resource_without_balance(target_client: RestClient) -> None:
-    account = target_client.create_account()
-    assert account.balances() == {}
-
-
-def test_create_account_with_kyc_data_and_balances(target_client: RestClient, currency: str) -> None:
-    kyc_data = target_client.new_kyc_data()
-    account = target_client.create_account(kyc_data=kyc_data, balances={currency: 100})
-    assert account.id
-    assert account.kyc_data == kyc_data
-    assert account.balances() == {currency: 100}
-    assert account.balance(currency) == 100
-
-
-@pytest.mark.parametrize(  # pyre-ignore
-    "err_msg, kyc_data",
-    [
-        ("'kyc_data' must be JSON-encoded KycDataObject", "invalid json"),
-        ("'kyc_data' must be JSON-encoded KycDataObject", "{}"),
-        ("'kyc_data' type must be 'str'", {}),
-    ],
-)
-def test_create_account_with_invalid_kyc_data(
-    target_client: RestClient, currency: str, err_msg: str, kyc_data: Union[str, Dict[str, Any]]
-) -> None:
-    with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
-        target_client.create("/accounts", kyc_data=kyc_data)
-    if is_self_check():
-        assert err_msg in einfo.value.response.text
-
-
-@pytest.mark.parametrize(
-    "err_msg, balances",
-    [
-        ("'currency' is invalid", {"invalid": 11}),
-        ("'currency' is invalid", {22: 11}),
-        ("'amount' value must be greater than or equal to zero", {"XUS": -11}),
-        ("'amount' type must be 'int'", {"XUS": "11"}),
-    ],
-)
-def test_create_account_with_invalid_balances(
-    target_client: RestClient, currency: str, err_msg: str, balances: Optional[Dict[str, int]]
-) -> None:
-    kyc_data = target_client.new_kyc_data()
-
-    with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
-        target_client.create("/accounts", kyc_data=kyc_data, balances=balances)
-    if is_self_check():
-        assert err_msg in einfo.value.response.text
 
 
 def test_create_account_payment_uri(target_client: RestClient, hrp: str) -> None:

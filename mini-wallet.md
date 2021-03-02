@@ -1,11 +1,18 @@
 ## Try MiniWallet
 
-Install Diem python sdk with MiniWallet and MiniWallet Test Suite:
+Install Diem python sdk with MiniWallet and MiniWallet Test Suite (included since version 1.2.6):
 ```
 pip install diem[all]
 ```
+You may need quote `'diem[all]'`.
 
-`dmw` cli will be installed. You can check it out by:
+To include in a pip requirements.txt file:
+```
+diem[all]>=1.2.6
+```
+
+
+`dmw` cli will be installed in your pip enviroment. Check sub-commands by:
 ```
 dmw --help
 ```
@@ -17,6 +24,8 @@ dmw start-server
 
 Open http://localhost:8888 to check MiniWallet API specification document (Defined by OpenAPI Specification 3.0.3).
 The document includes simple examples to try out the API.
+
+A host version of the API specification document is located at [here](https://diem.github.io/client-sdk-python/mini-wallet-api-spec.html).
 
 `start-server` options:
 

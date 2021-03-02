@@ -7,7 +7,7 @@ from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
 from .app import PaymentUri, KycSample, Event, Payment
 from .app.store import _match
-from ... import offchain
+from ... import offchain, jsonrpc
 import requests, logging, random, string, json, time
 
 
@@ -29,7 +29,7 @@ class RestClient:
         self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
     ) -> "AccountResource":
         account = self.create("/accounts", kyc_data=kyc_data, balances=balances)
-        return AccountResource(client=self, id=account["id"], kyc_data=account["kyc_data"])
+        return AccountResource(client=self, id=account["id"], kyc_data=account.get("kyc_data", None))
 
     def new_soft_match_kyc_data(self) -> str:
         return self.new_kyc_data(sample="soft_match")
@@ -61,7 +61,12 @@ class RestClient:
     def send(self, method: str, path: str, data: Optional[str] = None) -> requests.Response:
         url = "%s/%s" % (self.server_url.rstrip("/"), path.lstrip("/"))
         self.logger.info("%s %s: %s" % (method, path, data))
-        resp = self.session.request(method=method, url=url.lower(), data=data)
+        resp = self.session.request(
+            method=method,
+            url=url.lower(),
+            data=data,
+            headers={"Content-Type": "application/json", "User-Agent": jsonrpc.client.USER_AGENT_HTTP_HEADER},
+        )
         self.logger.info("response status code: %s" % resp.status_code)
         self.logger.info("response body: %s" % resp.text)
         resp.raise_for_status()

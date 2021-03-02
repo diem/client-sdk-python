@@ -39,6 +39,14 @@ class CommandResponseError(Exception):
         self.resp = resp
 
 
+class InvalidCurrencyCodeError(ValueError):
+    pass
+
+
+class UnsupportedCurrencyCodeError(ValueError):
+    pass
+
+
 @dataclasses.dataclass
 class Client:
     """Client for communicating with offchain service.
@@ -160,7 +168,7 @@ class Client:
             self.validate_addresses(payment, request_sender_address)
             cmd = self.create_inbound_payment_command(request.cid, payment)
             if cmd.is_initial():
-                self.validate_dual_attestation_limit(cmd.payment.action)
+                self.validate_dual_attestation_limit_by_action(cmd.payment.action)
             elif cmd.is_rsend():
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
@@ -182,33 +190,41 @@ class Client:
                 ErrorCode.invalid_recipient_signature, str(e), "command.payment.recipient_signature"
             ) from e
 
-    def validate_dual_attestation_limit(self, action: PaymentActionObject) -> None:
-        currencies = self.jsonrpc_client.get_currencies()
-        currency_codes = list(map(lambda c: c.code, currencies))
-        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
-        if action.currency not in currency_codes:
-            raise command_error(
-                ErrorCode.invalid_field_value,
-                f"currency code is invalid: {action.currency}",
-                "command.payment.action.currency",
-            )
+    def validate_dual_attestation_limit_by_action(self, action: PaymentActionObject) -> None:
+        msg = self.is_under_dual_attestation_limit(action.currency, action.amount)
+        if msg:
+            raise command_error(ErrorCode.no_kyc_needed, msg, "command.payment.action.amount")
 
-        if action.currency not in supported_codes:
-            raise command_error(
-                ErrorCode.unsupported_currency,
-                f"currency code is not supported: {action.currency}",
-                "command.payment.action.currency",
-            )
+    def is_under_dual_attestation_limit(self, currency: str, amount: int) -> typing.Optional[str]:
+        currencies = self.jsonrpc_client.get_currencies()
+        try:
+            self.validate_currency_code(currency, currencies)
+        except InvalidCurrencyCodeError as e:
+            raise command_error(ErrorCode.invalid_field_value, str(e), "command.payment.action.currency")
+        except UnsupportedCurrencyCodeError as e:
+            raise command_error(ErrorCode.unsupported_currency, str(e), "command.payment.action.currency")
+
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
-            if info.code == action.currency:
-                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
-                    raise command_error(
-                        ErrorCode.no_kyc_needed,
-                        "payment amount is %s (rate: %s) under travel rule threshold %s"
-                        % (action.amount, info.to_xdx_exchange_rate, limit),
-                        "command.payment.action.amount",
+            if info.code == currency:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, amount):
+                    return "payment amount is %s (rate: %s) under travel rule threshold %s" % (
+                        amount,
+                        info.to_xdx_exchange_rate,
+                        limit,
                     )
+
+    def validate_currency_code(
+        self, currency: str, currencies: typing.Optional[typing.List[jsonrpc.CurrencyInfo]] = None
+    ) -> None:
+        if currencies is None:
+            currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if currency not in currency_codes:
+            raise InvalidCurrencyCodeError(f"currency code is invalid: {currency}")
+        if currency not in supported_codes:
+            raise UnsupportedCurrencyCodeError(f"currency code is not supported: {currency}")
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -> None:
         self.validate_actor_address("sender", payment.sender)

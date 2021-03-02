@@ -48,6 +48,11 @@ Example curl to hit the server (should get an error response):
 curl -X POST -H "X-REQUEST-ID: 3185027f-0574-6f55-2668-3a38fdb5de98" -H "X-REQUEST-SENDER-ADDRESS: tdm1pacrzjajt6vuamzkswyd50e28pg77m6wylnc3spg3xj7r6" -d "invalid-jws-body" http://localhost:8080/v2/command
 ```
 
+## MiniWallet and MiniWallet Test Suite
+
+See [mini_wallet.md](mini-wallet.md)
+
+
 ## Build & Test
 
 ```

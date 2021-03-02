@@ -58,6 +58,10 @@ class Intent:
         self.hrp = hrp
 
     @property
+    def subaddress(self) -> typing.Optional[bytes]:
+        return self.sub_address
+
+    @property
     def account_address_bytes(self) -> bytes:
         return self.account_address.to_bytes()
 

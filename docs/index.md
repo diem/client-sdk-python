@@ -4,6 +4,10 @@
 
 [Documentation](diem/index.html)
 
+
+[Mini-Wallet API Specification](mini-wallet-api-spec.html)
+
+
 ## Example
 
 ```python

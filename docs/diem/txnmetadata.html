@@ -41,7 +41,7 @@ See https://dip.diem.com/dip-4 for more details
 
 
 from dataclasses import dataclass
-import typing
+import typing, warnings
 
 from . import diem_types, serde_types, bcs, jsonrpc, utils
 
@@ -212,6 +212,10 @@ def refund_metadata_from_event(event: jsonrpc.Event) -&gt; typing.Optional[bytes
     Raises InvalidEventMetadataForRefundError if metadata can&#39;t be decoded as
     diem_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund metadata
     &#34;&#34;&#34;
+
+    warnings.warn(
+        &#34;`refund_metadata_from_event` is deprecated, prefer `refund_metadata` to create `diem_types.Metadata__RefundMetadata` BCS serialized bytes&#34;
+    )
 
     if not event.data.metadata:
         return b&#34;&#34;
@@ -460,6 +464,10 @@ diem_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund meta
     Raises InvalidEventMetadataForRefundError if metadata can&#39;t be decoded as
     diem_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund metadata
     &#34;&#34;&#34;
+
+    warnings.warn(
+        &#34;`refund_metadata_from_event` is deprecated, prefer `refund_metadata` to create `diem_types.Metadata__RefundMetadata` BCS serialized bytes&#34;
+    )
 
     if not event.data.metadata:
         return b&#34;&#34;

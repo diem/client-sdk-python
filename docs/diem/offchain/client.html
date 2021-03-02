@@ -67,6 +67,14 @@ class CommandResponseError(Exception):
         self.resp = resp
 
 
+class InvalidCurrencyCodeError(ValueError):
+    pass
+
+
+class UnsupportedCurrencyCodeError(ValueError):
+    pass
+
+
 @dataclasses.dataclass
 class Client:
     &#34;&#34;&#34;Client for communicating with offchain service.
@@ -188,7 +196,7 @@ class Client:
             self.validate_addresses(payment, request_sender_address)
             cmd = self.create_inbound_payment_command(request.cid, payment)
             if cmd.is_initial():
-                self.validate_dual_attestation_limit(cmd.payment.action)
+                self.validate_dual_attestation_limit_by_action(cmd.payment.action)
             elif cmd.is_rsend():
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
@@ -210,33 +218,41 @@ class Client:
                 ErrorCode.invalid_recipient_signature, str(e), &#34;command.payment.recipient_signature&#34;
             ) from e
 
-    def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
-        currencies = self.jsonrpc_client.get_currencies()
-        currency_codes = list(map(lambda c: c.code, currencies))
-        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
-        if action.currency not in currency_codes:
-            raise command_error(
-                ErrorCode.invalid_field_value,
-                f&#34;currency code is invalid: {action.currency}&#34;,
-                &#34;command.payment.action.currency&#34;,
-            )
+    def validate_dual_attestation_limit_by_action(self, action: PaymentActionObject) -&gt; None:
+        msg = self.is_under_dual_attestation_limit(action.currency, action.amount)
+        if msg:
+            raise command_error(ErrorCode.no_kyc_needed, msg, &#34;command.payment.action.amount&#34;)
 
-        if action.currency not in supported_codes:
-            raise command_error(
-                ErrorCode.unsupported_currency,
-                f&#34;currency code is not supported: {action.currency}&#34;,
-                &#34;command.payment.action.currency&#34;,
-            )
+    def is_under_dual_attestation_limit(self, currency: str, amount: int) -&gt; typing.Optional[str]:
+        currencies = self.jsonrpc_client.get_currencies()
+        try:
+            self.validate_currency_code(currency, currencies)
+        except InvalidCurrencyCodeError as e:
+            raise command_error(ErrorCode.invalid_field_value, str(e), &#34;command.payment.action.currency&#34;)
+        except UnsupportedCurrencyCodeError as e:
+            raise command_error(ErrorCode.unsupported_currency, str(e), &#34;command.payment.action.currency&#34;)
+
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
-            if info.code == action.currency:
-                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
-                    raise command_error(
-                        ErrorCode.no_kyc_needed,
-                        &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
-                        % (action.amount, info.to_xdx_exchange_rate, limit),
-                        &#34;command.payment.action.amount&#34;,
+            if info.code == currency:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, amount):
+                    return &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34; % (
+                        amount,
+                        info.to_xdx_exchange_rate,
+                        limit,
                     )
+
+    def validate_currency_code(
+        self, currency: str, currencies: typing.Optional[typing.List[jsonrpc.CurrencyInfo]] = None
+    ) -&gt; None:
+        if currencies is None:
+            currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if currency not in currency_codes:
+            raise InvalidCurrencyCodeError(f&#34;currency code is invalid: {currency}&#34;)
+        if currency not in supported_codes:
+            raise UnsupportedCurrencyCodeError(f&#34;currency code is not supported: {currency}&#34;)
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
         self.validate_actor_address(&#34;sender&#34;, payment.sender)
@@ -487,7 +503,7 @@ class Client:
             self.validate_addresses(payment, request_sender_address)
             cmd = self.create_inbound_payment_command(request.cid, payment)
             if cmd.is_initial():
-                self.validate_dual_attestation_limit(cmd.payment.action)
+                self.validate_dual_attestation_limit_by_action(cmd.payment.action)
             elif cmd.is_rsend():
                 self.validate_recipient_signature(cmd, public_key)
             return cmd
@@ -509,33 +525,41 @@ class Client:
                 ErrorCode.invalid_recipient_signature, str(e), &#34;command.payment.recipient_signature&#34;
             ) from e
 
-    def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
-        currencies = self.jsonrpc_client.get_currencies()
-        currency_codes = list(map(lambda c: c.code, currencies))
-        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
-        if action.currency not in currency_codes:
-            raise command_error(
-                ErrorCode.invalid_field_value,
-                f&#34;currency code is invalid: {action.currency}&#34;,
-                &#34;command.payment.action.currency&#34;,
-            )
+    def validate_dual_attestation_limit_by_action(self, action: PaymentActionObject) -&gt; None:
+        msg = self.is_under_dual_attestation_limit(action.currency, action.amount)
+        if msg:
+            raise command_error(ErrorCode.no_kyc_needed, msg, &#34;command.payment.action.amount&#34;)
 
-        if action.currency not in supported_codes:
-            raise command_error(
-                ErrorCode.unsupported_currency,
-                f&#34;currency code is not supported: {action.currency}&#34;,
-                &#34;command.payment.action.currency&#34;,
-            )
+    def is_under_dual_attestation_limit(self, currency: str, amount: int) -&gt; typing.Optional[str]:
+        currencies = self.jsonrpc_client.get_currencies()
+        try:
+            self.validate_currency_code(currency, currencies)
+        except InvalidCurrencyCodeError as e:
+            raise command_error(ErrorCode.invalid_field_value, str(e), &#34;command.payment.action.currency&#34;)
+        except UnsupportedCurrencyCodeError as e:
+            raise command_error(ErrorCode.unsupported_currency, str(e), &#34;command.payment.action.currency&#34;)
+
         limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
         for info in currencies:
-            if info.code == action.currency:
-                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
-                    raise command_error(
-                        ErrorCode.no_kyc_needed,
-                        &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
-                        % (action.amount, info.to_xdx_exchange_rate, limit),
-                        &#34;command.payment.action.amount&#34;,
+            if info.code == currency:
+                if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, amount):
+                    return &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34; % (
+                        amount,
+                        info.to_xdx_exchange_rate,
+                        limit,
                     )
+
+    def validate_currency_code(
+        self, currency: str, currencies: typing.Optional[typing.List[jsonrpc.CurrencyInfo]] = None
+    ) -&gt; None:
+        if currencies is None:
+            currencies = self.jsonrpc_client.get_currencies()
+        currency_codes = list(map(lambda c: c.code, currencies))
+        supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
+        if currency not in currency_codes:
+            raise InvalidCurrencyCodeError(f&#34;currency code is invalid: {currency}&#34;)
+        if currency not in supported_codes:
+            raise UnsupportedCurrencyCodeError(f&#34;currency code is not supported: {currency}&#34;)
 
     def validate_addresses(self, payment: PaymentObject, request_sender_address: str) -&gt; None:
         self.validate_actor_address(&#34;sender&#34;, payment.sender)
@@ -680,6 +704,35 @@ class Client:
     return False</code></pre>
 </details>
 </dd>
+<dt id="diem.offchain.client.Client.is_under_dual_attestation_limit"><code class="name flex">
+<span>def <span class="ident">is_under_dual_attestation_limit</span></span>(<span>self, currency: str, amount: int) ‑> Optional[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_under_dual_attestation_limit(self, currency: str, amount: int) -&gt; typing.Optional[str]:
+    currencies = self.jsonrpc_client.get_currencies()
+    try:
+        self.validate_currency_code(currency, currencies)
+    except InvalidCurrencyCodeError as e:
+        raise command_error(ErrorCode.invalid_field_value, str(e), &#34;command.payment.action.currency&#34;)
+    except UnsupportedCurrencyCodeError as e:
+        raise command_error(ErrorCode.unsupported_currency, str(e), &#34;command.payment.action.currency&#34;)
+
+    limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
+    for info in currencies:
+        if info.code == currency:
+            if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, amount):
+                return &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34; % (
+                    amount,
+                    info.to_xdx_exchange_rate,
+                    limit,
+                )</code></pre>
+</details>
+</dd>
 <dt id="diem.offchain.client.Client.process_inbound_request"><code class="name flex">
 <span>def <span class="ident">process_inbound_request</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></span>
 </code></dt>
@@ -739,7 +792,7 @@ class Client:
         self.validate_addresses(payment, request_sender_address)
         cmd = self.create_inbound_payment_command(request.cid, payment)
         if cmd.is_initial():
-            self.validate_dual_attestation_limit(cmd.payment.action)
+            self.validate_dual_attestation_limit_by_action(cmd.payment.action)
         elif cmd.is_rsend():
             self.validate_recipient_signature(cmd, public_key)
         return cmd
@@ -833,8 +886,8 @@ class Client:
     self.validate_request_sender_address(request_sender_address, [payment.sender.address, payment.receiver.address])</code></pre>
 </details>
 </dd>
-<dt id="diem.offchain.client.Client.validate_dual_attestation_limit"><code class="name flex">
-<span>def <span class="ident">validate_dual_attestation_limit</span></span>(<span>self, action: <a title="diem.offchain.types.payment_types.PaymentActionObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActionObject">PaymentActionObject</a>) ‑> NoneType</span>
+<dt id="diem.offchain.client.Client.validate_currency_code"><code class="name flex">
+<span>def <span class="ident">validate_currency_code</span></span>(<span>self, currency: str, currencies: Optional[List[jsonrpc_pb2.CurrencyInfo]] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -842,33 +895,32 @@ class Client:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_dual_attestation_limit(self, action: PaymentActionObject) -&gt; None:
-    currencies = self.jsonrpc_client.get_currencies()
+<pre><code class="python">def validate_currency_code(
+    self, currency: str, currencies: typing.Optional[typing.List[jsonrpc.CurrencyInfo]] = None
+) -&gt; None:
+    if currencies is None:
+        currencies = self.jsonrpc_client.get_currencies()
     currency_codes = list(map(lambda c: c.code, currencies))
     supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
-    if action.currency not in currency_codes:
-        raise command_error(
-            ErrorCode.invalid_field_value,
-            f&#34;currency code is invalid: {action.currency}&#34;,
-            &#34;command.payment.action.currency&#34;,
-        )
-
-    if action.currency not in supported_codes:
-        raise command_error(
-            ErrorCode.unsupported_currency,
-            f&#34;currency code is not supported: {action.currency}&#34;,
-            &#34;command.payment.action.currency&#34;,
-        )
-    limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
-    for info in currencies:
-        if info.code == action.currency:
-            if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, action.amount):
-                raise command_error(
-                    ErrorCode.no_kyc_needed,
-                    &#34;payment amount is %s (rate: %s) under travel rule threshold %s&#34;
-                    % (action.amount, info.to_xdx_exchange_rate, limit),
-                    &#34;command.payment.action.amount&#34;,
-                )</code></pre>
+    if currency not in currency_codes:
+        raise InvalidCurrencyCodeError(f&#34;currency code is invalid: {currency}&#34;)
+    if currency not in supported_codes:
+        raise UnsupportedCurrencyCodeError(f&#34;currency code is not supported: {currency}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.validate_dual_attestation_limit_by_action"><code class="name flex">
+<span>def <span class="ident">validate_dual_attestation_limit_by_action</span></span>(<span>self, action: <a title="diem.offchain.types.payment_types.PaymentActionObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActionObject">PaymentActionObject</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_dual_attestation_limit_by_action(self, action: PaymentActionObject) -&gt; None:
+    msg = self.is_under_dual_attestation_limit(action.currency, action.amount)
+    if msg:
+        raise command_error(ErrorCode.no_kyc_needed, msg, &#34;command.payment.action.amount&#34;)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.client.Client.validate_recipient_signature"><code class="name flex">
@@ -933,6 +985,46 @@ class Client:
 <li>builtins.BaseException</li>
 </ul>
 </dd>
+<dt id="diem.offchain.client.InvalidCurrencyCodeError"><code class="flex name class">
+<span>class <span class="ident">InvalidCurrencyCodeError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class InvalidCurrencyCodeError(ValueError):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="diem.offchain.client.UnsupportedCurrencyCodeError"><code class="flex name class">
+<span>class <span class="ident">UnsupportedCurrencyCodeError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inappropriate argument value (of correct type).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnsupportedCurrencyCodeError(ValueError):
+    pass</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.ValueError</li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 </dl>
 </section>
 </article>
@@ -957,6 +1049,7 @@ class Client:
 <li><code><a title="diem.offchain.client.Client.get_base_url_and_compliance_key" href="#diem.offchain.client.Client.get_base_url_and_compliance_key">get_base_url_and_compliance_key</a></code></li>
 <li><code><a title="diem.offchain.client.Client.hrp" href="#diem.offchain.client.Client.hrp">hrp</a></code></li>
 <li><code><a title="diem.offchain.client.Client.is_my_account_id" href="#diem.offchain.client.Client.is_my_account_id">is_my_account_id</a></code></li>
+<li><code><a title="diem.offchain.client.Client.is_under_dual_attestation_limit" href="#diem.offchain.client.Client.is_under_dual_attestation_limit">is_under_dual_attestation_limit</a></code></li>
 <li><code><a title="diem.offchain.client.Client.jsonrpc_client" href="#diem.offchain.client.Client.jsonrpc_client">jsonrpc_client</a></code></li>
 <li><code><a title="diem.offchain.client.Client.my_compliance_key_account_address" href="#diem.offchain.client.Client.my_compliance_key_account_address">my_compliance_key_account_address</a></code></li>
 <li><code><a title="diem.offchain.client.Client.my_compliance_key_account_id" href="#diem.offchain.client.Client.my_compliance_key_account_id">my_compliance_key_account_id</a></code></li>
@@ -968,13 +1061,20 @@ class Client:
 <li><code><a title="diem.offchain.client.Client.timeout" href="#diem.offchain.client.Client.timeout">timeout</a></code></li>
 <li><code><a title="diem.offchain.client.Client.validate_actor_address" href="#diem.offchain.client.Client.validate_actor_address">validate_actor_address</a></code></li>
 <li><code><a title="diem.offchain.client.Client.validate_addresses" href="#diem.offchain.client.Client.validate_addresses">validate_addresses</a></code></li>
-<li><code><a title="diem.offchain.client.Client.validate_dual_attestation_limit" href="#diem.offchain.client.Client.validate_dual_attestation_limit">validate_dual_attestation_limit</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_currency_code" href="#diem.offchain.client.Client.validate_currency_code">validate_currency_code</a></code></li>
+<li><code><a title="diem.offchain.client.Client.validate_dual_attestation_limit_by_action" href="#diem.offchain.client.Client.validate_dual_attestation_limit_by_action">validate_dual_attestation_limit_by_action</a></code></li>
 <li><code><a title="diem.offchain.client.Client.validate_recipient_signature" href="#diem.offchain.client.Client.validate_recipient_signature">validate_recipient_signature</a></code></li>
 <li><code><a title="diem.offchain.client.Client.validate_request_sender_address" href="#diem.offchain.client.Client.validate_request_sender_address">validate_request_sender_address</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="diem.offchain.client.CommandResponseError" href="#diem.offchain.client.CommandResponseError">CommandResponseError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.offchain.client.InvalidCurrencyCodeError" href="#diem.offchain.client.InvalidCurrencyCodeError">InvalidCurrencyCodeError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.offchain.client.UnsupportedCurrencyCodeError" href="#diem.offchain.client.UnsupportedCurrencyCodeError">UnsupportedCurrencyCodeError</a></code></h4>
 </li>
 </ul>
 </li>

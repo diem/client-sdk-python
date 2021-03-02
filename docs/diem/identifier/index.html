@@ -70,15 +70,15 @@ class Intent:
 
     account_address: diem_types.AccountAddress
     sub_address: typing.Optional[bytes]
-    currency_code: str
-    amount: int
+    currency_code: typing.Optional[str]
+    amount: typing.Optional[int]
 
     def __init__(
         self,
         account_address: diem_types.AccountAddress,
         sub_address: typing.Optional[bytes],
-        currency_code: str,
-        amount: int,
+        currency_code: typing.Optional[str],
+        amount: typing.Optional[int],
         hrp: str,
     ) -&gt; None:
         self.account_address = account_address
@@ -86,6 +86,10 @@ class Intent:
         self.currency_code = currency_code
         self.amount = amount
         self.hrp = hrp
+
+    @property
+    def subaddress(self) -&gt; typing.Optional[bytes]:
+        return self.sub_address
 
     @property
     def account_address_bytes(self) -&gt; bytes:
@@ -96,13 +100,22 @@ class Intent:
         return encode_account(self.account_address, self.sub_address, self.hrp)
 
 
-def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -&gt; str:
+def encode_intent(
+    encoded_account_identifier: str, currency_code: typing.Optional[str] = None, amount: typing.Optional[int] = None
+) -&gt; str:
     &#34;&#34;&#34;
     Encode account identifier string(encoded), currency code and amount into
     Diem intent identifier (https://dip.diem.com/dip-5/)
     &#34;&#34;&#34;
 
-    return &#34;diem://%s?c=%s&amp;am=%d&#34; % (encoded_account_identifier, currency_code, amount)
+    params = []
+    if currency_code:
+        params.append(&#34;c=%s&#34; % currency_code)
+    if amount is not None and amount &gt; 0:
+        params.append(&#34;am=%s&#34; % amount)
+    if params:
+        return &#34;diem://%s?%s&#34; % (encoded_account_identifier, &#34;&amp;&#34;.join(params))
+    return &#34;diem://%s&#34; % encoded_account_identifier
 
 
 def decode_intent(encoded_intent_identifier: str, hrp: str) -&gt; Intent:
@@ -143,7 +156,7 @@ def decode_intent(encoded_intent_identifier: str, hrp: str) -&gt; Intent:
 
 def _decode_param(name, params, field, convert):  # pyre-ignore
     if field not in params:
-        raise InvalidIntentIdentifierError(f&#34;Can&#39;t decode {name}: not found in params {params}&#34;)
+        return None
 
     if not isinstance(params[field], list):
         raise InvalidIntentIdentifierError(f&#34;Can&#39;t decode {name}: unknown type {params}&#34;)
@@ -379,7 +392,7 @@ def decode_account_subaddress(encoded_address: str, hrp: str) -&gt; typing.Optio
 </details>
 </dd>
 <dt id="diem.identifier.encode_intent"><code class="name flex">
-<span>def <span class="ident">encode_intent</span></span>(<span>encoded_account_identifier: str, currency_code: str, amount: int) ‑> str</span>
+<span>def <span class="ident">encode_intent</span></span>(<span>encoded_account_identifier: str, currency_code: Optional[str] = None, amount: Optional[int] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Encode account identifier string(encoded), currency code and amount into
@@ -388,13 +401,22 @@ Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.c
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def encode_intent(encoded_account_identifier: str, currency_code: str, amount: int) -&gt; str:
+<pre><code class="python">def encode_intent(
+    encoded_account_identifier: str, currency_code: typing.Optional[str] = None, amount: typing.Optional[int] = None
+) -&gt; str:
     &#34;&#34;&#34;
     Encode account identifier string(encoded), currency code and amount into
     Diem intent identifier (https://dip.diem.com/dip-5/)
     &#34;&#34;&#34;
 
-    return &#34;diem://%s?c=%s&amp;am=%d&#34; % (encoded_account_identifier, currency_code, amount)</code></pre>
+    params = []
+    if currency_code:
+        params.append(&#34;c=%s&#34; % currency_code)
+    if amount is not None and amount &gt; 0:
+        params.append(&#34;am=%s&#34; % amount)
+    if params:
+        return &#34;diem://%s?%s&#34; % (encoded_account_identifier, &#34;&amp;&#34;.join(params))
+    return &#34;diem://%s&#34; % encoded_account_identifier</code></pre>
 </details>
 </dd>
 </dl>
@@ -404,7 +426,7 @@ Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.c
 <dl>
 <dt id="diem.identifier.Intent"><code class="flex name class">
 <span>class <span class="ident">Intent</span></span>
-<span>(</span><span>account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, sub_address: Optional[bytes], currency_code: str, amount: int, hrp: str)</span>
+<span>(</span><span>account_address: <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, sub_address: Optional[bytes], currency_code: Optional[str], amount: Optional[int], hrp: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Intent is a struct hold data decoded from Diem Intent Identifier string</p></div>
@@ -417,15 +439,15 @@ Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.c
 
     account_address: diem_types.AccountAddress
     sub_address: typing.Optional[bytes]
-    currency_code: str
-    amount: int
+    currency_code: typing.Optional[str]
+    amount: typing.Optional[int]
 
     def __init__(
         self,
         account_address: diem_types.AccountAddress,
         sub_address: typing.Optional[bytes],
-        currency_code: str,
-        amount: int,
+        currency_code: typing.Optional[str],
+        amount: typing.Optional[int],
         hrp: str,
     ) -&gt; None:
         self.account_address = account_address
@@ -433,6 +455,10 @@ Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.c
         self.currency_code = currency_code
         self.amount = amount
         self.hrp = hrp
+
+    @property
+    def subaddress(self) -&gt; typing.Optional[bytes]:
+        return self.sub_address
 
     @property
     def account_address_bytes(self) -&gt; bytes:
@@ -448,11 +474,11 @@ Diem intent identifier (<a href="https://dip.diem.com/dip-5/">https://dip.diem.c
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.identifier.Intent.amount"><code class="name">var <span class="ident">amount</span> : int</code></dt>
+<dt id="diem.identifier.Intent.amount"><code class="name">var <span class="ident">amount</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.identifier.Intent.currency_code"><code class="name">var <span class="ident">currency_code</span> : str</code></dt>
+<dt id="diem.identifier.Intent.currency_code"><code class="name">var <span class="ident">currency_code</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -485,6 +511,18 @@ def account_address_bytes(self) -&gt; bytes:
 <pre><code class="python">@property
 def account_id(self) -&gt; str:
     return encode_account(self.account_address, self.sub_address, self.hrp)</code></pre>
+</details>
+</dd>
+<dt id="diem.identifier.Intent.subaddress"><code class="name">var <span class="ident">subaddress</span> : Optional[bytes]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def subaddress(self) -&gt; typing.Optional[bytes]:
+    return self.sub_address</code></pre>
 </details>
 </dd>
 </dl>
@@ -550,6 +588,7 @@ def account_id(self) -&gt; str:
 <li><code><a title="diem.identifier.Intent.amount" href="#diem.identifier.Intent.amount">amount</a></code></li>
 <li><code><a title="diem.identifier.Intent.currency_code" href="#diem.identifier.Intent.currency_code">currency_code</a></code></li>
 <li><code><a title="diem.identifier.Intent.sub_address" href="#diem.identifier.Intent.sub_address">sub_address</a></code></li>
+<li><code><a title="diem.identifier.Intent.subaddress" href="#diem.identifier.Intent.subaddress">subaddress</a></code></li>
 </ul>
 </li>
 <li>

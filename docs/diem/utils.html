@@ -107,6 +107,12 @@ def sub_address(addr: typing.Union[str, bytes]) -&gt; bytes:
     return ret
 
 
+def hex(b: typing.Optional[bytes]) -&gt; str:
+    &#34;&#34;&#34;convert an optional bytes into hex-encoded str, returns &#34;&#34; if bytes is None&#34;&#34;&#34;
+
+    return b.hex() if b else &#34;&#34;
+
+
 def public_key_bytes(public_key: Ed25519PublicKey) -&gt; bytes:
     &#34;&#34;&#34;convert cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey into raw bytes&#34;&#34;&#34;
 
@@ -200,7 +206,15 @@ def balance(account: jsonrpc.Account, currency: str) -&gt; int:
     for b in account.balances:
         if b.currency == currency:
             return b.amount
-    return 0</code></pre>
+    return 0
+
+
+def to_snake(o: typing.Any) -&gt; str:  # pyre-ignore
+    if isinstance(o, str):
+        return &#34;&#34;.join([&#34;_&#34; + i.lower() if i.isupper() else i for i in o]).lstrip(&#34;_&#34;)
+    elif hasattr(o, &#34;__name__&#34;):
+        return to_snake(getattr(o, &#34;__name__&#34;))
+    return to_snake(type(o))</code></pre>
 </details>
 </section>
 <section>
@@ -389,6 +403,21 @@ See diem.stdlib documentation for more details.</p></div>
     return hash.digest()</code></pre>
 </details>
 </dd>
+<dt id="diem.utils.hex"><code class="name flex">
+<span>def <span class="ident">hex</span></span>(<span>b: Optional[bytes]) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>convert an optional bytes into hex-encoded str, returns "" if bytes is None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hex(b: typing.Optional[bytes]) -&gt; str:
+    &#34;&#34;&#34;convert an optional bytes into hex-encoded str, returns &#34;&#34; if bytes is None&#34;&#34;&#34;
+
+    return b.hex() if b else &#34;&#34;</code></pre>
+</details>
+</dd>
 <dt id="diem.utils.private_key_bytes"><code class="name flex">
 <span>def <span class="ident">private_key_bytes</span></span>(<span>private_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey) ‑> bytes</span>
 </code></dt>
@@ -462,6 +491,23 @@ does not match sub-address length (8 bytes)</p></div>
             f&#34;{addr}(len={len(ret)}) is a valid sub-address, sub-address is {SUB_ADDRESS_LEN} bytes&#34;
         )
     return ret</code></pre>
+</details>
+</dd>
+<dt id="diem.utils.to_snake"><code class="name flex">
+<span>def <span class="ident">to_snake</span></span>(<span>o: Any) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_snake(o: typing.Any) -&gt; str:  # pyre-ignore
+    if isinstance(o, str):
+        return &#34;&#34;.join([&#34;_&#34; + i.lower() if i.isupper() else i for i in o]).lstrip(&#34;_&#34;)
+    elif hasattr(o, &#34;__name__&#34;):
+        return to_snake(getattr(o, &#34;__name__&#34;))
+    return to_snake(type(o))</code></pre>
 </details>
 </dd>
 <dt id="diem.utils.transaction_hash"><code class="name flex">
@@ -570,10 +616,12 @@ does not match sub-address length (8 bytes)</p></div>
 <li><code><a title="diem.utils.decode_transaction_script" href="#diem.utils.decode_transaction_script">decode_transaction_script</a></code></li>
 <li><code><a title="diem.utils.diem_hash_seed" href="#diem.utils.diem_hash_seed">diem_hash_seed</a></code></li>
 <li><code><a title="diem.utils.hash" href="#diem.utils.hash">hash</a></code></li>
+<li><code><a title="diem.utils.hex" href="#diem.utils.hex">hex</a></code></li>
 <li><code><a title="diem.utils.private_key_bytes" href="#diem.utils.private_key_bytes">private_key_bytes</a></code></li>
 <li><code><a title="diem.utils.public_key_bytes" href="#diem.utils.public_key_bytes">public_key_bytes</a></code></li>
 <li><code><a title="diem.utils.raw_transaction_signing_msg" href="#diem.utils.raw_transaction_signing_msg">raw_transaction_signing_msg</a></code></li>
 <li><code><a title="diem.utils.sub_address" href="#diem.utils.sub_address">sub_address</a></code></li>
+<li><code><a title="diem.utils.to_snake" href="#diem.utils.to_snake">to_snake</a></code></li>
 <li><code><a title="diem.utils.transaction_hash" href="#diem.utils.transaction_hash">transaction_hash</a></code></li>
 <li><code><a title="diem.utils.type_tag_to_str" href="#diem.utils.type_tag_to_str">type_tag_to_str</a></code></li>
 </ul>

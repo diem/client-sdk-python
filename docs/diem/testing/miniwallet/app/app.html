@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.testing.miniwallet.app.app API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.testing.miniwallet.app.app</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+from dataclasses import asdict
+from typing import List, Tuple, Dict, Optional, Any
+from json.decoder import JSONDecodeError
+from .store import InMemoryStore, NotFoundError
+from .diem_account import DiemAccount
+from .models import PaymentUri, Subaddress, Account, Transaction, Event, KycSample, Payment, PaymentCommand
+from .event_puller import EventPuller
+from .json_input import JsonInput
+from .... import jsonrpc, offchain, utils, LocalAccount, identifier
+from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
+import threading, logging, os
+
+
+class Base:
+    def __init__(self, account: LocalAccount, client: jsonrpc.Client, name: str, logger: logging.Logger) -&gt; None:
+        self.logger = logger
+        self.diem_account = DiemAccount(account, client)
+        self.store = InMemoryStore()
+        self.offchain = offchain.Client(account.account_address, client, account.hrp)
+        self.kyc_sample: KycSample = KycSample.gen(name)
+        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp)
+        self.event_puller.add(account.account_address)
+        self.event_puller.head()
+
+    def _validate_kyc_data(self, name: str, val: str) -&gt; None:
+        try:
+            offchain.from_json(val, KycDataObject)
+        except (JSONDecodeError, offchain.types.FieldError) as e:
+            raise ValueError(&#34;%r must be JSON-encoded KycDataObject: %s&#34; % (name, e))
+
+    def _validate_currency_code(self, name: str, val: str) -&gt; None:
+        try:
+            self.offchain.validate_currency_code(val)
+        except ValueError:
+            raise ValueError(&#34;%r is invalid currency code: %s&#34; % (name, val))
+
+    def _validate_account_identifier(self, name: str, val: str) -&gt; None:
+        try:
+            self.diem_account.account.decode_account_identifier(val)
+        except ValueError as e:
+            raise ValueError(&#34;%r is invalid account identifier: %s&#34; % (name, e))
+
+    def _validate_amount(self, name: str, val: int) -&gt; None:
+        if val &lt; 0:
+            raise ValueError(&#34;%r value must be greater than or equal to zero&#34; % name)
+
+    def _validate_account_balance(self, txn: Dict[str, Any]) -&gt; None:
+        if txn.get(&#34;payee&#34;):
+            balance = self._balances(txn[&#34;account_id&#34;]).get(txn[&#34;currency&#34;], 0)
+            if balance &lt; txn[&#34;amount&#34;]:
+                raise ValueError(&#34;account balance not enough: %s (%s)&#34; % (balance, txn))
+
+    def _balances(self, account_id: str) -&gt; Dict[str, int]:
+        ret = {}
+        for txn in self.store.find_all(Transaction, account_id=account_id):
+            if txn.status != Transaction.Status.canceled:
+                ret[txn.currency] = ret.get(txn.currency, 0) + txn.balance_amount()
+        return ret
+
+    def _gen_subaddress(self) -&gt; bytes:
+        return self.store.next_id().to_bytes(8, byteorder=&#34;big&#34;)
+
+    def _txn_metadata(self, txn: Transaction) -&gt; Tuple[bytes, bytes]:
+        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+            if txn.subaddress_hex:
+                return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
+        elif txn.reference_id:
+            cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
+            return self.diem_account.travel_metadata(cmd.to_offchain_command())
+        raise ValueError(&#34;could not create diem payment transacton metadata: %s&#34; % txn)
+
+
+class OffChainAPI(Base):
+    def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
+        cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
+        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(cmd))(cmd)
+        return offchain.reply_request(cid=cmd.id())
+
+    def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
+        return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
+
+    def _handle_offchain_payment_command(self, new_offchain_cmd: offchain.PaymentCommand) -&gt; None:
+        try:
+            cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
+            if new_offchain_cmd != cmd.to_offchain_command():
+                self._update_payment_command(cmd, new_offchain_cmd)
+        except NotFoundError:
+            subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.account.hrp))
+            account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
+            self._create_payment_command(account_id, new_offchain_cmd, validate=True)
+
+    def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -&gt; None:
+        self.store.create(
+            PaymentCommand,
+            before_create=lambda _: cmd.validate(None) if validate else None,
+            account_id=account_id,
+            is_sender=cmd.is_sender(),
+            reference_id=cmd.reference_id(),
+            is_inbound=cmd.is_inbound(),
+            cid=cmd.id(),
+            payment_object=asdict(cmd.payment),
+        )
+
+    def _update_payment_command(
+        self, cmd: PaymentCommand, offchain_cmd: offchain.PaymentCommand, validate: bool = False
+    ) -&gt; None:
+        self.store.update(
+            cmd,
+            before_update=lambda _: offchain_cmd.validate(cmd.to_offchain_command()) if validate else None,
+            cid=offchain_cmd.id(),
+            is_inbound=offchain_cmd.is_inbound(),
+            is_abort=offchain_cmd.is_abort(),
+            is_ready=offchain_cmd.is_both_ready(),
+            payment_object=asdict(offchain_cmd.payment),
+        )
+
+
+class BackgroundTasks(OffChainAPI):
+    def start_sync(self, delay: float = 0.1) -&gt; None:
+        try:
+            self._process_offchain_commands()
+            self._send_pending_payments()
+            self.event_puller.fetch(self.event_puller.save_payment_txn)
+        except Exception as e:
+            self.logger.exception(e)
+            os._exit(-1)
+        if threading.main_thread().is_alive():
+            threading.Timer(delay, self.start_sync, args=[delay]).start()
+
+    def _send_pending_payments(self) -&gt; None:
+        for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
+            self.logger.info(&#34;processing %s&#34; % txn)
+            try:
+                if self.offchain.is_my_account_id(str(txn.payee)):
+                    self._send_internal_payment_txn(txn)
+                else:
+                    self._send_external_payment_txn(txn)
+            except jsonrpc.JsonRpcError as e:
+                msg = &#34;ignore error %s when sending transaction %s, retry later&#34;
+                self.logger.info(msg % (e, txn), exc_info=True)
+            except Exception as e:
+                msg = &#34;send pending transaction failed with %s, cancel transaction %s.&#34;
+                self.logger.error(msg % (e, txn), exc_info=True)
+                self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
+
+    def _send_internal_payment_txn(self, txn: Transaction) -&gt; None:
+        _, payee_subaddress = self.diem_account.account.decode_account_identifier(str(txn.payee))
+        subaddress = self.store.find(Subaddress, subaddress_hex=utils.hex(payee_subaddress))
+        self.store.create(
+            Transaction,
+            account_id=subaddress.account_id,
+            currency=txn.currency,
+            amount=txn.amount,
+            status=Transaction.Status.completed,
+        )
+        self.store.update(txn, status=Transaction.Status.completed)
+
+    def _send_external_payment_txn(self, txn: Transaction) -&gt; None:
+        if txn.signed_transaction:
+            try:
+                diem_txn = self.diem_account.client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
+                self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
+            except jsonrpc.WaitForTransactionTimeout as e:
+                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+            except jsonrpc.TransactionHashMismatchError as e:
+                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self._txn_metadata(txn)))
+            except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
+                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                reason = &#34;something went wrong with transaction execution: %s&#34; % e
+                self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
+        else:
+            self._start_external_payment_txn(txn)
+
+    def _start_external_payment_txn(self, txn: Transaction) -&gt; None:
+        if not txn.subaddress_hex:
+            self.store.update(txn, subaddress_hex=self._gen_subaddress().hex())
+        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+            if not txn.signed_transaction:
+                signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
+                self.store.update(txn, signed_transaction=signed_txn)
+        else:
+            if txn.reference_id:
+                cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
+                if cmd.is_sender:
+                    if cmd.is_abort:
+                        status = Transaction.Status.canceled
+                        self.store.update(txn, status=status, cancel_reason=&#34;exchange kyc data abort&#34;)
+                    elif cmd.is_ready:
+                        signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
+                        self.store.update(txn, signed_transaction=signed_txn)
+            else:
+                account = self.store.find(Account, id=txn.account_id)
+                command = offchain.PaymentCommand.init(
+                    sender_account_id=self.diem_account.account.account_identifier(txn.subaddress()),
+                    sender_kyc_data=account.kyc_data_object(),
+                    currency=txn.currency,
+                    amount=txn.amount,
+                    receiver_account_id=str(txn.payee),
+                )
+                self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
+                self._create_payment_command(txn.account_id, command)
+                self.store.update(txn, reference_id=command.reference_id())
+
+    def _process_offchain_commands(self) -&gt; None:
+        cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
+        for cmd in cmds:
+            try:
+                offchain_cmd = cmd.to_offchain_command()
+                action = offchain_cmd.follow_up_action()
+                if action:
+                    fn = getattr(self, &#34;_offchain_action_%s&#34; % action.value)
+                    new_offchain_cmd = fn(cmd.account_id, offchain_cmd)
+                    self.offchain.send_command(new_offchain_cmd, self.diem_account.account.compliance_key.sign)
+                    self._update_payment_command(cmd, new_offchain_cmd)
+            except Exception as e:
+                self.logger.exception(e)
+                self.store.update(cmd, process_error=str(e))
+
+    def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        op_kyc_data = cmd.opponent_actor_obj().kyc_data
+        if op_kyc_data is None or self.kyc_sample.match_kyc_data(&#34;reject&#34;, op_kyc_data):
+            return self._new_reject_kyc_data(cmd, &#34;KYC data is rejected&#34;)
+        elif self.kyc_sample.match_any_kyc_data([&#34;soft_match&#34;, &#34;soft_reject&#34;], op_kyc_data):
+            return cmd.new_command(status=Status.soft_match)
+        return self._ready_for_settlement(account_id, cmd)
+
+    def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        return cmd.new_command(additional_kyc_data=&#34;{%r: %r}&#34; % (&#34;account_id&#34;, account_id))
+
+    def _offchain_action_review_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        op_kyc_data = cmd.opponent_actor_obj().kyc_data
+        if op_kyc_data is None or self.kyc_sample.match_kyc_data(&#34;soft_reject&#34;, op_kyc_data):
+            return self._new_reject_kyc_data(cmd, &#34;KYC data review result is reject&#34;)
+        return self._ready_for_settlement(account_id, cmd)
+
+    def _new_reject_kyc_data(self, cmd: offchain.PaymentCommand, msg: str) -&gt; offchain.Command:
+        return cmd.new_command(status=Status.abort, abort_code=AbortCode.reject_kyc_data, abort_message=msg)
+
+    def _ready_for_settlement(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        if cmd.is_sender():
+            return cmd.new_command(status=Status.ready_for_settlement)
+
+        sig_msg = cmd.travel_rule_metadata_signature_message(self.diem_account.account.hrp)
+        sig = self.diem_account.account.compliance_key.sign(sig_msg).hex()
+        kyc_data = self.store.find(Account, id=account_id).kyc_data_object()
+        return cmd.new_command(recipient_signature=sig, kyc_data=kyc_data, status=Status.ready_for_settlement)
+
+
+class App(BackgroundTasks):
+    def create_account(self, data: JsonInput) -&gt; Account:
+        account = self.store.create(
+            Account,
+            kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+        )
+        balances = data.get_nullable(&#34;balances&#34;, dict)
+        if balances:
+            for c, a in balances.items():
+                self._create_transaction(
+                    account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
+                )
+        return account
+
+    def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
+        self.store.find(Account, id=account_id)
+        payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+        txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
+        return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)
+
+    def create_account_payment_uri(self, account_id: str, data: JsonInput) -&gt; PaymentUri:
+        currency = data.get_nullable(&#34;currency&#34;, str, self._validate_currency_code)
+        amount = data.get_nullable(&#34;amount&#34;, int)
+        self.store.find(Account, id=account_id)
+        sub = self._gen_subaddress()
+        diem_acc_id = self.diem_account.account.account_identifier(sub)
+        uri = identifier.encode_intent(diem_acc_id, currency, amount)
+        sub = self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
+
+    def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
+        self.store.find(Account, id=account_id)
+        return self._balances(account_id)
+
+    def get_account_events(self, account_id: str) -&gt; List[Event]:
+        return self.store.find_all(Event, account_id=account_id)
+
+    def _create_transaction(
+        self, account_id: str, status: str, data: JsonInput, payee: Optional[str] = None
+    ) -&gt; Transaction:
+        return self.store.create(
+            Transaction,
+            account_id=account_id,
+            currency=data.get(&#34;currency&#34;, str, self._validate_currency_code),
+            amount=data.get(&#34;amount&#34;, int, self._validate_amount),
+            payee=payee,
+            status=status,
+            before_create=self._validate_account_balance,
+        )</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="diem.testing.miniwallet.app.app.App"><code class="flex name class">
+<span>class <span class="ident">App</span></span>
+<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class App(BackgroundTasks):
+    def create_account(self, data: JsonInput) -&gt; Account:
+        account = self.store.create(
+            Account,
+            kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+        )
+        balances = data.get_nullable(&#34;balances&#34;, dict)
+        if balances:
+            for c, a in balances.items():
+                self._create_transaction(
+                    account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
+                )
+        return account
+
+    def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
+        self.store.find(Account, id=account_id)
+        payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+        txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
+        return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)
+
+    def create_account_payment_uri(self, account_id: str, data: JsonInput) -&gt; PaymentUri:
+        currency = data.get_nullable(&#34;currency&#34;, str, self._validate_currency_code)
+        amount = data.get_nullable(&#34;amount&#34;, int)
+        self.store.find(Account, id=account_id)
+        sub = self._gen_subaddress()
+        diem_acc_id = self.diem_account.account.account_identifier(sub)
+        uri = identifier.encode_intent(diem_acc_id, currency, amount)
+        sub = self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
+
+    def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
+        self.store.find(Account, id=account_id)
+        return self._balances(account_id)
+
+    def get_account_events(self, account_id: str) -&gt; List[Event]:
+        return self.store.find_all(Event, account_id=account_id)
+
+    def _create_transaction(
+        self, account_id: str, status: str, data: JsonInput, payee: Optional[str] = None
+    ) -&gt; Transaction:
+        return self.store.create(
+            Transaction,
+            account_id=account_id,
+            currency=data.get(&#34;currency&#34;, str, self._validate_currency_code),
+            amount=data.get(&#34;amount&#34;, int, self._validate_amount),
+            payee=payee,
+            status=status,
+            before_create=self._validate_account_balance,
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.testing.miniwallet.app.app.BackgroundTasks" href="#diem.testing.miniwallet.app.app.BackgroundTasks">BackgroundTasks</a></li>
+<li><a title="diem.testing.miniwallet.app.app.OffChainAPI" href="#diem.testing.miniwallet.app.app.OffChainAPI">OffChainAPI</a></li>
+<li><a title="diem.testing.miniwallet.app.app.Base" href="#diem.testing.miniwallet.app.app.Base">Base</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.testing.miniwallet.app.app.App.create_account"><code class="name flex">
+<span>def <span class="ident">create_account</span></span>(<span>self, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> <a title="diem.testing.miniwallet.app.models.Account" href="models.html#diem.testing.miniwallet.app.models.Account">Account</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_account(self, data: JsonInput) -&gt; Account:
+    account = self.store.create(
+        Account,
+        kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+    )
+    balances = data.get_nullable(&#34;balances&#34;, dict)
+    if balances:
+        for c, a in balances.items():
+            self._create_transaction(
+                account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
+            )
+    return account</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.App.create_account_payment"><code class="name flex">
+<span>def <span class="ident">create_account_payment</span></span>(<span>self, account_id: str, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> <a title="diem.testing.miniwallet.app.models.Payment" href="models.html#diem.testing.miniwallet.app.models.Payment">Payment</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
+    self.store.find(Account, id=account_id)
+    payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+    txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
+    return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.App.create_account_payment_uri"><code class="name flex">
+<span>def <span class="ident">create_account_payment_uri</span></span>(<span>self, account_id: str, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_account_payment_uri(self, account_id: str, data: JsonInput) -&gt; PaymentUri:
+    currency = data.get_nullable(&#34;currency&#34;, str, self._validate_currency_code)
+    amount = data.get_nullable(&#34;amount&#34;, int)
+    self.store.find(Account, id=account_id)
+    sub = self._gen_subaddress()
+    diem_acc_id = self.diem_account.account.account_identifier(sub)
+    uri = identifier.encode_intent(diem_acc_id, currency, amount)
+    sub = self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+    return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.App.get_account_balances"><code class="name flex">
+<span>def <span class="ident">get_account_balances</span></span>(<span>self, account_id: str) ‑> Dict[str, int]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
+    self.store.find(Account, id=account_id)
+    return self._balances(account_id)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.App.get_account_events"><code class="name flex">
+<span>def <span class="ident">get_account_events</span></span>(<span>self, account_id: str) ‑> List[<a title="diem.testing.miniwallet.app.models.Event" href="models.html#diem.testing.miniwallet.app.models.Event">Event</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_account_events(self, account_id: str) -&gt; List[Event]:
+    return self.store.find_all(Event, account_id=account_id)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.BackgroundTasks"><code class="flex name class">
+<span>class <span class="ident">BackgroundTasks</span></span>
+<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BackgroundTasks(OffChainAPI):
+    def start_sync(self, delay: float = 0.1) -&gt; None:
+        try:
+            self._process_offchain_commands()
+            self._send_pending_payments()
+            self.event_puller.fetch(self.event_puller.save_payment_txn)
+        except Exception as e:
+            self.logger.exception(e)
+            os._exit(-1)
+        if threading.main_thread().is_alive():
+            threading.Timer(delay, self.start_sync, args=[delay]).start()
+
+    def _send_pending_payments(self) -&gt; None:
+        for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
+            self.logger.info(&#34;processing %s&#34; % txn)
+            try:
+                if self.offchain.is_my_account_id(str(txn.payee)):
+                    self._send_internal_payment_txn(txn)
+                else:
+                    self._send_external_payment_txn(txn)
+            except jsonrpc.JsonRpcError as e:
+                msg = &#34;ignore error %s when sending transaction %s, retry later&#34;
+                self.logger.info(msg % (e, txn), exc_info=True)
+            except Exception as e:
+                msg = &#34;send pending transaction failed with %s, cancel transaction %s.&#34;
+                self.logger.error(msg % (e, txn), exc_info=True)
+                self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
+
+    def _send_internal_payment_txn(self, txn: Transaction) -&gt; None:
+        _, payee_subaddress = self.diem_account.account.decode_account_identifier(str(txn.payee))
+        subaddress = self.store.find(Subaddress, subaddress_hex=utils.hex(payee_subaddress))
+        self.store.create(
+            Transaction,
+            account_id=subaddress.account_id,
+            currency=txn.currency,
+            amount=txn.amount,
+            status=Transaction.Status.completed,
+        )
+        self.store.update(txn, status=Transaction.Status.completed)
+
+    def _send_external_payment_txn(self, txn: Transaction) -&gt; None:
+        if txn.signed_transaction:
+            try:
+                diem_txn = self.diem_account.client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
+                self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
+            except jsonrpc.WaitForTransactionTimeout as e:
+                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+            except jsonrpc.TransactionHashMismatchError as e:
+                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self._txn_metadata(txn)))
+            except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
+                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                reason = &#34;something went wrong with transaction execution: %s&#34; % e
+                self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
+        else:
+            self._start_external_payment_txn(txn)
+
+    def _start_external_payment_txn(self, txn: Transaction) -&gt; None:
+        if not txn.subaddress_hex:
+            self.store.update(txn, subaddress_hex=self._gen_subaddress().hex())
+        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+            if not txn.signed_transaction:
+                signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
+                self.store.update(txn, signed_transaction=signed_txn)
+        else:
+            if txn.reference_id:
+                cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
+                if cmd.is_sender:
+                    if cmd.is_abort:
+                        status = Transaction.Status.canceled
+                        self.store.update(txn, status=status, cancel_reason=&#34;exchange kyc data abort&#34;)
+                    elif cmd.is_ready:
+                        signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
+                        self.store.update(txn, signed_transaction=signed_txn)
+            else:
+                account = self.store.find(Account, id=txn.account_id)
+                command = offchain.PaymentCommand.init(
+                    sender_account_id=self.diem_account.account.account_identifier(txn.subaddress()),
+                    sender_kyc_data=account.kyc_data_object(),
+                    currency=txn.currency,
+                    amount=txn.amount,
+                    receiver_account_id=str(txn.payee),
+                )
+                self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
+                self._create_payment_command(txn.account_id, command)
+                self.store.update(txn, reference_id=command.reference_id())
+
+    def _process_offchain_commands(self) -&gt; None:
+        cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
+        for cmd in cmds:
+            try:
+                offchain_cmd = cmd.to_offchain_command()
+                action = offchain_cmd.follow_up_action()
+                if action:
+                    fn = getattr(self, &#34;_offchain_action_%s&#34; % action.value)
+                    new_offchain_cmd = fn(cmd.account_id, offchain_cmd)
+                    self.offchain.send_command(new_offchain_cmd, self.diem_account.account.compliance_key.sign)
+                    self._update_payment_command(cmd, new_offchain_cmd)
+            except Exception as e:
+                self.logger.exception(e)
+                self.store.update(cmd, process_error=str(e))
+
+    def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        op_kyc_data = cmd.opponent_actor_obj().kyc_data
+        if op_kyc_data is None or self.kyc_sample.match_kyc_data(&#34;reject&#34;, op_kyc_data):
+            return self._new_reject_kyc_data(cmd, &#34;KYC data is rejected&#34;)
+        elif self.kyc_sample.match_any_kyc_data([&#34;soft_match&#34;, &#34;soft_reject&#34;], op_kyc_data):
+            return cmd.new_command(status=Status.soft_match)
+        return self._ready_for_settlement(account_id, cmd)
+
+    def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        return cmd.new_command(additional_kyc_data=&#34;{%r: %r}&#34; % (&#34;account_id&#34;, account_id))
+
+    def _offchain_action_review_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        op_kyc_data = cmd.opponent_actor_obj().kyc_data
+        if op_kyc_data is None or self.kyc_sample.match_kyc_data(&#34;soft_reject&#34;, op_kyc_data):
+            return self._new_reject_kyc_data(cmd, &#34;KYC data review result is reject&#34;)
+        return self._ready_for_settlement(account_id, cmd)
+
+    def _new_reject_kyc_data(self, cmd: offchain.PaymentCommand, msg: str) -&gt; offchain.Command:
+        return cmd.new_command(status=Status.abort, abort_code=AbortCode.reject_kyc_data, abort_message=msg)
+
+    def _ready_for_settlement(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        if cmd.is_sender():
+            return cmd.new_command(status=Status.ready_for_settlement)
+
+        sig_msg = cmd.travel_rule_metadata_signature_message(self.diem_account.account.hrp)
+        sig = self.diem_account.account.compliance_key.sign(sig_msg).hex()
+        kyc_data = self.store.find(Account, id=account_id).kyc_data_object()
+        return cmd.new_command(recipient_signature=sig, kyc_data=kyc_data, status=Status.ready_for_settlement)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.testing.miniwallet.app.app.OffChainAPI" href="#diem.testing.miniwallet.app.app.OffChainAPI">OffChainAPI</a></li>
+<li><a title="diem.testing.miniwallet.app.app.Base" href="#diem.testing.miniwallet.app.app.Base">Base</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.testing.miniwallet.app.app.App" href="#diem.testing.miniwallet.app.app.App">App</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.testing.miniwallet.app.app.BackgroundTasks.start_sync"><code class="name flex">
+<span>def <span class="ident">start_sync</span></span>(<span>self, delay: float = 0.1) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_sync(self, delay: float = 0.1) -&gt; None:
+    try:
+        self._process_offchain_commands()
+        self._send_pending_payments()
+        self.event_puller.fetch(self.event_puller.save_payment_txn)
+    except Exception as e:
+        self.logger.exception(e)
+        os._exit(-1)
+    if threading.main_thread().is_alive():
+        threading.Timer(delay, self.start_sync, args=[delay]).start()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.Base"><code class="flex name class">
+<span>class <span class="ident">Base</span></span>
+<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Base:
+    def __init__(self, account: LocalAccount, client: jsonrpc.Client, name: str, logger: logging.Logger) -&gt; None:
+        self.logger = logger
+        self.diem_account = DiemAccount(account, client)
+        self.store = InMemoryStore()
+        self.offchain = offchain.Client(account.account_address, client, account.hrp)
+        self.kyc_sample: KycSample = KycSample.gen(name)
+        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp)
+        self.event_puller.add(account.account_address)
+        self.event_puller.head()
+
+    def _validate_kyc_data(self, name: str, val: str) -&gt; None:
+        try:
+            offchain.from_json(val, KycDataObject)
+        except (JSONDecodeError, offchain.types.FieldError) as e:
+            raise ValueError(&#34;%r must be JSON-encoded KycDataObject: %s&#34; % (name, e))
+
+    def _validate_currency_code(self, name: str, val: str) -&gt; None:
+        try:
+            self.offchain.validate_currency_code(val)
+        except ValueError:
+            raise ValueError(&#34;%r is invalid currency code: %s&#34; % (name, val))
+
+    def _validate_account_identifier(self, name: str, val: str) -&gt; None:
+        try:
+            self.diem_account.account.decode_account_identifier(val)
+        except ValueError as e:
+            raise ValueError(&#34;%r is invalid account identifier: %s&#34; % (name, e))
+
+    def _validate_amount(self, name: str, val: int) -&gt; None:
+        if val &lt; 0:
+            raise ValueError(&#34;%r value must be greater than or equal to zero&#34; % name)
+
+    def _validate_account_balance(self, txn: Dict[str, Any]) -&gt; None:
+        if txn.get(&#34;payee&#34;):
+            balance = self._balances(txn[&#34;account_id&#34;]).get(txn[&#34;currency&#34;], 0)
+            if balance &lt; txn[&#34;amount&#34;]:
+                raise ValueError(&#34;account balance not enough: %s (%s)&#34; % (balance, txn))
+
+    def _balances(self, account_id: str) -&gt; Dict[str, int]:
+        ret = {}
+        for txn in self.store.find_all(Transaction, account_id=account_id):
+            if txn.status != Transaction.Status.canceled:
+                ret[txn.currency] = ret.get(txn.currency, 0) + txn.balance_amount()
+        return ret
+
+    def _gen_subaddress(self) -&gt; bytes:
+        return self.store.next_id().to_bytes(8, byteorder=&#34;big&#34;)
+
+    def _txn_metadata(self, txn: Transaction) -&gt; Tuple[bytes, bytes]:
+        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+            if txn.subaddress_hex:
+                return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
+        elif txn.reference_id:
+            cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
+            return self.diem_account.travel_metadata(cmd.to_offchain_command())
+        raise ValueError(&#34;could not create diem payment transacton metadata: %s&#34; % txn)</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.testing.miniwallet.app.app.OffChainAPI" href="#diem.testing.miniwallet.app.app.OffChainAPI">OffChainAPI</a></li>
+</ul>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.OffChainAPI"><code class="flex name class">
+<span>class <span class="ident">OffChainAPI</span></span>
+<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OffChainAPI(Base):
+    def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
+        cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
+        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(cmd))(cmd)
+        return offchain.reply_request(cid=cmd.id())
+
+    def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
+        return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
+
+    def _handle_offchain_payment_command(self, new_offchain_cmd: offchain.PaymentCommand) -&gt; None:
+        try:
+            cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
+            if new_offchain_cmd != cmd.to_offchain_command():
+                self._update_payment_command(cmd, new_offchain_cmd)
+        except NotFoundError:
+            subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.account.hrp))
+            account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
+            self._create_payment_command(account_id, new_offchain_cmd, validate=True)
+
+    def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -&gt; None:
+        self.store.create(
+            PaymentCommand,
+            before_create=lambda _: cmd.validate(None) if validate else None,
+            account_id=account_id,
+            is_sender=cmd.is_sender(),
+            reference_id=cmd.reference_id(),
+            is_inbound=cmd.is_inbound(),
+            cid=cmd.id(),
+            payment_object=asdict(cmd.payment),
+        )
+
+    def _update_payment_command(
+        self, cmd: PaymentCommand, offchain_cmd: offchain.PaymentCommand, validate: bool = False
+    ) -&gt; None:
+        self.store.update(
+            cmd,
+            before_update=lambda _: offchain_cmd.validate(cmd.to_offchain_command()) if validate else None,
+            cid=offchain_cmd.id(),
+            is_inbound=offchain_cmd.is_inbound(),
+            is_abort=offchain_cmd.is_abort(),
+            is_ready=offchain_cmd.is_both_ready(),
+            payment_object=asdict(offchain_cmd.payment),
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.testing.miniwallet.app.app.Base" href="#diem.testing.miniwallet.app.app.Base">Base</a></li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="diem.testing.miniwallet.app.app.BackgroundTasks" href="#diem.testing.miniwallet.app.app.BackgroundTasks">BackgroundTasks</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.testing.miniwallet.app.app.OffChainAPI.jws_serialize"><code class="name flex">
+<span>def <span class="ident">jws_serialize</span></span>(<span>self, resp: <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a>) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
+    return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.OffChainAPI.offchain_api"><code class="name flex">
+<span>def <span class="ident">offchain_api</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
+    cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
+    getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(cmd))(cmd)
+    return offchain.reply_request(cid=cmd.id())</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.testing.miniwallet.app" href="index.html">diem.testing.miniwallet.app</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="diem.testing.miniwallet.app.app.App" href="#diem.testing.miniwallet.app.app.App">App</a></code></h4>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.app.app.App.create_account" href="#diem.testing.miniwallet.app.app.App.create_account">create_account</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.App.create_account_payment" href="#diem.testing.miniwallet.app.app.App.create_account_payment">create_account_payment</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.App.create_account_payment_uri" href="#diem.testing.miniwallet.app.app.App.create_account_payment_uri">create_account_payment_uri</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.App.get_account_balances" href="#diem.testing.miniwallet.app.app.App.get_account_balances">get_account_balances</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.App.get_account_events" href="#diem.testing.miniwallet.app.app.App.get_account_events">get_account_events</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks" href="#diem.testing.miniwallet.app.app.BackgroundTasks">BackgroundTasks</a></code></h4>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks.start_sync" href="#diem.testing.miniwallet.app.app.BackgroundTasks.start_sync">start_sync</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.testing.miniwallet.app.app.Base" href="#diem.testing.miniwallet.app.app.Base">Base</a></code></h4>
+</li>
+<li>
+<h4><code><a title="diem.testing.miniwallet.app.app.OffChainAPI" href="#diem.testing.miniwallet.app.app.OffChainAPI">OffChainAPI</a></code></h4>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.app.app.OffChainAPI.jws_serialize" href="#diem.testing.miniwallet.app.app.OffChainAPI.jws_serialize">jws_serialize</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.OffChainAPI.offchain_api" href="#diem.testing.miniwallet.app.app.OffChainAPI.offchain_api">offchain_api</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

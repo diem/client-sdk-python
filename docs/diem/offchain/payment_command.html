@@ -120,6 +120,9 @@ class PaymentCommand(Command):
 
     # the followings are PaymentCommand specific methods
 
+    def my_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+        return identifier.decode_account_subaddress(self.my_actor_address, hrp)
+
     def validate_state_trigger_actor(self) -&gt; None:
         if self.inbound and self.opponent_actor() != self.state_trigger_actor():
             raise command_error(
@@ -339,6 +342,9 @@ class PaymentCommand(Command):
         return new_payment_request(self.payment, self.cid)
 
     # the followings are PaymentCommand specific methods
+
+    def my_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+        return identifier.decode_account_subaddress(self.my_actor_address, hrp)
 
     def validate_state_trigger_actor(self) -&gt; None:
         if self.inbound and self.opponent_actor() != self.state_trigger_actor():
@@ -693,6 +699,19 @@ def init(
 </summary>
 <pre><code class="python">def my_actor_obj(self) -&gt; PaymentActorObject:
     return self.payment.sender if self.is_sender() else self.payment.receiver</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.my_subaddress"><code class="name flex">
+<span>def <span class="ident">my_subaddress</span></span>(<span>self, hrp: str) ‑> Optional[bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def my_subaddress(self, hrp: str) -&gt; typing.Optional[bytes]:
+    return identifier.decode_account_subaddress(self.my_actor_address, hrp)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.payment_command.PaymentCommand.new_command"><code class="name flex">
@@ -1057,6 +1076,7 @@ def init(
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor_address" href="#diem.offchain.payment_command.PaymentCommand.my_actor_address">my_actor_address</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor_field_name" href="#diem.offchain.payment_command.PaymentCommand.my_actor_field_name">my_actor_field_name</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.my_actor_obj" href="#diem.offchain.payment_command.PaymentCommand.my_actor_obj">my_actor_obj</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.my_subaddress" href="#diem.offchain.payment_command.PaymentCommand.my_subaddress">my_subaddress</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.new_command" href="#diem.offchain.payment_command.PaymentCommand.new_command">new_command</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.new_request" href="#diem.offchain.payment_command.PaymentCommand.new_request">new_request</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.opponent_actor" href="#diem.offchain.payment_command.PaymentCommand.opponent_actor">opponent_actor</a></code></li>

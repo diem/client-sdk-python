@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>examples.refund API documentation</title>
+<title>diem.testing.cli API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>examples.refund</code></h1>
+<h1 class="title">Module <code>diem.testing.cli</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -27,132 +27,21 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python"># Copyright (c) The Diem Core Contributors
-# SPDX-License-Identifier: Apache-2.0
-
-from diem import (
-    identifier,
-    stdlib,
-    testnet,
-    txnmetadata,
-    utils,
-)
-
-from .stubs import CustodialApp
-
-
-def test_refund_transaction_of_custodial_to_custodial_under_threshold():
-    client = testnet.create_client()
-    faucet = testnet.Faucet(client)
-
-    sender_custodial = CustodialApp.create(faucet.gen_account(), client)
-    receiver_custodial = CustodialApp.create(faucet.gen_account(), client)
-
-    # create a payment transaction
-    intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
-    intent = identifier.decode_intent(intent_id, identifier.TDM)
-
-    receiver_address = utils.account_address(intent.account_address)
-    script = stdlib.encode_peer_to_peer_with_metadata_script(
-        currency=utils.currency_code(intent.currency_code),
-        payee=receiver_address,
-        amount=intent.amount,
-        metadata=txnmetadata.general_metadata(sender_custodial.find_user_sub_address_by_id(0), intent.sub_address),
-        metadata_signature=b&#34;&#34;,  # only travel rule metadata requires signature
-    )
-
-    sender = sender_custodial.available_child_vasp()
-    executed_txn = sender.submit_and_wait_for_txn(client, script)
-
-    # start to refund the transaction
-
-    # find the event for the receiver, a p2p transaction may contains multiple receivers
-    # in the future.
-    event = txnmetadata.find_refund_reference_event(executed_txn, receiver_address)
-    assert event is not None
-    amount = event.data.amount.amount
-    currency_code = event.data.amount.currency
-    refund_receiver_address = utils.account_address(event.data.sender)
-
-    metadata = txnmetadata.refund_metadata_from_event(event)
-    refund_txn_script = stdlib.encode_peer_to_peer_with_metadata_script(
-        currency=utils.currency_code(currency_code),
-        payee=refund_receiver_address,
-        amount=amount,
-        metadata=metadata,
-        metadata_signature=b&#34;&#34;,  # only travel rule metadata requires signature
-    )
-
-    # receiver is sender of refund txn
-    sender = receiver_custodial.available_child_vasp()
-    refund_executed_txn = sender.submit_and_wait_for_txn(client, refund_txn_script)
-    assert refund_executed_txn is not None</code></pre>
+# SPDX-License-Identifier: Apache-2.0</code></pre>
 </details>
 </section>
 <section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-functions">Functions</h2>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt id="examples.refund.test_refund_transaction_of_custodial_to_custodial_under_threshold"><code class="name flex">
-<span>def <span class="ident">test_refund_transaction_of_custodial_to_custodial_under_threshold</span></span>(<span>)</span>
-</code></dt>
+<dt><code class="name"><a title="diem.testing.cli.click" href="click.html">diem.testing.cli.click</a></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_refund_transaction_of_custodial_to_custodial_under_threshold():
-    client = testnet.create_client()
-    faucet = testnet.Faucet(client)
-
-    sender_custodial = CustodialApp.create(faucet.gen_account(), client)
-    receiver_custodial = CustodialApp.create(faucet.gen_account(), client)
-
-    # create a payment transaction
-    intent_id = receiver_custodial.payment(user_id=0, amount=1_000_000)
-    intent = identifier.decode_intent(intent_id, identifier.TDM)
-
-    receiver_address = utils.account_address(intent.account_address)
-    script = stdlib.encode_peer_to_peer_with_metadata_script(
-        currency=utils.currency_code(intent.currency_code),
-        payee=receiver_address,
-        amount=intent.amount,
-        metadata=txnmetadata.general_metadata(sender_custodial.find_user_sub_address_by_id(0), intent.sub_address),
-        metadata_signature=b&#34;&#34;,  # only travel rule metadata requires signature
-    )
-
-    sender = sender_custodial.available_child_vasp()
-    executed_txn = sender.submit_and_wait_for_txn(client, script)
-
-    # start to refund the transaction
-
-    # find the event for the receiver, a p2p transaction may contains multiple receivers
-    # in the future.
-    event = txnmetadata.find_refund_reference_event(executed_txn, receiver_address)
-    assert event is not None
-    amount = event.data.amount.amount
-    currency_code = event.data.amount.currency
-    refund_receiver_address = utils.account_address(event.data.sender)
-
-    metadata = txnmetadata.refund_metadata_from_event(event)
-    refund_txn_script = stdlib.encode_peer_to_peer_with_metadata_script(
-        currency=utils.currency_code(currency_code),
-        payee=refund_receiver_address,
-        amount=amount,
-        metadata=metadata,
-        metadata_signature=b&#34;&#34;,  # only travel rule metadata requires signature
-    )
-
-    # receiver is sender of refund txn
-    sender = receiver_custodial.available_child_vasp()
-    refund_executed_txn = sender.submit_and_wait_for_txn(client, refund_txn_script)
-    assert refund_executed_txn is not None</code></pre>
-</details>
 </dd>
 </dl>
+</section>
+<section>
+</section>
+<section>
 </section>
 <section>
 </section>
@@ -165,12 +54,12 @@ def test_refund_transaction_of_custodial_to_custodial_under_threshold():
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="examples" href="index.html">examples</a></code></li>
+<li><code><a title="diem.testing" href="../index.html">diem.testing</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="examples.refund.test_refund_transaction_of_custodial_to_custodial_under_threshold" href="#examples.refund.test_refund_transaction_of_custodial_to_custodial_under_threshold">test_refund_transaction_of_custodial_to_custodial_under_threshold</a></code></li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="diem.testing.cli.click" href="click.html">diem.testing.cli.click</a></code></li>
 </ul>
 </li>
 </ul>

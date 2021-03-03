@@ -266,7 +266,7 @@ def test_written_once_payment_original_payment_reference_id_initial_only(sender_
     )
 
 
-def test_update_opponent_actor_field_error(sender_app, receiver_app):
+def test_update_counterparty_actor_field_error(sender_app, receiver_app):
     assert_invalid_overwrite_error(
         sender_app,
         receiver_app,

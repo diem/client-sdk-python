@@ -221,7 +221,7 @@ class BackgroundTasks(OffChainAPI):
                 self.store.update(cmd, process_error=str(e))
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
-        op_kyc_data = cmd.opponent_actor_obj().kyc_data
+        op_kyc_data = cmd.counterparty_actor_obj().kyc_data
         if op_kyc_data is None or self.kyc_sample.match_kyc_data("reject", op_kyc_data):
             return self._new_reject_kyc_data(cmd, "KYC data is rejected")
         elif self.kyc_sample.match_any_kyc_data(["soft_match", "soft_reject"], op_kyc_data):
@@ -232,7 +232,7 @@ class BackgroundTasks(OffChainAPI):
         return cmd.new_command(additional_kyc_data="{%r: %r}" % ("account_id", account_id))
 
     def _offchain_action_review_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
-        op_kyc_data = cmd.opponent_actor_obj().kyc_data
+        op_kyc_data = cmd.counterparty_actor_obj().kyc_data
         if op_kyc_data is None or self.kyc_sample.match_kyc_data("soft_reject", op_kyc_data):
             return self._new_reject_kyc_data(cmd, "KYC data review result is reject")
         return self._ready_for_settlement(account_id, cmd)

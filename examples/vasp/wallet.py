@@ -226,7 +226,7 @@ class WalletApp:
 
     def _evaluate_kyc_data(self, command: offchain.Command) -> typing.Tuple[ActionResultType, offchain.Command]:
         command = typing.cast(offchain.PaymentCommand, command)
-        op_kyc_data = command.opponent_actor_obj().kyc_data
+        op_kyc_data = command.counterparty_actor_obj().kyc_data
         assert op_kyc_data is not None
         ret = self.evaluate_kyc_data_result.get(str(op_kyc_data.given_name), ActionResult.PASS)
 
@@ -236,7 +236,7 @@ class WalletApp:
 
     def _manual_review(self, command: offchain.Command) -> typing.Tuple[ActionResultType, offchain.Command]:
         command = typing.cast(offchain.PaymentCommand, command)
-        op_kyc_data = command.opponent_actor_obj().kyc_data
+        op_kyc_data = command.counterparty_actor_obj().kyc_data
         assert op_kyc_data is not None
         ret = self.manual_review_result.get(str(op_kyc_data.given_name), ActionResult.PASS)
         return (ret, self._kyc_data_result("review", ret, command))

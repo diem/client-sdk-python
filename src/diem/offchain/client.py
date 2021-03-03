@@ -109,14 +109,14 @@ class Client:
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
         return self.send_request(
             request_sender_address=command.my_address(),
-            opponent_account_id=command.opponent_address(),
+            counterparty_account_id=command.counterparty_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 
     def send_request(
-        self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+        self, request_sender_address: str, counterparty_account_id: str, request_bytes: bytes
     ) -> CommandResponseObject:
-        base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+        base_url, public_key = self.get_base_url_and_compliance_key(counterparty_account_id)
         response = self.session.post(
             f"{base_url.rstrip('/')}/v2/command",
             data=request_bytes,

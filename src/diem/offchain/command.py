@@ -40,6 +40,6 @@ class Command(ABC):
         ...
 
     @abstractmethod
-    def opponent_address(self) -> str:
-        """Returns the opponent account identifier that receives the command request"""
+    def counterparty_address(self) -> str:
+        """Returns the counterparty account identifier that receives the command request"""
         ...

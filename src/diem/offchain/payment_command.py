@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-import typing, dataclasses, uuid
+import typing, dataclasses, uuid, warnings
 
 from .types import (
     CommandRequestObject,
@@ -85,7 +85,11 @@ class PaymentCommand(Command):
         return self.my_actor_address
 
     def opponent_address(self) -> str:
-        return self.opponent_actor_obj().address
+        warnings.warn("`opponent_address` is deprecated, use `counterparty_address`")
+        return self.counterparty_address()
+
+    def counterparty_address(self) -> str:
+        return self.counterparty_actor_obj().address
 
     def new_request(self) -> CommandRequestObject:
         return new_payment_request(self.payment, self.cid)
@@ -96,9 +100,9 @@ class PaymentCommand(Command):
         return identifier.decode_account_subaddress(self.my_actor_address, hrp)
 
     def validate_state_trigger_actor(self) -> None:
-        if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+        if self.inbound and self.counterparty_actor() != self.state_trigger_actor():
             raise command_error(
-                ErrorCode.invalid_command_producer, f"{self.opponent_actor()} should not produce {self}"
+                ErrorCode.invalid_command_producer, f"{self.counterparty_actor()} should not produce {self}"
             )
 
     def validate_actor_object(self, prior: "PaymentCommand") -> None:
@@ -161,12 +165,20 @@ class PaymentCommand(Command):
         return self.payment.sender if self.is_sender() else self.payment.receiver
 
     def opponent_actor_obj(self) -> PaymentActorObject:
+        warnings.warn("`opponent_actor_obj` is deprecated, use `counterparty_actor_obj`")
+        return self.counterparty_actor_obj()
+
+    def counterparty_actor_obj(self) -> PaymentActorObject:
         return self.payment.receiver if self.is_sender() else self.payment.sender
 
     def my_actor(self) -> Actor:
         return Actor.SENDER if self.is_sender() else Actor.RECEIVER
 
     def opponent_actor(self) -> Actor:
+        warnings.warn("`opponent_actor` is deprecated, use `counterparty_actor`")
+        return self.counterparty_actor()
+
+    def counterparty_actor(self) -> Actor:
         return Actor.RECEIVER if self.is_sender() else Actor.SENDER
 
     def my_actor_field_name(self) -> str:

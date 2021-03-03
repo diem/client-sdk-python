@@ -81,7 +81,7 @@ class AccountResource:
     kyc_data: str
 
     def balance(self, currency: str) -> int:
-        return self.balances().get(currency, 0)
+        return self._balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -> Payment:
         p = self.client.create(self._resources("payment"), payee=payee, currency=currency, amount=amount)
@@ -89,9 +89,6 @@ class AccountResource:
 
     def create_payment_uri(self) -> PaymentUri:
         return PaymentUri(**self.client.create(self._resources("payment_uri")))
-
-    def balances(self) -> Dict[str, int]:
-        return self.client.get(self._resources("balance"))
 
     def events(self, start: int = 0) -> List[Event]:
         ret = self.client.send("GET", self._resources("event")).json()
@@ -137,6 +134,15 @@ class AccountResource:
 
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.client.logger.info(*args, **kwargs)
+
+    def _balances(self) -> Dict[str, int]:
+        """returns account balances object
+
+        should always prefer to use func `balance(currency) -> int`, which returns zero
+        when currency not exist in the response.
+        """
+
+        return self.client.get(self._resources("balance"))
 
     def _resources(self, resource: str) -> str:
         return "/accounts/%s/%ss" % (self.id, resource)

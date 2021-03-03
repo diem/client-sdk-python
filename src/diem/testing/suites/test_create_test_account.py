@@ -3,14 +3,15 @@
 
 from diem import offchain
 from diem.testing.miniwallet import RestClient
-import pytest, requests, json
+import pytest
 
 
 def test_create_a_blank_account(target_client: RestClient) -> None:
     account = target_client.create_account()
     assert account.id
     assert account.kyc_data is None
-    assert account.balances() == {}
+    assert account.balance("XUS") == 0
+    assert account.balance("XDX") == 0
 
 
 @pytest.mark.parametrize("amount", [0, 1, 100, 10000000000])
@@ -19,7 +20,7 @@ def test_create_an_account_with_initial_deposit_balances(target_client: RestClie
     account = target_client.create_account(kyc_data=None, balances={currency: amount})
     assert account.id
     assert account.kyc_data is None
-    assert account.balances() == {currency: amount}
+    assert account.balance(currency) == amount
 
 
 @pytest.mark.parametrize(  # pyre-ignore
@@ -42,39 +43,6 @@ def test_create_an_account_with_valid_kyc_data_and_initial_deposit_balances(
     account = target_client.create_account(kyc_data=minimum_kyc_data, balances={currency: 123})
     assert account.id
     assert account.kyc_data == minimum_kyc_data
-
-
-@pytest.mark.parametrize(
-    "kyc_data",
-    [
-        "invalid json",
-        '{"type": "individual"}',
-        '{"type": "entity"}',
-        '{"payload_version": 1}',
-        '{"type": "individual", "payload_version": "1"}',
-    ],
-)
-def test_create_an_account_with_invalid_kyc_data(target_client: RestClient, kyc_data: str) -> None:
-    with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error"):
-        target_client.create("/accounts", kyc_data=kyc_data)
-
-
-@pytest.mark.parametrize(
-    "balances",
-    [
-        '{"XUS": -1}',
-        '{"DDD": 100}',
-        '{"XUS": 100, "DDD": 100}',
-        '{"XUS": 100, "DDD": -1}',
-        '{"XUS": "100"}',
-        '{"currency": "XUS", "amount": 123}',
-    ],
-)
-def test_create_an_account_with_invalid_initial_deposit_balance_currency(
-    target_client: RestClient, balances: str
-) -> None:
-    with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error"):
-        target_client.create("/accounts", balances=json.loads(balances))
 
 
 def test_account_id_should_be_unique(target_client: RestClient) -> None:

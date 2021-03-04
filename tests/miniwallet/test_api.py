@@ -31,6 +31,7 @@ def test_create_an_account_with_invalid_kyc_data(target_client: RestClient, kyc_
         ('{"XUS": 100, "DDD": -1}', "'currency' is invalid"),
         ('{"XUS": "100"}', "'amount' type must be 'int'"),
         ('{"currency": "XUS", "amount": 123}', "'currency' is invalid"),
+        ('{"XUS": 23423423423432423434234234324233423}', "'amount' value is too big"),
     ],
 )
 def test_create_an_account_with_invalid_initial_deposit_balance_currency(

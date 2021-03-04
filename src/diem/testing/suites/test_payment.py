@@ -26,7 +26,7 @@ def test_payment_under_threshold_succeed(
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
     assert send_payment.currency == currency
     assert send_payment.amount == amount
@@ -130,7 +130,7 @@ def test_payment_meets_travel_rule_threshold(
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
     assert send_payment.currency == currency
     assert send_payment.amount == amount

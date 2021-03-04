@@ -7,18 +7,9 @@ from .clients import Clients
 import pytest, requests, time, json
 
 
-def test_create_account_payment_uri(target_client: RestClient, hrp: str) -> None:
-    account = target_client.create_account()
-    ret = account.create_payment_uri()
-    assert ret.account_id == account.id
-    intent = ret.intent(hrp)
-    assert intent.account_address
-    assert intent.subaddress
-
-
 def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -> None:
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     amount = 1234
     sender = clients.stub.create_account(balances={currency: amount})
@@ -49,7 +40,7 @@ def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -> N
 
 def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -> None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     index = len(receiver.events())
     amount = 1234
@@ -71,7 +62,7 @@ def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -
 
 def test_receive_multiple_payments(clients: Clients, hrp: str, currency: str) -> None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     index = len(receiver.events())
     amount = 1234
@@ -117,7 +108,7 @@ def test_return_client_error_if_send_payment_more_than_account_balance(
     clients: Clients, currency: str, hrp: str
 ) -> None:
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: 100})
 
     index = len(sender.events())
@@ -134,7 +125,7 @@ def test_send_payment_meets_travel_rule_limit(
 ) -> None:
     amount = travel_rule_threshold
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount}, kyc_data=clients.stub.new_kyc_data())
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
 
@@ -148,7 +139,7 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
 ) -> None:
     amount = travel_rule_threshold
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount}, kyc_data=clients.target.new_reject_kyc_data())
     # payment should be rejected during offchain kyc data exchange
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
@@ -172,7 +163,7 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
 )
 def test_internal_transfer(clients: Clients, currency: str, amount: int, hrp: str) -> None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount})
 
     index = len(sender.events())
@@ -209,7 +200,7 @@ def test_create_account_event(target_client: RestClient, currency: str) -> None:
 def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) -> None:
     account = target_client.create_account()
     index = len(account.events())
-    ret = account.create_payment_uri()
+    ret = account.generate_payment_uri()
     assert ret
     assert len(account.events(index)) == 1
     assert account.events(index)[0].type == "created_payment_uri"

@@ -11,7 +11,7 @@ from .event_puller import EventPuller
 from .json_input import JsonInput
 from .... import jsonrpc, offchain, utils, LocalAccount, identifier
 from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
-import threading, logging, os
+import threading, logging, os, numpy
 
 
 class Base:
@@ -46,6 +46,10 @@ class Base:
     def _validate_amount(self, name: str, val: int) -> None:
         if val < 0:
             raise ValueError("%r value must be greater than or equal to zero" % name)
+        try:
+            numpy.uint64(val)
+        except OverflowError:
+            raise ValueError("%r value is too big" % name)
 
     def _validate_account_balance(self, txn: Dict[str, Any]) -> None:
         if txn.get("payee"):
@@ -272,7 +276,7 @@ class App(BackgroundTasks):
 
     def create_account_payment_uri(self, account_id: str, data: JsonInput) -> PaymentUri:
         currency = data.get_nullable("currency", str, self._validate_currency_code)
-        amount = data.get_nullable("amount", int)
+        amount = data.get_nullable("amount", int, self._validate_amount)
         self.store.find(Account, id=account_id)
         sub = self._gen_subaddress()
         diem_acc_id = self.diem_account.account.account_identifier(sub)

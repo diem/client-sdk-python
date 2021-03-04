@@ -30,11 +30,29 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from ... import testnet
+from ... import testnet, jsonrpc
 from ..miniwallet import RestClient, AppConfig
 from .clients import Clients
 from .envs import target_url, is_self_check, should_test_debug_api
 import pytest
+
+
+@pytest.fixture(scope=&#34;package&#34;)
+def target_client(diem_client: jsonrpc.Client) -&gt; RestClient:
+    if is_self_check():
+        conf = AppConfig(name=&#34;target-wallet&#34;, enable_debug_api=should_test_debug_api())
+        print(&#34;self-checking, launch target app with config %s&#34; % conf)
+        conf.start(diem_client)
+        return conf.create_client()
+    print(&#34;target wallet server url: %s&#34; % target_url())
+    return RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url()).with_retry()
+
+
+@pytest.fixture(scope=&#34;package&#34;)
+def diem_client() -&gt; jsonrpc.Client:
+    print(&#34;Diem JSON-RPC URL: %s&#34; % testnet.JSON_RPC_URL)
+    print(&#34;Diem Testnet Faucet URL: %s&#34; % testnet.FAUCET_URL)
+    return testnet.create_client()
 
 
 @pytest.fixture(scope=&#34;package&#34;)
@@ -43,32 +61,19 @@ def stub_config() -&gt; AppConfig:
 
 
 @pytest.fixture(scope=&#34;package&#34;)
-def clients(stub_config: AppConfig) -&gt; Clients:
-    print(&#34;Diem JSON-RPC URL: %s&#34; % testnet.JSON_RPC_URL)
-    print(&#34;Diem Testnet Faucet URL: %s&#34; % testnet.FAUCET_URL)
+def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestClient:
     print(&#34;Start stub app with config %s&#34; % stub_config)
-    diem_client = testnet.create_client()
     stub_config.start(diem_client)
-
-    if is_self_check():
-        conf = AppConfig(name=&#34;target-wallet&#34;, enable_debug_api=should_test_debug_api())
-        print(&#34;self-checking, launch target app with config %s&#34; % conf)
-        conf.start(diem_client)
-        target_client = conf.create_client()
-    else:
-        print(&#34;target wallet server url: %s&#34; % target_url())
-        target_client = RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url()).with_retry()
-
-    return Clients(
-        target=target_client,
-        stub=stub_config.create_client(),
-        diem=diem_client,
-    )
+    return stub_config.create_client()
 
 
 @pytest.fixture(scope=&#34;package&#34;)
-def target_client(clients: Clients) -&gt; RestClient:
-    return clients.target
+def clients(stub_client: RestClient, target_client: RestClient, diem_client: jsonrpc.Client) -&gt; Clients:
+    return Clients(
+        target=target_client,
+        stub=stub_client,
+        diem=diem_client,
+    )
 
 
 @pytest.fixture
@@ -95,7 +100,7 @@ def travel_rule_threshold(clients: Clients) -&gt; int:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="diem.testing.suites.conftest.clients"><code class="name flex">
-<span>def <span class="ident">clients</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>) ‑> <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a></span>
+<span>def <span class="ident">clients</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -104,25 +109,10 @@ def travel_rule_threshold(clients: Clients) -&gt; int:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
-def clients(stub_config: AppConfig) -&gt; Clients:
-    print(&#34;Diem JSON-RPC URL: %s&#34; % testnet.JSON_RPC_URL)
-    print(&#34;Diem Testnet Faucet URL: %s&#34; % testnet.FAUCET_URL)
-    print(&#34;Start stub app with config %s&#34; % stub_config)
-    diem_client = testnet.create_client()
-    stub_config.start(diem_client)
-
-    if is_self_check():
-        conf = AppConfig(name=&#34;target-wallet&#34;, enable_debug_api=should_test_debug_api())
-        print(&#34;self-checking, launch target app with config %s&#34; % conf)
-        conf.start(diem_client)
-        target_client = conf.create_client()
-    else:
-        print(&#34;target wallet server url: %s&#34; % target_url())
-        target_client = RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url()).with_retry()
-
+def clients(stub_client: RestClient, target_client: RestClient, diem_client: jsonrpc.Client) -&gt; Clients:
     return Clients(
         target=target_client,
-        stub=stub_config.create_client(),
+        stub=stub_client,
         diem=diem_client,
     )</code></pre>
 </details>
@@ -141,6 +131,22 @@ def currency() -&gt; str:
     return testnet.TEST_CURRENCY_CODE</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.suites.conftest.diem_client"><code class="name flex">
+<span>def <span class="ident">diem_client</span></span>(<span>) ‑> <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
+def diem_client() -&gt; jsonrpc.Client:
+    print(&#34;Diem JSON-RPC URL: %s&#34; % testnet.JSON_RPC_URL)
+    print(&#34;Diem Testnet Faucet URL: %s&#34; % testnet.FAUCET_URL)
+    return testnet.create_client()</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.suites.conftest.hrp"><code class="name flex">
 <span>def <span class="ident">hrp</span></span>(<span>) ‑> str</span>
 </code></dt>
@@ -153,6 +159,22 @@ def currency() -&gt; str:
 <pre><code class="python">@pytest.fixture
 def hrp() -&gt; str:
     return testnet.HRP</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.conftest.stub_client"><code class="name flex">
+<span>def <span class="ident">stub_client</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
+def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestClient:
+    print(&#34;Start stub app with config %s&#34; % stub_config)
+    stub_config.start(diem_client)
+    return stub_config.create_client()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.stub_config"><code class="name flex">
@@ -170,7 +192,7 @@ def stub_config() -&gt; AppConfig:
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.target_client"><code class="name flex">
-<span>def <span class="ident">target_client</span></span>(<span>clients: <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a>) ‑> <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a></span>
+<span>def <span class="ident">target_client</span></span>(<span>diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -179,8 +201,14 @@ def stub_config() -&gt; AppConfig:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
-def target_client(clients: Clients) -&gt; RestClient:
-    return clients.target</code></pre>
+def target_client(diem_client: jsonrpc.Client) -&gt; RestClient:
+    if is_self_check():
+        conf = AppConfig(name=&#34;target-wallet&#34;, enable_debug_api=should_test_debug_api())
+        print(&#34;self-checking, launch target app with config %s&#34; % conf)
+        conf.start(diem_client)
+        return conf.create_client()
+    print(&#34;target wallet server url: %s&#34; % target_url())
+    return RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url()).with_retry()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.travel_rule_threshold"><code class="name flex">
@@ -218,7 +246,9 @@ def travel_rule_threshold(clients: Clients) -&gt; int:
 <ul class="">
 <li><code><a title="diem.testing.suites.conftest.clients" href="#diem.testing.suites.conftest.clients">clients</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.currency" href="#diem.testing.suites.conftest.currency">currency</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.diem_client" href="#diem.testing.suites.conftest.diem_client">diem_client</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.hrp" href="#diem.testing.suites.conftest.hrp">hrp</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.stub_client" href="#diem.testing.suites.conftest.stub_client">stub_client</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.stub_config" href="#diem.testing.suites.conftest.stub_config">stub_config</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.target_client" href="#diem.testing.suites.conftest.target_client">target_client</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.travel_rule_threshold" href="#diem.testing.suites.conftest.travel_rule_threshold">travel_rule_threshold</a></code></li>

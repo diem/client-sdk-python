@@ -29,7 +29,7 @@
 <pre><code class="python"># Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-import typing, dataclasses, uuid
+import typing, dataclasses, uuid, warnings
 
 from .types import (
     CommandRequestObject,
@@ -113,7 +113,11 @@ class PaymentCommand(Command):
         return self.my_actor_address
 
     def opponent_address(self) -&gt; str:
-        return self.opponent_actor_obj().address
+        warnings.warn(&#34;`opponent_address` is deprecated, use `counterparty_address`&#34;)
+        return self.counterparty_address()
+
+    def counterparty_address(self) -&gt; str:
+        return self.counterparty_actor_obj().address
 
     def new_request(self) -&gt; CommandRequestObject:
         return new_payment_request(self.payment, self.cid)
@@ -124,9 +128,9 @@ class PaymentCommand(Command):
         return identifier.decode_account_subaddress(self.my_actor_address, hrp)
 
     def validate_state_trigger_actor(self) -&gt; None:
-        if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+        if self.inbound and self.counterparty_actor() != self.state_trigger_actor():
             raise command_error(
-                ErrorCode.invalid_command_producer, f&#34;{self.opponent_actor()} should not produce {self}&#34;
+                ErrorCode.invalid_command_producer, f&#34;{self.counterparty_actor()} should not produce {self}&#34;
             )
 
     def validate_actor_object(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
@@ -189,12 +193,20 @@ class PaymentCommand(Command):
         return self.payment.sender if self.is_sender() else self.payment.receiver
 
     def opponent_actor_obj(self) -&gt; PaymentActorObject:
+        warnings.warn(&#34;`opponent_actor_obj` is deprecated, use `counterparty_actor_obj`&#34;)
+        return self.counterparty_actor_obj()
+
+    def counterparty_actor_obj(self) -&gt; PaymentActorObject:
         return self.payment.receiver if self.is_sender() else self.payment.sender
 
     def my_actor(self) -&gt; Actor:
         return Actor.SENDER if self.is_sender() else Actor.RECEIVER
 
     def opponent_actor(self) -&gt; Actor:
+        warnings.warn(&#34;`opponent_actor` is deprecated, use `counterparty_actor`&#34;)
+        return self.counterparty_actor()
+
+    def counterparty_actor(self) -&gt; Actor:
         return Actor.RECEIVER if self.is_sender() else Actor.SENDER
 
     def my_actor_field_name(self) -&gt; str:
@@ -336,7 +348,11 @@ class PaymentCommand(Command):
         return self.my_actor_address
 
     def opponent_address(self) -&gt; str:
-        return self.opponent_actor_obj().address
+        warnings.warn(&#34;`opponent_address` is deprecated, use `counterparty_address`&#34;)
+        return self.counterparty_address()
+
+    def counterparty_address(self) -&gt; str:
+        return self.counterparty_actor_obj().address
 
     def new_request(self) -&gt; CommandRequestObject:
         return new_payment_request(self.payment, self.cid)
@@ -347,9 +363,9 @@ class PaymentCommand(Command):
         return identifier.decode_account_subaddress(self.my_actor_address, hrp)
 
     def validate_state_trigger_actor(self) -&gt; None:
-        if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+        if self.inbound and self.counterparty_actor() != self.state_trigger_actor():
             raise command_error(
-                ErrorCode.invalid_command_producer, f&#34;{self.opponent_actor()} should not produce {self}&#34;
+                ErrorCode.invalid_command_producer, f&#34;{self.counterparty_actor()} should not produce {self}&#34;
             )
 
     def validate_actor_object(self, prior: &#34;PaymentCommand&#34;) -&gt; None:
@@ -412,12 +428,20 @@ class PaymentCommand(Command):
         return self.payment.sender if self.is_sender() else self.payment.receiver
 
     def opponent_actor_obj(self) -&gt; PaymentActorObject:
+        warnings.warn(&#34;`opponent_actor_obj` is deprecated, use `counterparty_actor_obj`&#34;)
+        return self.counterparty_actor_obj()
+
+    def counterparty_actor_obj(self) -&gt; PaymentActorObject:
         return self.payment.receiver if self.is_sender() else self.payment.sender
 
     def my_actor(self) -&gt; Actor:
         return Actor.SENDER if self.is_sender() else Actor.RECEIVER
 
     def opponent_actor(self) -&gt; Actor:
+        warnings.warn(&#34;`opponent_actor` is deprecated, use `counterparty_actor`&#34;)
+        return self.counterparty_actor()
+
+    def counterparty_actor(self) -&gt; Actor:
         return Actor.RECEIVER if self.is_sender() else Actor.SENDER
 
     def my_actor_field_name(self) -&gt; str:
@@ -542,6 +566,32 @@ def init(
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="diem.offchain.payment_command.PaymentCommand.counterparty_actor"><code class="name flex">
+<span>def <span class="ident">counterparty_actor</span></span>(<span>self) ‑> <a title="diem.offchain.payment_state.Actor" href="payment_state.html#diem.offchain.payment_state.Actor">Actor</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def counterparty_actor(self) -&gt; Actor:
+    return Actor.RECEIVER if self.is_sender() else Actor.SENDER</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.counterparty_actor_obj"><code class="name flex">
+<span>def <span class="ident">counterparty_actor_obj</span></span>(<span>self) ‑> <a title="diem.offchain.types.payment_types.PaymentActorObject" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentActorObject">PaymentActorObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def counterparty_actor_obj(self) -&gt; PaymentActorObject:
+    return self.payment.receiver if self.is_sender() else self.payment.sender</code></pre>
+</details>
+</dd>
 <dt id="diem.offchain.payment_command.PaymentCommand.follow_up_action"><code class="name flex">
 <span>def <span class="ident">follow_up_action</span></span>(<span>self) ‑> Optional[<a title="diem.offchain.action.Action" href="action.html#diem.offchain.action.Action">Action</a>]</span>
 </code></dt>
@@ -774,7 +824,8 @@ def init(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def opponent_actor(self) -&gt; Actor:
-    return Actor.RECEIVER if self.is_sender() else Actor.SENDER</code></pre>
+    warnings.warn(&#34;`opponent_actor` is deprecated, use `counterparty_actor`&#34;)
+    return self.counterparty_actor()</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.payment_command.PaymentCommand.opponent_actor_obj"><code class="name flex">
@@ -787,7 +838,22 @@ def init(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def opponent_actor_obj(self) -&gt; PaymentActorObject:
-    return self.payment.receiver if self.is_sender() else self.payment.sender</code></pre>
+    warnings.warn(&#34;`opponent_actor_obj` is deprecated, use `counterparty_actor_obj`&#34;)
+    return self.counterparty_actor_obj()</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.payment_command.PaymentCommand.opponent_address"><code class="name flex">
+<span>def <span class="ident">opponent_address</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def opponent_address(self) -&gt; str:
+    warnings.warn(&#34;`opponent_address` is deprecated, use `counterparty_address`&#34;)
+    return self.counterparty_address()</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.payment_command.PaymentCommand.receiver_account_address"><code class="name flex">
@@ -996,9 +1062,9 @@ def init(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_state_trigger_actor(self) -&gt; None:
-    if self.inbound and self.opponent_actor() != self.state_trigger_actor():
+    if self.inbound and self.counterparty_actor() != self.state_trigger_actor():
         raise command_error(
-            ErrorCode.invalid_command_producer, f&#34;{self.opponent_actor()} should not produce {self}&#34;
+            ErrorCode.invalid_command_producer, f&#34;{self.counterparty_actor()} should not produce {self}&#34;
         )</code></pre>
 </details>
 </dd>
@@ -1034,9 +1100,9 @@ def init(
 <ul class="hlist">
 <li><code><b><a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></b></code>:
 <ul class="hlist">
+<li><code><a title="diem.offchain.command.Command.counterparty_address" href="command.html#diem.offchain.command.Command.counterparty_address">counterparty_address</a></code></li>
 <li><code><a title="diem.offchain.command.Command.id" href="command.html#diem.offchain.command.Command.id">id</a></code></li>
 <li><code><a title="diem.offchain.command.Command.my_address" href="command.html#diem.offchain.command.Command.my_address">my_address</a></code></li>
-<li><code><a title="diem.offchain.command.Command.opponent_address" href="command.html#diem.offchain.command.Command.opponent_address">opponent_address</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1061,6 +1127,8 @@ def init(
 <h4><code><a title="diem.offchain.payment_command.PaymentCommand" href="#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></code></h4>
 <ul class="">
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.cid" href="#diem.offchain.payment_command.PaymentCommand.cid">cid</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.counterparty_actor" href="#diem.offchain.payment_command.PaymentCommand.counterparty_actor">counterparty_actor</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.counterparty_actor_obj" href="#diem.offchain.payment_command.PaymentCommand.counterparty_actor_obj">counterparty_actor_obj</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.follow_up_action" href="#diem.offchain.payment_command.PaymentCommand.follow_up_action">follow_up_action</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.inbound" href="#diem.offchain.payment_command.PaymentCommand.inbound">inbound</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.init" href="#diem.offchain.payment_command.PaymentCommand.init">init</a></code></li>
@@ -1081,6 +1149,7 @@ def init(
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.new_request" href="#diem.offchain.payment_command.PaymentCommand.new_request">new_request</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.opponent_actor" href="#diem.offchain.payment_command.PaymentCommand.opponent_actor">opponent_actor</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.opponent_actor_obj" href="#diem.offchain.payment_command.PaymentCommand.opponent_actor_obj">opponent_actor_obj</a></code></li>
+<li><code><a title="diem.offchain.payment_command.PaymentCommand.opponent_address" href="#diem.offchain.payment_command.PaymentCommand.opponent_address">opponent_address</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.payment" href="#diem.offchain.payment_command.PaymentCommand.payment">payment</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.receiver_account_address" href="#diem.offchain.payment_command.PaymentCommand.receiver_account_address">receiver_account_address</a></code></li>
 <li><code><a title="diem.offchain.payment_command.PaymentCommand.receiver_subaddress" href="#diem.offchain.payment_command.PaymentCommand.receiver_subaddress">receiver_subaddress</a></code></li>

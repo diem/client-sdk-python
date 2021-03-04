@@ -30,61 +30,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import Account, Transaction, RestClient
-from typing import Optional, Dict, Any, Union
 from .envs import should_test_debug_api, is_self_check
 from .clients import Clients
 import pytest, requests, time, json
-
-
-def test_create_account_resource_without_balance(target_client: RestClient) -&gt; None:
-    account = target_client.create_account()
-    assert account.balances() == {}
-
-
-def test_create_account_with_kyc_data_and_balances(target_client: RestClient, currency: str) -&gt; None:
-    kyc_data = target_client.new_kyc_data()
-    account = target_client.create_account(kyc_data=kyc_data, balances={currency: 100})
-    assert account.id
-    assert account.kyc_data == kyc_data
-    assert account.balances() == {currency: 100}
-    assert account.balance(currency) == 100
-
-
-@pytest.mark.parametrize(  # pyre-ignore
-    &#34;err_msg, kyc_data&#34;,
-    [
-        (&#34;&#39;kyc_data&#39; must be JSON-encoded KycDataObject&#34;, &#34;invalid json&#34;),
-        (&#34;&#39;kyc_data&#39; must be JSON-encoded KycDataObject&#34;, &#34;{}&#34;),
-        (&#34;&#39;kyc_data&#39; type must be &#39;str&#39;&#34;, {}),
-    ],
-)
-def test_create_account_with_invalid_kyc_data(
-    target_client: RestClient, currency: str, err_msg: str, kyc_data: Union[str, Dict[str, Any]]
-) -&gt; None:
-    with pytest.raises(requests.exceptions.HTTPError, match=&#34;400 Client Error&#34;) as einfo:
-        target_client.create(&#34;/accounts&#34;, kyc_data=kyc_data)
-    if is_self_check():
-        assert err_msg in einfo.value.response.text
-
-
-@pytest.mark.parametrize(
-    &#34;err_msg, balances&#34;,
-    [
-        (&#34;&#39;currency&#39; is invalid&#34;, {&#34;invalid&#34;: 11}),
-        (&#34;&#39;currency&#39; is invalid&#34;, {22: 11}),
-        (&#34;&#39;amount&#39; value must be greater than or equal to zero&#34;, {&#34;XUS&#34;: -11}),
-        (&#34;&#39;amount&#39; type must be &#39;int&#39;&#34;, {&#34;XUS&#34;: &#34;11&#34;}),
-    ],
-)
-def test_create_account_with_invalid_balances(
-    target_client: RestClient, currency: str, err_msg: str, balances: Optional[Dict[str, int]]
-) -&gt; None:
-    kyc_data = target_client.new_kyc_data()
-
-    with pytest.raises(requests.exceptions.HTTPError, match=&#34;400 Client Error&#34;) as einfo:
-        target_client.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
-    if is_self_check():
-        assert err_msg in einfo.value.response.text
 
 
 def test_create_account_payment_uri(target_client: RestClient, hrp: str) -&gt; None:
@@ -399,93 +347,6 @@ def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) 
     assert account.events(index)[0].type == &#34;created_payment_uri&#34;</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_miniwallet_api.test_create_account_resource_without_balance"><code class="name flex">
-<span>def <span class="ident">test_create_account_resource_without_balance</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_create_account_resource_without_balance(target_client: RestClient) -&gt; None:
-    account = target_client.create_account()
-    assert account.balances() == {}</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.suites.test_miniwallet_api.test_create_account_with_invalid_balances"><code class="name flex">
-<span>def <span class="ident">test_create_account_with_invalid_balances</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, err_msg: str, balances: Optional[Dict[str, int]]) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@pytest.mark.parametrize(
-    &#34;err_msg, balances&#34;,
-    [
-        (&#34;&#39;currency&#39; is invalid&#34;, {&#34;invalid&#34;: 11}),
-        (&#34;&#39;currency&#39; is invalid&#34;, {22: 11}),
-        (&#34;&#39;amount&#39; value must be greater than or equal to zero&#34;, {&#34;XUS&#34;: -11}),
-        (&#34;&#39;amount&#39; type must be &#39;int&#39;&#34;, {&#34;XUS&#34;: &#34;11&#34;}),
-    ],
-)
-def test_create_account_with_invalid_balances(
-    target_client: RestClient, currency: str, err_msg: str, balances: Optional[Dict[str, int]]
-) -&gt; None:
-    kyc_data = target_client.new_kyc_data()
-
-    with pytest.raises(requests.exceptions.HTTPError, match=&#34;400 Client Error&#34;) as einfo:
-        target_client.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
-    if is_self_check():
-        assert err_msg in einfo.value.response.text</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.suites.test_miniwallet_api.test_create_account_with_invalid_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_create_account_with_invalid_kyc_data</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, err_msg: str, kyc_data: Union[str, Dict[str, Any]]) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@pytest.mark.parametrize(  # pyre-ignore
-    &#34;err_msg, kyc_data&#34;,
-    [
-        (&#34;&#39;kyc_data&#39; must be JSON-encoded KycDataObject&#34;, &#34;invalid json&#34;),
-        (&#34;&#39;kyc_data&#39; must be JSON-encoded KycDataObject&#34;, &#34;{}&#34;),
-        (&#34;&#39;kyc_data&#39; type must be &#39;str&#39;&#34;, {}),
-    ],
-)
-def test_create_account_with_invalid_kyc_data(
-    target_client: RestClient, currency: str, err_msg: str, kyc_data: Union[str, Dict[str, Any]]
-) -&gt; None:
-    with pytest.raises(requests.exceptions.HTTPError, match=&#34;400 Client Error&#34;) as einfo:
-        target_client.create(&#34;/accounts&#34;, kyc_data=kyc_data)
-    if is_self_check():
-        assert err_msg in einfo.value.response.text</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.suites.test_miniwallet_api.test_create_account_with_kyc_data_and_balances"><code class="name flex">
-<span>def <span class="ident">test_create_account_with_kyc_data_and_balances</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_create_account_with_kyc_data_and_balances(target_client: RestClient, currency: str) -&gt; None:
-    kyc_data = target_client.new_kyc_data()
-    account = target_client.create_account(kyc_data=kyc_data, balances={currency: 100})
-    assert account.id
-    assert account.kyc_data == kyc_data
-    assert account.balances() == {currency: 100}
-    assert account.balance(currency) == 100</code></pre>
-</details>
-</dd>
 <dt id="diem.testing.suites.test_miniwallet_api.test_internal_transfer"><code class="name flex">
 <span>def <span class="ident">test_internal_transfer</span></span>(<span>clients: <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a>, currency: str, amount: int, hrp: str) ‑> NoneType</span>
 </code></dt>
@@ -739,10 +600,6 @@ def test_send_payment_payee_is_invalid(clients: Clients, currency: str, invalid_
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_event" href="#diem.testing.suites.test_miniwallet_api.test_create_account_event">test_create_account_event</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri" href="#diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri">test_create_account_payment_uri</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri_events" href="#diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri_events">test_create_account_payment_uri_events</a></code></li>
-<li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_resource_without_balance" href="#diem.testing.suites.test_miniwallet_api.test_create_account_resource_without_balance">test_create_account_resource_without_balance</a></code></li>
-<li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_with_invalid_balances" href="#diem.testing.suites.test_miniwallet_api.test_create_account_with_invalid_balances">test_create_account_with_invalid_balances</a></code></li>
-<li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_with_invalid_kyc_data" href="#diem.testing.suites.test_miniwallet_api.test_create_account_with_invalid_kyc_data">test_create_account_with_invalid_kyc_data</a></code></li>
-<li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_with_kyc_data_and_balances" href="#diem.testing.suites.test_miniwallet_api.test_create_account_with_kyc_data_and_balances">test_create_account_with_kyc_data_and_balances</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_internal_transfer" href="#diem.testing.suites.test_miniwallet_api.test_internal_transfer">test_internal_transfer</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_openapi_spec" href="#diem.testing.suites.test_miniwallet_api.test_openapi_spec">test_openapi_spec</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_receive_multiple_payments" href="#diem.testing.suites.test_miniwallet_api.test_receive_multiple_payments">test_receive_multiple_payments</a></code></li>

@@ -137,14 +137,14 @@ class Client:
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
         return self.send_request(
             request_sender_address=command.my_address(),
-            opponent_account_id=command.opponent_address(),
+            counterparty_account_id=command.counterparty_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 
     def send_request(
-        self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+        self, request_sender_address: str, counterparty_account_id: str, request_bytes: bytes
     ) -&gt; CommandResponseObject:
-        base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+        base_url, public_key = self.get_base_url_and_compliance_key(counterparty_account_id)
         response = self.session.post(
             f&#34;{base_url.rstrip(&#39;/&#39;)}/v2/command&#34;,
             data=request_bytes,
@@ -444,14 +444,14 @@ class Client:
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
         return self.send_request(
             request_sender_address=command.my_address(),
-            opponent_account_id=command.opponent_address(),
+            counterparty_account_id=command.counterparty_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 
     def send_request(
-        self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+        self, request_sender_address: str, counterparty_account_id: str, request_bytes: bytes
     ) -&gt; CommandResponseObject:
-        base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+        base_url, public_key = self.get_base_url_and_compliance_key(counterparty_account_id)
         response = self.session.post(
             f&#34;{base_url.rstrip(&#39;/&#39;)}/v2/command&#34;,
             data=request_bytes,
@@ -815,13 +815,13 @@ class Client:
 <pre><code class="python">def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
     return self.send_request(
         request_sender_address=command.my_address(),
-        opponent_account_id=command.opponent_address(),
+        counterparty_account_id=command.counterparty_address(),
         request_bytes=jws.serialize(command.new_request(), sign),
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.client.Client.send_request"><code class="name flex">
-<span>def <span class="ident">send_request</span></span>(<span>self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+<span>def <span class="ident">send_request</span></span>(<span>self, request_sender_address: str, counterparty_account_id: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -830,9 +830,9 @@ class Client:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def send_request(
-    self, request_sender_address: str, opponent_account_id: str, request_bytes: bytes
+    self, request_sender_address: str, counterparty_account_id: str, request_bytes: bytes
 ) -&gt; CommandResponseObject:
-    base_url, public_key = self.get_base_url_and_compliance_key(opponent_account_id)
+    base_url, public_key = self.get_base_url_and_compliance_key(counterparty_account_id)
     response = self.session.post(
         f&#34;{base_url.rstrip(&#39;/&#39;)}/v2/command&#34;,
         data=request_bytes,

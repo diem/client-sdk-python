@@ -35,7 +35,7 @@ from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
 from .app import PaymentUri, KycSample, Event, Payment
 from .app.store import _match
-from ... import offchain
+from ... import offchain, jsonrpc
 import requests, logging, random, string, json, time
 
 
@@ -57,7 +57,7 @@ class RestClient:
         self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
     ) -&gt; &#34;AccountResource&#34;:
         account = self.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
-        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account[&#34;kyc_data&#34;])
+        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))
 
     def new_soft_match_kyc_data(self) -&gt; str:
         return self.new_kyc_data(sample=&#34;soft_match&#34;)
@@ -89,7 +89,12 @@ class RestClient:
     def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
         url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
         self.logger.info(&#34;%s %s: %s&#34; % (method, path, data))
-        resp = self.session.request(method=method, url=url.lower(), data=data)
+        resp = self.session.request(
+            method=method,
+            url=url.lower(),
+            data=data,
+            headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
+        )
         self.logger.info(&#34;response status code: %s&#34; % resp.status_code)
         self.logger.info(&#34;response body: %s&#34; % resp.text)
         resp.raise_for_status()
@@ -104,7 +109,7 @@ class AccountResource:
     kyc_data: str
 
     def balance(self, currency: str) -&gt; int:
-        return self.balances().get(currency, 0)
+        return self._balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
@@ -112,9 +117,6 @@ class AccountResource:
 
     def create_payment_uri(self) -&gt; PaymentUri:
         return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;)))
-
-    def balances(self) -&gt; Dict[str, int]:
-        return self.client.get(self._resources(&#34;balance&#34;))
 
     def events(self, start: int = 0) -&gt; List[Event]:
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
@@ -160,6 +162,15 @@ class AccountResource:
 
     def info(self, *args: Any, **kwargs: Any) -&gt; None:
         self.client.logger.info(*args, **kwargs)
+
+    def _balances(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;returns account balances object
+
+        should always prefer to use func `balance(currency) -&gt; int`, which returns zero
+        when currency not exist in the response.
+        &#34;&#34;&#34;
+
+        return self.client.get(self._resources(&#34;balance&#34;))
 
     def _resources(self, resource: str) -&gt; str:
         return &#34;/accounts/%s/%ss&#34; % (self.id, resource)</code></pre>
@@ -192,7 +203,7 @@ class AccountResource:
     kyc_data: str
 
     def balance(self, currency: str) -&gt; int:
-        return self.balances().get(currency, 0)
+        return self._balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
@@ -200,9 +211,6 @@ class AccountResource:
 
     def create_payment_uri(self) -&gt; PaymentUri:
         return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;)))
-
-    def balances(self) -&gt; Dict[str, int]:
-        return self.client.get(self._resources(&#34;balance&#34;))
 
     def events(self, start: int = 0) -&gt; List[Event]:
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
@@ -249,6 +257,15 @@ class AccountResource:
     def info(self, *args: Any, **kwargs: Any) -&gt; None:
         self.client.logger.info(*args, **kwargs)
 
+    def _balances(self) -&gt; Dict[str, int]:
+        &#34;&#34;&#34;returns account balances object
+
+        should always prefer to use func `balance(currency) -&gt; int`, which returns zero
+        when currency not exist in the response.
+        &#34;&#34;&#34;
+
+        return self.client.get(self._resources(&#34;balance&#34;))
+
     def _resources(self, resource: str) -&gt; str:
         return &#34;/accounts/%s/%ss&#34; % (self.id, resource)</code></pre>
 </details>
@@ -279,20 +296,7 @@ class AccountResource:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def balance(self, currency: str) -&gt; int:
-    return self.balances().get(currency, 0)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.balances"><code class="name flex">
-<span>def <span class="ident">balances</span></span>(<span>self) ‑> Dict[str, int]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def balances(self) -&gt; Dict[str, int]:
-    return self.client.get(self._resources(&#34;balance&#34;))</code></pre>
+    return self._balances().get(currency, 0)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.create_payment_uri"><code class="name flex">
@@ -457,7 +461,7 @@ class RestClient:
         self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
     ) -&gt; &#34;AccountResource&#34;:
         account = self.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
-        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account[&#34;kyc_data&#34;])
+        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))
 
     def new_soft_match_kyc_data(self) -&gt; str:
         return self.new_kyc_data(sample=&#34;soft_match&#34;)
@@ -489,7 +493,12 @@ class RestClient:
     def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
         url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
         self.logger.info(&#34;%s %s: %s&#34; % (method, path, data))
-        resp = self.session.request(method=method, url=url.lower(), data=data)
+        resp = self.session.request(
+            method=method,
+            url=url.lower(),
+            data=data,
+            headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
+        )
         self.logger.info(&#34;response status code: %s&#34; % resp.status_code)
         self.logger.info(&#34;response body: %s&#34; % resp.text)
         resp.raise_for_status()
@@ -542,7 +551,7 @@ class RestClient:
     self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
 ) -&gt; &#34;AccountResource&#34;:
     account = self.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
-    return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account[&#34;kyc_data&#34;])</code></pre>
+    return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.get"><code class="name flex">
@@ -651,7 +660,12 @@ class RestClient:
 <pre><code class="python">def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
     url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
     self.logger.info(&#34;%s %s: %s&#34; % (method, path, data))
-    resp = self.session.request(method=method, url=url.lower(), data=data)
+    resp = self.session.request(
+        method=method,
+        url=url.lower(),
+        data=data,
+        headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
+    )
     self.logger.info(&#34;response status code: %s&#34; % resp.status_code)
     self.logger.info(&#34;response body: %s&#34; % resp.text)
     resp.raise_for_status()
@@ -694,7 +708,6 @@ class RestClient:
 <h4><code><a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></code></h4>
 <ul class="two-column">
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.balance" href="#diem.testing.miniwallet.client.AccountResource.balance">balance</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.AccountResource.balances" href="#diem.testing.miniwallet.client.AccountResource.balances">balances</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.client" href="#diem.testing.miniwallet.client.AccountResource.client">client</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.create_payment_uri" href="#diem.testing.miniwallet.client.AccountResource.create_payment_uri">create_payment_uri</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.event_asdict" href="#diem.testing.miniwallet.client.AccountResource.event_asdict">event_asdict</a></code></li>

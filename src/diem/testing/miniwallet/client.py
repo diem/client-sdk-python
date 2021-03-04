@@ -87,8 +87,8 @@ class AccountResource:
         p = self.client.create(self._resources("payment"), payee=payee, currency=currency, amount=amount)
         return Payment(**p)
 
-    def create_payment_uri(self) -> PaymentUri:
-        return PaymentUri(**self.client.create(self._resources("payment_uri")))
+    def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -> PaymentUri:
+        return PaymentUri(**self.client.create(self._resources("payment_uri"), currency=currency, amount=amount))
 
     def events(self, start: int = 0) -> List[Event]:
         ret = self.client.send("GET", self._resources("event")).json()

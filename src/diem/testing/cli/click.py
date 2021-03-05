@@ -23,7 +23,7 @@ def main() -> None:
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option("--logfile", "-l", default=None, help="Log to a file instead of printing into console.")
-@click.option("--enable-debug-api", "-o", default=True, help="Enable debug API.", type=bool)
+@click.option("--enable-debug-api", "-o", default=True, help="Enable debug API.", type=bool, is_flag=True)
 def start_server(
     name: str, host: str, port: int, jsonrpc: str, faucet: str, enable_debug_api: bool, logfile: Optional[str] = None
 ) -> None:
@@ -50,7 +50,7 @@ def start_server(
     show_default=False,
 )
 @click.option("--test-debug-api", "-d", default=False, help="Run tests for debug APIs.", type=bool)
-@click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool)
+@click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
 def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_api: bool, verbose: bool) -> None:
     configure_testnet(jsonrpc, faucet)
     os.environ[envs.TARGET_URL] = target
@@ -61,6 +61,8 @@ def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_ap
     args = ["--pyargs", "diem.testing.suites"] + args
     if verbose:
         args.append("--log-level=INFO")
+        args.append("-s")
+        args.append("-v")
 
     code = pytest.main(args)
     sys.stdout.flush()

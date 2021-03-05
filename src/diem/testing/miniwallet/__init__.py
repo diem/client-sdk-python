@@ -3,4 +3,4 @@
 
 from .app import App, Account, Transaction, PaymentUri, Event, Payment, PaymentCommand, KycSample, falcon_api
 from .client import RestClient, AccountResource
-from .config import AppConfig
+from .config import AppConfig, ServerConfig

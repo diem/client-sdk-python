@@ -1,10 +1,10 @@
 ## Try MiniWallet
 
-Install Diem python sdk with MiniWallet and MiniWallet Test Suite (included since version 1.2.6):
+Install the Diem Python SDK with MiniWallet and MiniWallet Test Suite (included since version 1.2.6):
 ```
 pip install diem[all]
 ```
-You may need quote `'diem[all]'`.
+You may need to use quotes `pip install 'diem[all]'`.
 
 To include in a pip requirements.txt file:
 ```
@@ -12,20 +12,22 @@ diem[all]>=1.2.6
 ```
 
 
-`dmw` cli will be installed in your pip enviroment. Check sub-commands by:
+Once the command above has run, the `dmw` cli will be installed in your pip enviroment.
+
+To see available sub-commands:
 ```
 dmw --help
 ```
 
-Start a MiniWallet server, connects to Diem testnet by default
+You may start a MiniWallet server (connects to Diem testnet by default)
 ```
 dmw start-server
 ```
 
 Open http://localhost:8888 to check MiniWallet API specification document (Defined by OpenAPI Specification 3.0.3).
-The document includes simple examples to try out the API.
+The document includes simple examples to try out the MiniWallet API.
 
-A host version of the API specification document is located at [here](https://diem.github.io/client-sdk-python/mini-wallet-api-spec.html).
+A hosted version of the API specification document is located at [here](https://diem.github.io/client-sdk-python/mini-wallet-api-spec.html).
 
 `start-server` options:
 
@@ -74,7 +76,7 @@ src/diem/testing/suites/test_payment.py ....................................    
 ```
 
 Follow MiniWallet API specification to create a proxy server for your wallet application.
-Assume you run your application at port 9999, run MiniWallet Test Suite:
+Assuming you're running your application at port 9999, you may run the MiniWallet Test Suite:
 ```
 dmw test --target http://localhost:9999
 ```
@@ -104,21 +106,21 @@ Options:
 
 ### How it works
 
-1. Test suite is located at diem.testing.suites package, including a pytest conftest.py.
-2. `dmw test` will launch a pytest runner to run tests.
-3. The conftest.py will start a stub MiniWallet as counterparty service for testing payment with the target server specified by the `--target` option.
+1. The test suite is located in the `diem.testing.suites` package and includes the pytest file `conftest.py`.
+2. `dmw test` launches a pytest runner to run tests.
+3. The `conftest.py` starts a stub MiniWallet as a counterparty service for testing payment with the target server specified by the `--target` option.
 
 
-### Work with local testnet
+### Working with a local testnet
 
 1. [Download](https://docs.docker.com/get-docker/) and install Docker and Docker Compose (comes with Docker for Mac and Windows).
 2. Download Diem testnet docker compose config: https://github.com/diem/diem/blob/master/docker/compose/validator-testnet/docker-compose.yaml
-3. Run `docker-compose -f <validator-testnet/docker-compose.yaml file path> up --detach`
-   * Faucet will be available at http://127.0.0.1:8000
-   * JSON-RPC will be available at http://127.0.0.1:8080
-4. Test your application with local testnet: `dmw test --jsonrpc http://127.0.0.1:8080 --faucet http://127.0.0.1:8000 --target http://localhost:9999`
+3. Run `docker-compose -f <path to your validator-testnet/docker-compose.yaml file> up --detach`
+   * A Faucet will be available at http://127.0.0.1:8000
+   * A JSON-RPC server will be available at http://127.0.0.1:8080
+4. Test your application with a local testnet: `dmw test --jsonrpc http://127.0.0.1:8080 --faucet http://127.0.0.1:8000 --target http://localhost:9999`
 
 ### Test Off-chain API
 
-As the test counterparty wallet application server is started at local, you need make sure your wallet application's off-chain API can access the stub server by it's base_url: `http://localhost:<port>`.
-If your wallet application is not running local, you will need to make sure setup tunnel for your wallet application to access the stub server.
+As the test counterparty wallet application server is started locally, you need make sure your wallet application's off-chain API can access the stub server using it's base_url: `http://localhost:<port>`.
+If your wallet application is not running locally, you will need to setup a tunnel for your wallet application to access the stub server.

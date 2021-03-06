@@ -6,13 +6,13 @@ pip install diem[all]
 ```
 You may need to use quotes `pip install 'diem[all]'`.
 
-To include in a pip requirements.txt file:
+To include the Diem MiniWallet in a pip requirements.txt file add:
 ```
 diem[all]>=1.2.6
 ```
 
 
-Once the command above has run, the `dmw` cli will be installed in your pip enviroment.
+Once the pip install command above has run, the `dmw` cli will be installed in your pip enviroment.
 
 To see available sub-commands:
 ```
@@ -55,7 +55,7 @@ Options:
 
 ## MiniWallet Test Suite
 
-Try out MiniWallet Test Suite by hitting the target server we started by `dmw start-server`
+Try out the MiniWallet Test Suite by hitting the target server we started by `dmw start-server`
 ```
 dmw test --target http://localhost:8888
 ```
@@ -75,8 +75,8 @@ src/diem/testing/suites/test_payment.py ....................................    
 ============================== 59 passed, 2 skipped, 198 deselected in 18.26s ===============================
 ```
 
-Follow MiniWallet API specification to create a proxy server for your wallet application.
-Assuming you're running your application at port 9999, you may run the MiniWallet Test Suite:
+Follow the MiniWallet API specification to create a proxy server for your wallet application.
+Assuming you're running your application at port 9999, you may run the MiniWallet Test Suite using this command:
 ```
 dmw test --target http://localhost:9999
 ```

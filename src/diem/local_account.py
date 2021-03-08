@@ -12,7 +12,7 @@ from .serde_types import uint64
 
 from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from copy import copy
 import time
@@ -87,7 +87,7 @@ class LocalAccount:
     def compliance_public_key_bytes(self) -> bytes:
         return utils.public_key_bytes(self.compliance_key.public_key())
 
-    def account_identifier(self, subaddress: Optional[bytes] = None) -> str:
+    def account_identifier(self, subaddress: Union[str, bytes, None] = None) -> str:
         return identifier.encode_account(self.account_address, subaddress, self.hrp)
 
     def decode_account_identifier(self, encoded_id: str) -> Tuple[diem_types.AccountAddress, Optional[bytes]]:

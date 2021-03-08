@@ -28,14 +28,15 @@ def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -> N
     receiver.wait_for_balance(currency, amount)
 
     new_events = [e for e in sender.events(index) if e.type != "info"]
-    assert len(new_events) == 4, new_events
+    assert len(new_events) == 5, new_events
     assert new_events[0].type == "created_transaction"
-    assert new_events[1].type == "updated_transaction"
-    assert sorted(list(json.loads(new_events[1].data).keys())) == ["id", "subaddress_hex"]
+    assert new_events[1].type == "created_subaddress"
     assert new_events[2].type == "updated_transaction"
-    assert sorted(list(json.loads(new_events[2].data).keys())) == ["id", "signed_transaction"]
+    assert sorted(list(json.loads(new_events[2].data).keys())) == ["id", "subaddress_hex"]
     assert new_events[3].type == "updated_transaction"
-    assert sorted(list(json.loads(new_events[3].data).keys())) == ["diem_transaction_version", "id", "status"]
+    assert sorted(list(json.loads(new_events[3].data).keys())) == ["id", "signed_transaction"]
+    assert new_events[4].type == "updated_transaction"
+    assert sorted(list(json.loads(new_events[4].data).keys())) == ["diem_transaction_version", "id", "status"]
 
 
 def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -> None:

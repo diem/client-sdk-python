@@ -49,6 +49,9 @@ def test_account_identifier():
     assert account.account_identifier(subaddress) == identifier.encode_account(
         account.account_address, subaddress, account.hrp
     )
+    assert account.account_identifier(subaddress.hex()) == identifier.encode_account(
+        account.account_address, subaddress, account.hrp
+    )
 
 
 def test_decode_account_identifier():

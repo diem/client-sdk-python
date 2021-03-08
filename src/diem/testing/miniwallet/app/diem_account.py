@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 from typing import Tuple
-from .models import Transaction
+from .models import Transaction, RefundReason
 from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, LocalAccount
 
 
@@ -11,6 +11,9 @@ from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, Loca
 class DiemAccount:
     account: LocalAccount
     client: jsonrpc.Client
+
+    def refund_metadata(self, version: int, reason: RefundReason) -> Tuple[bytes, bytes]:
+        return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b"")
 
     def general_metadata(self, from_subaddress: bytes, payee: str) -> Tuple[bytes, bytes]:
         to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)

@@ -4,7 +4,7 @@
 from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from .... import identifier, offchain
+from .... import identifier, offchain, diem_types
 
 
 @dataclass
@@ -78,6 +78,20 @@ class KycSample:
         return any(self.match_kyc_data(f, kyc) for f in fields)
 
 
+class RefundReason(str, Enum):
+    invalid_subaddress = "invalid_subaddress"
+    other = "other"
+
+    @staticmethod
+    def from_diem_type(reason: diem_types.RefundReason) -> "RefundReason":
+        if isinstance(reason, diem_types.RefundReason__InvalidSubaddress):
+            return RefundReason.invalid_subaddress
+        return RefundReason.other
+
+    def to_diem_type(self) -> diem_types.RefundReason:
+        return diem_types.RefundReason__InvalidSubaddress()
+
+
 @dataclass
 class Transaction(Base):
     class Status(str, Enum):
@@ -95,6 +109,8 @@ class Transaction(Base):
     reference_id: Optional[str] = field(default=None)
     signed_transaction: Optional[str] = field(default=None)
     diem_transaction_version: Optional[int] = field(default=None)
+    refund_diem_txn_version: Optional[int] = field(default=None)
+    refund_reason: Optional[RefundReason] = field(default=None)
 
     def subaddress(self) -> bytes:
         return bytes.fromhex(str(self.subaddress_hex))

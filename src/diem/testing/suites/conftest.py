@@ -3,7 +3,8 @@
 
 
 from ... import testnet, jsonrpc
-from ..miniwallet import RestClient, AppConfig
+from ..miniwallet import RestClient, AppConfig, AccountResource
+from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
 from .clients import Clients
 from .envs import target_url, is_self_check, should_test_debug_api
 import pytest
@@ -62,3 +63,8 @@ def currency() -> str:
 def travel_rule_threshold(clients: Clients) -> int:
     # todo: convert the limit base on currency
     return clients.diem.get_metadata().dual_attestation_limit
+
+
+@pytest.fixture
+def pending_income_account(stub_client: RestClient) -> AccountResource:
+    return AccountResource(id=PENDING_INBOUND_ACCOUNT_ID, client=stub_client)

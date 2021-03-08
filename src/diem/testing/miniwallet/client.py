@@ -78,7 +78,7 @@ class AccountResource:
 
     client: RestClient
     id: str
-    kyc_data: str
+    kyc_data: Optional[str] = field(default=None)
 
     def balance(self, currency: str) -> int:
         return self._balances().get(currency, 0)
@@ -118,15 +118,25 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries >= max_tries:
-                    events = json.dumps(list(map(self.event_asdict, self.events())), indent=2)
-                    raise TimeoutError("%s, events: \n%s" % (e, events)) from e
+                    raise TimeoutError("%s, events: \n%s" % (e, self.dump_events())) from e
                 time.sleep(delay)
+
+    def log_events(self) -> None:
+        events = self.dump_events()
+        if events:
+            self.client.logger.info("account(%s) events: %s", (self.id, events))
+
+    def dump_events(self) -> str:
+        try:
+            return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
+        except requests.HTTPError:
+            return ""
 
     def event_asdict(self, event: Event) -> Dict[str, Any]:
         ret = asdict(event)
         try:
             ret["data"] = json.loads(event.data)
-            if "kyc_data" in ret["data"]:
+            if ret["data"].get("kyc_data"):
                 ret["data"]["kyc_data"] = json.loads(ret["data"]["kyc_data"])
         except json.decoder.JSONDecodeError:
             pass

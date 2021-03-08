@@ -11,7 +11,7 @@ from .event_puller import EventPuller
 from .json_input import JsonInput
 from .... import jsonrpc, offchain, utils, LocalAccount, identifier
 from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
-import threading, logging, os, numpy
+import threading, logging, numpy
 
 
 class Base:
@@ -64,11 +64,14 @@ class Base:
                 ret[txn.currency] = ret.get(txn.currency, 0) + txn.balance_amount()
         return ret
 
-    def _gen_subaddress(self) -> bytes:
-        return self.store.next_id().to_bytes(8, byteorder="big")
+    def _gen_subaddress(self, account_id: str) -> Subaddress:
+        sub = self.store.next_id().to_bytes(8, byteorder="big")
+        return self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
 
     def _txn_metadata(self, txn: Transaction) -> Tuple[bytes, bytes]:
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+            if txn.refund_diem_txn_version and txn.refund_reason:
+                return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)  # pyre-ignore
             if txn.subaddress_hex:
                 return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
         elif txn.reference_id:
@@ -130,7 +133,10 @@ class BackgroundTasks(OffChainAPI):
             self.event_puller.fetch(self.event_puller.save_payment_txn)
         except Exception as e:
             self.logger.exception(e)
-            os._exit(-1)
+            # Exponential backoff for the delay to slow down the background tasks execution
+            # cycle and reduce the duplicated error logs.
+            delay = delay * 2
+
         if threading.main_thread().is_alive():
             threading.Timer(delay, self.start_sync, args=[delay]).start()
 
@@ -181,7 +187,7 @@ class BackgroundTasks(OffChainAPI):
 
     def _start_external_payment_txn(self, txn: Transaction) -> None:
         if not txn.subaddress_hex:
-            self.store.update(txn, subaddress_hex=self._gen_subaddress().hex())
+            self.store.update(txn, subaddress_hex=self._gen_subaddress(txn.account_id).subaddress_hex)
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
@@ -278,10 +284,9 @@ class App(BackgroundTasks):
         currency = data.get_nullable("currency", str, self._validate_currency_code)
         amount = data.get_nullable("amount", int, self._validate_amount)
         self.store.find(Account, id=account_id)
-        sub = self._gen_subaddress()
-        diem_acc_id = self.diem_account.account.account_identifier(sub)
+        sub = self._gen_subaddress(account_id)
+        diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
         uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        sub = self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
         return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
 
     def get_account_balances(self, account_id: str) -> Dict[str, int]:

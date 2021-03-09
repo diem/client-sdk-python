@@ -187,6 +187,7 @@ def test_decode_structure():
     assert txnmetadata.decode_structure(None) is None
     assert txnmetadata.decode_structure("") is None
     assert txnmetadata.decode_structure(b"") is None
+    assert txnmetadata.decode_structure(b"hello world") is None
 
     gm = txnmetadata.decode_structure("010001088f8b82153010a1bd0000")
     assert isinstance(gm, diem_types.GeneralMetadataV0)

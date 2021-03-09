@@ -124,7 +124,7 @@ class AccountResource:
     def log_events(self) -> None:
         events = self.dump_events()
         if events:
-            self.client.logger.info("account(%s) events: %s", (self.id, events))
+            self.client.logger.info("account(%s) events: %s", self.id, events)
 
     def dump_events(self) -> str:
         try:

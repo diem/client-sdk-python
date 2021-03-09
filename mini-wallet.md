@@ -87,21 +87,32 @@ dmw test --help
 Usage: dmw test [OPTIONS]
 
 Options:
-  -t, --target TEXT             Target mini-wallet application URL.  [default:
-                                http://localhost:8888]
+  -t, --target TEXT               Target mini-wallet application URL.
+                                  [default: http://localhost:8888]
 
-  -j, --jsonrpc TEXT            Diem fullnode JSON-RPC URL.  [default:
-                                http://testnet.diem.com/v1]
+  -h, --stub-bind-host TEXT       The host the miniwallet stub server will
+                                  bind to  [default: localhost]
 
-  -f, --faucet TEXT             Testnet faucet URL.  [default:
-                                http://testnet.diem.com/mint]
+  -p, --stub-bind-port INTEGER    The port the miniwallet stub server will
+                                  bind to. Random if empty.
 
-  --pytest-args TEXT            Additional pytest arguments, split by empty
-                                space, e.g. `--pytest-args '-v -s'`.
+  -u, --stub-diem-account-base-url TEXT
+                                  The address that will be used for offchain
+                                  callbacks. Defaults to
+                                  http://localhost:{random_port}
 
-  -d, --test-debug-api BOOLEAN  Run tests for debug APIs.  [default: False]
-  -v, --verbose BOOLEAN         Enable verbose log output.  [default: False]
-  --help                        Show this message and exit.
+  -j, --jsonrpc TEXT              Diem fullnode JSON-RPC URL.  [default:
+                                  http://testnet.diem.com/v1]
+
+  -f, --faucet TEXT               Testnet faucet URL.  [default:
+                                  http://testnet.diem.com/mint]
+
+  --pytest-args TEXT              Additional pytest arguments, split by empty
+                                  space, e.g. `--pytest-args '-v -s'`.
+
+  -d, --test-debug-api BOOLEAN    Run tests for debug APIs.  [default: False]
+  -v, --verbose                   Enable verbose log output.  [default: False]
+  --help                          Show this message and exit.
 ```
 
 ### How it works

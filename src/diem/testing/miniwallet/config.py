@@ -10,14 +10,22 @@ import waitress, threading, logging, falcon, json
 
 
 @dataclass
-class AppConfig:
-    name: str = field(default="mini-wallet")
-    url_scheme: str = field(default="http")
+class ServerConfig:
     host: str = field(default="localhost")
     port: int = field(default_factory=offchain.http_server.get_available_port)
+    base_url: str = field(default="")
+
+    def __post_init__(self) -> None:
+        if not self.base_url:
+            self.base_url = f"http://localhost:{self.port}"
+
+
+@dataclass
+class AppConfig:
+    name: str = field(default="mini-wallet")
     enable_debug_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
-
+    server_conf: ServerConfig = field(default_factory=ServerConfig)
     initial_amount: int = field(default=1_000_000_000_000)
     initial_currency: str = field(default=testnet.TEST_CURRENCY_CODE)
 
@@ -31,9 +39,10 @@ class AppConfig:
 
     @property
     def server_url(self) -> str:
-        return "%s://%s:%s" % (self.url_scheme, self.host, self.port)
+        return self.server_conf.base_url
 
     def create_client(self) -> RestClient:
+        self.logger.info(f"Creating client pointing to {self.server_url}")
         return RestClient(server_url=self.server_url, name="%s-client" % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -> None:
@@ -66,8 +75,14 @@ class AppConfig:
         api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
         def serve() -> None:
-            self.logger.info("serving at http://%s:%s" % (self.host, self.port))
-            waitress.serve(api, host=self.host, port=self.port, clear_untrusted_proxy_headers=True, _quiet=True)
+            self.logger.info(f"serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}")
+            waitress.serve(
+                api,
+                host=self.server_conf.host,
+                port=self.server_conf.port,
+                clear_untrusted_proxy_headers=True,
+                _quiet=True,
+            )
 
         t = threading.Thread(target=serve, daemon=True)
         t.start()

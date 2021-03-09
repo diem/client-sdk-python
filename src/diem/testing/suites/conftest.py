@@ -3,10 +3,15 @@
 
 
 from ... import testnet, jsonrpc
-from ..miniwallet import RestClient, AppConfig, AccountResource
+from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig
 from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
 from .clients import Clients
-from .envs import target_url, is_self_check, should_test_debug_api
+from .envs import (
+    target_url,
+    is_self_check,
+    should_test_debug_api,
+    dmw_stub_server,
+)
 import pytest
 
 
@@ -30,7 +35,7 @@ def diem_client() -> jsonrpc.Client:
 
 @pytest.fixture(scope="package")
 def stub_config() -> AppConfig:
-    return AppConfig(name="stub-wallet", enable_debug_api=True)
+    return AppConfig(name="stub-wallet", enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
 
 
 @pytest.fixture(scope="package")

@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem import testnet
-from diem.testing.miniwallet import AppConfig
+from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional
 import logging, click, functools, pytest, os, sys, re
@@ -30,7 +30,7 @@ def start_server(
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
-    conf = AppConfig(name=name, host=host, port=port, enable_debug_api=enable_debug_api)
+    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), enable_debug_api=enable_debug_api)
     print("Server Config: %s" % conf)
 
     client = testnet.create_client()
@@ -41,6 +41,20 @@ def start_server(
 
 @click.command()
 @click.option("--target", "-t", default="http://localhost:8888", help="Target mini-wallet application URL.")
+@click.option("--stub-bind-host", "-h", default="localhost", help="The host the miniwallet stub server will bind to")
+@click.option(
+    "--stub-bind-port",
+    "-p",
+    default=None,
+    help="The port the miniwallet stub server will bind to. Random if empty.",
+    type=int,
+)
+@click.option(
+    "--stub-diem-account-base-url",
+    "-u",
+    default=None,
+    help="The address that will be used for offchain callbacks. Defaults to http://localhost:{random_port}",
+)
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option(
@@ -51,9 +65,31 @@ def start_server(
 )
 @click.option("--test-debug-api", "-d", default=False, help="Run tests for debug APIs.", type=bool)
 @click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
-def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_api: bool, verbose: bool) -> None:
+def test(
+    target: str,
+    stub_bind_host: Optional[str],
+    stub_bind_port: Optional[int],
+    stub_diem_account_base_url: Optional[str],
+    jsonrpc: str,
+    faucet: str,
+    pytest_args: str,
+    test_debug_api: bool,
+    verbose: bool,
+) -> None:
     configure_testnet(jsonrpc, faucet)
     os.environ[envs.TARGET_URL] = target
+
+    # If stub_bind_host is provided, then stub_diem_account_base_url must be as well or the test won't work
+    if stub_bind_host is not None and stub_bind_host != "localhost" and not stub_diem_account_base_url:
+        raise click.ClickException("--stub-diem-account-base-url is required when passing in a custom --stub-bind-host")
+
+    if stub_bind_host:
+        os.environ[envs.DMW_STUB_BIND_HOST] = str(stub_bind_host)
+    if stub_bind_port:
+        os.environ[envs.DMW_STUB_BIND_PORT] = str(stub_bind_port)
+    if stub_diem_account_base_url:
+        os.environ[envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL] = stub_diem_account_base_url
+
     if test_debug_api:
         os.environ[envs.TEST_DEBUG_API] = "Y"
 

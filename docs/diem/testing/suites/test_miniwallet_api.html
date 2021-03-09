@@ -35,18 +35,9 @@ from .clients import Clients
 import pytest, requests, time, json
 
 
-def test_create_account_payment_uri(target_client: RestClient, hrp: str) -&gt; None:
-    account = target_client.create_account()
-    ret = account.create_payment_uri()
-    assert ret.account_id == account.id
-    intent = ret.intent(hrp)
-    assert intent.account_address
-    assert intent.subaddress
-
-
 def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -&gt; None:
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     amount = 1234
     sender = clients.stub.create_account(balances={currency: amount})
@@ -65,19 +56,20 @@ def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -&gt
     receiver.wait_for_balance(currency, amount)
 
     new_events = [e for e in sender.events(index) if e.type != &#34;info&#34;]
-    assert len(new_events) == 4, new_events
+    assert len(new_events) == 5, new_events
     assert new_events[0].type == &#34;created_transaction&#34;
-    assert new_events[1].type == &#34;updated_transaction&#34;
-    assert sorted(list(json.loads(new_events[1].data).keys())) == [&#34;id&#34;, &#34;subaddress_hex&#34;]
+    assert new_events[1].type == &#34;created_subaddress&#34;
     assert new_events[2].type == &#34;updated_transaction&#34;
-    assert sorted(list(json.loads(new_events[2].data).keys())) == [&#34;id&#34;, &#34;signed_transaction&#34;]
+    assert sorted(list(json.loads(new_events[2].data).keys())) == [&#34;id&#34;, &#34;subaddress_hex&#34;]
     assert new_events[3].type == &#34;updated_transaction&#34;
-    assert sorted(list(json.loads(new_events[3].data).keys())) == [&#34;diem_transaction_version&#34;, &#34;id&#34;, &#34;status&#34;]
+    assert sorted(list(json.loads(new_events[3].data).keys())) == [&#34;id&#34;, &#34;signed_transaction&#34;]
+    assert new_events[4].type == &#34;updated_transaction&#34;
+    assert sorted(list(json.loads(new_events[4].data).keys())) == [&#34;diem_transaction_version&#34;, &#34;id&#34;, &#34;status&#34;]
 
 
 def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -&gt; None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     index = len(receiver.events())
     amount = 1234
@@ -99,7 +91,7 @@ def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -
 
 def test_receive_multiple_payments(clients: Clients, hrp: str, currency: str) -&gt; None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     index = len(receiver.events())
     amount = 1234
@@ -145,7 +137,7 @@ def test_return_client_error_if_send_payment_more_than_account_balance(
     clients: Clients, currency: str, hrp: str
 ) -&gt; None:
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: 100})
 
     index = len(sender.events())
@@ -162,7 +154,7 @@ def test_send_payment_meets_travel_rule_limit(
 ) -&gt; None:
     amount = travel_rule_threshold
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount}, kyc_data=clients.stub.new_kyc_data())
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
 
@@ -176,7 +168,7 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
 ) -&gt; None:
     amount = travel_rule_threshold
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount}, kyc_data=clients.target.new_reject_kyc_data())
     # payment should be rejected during offchain kyc data exchange
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
@@ -200,7 +192,7 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
 )
 def test_internal_transfer(clients: Clients, currency: str, amount: int, hrp: str) -&gt; None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount})
 
     index = len(sender.events())
@@ -237,7 +229,7 @@ def test_create_account_event(target_client: RestClient, currency: str) -&gt; No
 def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) -&gt; None:
     account = target_client.create_account()
     index = len(account.events())
-    ret = account.create_payment_uri()
+    ret = account.generate_payment_uri()
     assert ret
     assert len(account.events(index)) == 1
     assert account.events(index)[0].type == &#34;created_payment_uri&#34;
@@ -270,7 +262,7 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
 ) -&gt; None:
     amount = travel_rule_threshold
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount}, kyc_data=clients.target.new_reject_kyc_data())
     # payment should be rejected during offchain kyc data exchange
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
@@ -310,24 +302,6 @@ def test_create_account_event(target_client: RestClient, currency: str) -&gt; No
     assert event_data.id == account.id</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri"><code class="name flex">
-<span>def <span class="ident">test_create_account_payment_uri</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_create_account_payment_uri(target_client: RestClient, hrp: str) -&gt; None:
-    account = target_client.create_account()
-    ret = account.create_payment_uri()
-    assert ret.account_id == account.id
-    intent = ret.intent(hrp)
-    assert intent.account_address
-    assert intent.subaddress</code></pre>
-</details>
-</dd>
 <dt id="diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri_events"><code class="name flex">
 <span>def <span class="ident">test_create_account_payment_uri_events</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
 </code></dt>
@@ -341,7 +315,7 @@ def test_create_account_event(target_client: RestClient, currency: str) -&gt; No
 def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) -&gt; None:
     account = target_client.create_account()
     index = len(account.events())
-    ret = account.create_payment_uri()
+    ret = account.generate_payment_uri()
     assert ret
     assert len(account.events(index)) == 1
     assert account.events(index)[0].type == &#34;created_payment_uri&#34;</code></pre>
@@ -367,7 +341,7 @@ def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) 
 )
 def test_internal_transfer(clients: Clients, currency: str, amount: int, hrp: str) -&gt; None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount})
 
     index = len(sender.events())
@@ -408,7 +382,7 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
 </summary>
 <pre><code class="python">def test_receive_multiple_payments(clients: Clients, hrp: str, currency: str) -&gt; None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     index = len(receiver.events())
     amount = 1234
@@ -439,7 +413,7 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
 </summary>
 <pre><code class="python">def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -&gt; None:
     receiver = clients.stub.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     index = len(receiver.events())
     amount = 1234
@@ -472,7 +446,7 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
     clients: Clients, currency: str, hrp: str
 ) -&gt; None:
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: 100})
 
     index = len(sender.events())
@@ -495,7 +469,7 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
 </summary>
 <pre><code class="python">def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -&gt; None:
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
 
     amount = 1234
     sender = clients.stub.create_account(balances={currency: amount})
@@ -514,14 +488,15 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
     receiver.wait_for_balance(currency, amount)
 
     new_events = [e for e in sender.events(index) if e.type != &#34;info&#34;]
-    assert len(new_events) == 4, new_events
+    assert len(new_events) == 5, new_events
     assert new_events[0].type == &#34;created_transaction&#34;
-    assert new_events[1].type == &#34;updated_transaction&#34;
-    assert sorted(list(json.loads(new_events[1].data).keys())) == [&#34;id&#34;, &#34;subaddress_hex&#34;]
+    assert new_events[1].type == &#34;created_subaddress&#34;
     assert new_events[2].type == &#34;updated_transaction&#34;
-    assert sorted(list(json.loads(new_events[2].data).keys())) == [&#34;id&#34;, &#34;signed_transaction&#34;]
+    assert sorted(list(json.loads(new_events[2].data).keys())) == [&#34;id&#34;, &#34;subaddress_hex&#34;]
     assert new_events[3].type == &#34;updated_transaction&#34;
-    assert sorted(list(json.loads(new_events[3].data).keys())) == [&#34;diem_transaction_version&#34;, &#34;id&#34;, &#34;status&#34;]</code></pre>
+    assert sorted(list(json.loads(new_events[3].data).keys())) == [&#34;id&#34;, &#34;signed_transaction&#34;]
+    assert new_events[4].type == &#34;updated_transaction&#34;
+    assert sorted(list(json.loads(new_events[4].data).keys())) == [&#34;diem_transaction_version&#34;, &#34;id&#34;, &#34;status&#34;]</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_miniwallet_api.test_send_payment_meets_travel_rule_limit"><code class="name flex">
@@ -538,7 +513,7 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
 ) -&gt; None:
     amount = travel_rule_threshold
     receiver = clients.target.create_account()
-    payment_uri = receiver.create_payment_uri()
+    payment_uri = receiver.generate_payment_uri()
     sender = clients.stub.create_account({currency: amount}, kyc_data=clients.stub.new_kyc_data())
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
 
@@ -598,7 +573,6 @@ def test_send_payment_payee_is_invalid(clients: Clients, currency: str, invalid_
 <ul class="">
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_account_balance_validation_should_exclude_canceled_transactions" href="#diem.testing.suites.test_miniwallet_api.test_account_balance_validation_should_exclude_canceled_transactions">test_account_balance_validation_should_exclude_canceled_transactions</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_event" href="#diem.testing.suites.test_miniwallet_api.test_create_account_event">test_create_account_event</a></code></li>
-<li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri" href="#diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri">test_create_account_payment_uri</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri_events" href="#diem.testing.suites.test_miniwallet_api.test_create_account_payment_uri_events">test_create_account_payment_uri_events</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_internal_transfer" href="#diem.testing.suites.test_miniwallet_api.test_internal_transfer">test_internal_transfer</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_openapi_spec" href="#diem.testing.suites.test_miniwallet_api.test_openapi_spec">test_openapi_spec</a></code></li>

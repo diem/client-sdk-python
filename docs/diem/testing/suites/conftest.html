@@ -31,9 +31,15 @@
 
 
 from ... import testnet, jsonrpc
-from ..miniwallet import RestClient, AppConfig
+from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig
+from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
 from .clients import Clients
-from .envs import target_url, is_self_check, should_test_debug_api
+from .envs import (
+    target_url,
+    is_self_check,
+    should_test_debug_api,
+    dmw_stub_server,
+)
 import pytest
 
 
@@ -57,7 +63,7 @@ def diem_client() -&gt; jsonrpc.Client:
 
 @pytest.fixture(scope=&#34;package&#34;)
 def stub_config() -&gt; AppConfig:
-    return AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True)
+    return AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
 
 
 @pytest.fixture(scope=&#34;package&#34;)
@@ -89,7 +95,12 @@ def currency() -&gt; str:
 @pytest.fixture
 def travel_rule_threshold(clients: Clients) -&gt; int:
     # todo: convert the limit base on currency
-    return clients.diem.get_metadata().dual_attestation_limit</code></pre>
+    return clients.diem.get_metadata().dual_attestation_limit
+
+
+@pytest.fixture
+def pending_income_account(stub_client: RestClient) -&gt; AccountResource:
+    return AccountResource(id=PENDING_INBOUND_ACCOUNT_ID, client=stub_client)</code></pre>
 </details>
 </section>
 <section>
@@ -161,6 +172,20 @@ def hrp() -&gt; str:
     return testnet.HRP</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.suites.conftest.pending_income_account"><code class="name flex">
+<span>def <span class="ident">pending_income_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture
+def pending_income_account(stub_client: RestClient) -&gt; AccountResource:
+    return AccountResource(id=PENDING_INBOUND_ACCOUNT_ID, client=stub_client)</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.suites.conftest.stub_client"><code class="name flex">
 <span>def <span class="ident">stub_client</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a></span>
 </code></dt>
@@ -188,7 +213,7 @@ def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestC
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
 def stub_config() -&gt; AppConfig:
-    return AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True)</code></pre>
+    return AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.target_client"><code class="name flex">
@@ -248,6 +273,7 @@ def travel_rule_threshold(clients: Clients) -&gt; int:
 <li><code><a title="diem.testing.suites.conftest.currency" href="#diem.testing.suites.conftest.currency">currency</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.diem_client" href="#diem.testing.suites.conftest.diem_client">diem_client</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.hrp" href="#diem.testing.suites.conftest.hrp">hrp</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.pending_income_account" href="#diem.testing.suites.conftest.pending_income_account">pending_income_account</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.stub_client" href="#diem.testing.suites.conftest.stub_client">stub_client</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.stub_config" href="#diem.testing.suites.conftest.stub_config">stub_config</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.target_client" href="#diem.testing.suites.conftest.target_client">target_client</a></code></li>

@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem import testnet
-from diem.testing.miniwallet import AppConfig
+from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional
 import logging, click, functools, pytest, os, sys, re
@@ -51,14 +51,14 @@ def main() -&gt; None:
 @click.option(&#34;--jsonrpc&#34;, &#34;-j&#34;, default=testnet.JSON_RPC_URL, help=&#34;Diem fullnode JSON-RPC URL.&#34;)
 @click.option(&#34;--faucet&#34;, &#34;-f&#34;, default=testnet.FAUCET_URL, help=&#34;Testnet faucet URL.&#34;)
 @click.option(&#34;--logfile&#34;, &#34;-l&#34;, default=None, help=&#34;Log to a file instead of printing into console.&#34;)
-@click.option(&#34;--enable-debug-api&#34;, &#34;-o&#34;, default=True, help=&#34;Enable debug API.&#34;, type=bool)
+@click.option(&#34;--enable-debug-api&#34;, &#34;-o&#34;, default=True, help=&#34;Enable debug API.&#34;, type=bool, is_flag=True)
 def start_server(
     name: str, host: str, port: int, jsonrpc: str, faucet: str, enable_debug_api: bool, logfile: Optional[str] = None
 ) -&gt; None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
-    conf = AppConfig(name=name, host=host, port=port, enable_debug_api=enable_debug_api)
+    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), enable_debug_api=enable_debug_api)
     print(&#34;Server Config: %s&#34; % conf)
 
     client = testnet.create_client()
@@ -69,6 +69,20 @@ def start_server(
 
 @click.command()
 @click.option(&#34;--target&#34;, &#34;-t&#34;, default=&#34;http://localhost:8888&#34;, help=&#34;Target mini-wallet application URL.&#34;)
+@click.option(&#34;--stub-bind-host&#34;, &#34;-h&#34;, default=&#34;localhost&#34;, help=&#34;The host the miniwallet stub server will bind to&#34;)
+@click.option(
+    &#34;--stub-bind-port&#34;,
+    &#34;-p&#34;,
+    default=None,
+    help=&#34;The port the miniwallet stub server will bind to. Random if empty.&#34;,
+    type=int,
+)
+@click.option(
+    &#34;--stub-diem-account-base-url&#34;,
+    &#34;-u&#34;,
+    default=None,
+    help=&#34;The address that will be used for offchain callbacks. Defaults to http://localhost:{random_port}&#34;,
+)
 @click.option(&#34;--jsonrpc&#34;, &#34;-j&#34;, default=testnet.JSON_RPC_URL, help=&#34;Diem fullnode JSON-RPC URL.&#34;)
 @click.option(&#34;--faucet&#34;, &#34;-f&#34;, default=testnet.FAUCET_URL, help=&#34;Testnet faucet URL.&#34;)
 @click.option(
@@ -78,10 +92,32 @@ def start_server(
     show_default=False,
 )
 @click.option(&#34;--test-debug-api&#34;, &#34;-d&#34;, default=False, help=&#34;Run tests for debug APIs.&#34;, type=bool)
-@click.option(&#34;--verbose&#34;, &#34;-v&#34;, default=False, help=&#34;Enable verbose log output.&#34;, type=bool)
-def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_api: bool, verbose: bool) -&gt; None:
+@click.option(&#34;--verbose&#34;, &#34;-v&#34;, default=False, help=&#34;Enable verbose log output.&#34;, type=bool, is_flag=True)
+def test(
+    target: str,
+    stub_bind_host: Optional[str],
+    stub_bind_port: Optional[int],
+    stub_diem_account_base_url: Optional[str],
+    jsonrpc: str,
+    faucet: str,
+    pytest_args: str,
+    test_debug_api: bool,
+    verbose: bool,
+) -&gt; None:
     configure_testnet(jsonrpc, faucet)
     os.environ[envs.TARGET_URL] = target
+
+    # If stub_bind_host is provided, then stub_diem_account_base_url must be as well or the test won&#39;t work
+    if stub_bind_host is not None and stub_bind_host != &#34;localhost&#34; and not stub_diem_account_base_url:
+        raise click.ClickException(&#34;--stub-diem-account-base-url is required when passing in a custom --stub-bind-host&#34;)
+
+    if stub_bind_host:
+        os.environ[envs.DMW_STUB_BIND_HOST] = str(stub_bind_host)
+    if stub_bind_port:
+        os.environ[envs.DMW_STUB_BIND_PORT] = str(stub_bind_port)
+    if stub_diem_account_base_url:
+        os.environ[envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL] = stub_diem_account_base_url
+
     if test_debug_api:
         os.environ[envs.TEST_DEBUG_API] = &#34;Y&#34;
 
@@ -89,6 +125,8 @@ def test(target: str, jsonrpc: str, faucet: str, pytest_args: str, test_debug_ap
     args = [&#34;--pyargs&#34;, &#34;diem.testing.suites&#34;] + args
     if verbose:
         args.append(&#34;--log-level=INFO&#34;)
+        args.append(&#34;-s&#34;)
+        args.append(&#34;-v&#34;)
 
     code = pytest.main(args)
     sys.stdout.flush()

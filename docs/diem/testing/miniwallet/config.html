@@ -38,14 +38,22 @@ import waitress, threading, logging, falcon, json
 
 
 @dataclass
-class AppConfig:
-    name: str = field(default=&#34;mini-wallet&#34;)
-    url_scheme: str = field(default=&#34;http&#34;)
+class ServerConfig:
     host: str = field(default=&#34;localhost&#34;)
     port: int = field(default_factory=offchain.http_server.get_available_port)
+    base_url: str = field(default=&#34;&#34;)
+
+    def __post_init__(self) -&gt; None:
+        if not self.base_url:
+            self.base_url = f&#34;http://localhost:{self.port}&#34;
+
+
+@dataclass
+class AppConfig:
+    name: str = field(default=&#34;mini-wallet&#34;)
     enable_debug_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
-
+    server_conf: ServerConfig = field(default_factory=ServerConfig)
     initial_amount: int = field(default=1_000_000_000_000)
     initial_currency: str = field(default=testnet.TEST_CURRENCY_CODE)
 
@@ -59,9 +67,10 @@ class AppConfig:
 
     @property
     def server_url(self) -&gt; str:
-        return &#34;%s://%s:%s&#34; % (self.url_scheme, self.host, self.port)
+        return self.server_conf.base_url
 
     def create_client(self) -&gt; RestClient:
+        self.logger.info(f&#34;Creating client pointing to {self.server_url}&#34;)
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
@@ -94,8 +103,14 @@ class AppConfig:
         api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
         def serve() -&gt; None:
-            self.logger.info(&#34;serving at http://%s:%s&#34; % (self.host, self.port))
-            waitress.serve(api, host=self.host, port=self.port, clear_untrusted_proxy_headers=True, _quiet=True)
+            self.logger.info(f&#34;serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}&#34;)
+            waitress.serve(
+                api,
+                host=self.server_conf.host,
+                port=self.server_conf.port,
+                clear_untrusted_proxy_headers=True,
+                _quiet=True,
+            )
 
         t = threading.Thread(target=serve, daemon=True)
         t.start()
@@ -120,10 +135,10 @@ class AppConfig:
 <dl>
 <dt id="diem.testing.miniwallet.config.AppConfig"><code class="flex name class">
 <span>class <span class="ident">AppConfig</span></span>
-<span>(</span><span>name: str = 'mini-wallet', url_scheme: str = 'http', host: str = 'localhost', port: int = &lt;factory&gt;, enable_debug_api: bool = False, account_config: Dict[str, Any] = &lt;factory&gt;, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</span>
+<span>(</span><span>name: str = 'mini-wallet', enable_debug_api: bool = False, account_config: Dict[str, Any] = &lt;factory&gt;, server_conf: <a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a> = &lt;factory&gt;, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>AppConfig(name: str = 'mini-wallet', url_scheme: str = 'http', host: str = 'localhost', port: int = <factory>, enable_debug_api: bool = False, account_config: Dict[str, Any] = <factory>, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</p></div>
+<div class="desc"><p>AppConfig(name: str = 'mini-wallet', enable_debug_api: bool = False, account_config: Dict[str, Any] = <factory>, server_conf: diem.testing.miniwallet.config.ServerConfig = <factory>, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -131,12 +146,9 @@ class AppConfig:
 <pre><code class="python">@dataclass
 class AppConfig:
     name: str = field(default=&#34;mini-wallet&#34;)
-    url_scheme: str = field(default=&#34;http&#34;)
-    host: str = field(default=&#34;localhost&#34;)
-    port: int = field(default_factory=offchain.http_server.get_available_port)
     enable_debug_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
-
+    server_conf: ServerConfig = field(default_factory=ServerConfig)
     initial_amount: int = field(default=1_000_000_000_000)
     initial_currency: str = field(default=testnet.TEST_CURRENCY_CODE)
 
@@ -150,9 +162,10 @@ class AppConfig:
 
     @property
     def server_url(self) -&gt; str:
-        return &#34;%s://%s:%s&#34; % (self.url_scheme, self.host, self.port)
+        return self.server_conf.base_url
 
     def create_client(self) -&gt; RestClient:
+        self.logger.info(f&#34;Creating client pointing to {self.server_url}&#34;)
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
@@ -185,8 +198,14 @@ class AppConfig:
         api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
         def serve() -&gt; None:
-            self.logger.info(&#34;serving at http://%s:%s&#34; % (self.host, self.port))
-            waitress.serve(api, host=self.host, port=self.port, clear_untrusted_proxy_headers=True, _quiet=True)
+            self.logger.info(f&#34;serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}&#34;)
+            waitress.serve(
+                api,
+                host=self.server_conf.host,
+                port=self.server_conf.port,
+                clear_untrusted_proxy_headers=True,
+                _quiet=True,
+            )
 
         t = threading.Thread(target=serve, daemon=True)
         t.start()
@@ -209,10 +228,6 @@ class AppConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.config.AppConfig.host"><code class="name">var <span class="ident">host</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.initial_amount"><code class="name">var <span class="ident">initial_amount</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
@@ -225,11 +240,7 @@ class AppConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.config.AppConfig.port"><code class="name">var <span class="ident">port</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.config.AppConfig.url_scheme"><code class="name">var <span class="ident">url_scheme</span> : str</code></dt>
+<dt id="diem.testing.miniwallet.config.AppConfig.server_conf"><code class="name">var <span class="ident">server_conf</span> : <a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -269,7 +280,7 @@ def logger(self) -&gt; logging.Logger:
 </summary>
 <pre><code class="python">@property
 def server_url(self) -&gt; str:
-    return &#34;%s://%s:%s&#34; % (self.url_scheme, self.host, self.port)</code></pre>
+    return self.server_conf.base_url</code></pre>
 </details>
 </dd>
 </dl>
@@ -285,6 +296,7 @@ def server_url(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_client(self) -&gt; RestClient:
+    self.logger.info(f&#34;Creating client pointing to {self.server_url}&#34;)
     return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()</code></pre>
 </details>
 </dd>
@@ -336,8 +348,14 @@ def server_url(self) -&gt; str:
     api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
     def serve() -&gt; None:
-        self.logger.info(&#34;serving at http://%s:%s&#34; % (self.host, self.port))
-        waitress.serve(api, host=self.host, port=self.port, clear_untrusted_proxy_headers=True, _quiet=True)
+        self.logger.info(f&#34;serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}&#34;)
+        waitress.serve(
+            api,
+            host=self.server_conf.host,
+            port=self.server_conf.port,
+            clear_untrusted_proxy_headers=True,
+            _quiet=True,
+        )
 
     t = threading.Thread(target=serve, daemon=True)
     t.start()
@@ -381,6 +399,42 @@ def server_url(self) -&gt; str:
 </dd>
 </dl>
 </dd>
+<dt id="diem.testing.miniwallet.config.ServerConfig"><code class="flex name class">
+<span>class <span class="ident">ServerConfig</span></span>
+<span>(</span><span>host: str = 'localhost', port: int = &lt;factory&gt;, base_url: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ServerConfig(host: str = 'localhost', port: int = <factory>, base_url: str = '')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class ServerConfig:
+    host: str = field(default=&#34;localhost&#34;)
+    port: int = field(default_factory=offchain.http_server.get_available_port)
+    base_url: str = field(default=&#34;&#34;)
+
+    def __post_init__(self) -&gt; None:
+        if not self.base_url:
+            self.base_url = f&#34;http://localhost:{self.port}&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.testing.miniwallet.config.ServerConfig.base_url"><code class="name">var <span class="ident">base_url</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.config.ServerConfig.host"><code class="name">var <span class="ident">host</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.config.ServerConfig.port"><code class="name">var <span class="ident">port</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -404,19 +458,25 @@ def server_url(self) -&gt; str:
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.account_config" href="#diem.testing.miniwallet.config.AppConfig.account_config">account_config</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.create_client" href="#diem.testing.miniwallet.config.AppConfig.create_client">create_client</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.enable_debug_api" href="#diem.testing.miniwallet.config.AppConfig.enable_debug_api">enable_debug_api</a></code></li>
-<li><code><a title="diem.testing.miniwallet.config.AppConfig.host" href="#diem.testing.miniwallet.config.AppConfig.host">host</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.initial_amount" href="#diem.testing.miniwallet.config.AppConfig.initial_amount">initial_amount</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.initial_currency" href="#diem.testing.miniwallet.config.AppConfig.initial_currency">initial_currency</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.logger" href="#diem.testing.miniwallet.config.AppConfig.logger">logger</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.name" href="#diem.testing.miniwallet.config.AppConfig.name">name</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.need_funds" href="#diem.testing.miniwallet.config.AppConfig.need_funds">need_funds</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.need_rotate" href="#diem.testing.miniwallet.config.AppConfig.need_rotate">need_rotate</a></code></li>
-<li><code><a title="diem.testing.miniwallet.config.AppConfig.port" href="#diem.testing.miniwallet.config.AppConfig.port">port</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.serve" href="#diem.testing.miniwallet.config.AppConfig.serve">serve</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.AppConfig.server_conf" href="#diem.testing.miniwallet.config.AppConfig.server_conf">server_conf</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.server_url" href="#diem.testing.miniwallet.config.AppConfig.server_url">server_url</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.setup_account" href="#diem.testing.miniwallet.config.AppConfig.setup_account">setup_account</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.start" href="#diem.testing.miniwallet.config.AppConfig.start">start</a></code></li>
-<li><code><a title="diem.testing.miniwallet.config.AppConfig.url_scheme" href="#diem.testing.miniwallet.config.AppConfig.url_scheme">url_scheme</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a></code></h4>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.config.ServerConfig.base_url" href="#diem.testing.miniwallet.config.ServerConfig.base_url">base_url</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.ServerConfig.host" href="#diem.testing.miniwallet.config.ServerConfig.host">host</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.ServerConfig.port" href="#diem.testing.miniwallet.config.ServerConfig.port">port</a></code></li>
 </ul>
 </li>
 </ul>

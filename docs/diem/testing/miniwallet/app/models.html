@@ -32,7 +32,7 @@
 from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from .... import identifier, offchain
+from .... import identifier, offchain, diem_types
 
 
 @dataclass
@@ -106,6 +106,20 @@ class KycSample:
         return any(self.match_kyc_data(f, kyc) for f in fields)
 
 
+class RefundReason(str, Enum):
+    invalid_subaddress = &#34;invalid_subaddress&#34;
+    other = &#34;other&#34;
+
+    @staticmethod
+    def from_diem_type(reason: diem_types.RefundReason) -&gt; &#34;RefundReason&#34;:
+        if isinstance(reason, diem_types.RefundReason__InvalidSubaddress):
+            return RefundReason.invalid_subaddress
+        return RefundReason.other
+
+    def to_diem_type(self) -&gt; diem_types.RefundReason:
+        return diem_types.RefundReason__InvalidSubaddress()
+
+
 @dataclass
 class Transaction(Base):
     class Status(str, Enum):
@@ -123,6 +137,8 @@ class Transaction(Base):
     reference_id: Optional[str] = field(default=None)
     signed_transaction: Optional[str] = field(default=None)
     diem_transaction_version: Optional[int] = field(default=None)
+    refund_diem_txn_version: Optional[int] = field(default=None)
+    refund_reason: Optional[RefundReason] = field(default=None)
 
     def subaddress(self) -&gt; bytes:
         return bytes.fromhex(str(self.subaddress_hex))
@@ -585,6 +601,81 @@ class PaymentUri(Base):
 </dd>
 </dl>
 </dd>
+<dt id="diem.testing.miniwallet.app.models.RefundReason"><code class="flex name class">
+<span>class <span class="ident">RefundReason</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RefundReason(str, Enum):
+    invalid_subaddress = &#34;invalid_subaddress&#34;
+    other = &#34;other&#34;
+
+    @staticmethod
+    def from_diem_type(reason: diem_types.RefundReason) -&gt; &#34;RefundReason&#34;:
+        if isinstance(reason, diem_types.RefundReason__InvalidSubaddress):
+            return RefundReason.invalid_subaddress
+        return RefundReason.other
+
+    def to_diem_type(self) -&gt; diem_types.RefundReason:
+        return diem_types.RefundReason__InvalidSubaddress()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.str</li>
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.testing.miniwallet.app.models.RefundReason.invalid_subaddress"><code class="name">var <span class="ident">invalid_subaddress</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.models.RefundReason.other"><code class="name">var <span class="ident">other</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.testing.miniwallet.app.models.RefundReason.from_diem_type"><code class="name flex">
+<span>def <span class="ident">from_diem_type</span></span>(<span>reason: <a title="diem.diem_types.RefundReason" href="../../../diem_types/index.html#diem.diem_types.RefundReason">RefundReason</a>) ‑> <a title="diem.testing.miniwallet.app.models.RefundReason" href="#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_diem_type(reason: diem_types.RefundReason) -&gt; &#34;RefundReason&#34;:
+    if isinstance(reason, diem_types.RefundReason__InvalidSubaddress):
+        return RefundReason.invalid_subaddress
+    return RefundReason.other</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.testing.miniwallet.app.models.RefundReason.to_diem_type"><code class="name flex">
+<span>def <span class="ident">to_diem_type</span></span>(<span>self) ‑> <a title="diem.diem_types.RefundReason" href="../../../diem_types/index.html#diem.diem_types.RefundReason">RefundReason</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_diem_type(self) -&gt; diem_types.RefundReason:
+    return diem_types.RefundReason__InvalidSubaddress()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="diem.testing.miniwallet.app.models.Subaddress"><code class="flex name class">
 <span>class <span class="ident">Subaddress</span></span>
 <span>(</span><span>id: str, account_id: str, subaddress_hex: str)</span>
@@ -618,10 +709,10 @@ class Subaddress(Base):
 </dd>
 <dt id="diem.testing.miniwallet.app.models.Transaction"><code class="flex name class">
 <span>class <span class="ident">Transaction</span></span>
-<span>(</span><span>id: str, account_id: str, currency: str, amount: int, status: <a title="diem.testing.miniwallet.app.models.Transaction.Status" href="#diem.testing.miniwallet.app.models.Transaction.Status">Transaction.Status</a>, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None)</span>
+<span>(</span><span>id: str, account_id: str, currency: str, amount: int, status: <a title="diem.testing.miniwallet.app.models.Transaction.Status" href="#diem.testing.miniwallet.app.models.Transaction.Status">Transaction.Status</a>, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None, refund_diem_txn_version: Optional[int] = None, refund_reason: Optional[<a title="diem.testing.miniwallet.app.models.RefundReason" href="#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a>] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Transaction(id: str, account_id: str, currency: str, amount: int, status: diem.testing.miniwallet.app.models.Transaction.Status, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None)</p></div>
+<div class="desc"><p>Transaction(id: str, account_id: str, currency: str, amount: int, status: diem.testing.miniwallet.app.models.Transaction.Status, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None, refund_diem_txn_version: Optional[int] = None, refund_reason: Optional[diem.testing.miniwallet.app.models.RefundReason] = None)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -643,6 +734,8 @@ class Transaction(Base):
     reference_id: Optional[str] = field(default=None)
     signed_transaction: Optional[str] = field(default=None)
     diem_transaction_version: Optional[int] = field(default=None)
+    refund_diem_txn_version: Optional[int] = field(default=None)
+    refund_reason: Optional[RefundReason] = field(default=None)
 
     def subaddress(self) -&gt; bytes:
         return bytes.fromhex(str(self.subaddress_hex))
@@ -685,6 +778,14 @@ class Transaction(Base):
 <div class="desc"></div>
 </dd>
 <dt id="diem.testing.miniwallet.app.models.Transaction.reference_id"><code class="name">var <span class="ident">reference_id</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.models.Transaction.refund_diem_txn_version"><code class="name">var <span class="ident">refund_diem_txn_version</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.models.Transaction.refund_reason"><code class="name">var <span class="ident">refund_reason</span> : Optional[<a title="diem.testing.miniwallet.app.models.RefundReason" href="#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -816,6 +917,15 @@ class Transaction(Base):
 </ul>
 </li>
 <li>
+<h4><code><a title="diem.testing.miniwallet.app.models.RefundReason" href="#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a></code></h4>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.app.models.RefundReason.from_diem_type" href="#diem.testing.miniwallet.app.models.RefundReason.from_diem_type">from_diem_type</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.RefundReason.invalid_subaddress" href="#diem.testing.miniwallet.app.models.RefundReason.invalid_subaddress">invalid_subaddress</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.RefundReason.other" href="#diem.testing.miniwallet.app.models.RefundReason.other">other</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.RefundReason.to_diem_type" href="#diem.testing.miniwallet.app.models.RefundReason.to_diem_type">to_diem_type</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="diem.testing.miniwallet.app.models.Subaddress" href="#diem.testing.miniwallet.app.models.Subaddress">Subaddress</a></code></h4>
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.app.models.Subaddress.account_id" href="#diem.testing.miniwallet.app.models.Subaddress.account_id">account_id</a></code></li>
@@ -834,6 +944,8 @@ class Transaction(Base):
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.diem_transaction_version" href="#diem.testing.miniwallet.app.models.Transaction.diem_transaction_version">diem_transaction_version</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.payee" href="#diem.testing.miniwallet.app.models.Transaction.payee">payee</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.reference_id" href="#diem.testing.miniwallet.app.models.Transaction.reference_id">reference_id</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.Transaction.refund_diem_txn_version" href="#diem.testing.miniwallet.app.models.Transaction.refund_diem_txn_version">refund_diem_txn_version</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.Transaction.refund_reason" href="#diem.testing.miniwallet.app.models.Transaction.refund_reason">refund_reason</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.signed_transaction" href="#diem.testing.miniwallet.app.models.Transaction.signed_transaction">signed_transaction</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.status" href="#diem.testing.miniwallet.app.models.Transaction.status">status</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.subaddress" href="#diem.testing.miniwallet.app.models.Transaction.subaddress">subaddress</a></code></li>

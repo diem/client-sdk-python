@@ -43,7 +43,7 @@ from .serde_types import uint64
 
 from .auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from copy import copy
 import time
@@ -118,7 +118,7 @@ class LocalAccount:
     def compliance_public_key_bytes(self) -&gt; bytes:
         return utils.public_key_bytes(self.compliance_key.public_key())
 
-    def account_identifier(self, subaddress: Optional[bytes] = None) -&gt; str:
+    def account_identifier(self, subaddress: Union[str, bytes, None] = None) -&gt; str:
         return identifier.encode_account(self.account_address, subaddress, self.hrp)
 
     def decode_account_identifier(self, encoded_id: str) -&gt; Tuple[diem_types.AccountAddress, Optional[bytes]]:
@@ -270,7 +270,7 @@ class LocalAccount:
     def compliance_public_key_bytes(self) -&gt; bytes:
         return utils.public_key_bytes(self.compliance_key.public_key())
 
-    def account_identifier(self, subaddress: Optional[bytes] = None) -&gt; str:
+    def account_identifier(self, subaddress: Union[str, bytes, None] = None) -&gt; str:
         return identifier.encode_account(self.account_address, subaddress, self.hrp)
 
     def decode_account_identifier(self, encoded_id: str) -&gt; Tuple[diem_types.AccountAddress, Optional[bytes]]:
@@ -484,7 +484,7 @@ def public_key_bytes(self) -&gt; bytes:
 <h3>Methods</h3>
 <dl>
 <dt id="diem.local_account.LocalAccount.account_identifier"><code class="name flex">
-<span>def <span class="ident">account_identifier</span></span>(<span>self, subaddress: Optional[bytes] = None) ‑> str</span>
+<span>def <span class="ident">account_identifier</span></span>(<span>self, subaddress: Union[str, bytes, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -492,7 +492,7 @@ def public_key_bytes(self) -&gt; bytes:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def account_identifier(self, subaddress: Optional[bytes] = None) -&gt; str:
+<pre><code class="python">def account_identifier(self, subaddress: Union[str, bytes, None] = None) -&gt; str:
     return identifier.encode_account(self.account_address, subaddress, self.hrp)</code></pre>
 </details>
 </dd>

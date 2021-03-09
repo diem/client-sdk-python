@@ -106,7 +106,7 @@ class AccountResource:
 
     client: RestClient
     id: str
-    kyc_data: str
+    kyc_data: Optional[str] = field(default=None)
 
     def balance(self, currency: str) -&gt; int:
         return self._balances().get(currency, 0)
@@ -115,8 +115,8 @@ class AccountResource:
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
         return Payment(**p)
 
-    def create_payment_uri(self) -&gt; PaymentUri:
-        return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;)))
+    def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
+        return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))
 
     def events(self, start: int = 0) -&gt; List[Event]:
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
@@ -146,15 +146,25 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries &gt;= max_tries:
-                    events = json.dumps(list(map(self.event_asdict, self.events())), indent=2)
-                    raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, events)) from e
+                    raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, self.dump_events())) from e
                 time.sleep(delay)
+
+    def log_events(self) -&gt; None:
+        events = self.dump_events()
+        if events:
+            self.client.logger.info(&#34;account(%s) events: %s&#34;, self.id, events)
+
+    def dump_events(self) -&gt; str:
+        try:
+            return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
+        except requests.HTTPError:
+            return &#34;&#34;
 
     def event_asdict(self, event: Event) -&gt; Dict[str, Any]:
         ret = asdict(event)
         try:
             ret[&#34;data&#34;] = json.loads(event.data)
-            if &#34;kyc_data&#34; in ret[&#34;data&#34;]:
+            if ret[&#34;data&#34;].get(&#34;kyc_data&#34;):
                 ret[&#34;data&#34;][&#34;kyc_data&#34;] = json.loads(ret[&#34;data&#34;][&#34;kyc_data&#34;])
         except json.decoder.JSONDecodeError:
             pass
@@ -187,10 +197,10 @@ class AccountResource:
 <dl>
 <dt id="diem.testing.miniwallet.client.AccountResource"><code class="flex name class">
 <span>class <span class="ident">AccountResource</span></span>
-<span>(</span><span>client: <a title="diem.testing.miniwallet.client.RestClient" href="#diem.testing.miniwallet.client.RestClient">RestClient</a>, id: str, kyc_data: str)</span>
+<span>(</span><span>client: <a title="diem.testing.miniwallet.client.RestClient" href="#diem.testing.miniwallet.client.RestClient">RestClient</a>, id: str, kyc_data: Optional[str] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>AccountResource(client: diem.testing.miniwallet.client.RestClient, id: str, kyc_data: str)</p></div>
+<div class="desc"><p>AccountResource(client: diem.testing.miniwallet.client.RestClient, id: str, kyc_data: Optional[str] = None)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -200,7 +210,7 @@ class AccountResource:
 
     client: RestClient
     id: str
-    kyc_data: str
+    kyc_data: Optional[str] = field(default=None)
 
     def balance(self, currency: str) -&gt; int:
         return self._balances().get(currency, 0)
@@ -209,8 +219,8 @@ class AccountResource:
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
         return Payment(**p)
 
-    def create_payment_uri(self) -&gt; PaymentUri:
-        return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;)))
+    def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
+        return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))
 
     def events(self, start: int = 0) -&gt; List[Event]:
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
@@ -240,15 +250,25 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries &gt;= max_tries:
-                    events = json.dumps(list(map(self.event_asdict, self.events())), indent=2)
-                    raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, events)) from e
+                    raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, self.dump_events())) from e
                 time.sleep(delay)
+
+    def log_events(self) -&gt; None:
+        events = self.dump_events()
+        if events:
+            self.client.logger.info(&#34;account(%s) events: %s&#34;, self.id, events)
+
+    def dump_events(self) -&gt; str:
+        try:
+            return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
+        except requests.HTTPError:
+            return &#34;&#34;
 
     def event_asdict(self, event: Event) -&gt; Dict[str, Any]:
         ret = asdict(event)
         try:
             ret[&#34;data&#34;] = json.loads(event.data)
-            if &#34;kyc_data&#34; in ret[&#34;data&#34;]:
+            if ret[&#34;data&#34;].get(&#34;kyc_data&#34;):
                 ret[&#34;data&#34;][&#34;kyc_data&#34;] = json.loads(ret[&#34;data&#34;][&#34;kyc_data&#34;])
         except json.decoder.JSONDecodeError:
             pass
@@ -279,7 +299,7 @@ class AccountResource:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : str</code></dt>
+<dt id="diem.testing.miniwallet.client.AccountResource.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -299,8 +319,8 @@ class AccountResource:
     return self._balances().get(currency, 0)</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.create_payment_uri"><code class="name flex">
-<span>def <span class="ident">create_payment_uri</span></span>(<span>self) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="app/models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
+<dt id="diem.testing.miniwallet.client.AccountResource.dump_events"><code class="name flex">
+<span>def <span class="ident">dump_events</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -308,8 +328,11 @@ class AccountResource:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create_payment_uri(self) -&gt; PaymentUri:
-    return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;)))</code></pre>
+<pre><code class="python">def dump_events(self) -&gt; str:
+    try:
+        return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
+    except requests.HTTPError:
+        return &#34;&#34;</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.event_asdict"><code class="name flex">
@@ -325,7 +348,7 @@ class AccountResource:
     ret = asdict(event)
     try:
         ret[&#34;data&#34;] = json.loads(event.data)
-        if &#34;kyc_data&#34; in ret[&#34;data&#34;]:
+        if ret[&#34;data&#34;].get(&#34;kyc_data&#34;):
             ret[&#34;data&#34;][&#34;kyc_data&#34;] = json.loads(ret[&#34;data&#34;][&#34;kyc_data&#34;])
     except json.decoder.JSONDecodeError:
         pass
@@ -346,6 +369,19 @@ class AccountResource:
     return [Event(**obj) for obj in ret[start:]]</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.miniwallet.client.AccountResource.generate_payment_uri"><code class="name flex">
+<span>def <span class="ident">generate_payment_uri</span></span>(<span>self, currency: Optional[str] = None, amount: Optional[int] = None) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="app/models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
+    return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.info"><code class="name flex">
 <span>def <span class="ident">info</span></span>(<span>self, *args: Any, **kwargs: Any) ‑> NoneType</span>
 </code></dt>
@@ -357,6 +393,21 @@ class AccountResource:
 </summary>
 <pre><code class="python">def info(self, *args: Any, **kwargs: Any) -&gt; None:
     self.client.logger.info(*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.client.AccountResource.log_events"><code class="name flex">
+<span>def <span class="ident">log_events</span></span>(<span>self) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def log_events(self) -&gt; None:
+    events = self.dump_events()
+    if events:
+        self.client.logger.info(&#34;account(%s) events: %s&#34;, self.id, events)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.send_payment"><code class="name flex">
@@ -390,8 +441,7 @@ class AccountResource:
             return fn()
         except AssertionError as e:
             if tries &gt;= max_tries:
-                events = json.dumps(list(map(self.event_asdict, self.events())), indent=2)
-                raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, events)) from e
+                raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, self.dump_events())) from e
             time.sleep(delay)</code></pre>
 </details>
 </dd>
@@ -706,15 +756,17 @@ class RestClient:
 <ul>
 <li>
 <h4><code><a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.balance" href="#diem.testing.miniwallet.client.AccountResource.balance">balance</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.client" href="#diem.testing.miniwallet.client.AccountResource.client">client</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.AccountResource.create_payment_uri" href="#diem.testing.miniwallet.client.AccountResource.create_payment_uri">create_payment_uri</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.AccountResource.dump_events" href="#diem.testing.miniwallet.client.AccountResource.dump_events">dump_events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.event_asdict" href="#diem.testing.miniwallet.client.AccountResource.event_asdict">event_asdict</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.events" href="#diem.testing.miniwallet.client.AccountResource.events">events</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.AccountResource.generate_payment_uri" href="#diem.testing.miniwallet.client.AccountResource.generate_payment_uri">generate_payment_uri</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.id" href="#diem.testing.miniwallet.client.AccountResource.id">id</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.info" href="#diem.testing.miniwallet.client.AccountResource.info">info</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.kyc_data" href="#diem.testing.miniwallet.client.AccountResource.kyc_data">kyc_data</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.AccountResource.log_events" href="#diem.testing.miniwallet.client.AccountResource.log_events">log_events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.send_payment" href="#diem.testing.miniwallet.client.AccountResource.send_payment">send_payment</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for" href="#diem.testing.miniwallet.client.AccountResource.wait_for">wait_for</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for_balance" href="#diem.testing.miniwallet.client.AccountResource.wait_for_balance">wait_for_balance</a></code></li>

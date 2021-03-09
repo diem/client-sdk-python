@@ -31,7 +31,7 @@
 
 from dataclasses import dataclass
 from typing import Tuple
-from .models import Transaction
+from .models import Transaction, RefundReason
 from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, LocalAccount
 
 
@@ -39,6 +39,9 @@ from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, Loca
 class DiemAccount:
     account: LocalAccount
     client: jsonrpc.Client
+
+    def refund_metadata(self, version: int, reason: RefundReason) -&gt; Tuple[bytes, bytes]:
+        return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b&#34;&#34;)
 
     def general_metadata(self, from_subaddress: bytes, payee: str) -&gt; Tuple[bytes, bytes]:
         to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
@@ -84,6 +87,9 @@ class DiemAccount:
     account: LocalAccount
     client: jsonrpc.Client
 
+    def refund_metadata(self, version: int, reason: RefundReason) -&gt; Tuple[bytes, bytes]:
+        return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b&#34;&#34;)
+
     def general_metadata(self, from_subaddress: bytes, payee: str) -&gt; Tuple[bytes, bytes]:
         to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
         return (txnmetadata.general_metadata(from_subaddress, to_subaddress), b&#34;&#34;)
@@ -128,6 +134,19 @@ class DiemAccount:
 <pre><code class="python">def general_metadata(self, from_subaddress: bytes, payee: str) -&gt; Tuple[bytes, bytes]:
     to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
     return (txnmetadata.general_metadata(from_subaddress, to_subaddress), b&#34;&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.refund_metadata"><code class="name flex">
+<span>def <span class="ident">refund_metadata</span></span>(<span>self, version: int, reason: <a title="diem.testing.miniwallet.app.models.RefundReason" href="models.html#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a>) ‑> Tuple[bytes, bytes]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def refund_metadata(self, version: int, reason: RefundReason) -&gt; Tuple[bytes, bytes]:
+    return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b&#34;&#34;)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p"><code class="name flex">
@@ -185,10 +204,11 @@ class DiemAccount:
 <ul>
 <li>
 <h4><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount" href="#diem.testing.miniwallet.app.diem_account.DiemAccount">DiemAccount</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.account" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.account">account</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.client" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.client">client</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.general_metadata" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.general_metadata">general_metadata</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.refund_metadata" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.refund_metadata">refund_metadata</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p">submit_p2p</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.travel_metadata" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.travel_metadata">travel_metadata</a></code></li>
 </ul>

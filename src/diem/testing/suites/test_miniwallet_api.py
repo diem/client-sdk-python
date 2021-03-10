@@ -39,28 +39,6 @@ def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -> N
     assert sorted(list(json.loads(new_events[4].data).keys())) == ["diem_transaction_version", "id", "status"]
 
 
-def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -> None:
-    receiver = clients.stub.create_account()
-    payment_uri = receiver.generate_payment_uri()
-
-    index = len(receiver.events())
-    amount = 1234
-    sender = clients.target.create_account({currency: amount})
-    payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
-
-    receiver.wait_for_balance(currency, amount)
-    sender.wait_for_balance(currency, 0)
-
-    new_events = [e for e in receiver.events(index) if e.type != "info"]
-    assert len(new_events) == 1
-    assert new_events[0].type == "created_transaction"
-    txn = Transaction(**json.loads(new_events[0].data))
-    assert txn.id
-    assert txn.currency == payment.currency
-    assert txn.amount == payment.amount
-    assert txn.diem_transaction_version
-
-
 def test_receive_multiple_payments(clients: Clients, hrp: str, currency: str) -> None:
     receiver = clients.stub.create_account()
     payment_uri = receiver.generate_payment_uri()

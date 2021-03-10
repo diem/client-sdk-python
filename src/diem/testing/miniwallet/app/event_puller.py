@@ -39,11 +39,11 @@ class EventPuller:
             self.fetch(lambda _: None)
 
     def save_payment_txn(self, event: jsonrpc.Event) -> None:
-        self.logger.info("processing %s" % event)
+        self.logger.info("processing Event:\n%s", event)
         try:
             self._save_payment_txn(event)
         except (NotFoundError, ValueError) as e:
-            self.logger.error("process metadata failed, save funds to pending inbound account: %s", e)
+            self.logger.error("process event failed: %s", e)
             self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
 
     def _save_payment_txn(self, event: jsonrpc.Event) -> None:
@@ -71,8 +71,7 @@ class EventPuller:
                     try:
                         account_id = self.store.find(Subaddress, subaddress_hex=original_sender).account_id
                     except NotFoundError:
-                        msg = "could not find subaddress %s, save to pending inbound account"
-                        self.logger.error(msg, original_sender)
+                        self.logger.error("could not find account by subaddress %s", original_sender)
                         account_id = PENDING_INBOUND_ACCOUNT_ID
                     return self._create_txn(account_id, event, refund_diem_txn_version=version, refund_reason=reason)
         raise ValueError("unrecognized metadata: %r" % event.data.metadata)
@@ -91,6 +90,7 @@ class EventPuller:
         )
 
     def _create_txn(self, account_id: str, event: jsonrpc.Event, **kwargs: Any) -> None:
+        self.logger.info("account(id=%s) receives payment amount %s", account_id, event.data.amount.amount)
         self.store.create(
             Transaction,
             account_id=account_id,

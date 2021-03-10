@@ -17,10 +17,10 @@ class LoggerMiddleware:
     logger: logging.Logger
 
     def process_request(self, req, resp):  # pyre-ignore
-        self.logger.info("%s %s" % (req.method, req.relative_uri))
+        self.logger.debug("%s %s", req.method, req.relative_uri)
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        self.logger.info(resp.status)
+        self.logger.info("%s %s - %s", req.method, req.relative_uri, resp.status)
 
 
 def rest_handler(fn: Any):  # pyre-ignore
@@ -28,7 +28,7 @@ def rest_handler(fn: Any):  # pyre-ignore
         try:
             try:
                 data = json.load(req.stream)
-                self.app.logger.info("request body: %s" % data)
+                self.app.logger.debug("request body: %s", data)
             except Exception:
                 data = {}
             status, body = fn(self, input=JsonInput(data), **kwargs)

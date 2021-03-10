@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
 from .... import identifier, offchain, diem_types
+import json
 
 
 @dataclass
@@ -117,6 +118,9 @@ class Transaction(Base):
 
     def balance_amount(self) -> int:
         return -self.amount if self.payee else self.amount
+
+    def __str__(self) -> str:
+        return "Transaction %s" % json.dumps(asdict(self), indent=2)
 
 
 @dataclass

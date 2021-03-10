@@ -18,7 +18,7 @@ def test_travel_rule_metadata():
 
 def test_new_general_metadata_for_nones():
     ret = txnmetadata.general_metadata(None, None)
-    assert ret == b""
+    assert ret.hex() == "0100000000"
 
 
 def test_new_general_metadata_to_sub_address():

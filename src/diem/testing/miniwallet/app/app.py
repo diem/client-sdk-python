@@ -21,7 +21,7 @@ class Base:
         self.store = InMemoryStore()
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
-        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp)
+        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp, logger=logger)
         self.event_puller.add(account.account_address)
         self.event_puller.head()
 
@@ -174,12 +174,12 @@ class BackgroundTasks(OffChainAPI):
                 diem_txn = self.diem_account.client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
                 self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
             except jsonrpc.WaitForTransactionTimeout as e:
-                self.store.create_event(txn.account_id, "info", str(e))
+                self.logger.debug("wait for txn(%s) timeout: %s", txn, e)
             except jsonrpc.TransactionHashMismatchError as e:
-                self.store.create_event(txn.account_id, "info", str(e))
+                self.logger.warn("txn(%s) hash mismatched(%s), re-submit", txn, e)
                 self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self._txn_metadata(txn)))
             except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
-                self.store.create_event(txn.account_id, "info", str(e))
+                self.logger.error("txn(%s) execution expired / failed(%s), canceled", txn, e)
                 reason = "something went wrong with transaction execution: %s" % e
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
         else:

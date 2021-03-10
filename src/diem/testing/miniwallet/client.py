@@ -60,15 +60,15 @@ class RestClient:
 
     def send(self, method: str, path: str, data: Optional[str] = None) -> requests.Response:
         url = "%s/%s" % (self.server_url.rstrip("/"), path.lstrip("/"))
-        self.logger.debug("%s %s: %s" % (method, path, data))
+        self.logger.debug("%s %s: %s", method, path, data)
         resp = self.session.request(
             method=method,
             url=url.lower(),
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": jsonrpc.client.USER_AGENT_HTTP_HEADER},
         )
-        self.logger.debug("response status code: %s" % resp.status_code)
-        self.logger.debug("response body: %s" % resp.text)
+        self.logger.debug("response status code: %s", resp.status_code)
+        self.logger.debug("response body: %s", resp.text)
         resp.raise_for_status()
         return resp
 

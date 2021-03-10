@@ -142,7 +142,7 @@ class BackgroundTasks(OffChainAPI):
 
     def _send_pending_payments(self) -> None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
-            self.logger.info("processing %s" % txn)
+            self.logger.info("processing %s", txn)
             try:
                 if self.offchain.is_my_account_id(str(txn.payee)):
                     self._send_internal_payment_txn(txn)

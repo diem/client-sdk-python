@@ -64,6 +64,7 @@ def start_server(
     show_default=False,
 )
 @click.option("--test-debug-api", "-d", default=False, help="Run tests for debug APIs.", type=bool)
+@click.option("--logfile", "-l", default=None, help="Log to a file instead of printing into console.")
 @click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
 def test(
     target: str,
@@ -74,6 +75,7 @@ def test(
     faucet: str,
     pytest_args: str,
     test_debug_api: bool,
+    logfile: str,
     verbose: bool,
 ) -> None:
     configure_testnet(jsonrpc, faucet)
@@ -99,6 +101,8 @@ def test(
         args.append("--log-level=INFO")
         args.append("-s")
         args.append("-v")
+    if logfile:
+        args.append("--log-file=%s" % logfile)
 
     code = pytest.main(args)
     sys.stdout.flush()

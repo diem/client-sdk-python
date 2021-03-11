@@ -45,8 +45,11 @@ diemtypes:
 
 protobuf:
 	mkdir -p src/diem/jsonrpc
+	mkdir -p src/diem/jsonrpc2
 	protoc --plugin=protoc-gen-mypy=venv/bin/protoc-gen-mypy \
+		  --plugin=protoc-gen-mypy=venv/bin/protoc-gen-python_betterproto \
 		-Idiem/json-rpc/types/src/proto --python_out=src/diem/jsonrpc --mypy_out=src/diem/jsonrpc \
+	 	--python_betterproto_out=src/diem/jsonrpc2 \
 		jsonrpc.proto
 
 gen: diemtypes protobuf format

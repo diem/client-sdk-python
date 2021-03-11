@@ -42,8 +42,8 @@ class EventPuller:
         self.logger.info("processing Event:\n%s", event)
         try:
             self._save_payment_txn(event)
-        except (NotFoundError, ValueError) as e:
-            self.logger.error("process event failed: %s", e)
+        except (NotFoundError, ValueError):
+            self.logger.exception("process event failed")
             self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
 
     def _save_payment_txn(self, event: jsonrpc.Event) -> None:
@@ -52,32 +52,40 @@ class EventPuller:
             subaddress = utils.hex(metadata.to_subaddress)
             try:
                 res = self.store.find(Subaddress, subaddress_hex=subaddress)
-                return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
             except NotFoundError:
-                self.logger.error("could not find receiver's subaddress %s, refund", subaddress)
-                payee = identifier.encode_account(event.data.sender, None, self.hrp)
-                return self._refund(payee, RefundReason.invalid_subaddress, event)
-        elif isinstance(metadata, diem_types.TravelRuleMetadataV0) and metadata.off_chain_reference_id:
-            cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
+                self.logger.exception("invalid general metadata to_subaddress")
+                return self._refund(RefundReason.invalid_subaddress, event)
+            return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
+        elif isinstance(metadata, diem_types.TravelRuleMetadataV0):
+            try:
+                cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
+            except NotFoundError:
+                self.logger.exception("invalid travel rule metadata off-chain reference id")
+                return self._refund(RefundReason.other, event)
             return self._create_txn(cmd.account_id, event, reference_id=cmd.reference_id)
         elif isinstance(metadata, diem_types.RefundMetadataV0):
             version = int(metadata.transaction_version)
             reason = RefundReason.from_diem_type(metadata.reason)
-            diem_txn = self.client.get_transactions(version, 1)[0]
-            if diem_txn.transaction.script and diem_txn.transaction.script.metadata:
-                original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
-                if isinstance(original_metadata, diem_types.GeneralMetadataV0):
-                    original_sender = utils.hex(original_metadata.from_subaddress)
-                    try:
-                        account_id = self.store.find(Subaddress, subaddress_hex=original_sender).account_id
-                    except NotFoundError:
-                        self.logger.error("could not find account by subaddress %s", original_sender)
-                        account_id = PENDING_INBOUND_ACCOUNT_ID
-                    return self._create_txn(account_id, event, refund_diem_txn_version=version, refund_reason=reason)
+            account_id = self._find_refund_account_id(version)
+            return self._create_txn(account_id, event, refund_diem_txn_version=version, refund_reason=reason)
         raise ValueError("unrecognized metadata: %r" % event.data.metadata)
 
-    def _refund(self, payee: str, reason: RefundReason, event: jsonrpc.Event) -> None:
+    def _find_refund_account_id(self, version: int) -> str:
+        diem_txn = self.client.get_transactions(version, 1)[0]
+        original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
+        if isinstance(original_metadata, diem_types.GeneralMetadataV0):
+            original_sender = utils.hex(original_metadata.from_subaddress)
+            try:
+                return self.store.find(Subaddress, subaddress_hex=original_sender).account_id
+            except NotFoundError:
+                self.logger.exception("invalid original transaction metadata from_subaddress")
+        else:
+            self.logger.error("invalid original txn metadata %r", diem_txn.transaction.script.metadata)
+        return PENDING_INBOUND_ACCOUNT_ID
+
+    def _refund(self, reason: RefundReason, event: jsonrpc.Event) -> None:
         self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
+        payee = identifier.encode_account(event.data.sender, None, self.hrp)
         self.store.create(
             Transaction,
             account_id=PENDING_INBOUND_ACCOUNT_ID,

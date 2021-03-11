@@ -67,10 +67,22 @@ class RestClient:
             data=data,
             headers={"Content-Type": "application/json", "User-Agent": jsonrpc.client.USER_AGENT_HTTP_HEADER},
         )
-        self.logger.debug("response status code: %s", resp.status_code)
-        self.logger.debug("response body: %s", resp.text)
+        log_level = logging.DEBUG if resp.status_code < 300 else logging.ERROR
+        self.logger.log(log_level, "%s %s: %s - %s", method, path, data, resp.status_code)
+        self.logger.log(log_level, "response body: \n%s", try_json(resp.text))
         resp.raise_for_status()
         return resp
+
+
+def try_json(text: str) -> str:
+    try:
+        obj = json.loads(text)
+        if isinstance(obj, dict):
+            # pretty print error json stacktrace info
+            return "\n".join(["%s: %s" % (k, v) for k, v in obj.items()])
+        return json.dumps(obj, indent=2)
+    except Exception:
+        return text
 
 
 @dataclass
@@ -100,13 +112,16 @@ class AccountResource:
 
         self.wait_for(fn)
 
+    def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -> Optional[Event]:
+        events = [e for e in self.events(start_index) if e.type == event_type]
+        for e in events:
+            if _match(json.loads(e.data), **kwargs):
+                return e
+
     def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -> None:
         def fn() -> None:
-            events = [e for e in self.events(start_index) if e.type == event_type]
-            for e in events:
-                if _match(json.loads(e.data), **kwargs):
-                    return
-            assert False, "could not find %s event with %s" % (event_type, kwargs)
+            event = self.find_event(event_type, start_index=start_index, **kwargs)
+            assert event, "could not find %s event with %s" % (event_type, (start_index, kwargs))
 
         self.wait_for(fn)
 

@@ -71,16 +71,21 @@ class EventPuller:
         raise ValueError("unrecognized metadata: %r" % event.data.metadata)
 
     def _find_refund_account_id(self, version: int) -> str:
-        diem_txn = self.client.get_transactions(version, 1)[0]
-        original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
-        if isinstance(original_metadata, diem_types.GeneralMetadataV0):
-            original_sender = utils.hex(original_metadata.from_subaddress)
-            try:
-                return self.store.find(Subaddress, subaddress_hex=original_sender).account_id
-            except NotFoundError:
-                self.logger.exception("invalid original transaction metadata from_subaddress")
+        diem_txns = self.client.get_transactions(version, 1)
+        if diem_txns:
+            diem_txn = diem_txns[0]
+            self.logger.error("diem_txn script: %r", diem_txn.transaction.script)
+            original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
+            if isinstance(original_metadata, diem_types.GeneralMetadataV0):
+                original_sender = utils.hex(original_metadata.from_subaddress)
+                try:
+                    return self.store.find(Subaddress, subaddress_hex=original_sender).account_id
+                except NotFoundError:
+                    self.logger.exception("invalid original transaction metadata from_subaddress")
+            else:
+                self.logger.error("invalid original txn metadata %r", diem_txn.transaction.script.metadata)
         else:
-            self.logger.error("invalid original txn metadata %r", diem_txn.transaction.script.metadata)
+            self.logger.error("could not find diem txn by version: %s", version)
         return PENDING_INBOUND_ACCOUNT_ID
 
     def _refund(self, reason: RefundReason, event: jsonrpc.Event) -> None:

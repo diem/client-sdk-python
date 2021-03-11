@@ -337,6 +337,54 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
     assert receiver_account.balance(currency) == 0
 
 
+@pytest.mark.parametrize("invalid_refund_txn_version", [0, 1, 18446744073709551615])
+def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    pending_income_account: AccountResource,
+    invalid_refund_txn_version: int,
+) -> None:
+    """
+    When received a payment transaction with invalid refund metadata, it's up to wallet
+    application to decide how to handle, this test makes sure the wallet application
+    should be able to continue to receive following up valid payment transactions.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Submit payment transaction with refund metadata and invalid txn version.
+    3. Wait for the transaction executed successfully.
+    4. Send a valid payment to the payment URI.
+    5. Assert receiver account received the valid payment.
+
+    """
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    reason = diem_types.RefundReason__OtherReason()
+    metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
+    stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount * 2,
+            payee=receiver_account_address,
+            metadata=metadata,
+            metadata_signature=b"",
+        ),
+    )
+    assert receiver_account.balance(currency) == 0
+
+    pay = sender_account.send_payment(currency, amount, payee=receiver_uri.intent(hrp).account_id)
+    wait_for_payment_transaction_complete(sender_account, pay.id)
+    receiver_account.wait_for_balance(currency, amount)
+
+
 def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -> None:
     # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
     # Payment id is same with Transaction id.

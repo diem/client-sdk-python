@@ -54,6 +54,7 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
 
 
 def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -> Result:
+    stub_conf = ServerConfig()
     return runner.invoke(
         click.test,
         [
@@ -65,6 +66,12 @@ def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -
             testnet.FAUCET_URL,
             "--pytest-args",
             "-k test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses",
+            "--stub-bind-host",
+            "0.0.0.0",
+            "--stub-bind-port",
+            stub_conf.port,
+            "--stub-diem-account-base-url",
+            stub_conf.base_url,
         ]
         + options,
     )

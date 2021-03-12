@@ -6,7 +6,7 @@
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
 import hashlib
-import typing
+import typing, time, socket
 
 from . import diem_types, jsonrpc, stdlib
 
@@ -186,3 +186,24 @@ def to_snake(o: typing.Any) -> str:  # pyre-ignore
     elif hasattr(o, "__name__"):
         return to_snake(getattr(o, "__name__"))
     return to_snake(type(o))
+
+
+def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> None:
+    """Wait for a port ready for accepting TCP connections.
+    Args:
+        port (int): port number.
+        host (str): host address on which the port should exist.
+        timeout (float): in seconds. wait timeout
+    Raises:
+        TimeoutError
+    """
+
+    start_time = time.perf_counter()
+    while True:
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                break
+        except OSError as e:
+            if time.perf_counter() - start_time >= timeout:
+                raise TimeoutError("waited %s for %s:%s accept connection." % (timeout, host, port)) from e
+            time.sleep(0.01)

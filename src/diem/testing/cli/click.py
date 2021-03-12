@@ -1,11 +1,11 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import testnet
+from diem import testnet, LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
-from typing import Optional
-import logging, click, functools, pytest, os, sys, re
+from typing import Optional, TextIO
+import logging, click, functools, pytest, os, sys, re, json
 
 log_format: str = "%(name)s [%(asctime)s] %(levelname)s: %(message)s"
 click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
@@ -22,15 +22,34 @@ def main() -> None:
 @click.option("--port", "-p", default=8888, help="Start server port.")
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
-@click.option("--logfile", "-l", default=None, help="Log to a file instead of printing into console.")
 @click.option("--enable-debug-api", "-o", default=True, help="Enable debug API.", type=bool, is_flag=True)
+@click.option(
+    "--logfile", "-l", default=None, type=click.Path(), help="Log to a file instead of printing into console."
+)
+@click.option(
+    "--import-diem-account-config-file",
+    "-i",
+    default=None,
+    help="Import the diem account config from a file. The config file content should be JSON generated from command `gen-diem-account-config`.",
+    type=click.File(),
+)
 def start_server(
-    name: str, host: str, port: int, jsonrpc: str, faucet: str, enable_debug_api: bool, logfile: Optional[str] = None
+    name: str,
+    host: str,
+    port: int,
+    jsonrpc: str,
+    faucet: str,
+    enable_debug_api: bool,
+    import_diem_account_config_file: Optional[TextIO],
+    logfile: Optional[str],
 ) -> None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
     conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), enable_debug_api=enable_debug_api)
+    if import_diem_account_config_file:
+        conf.account_config = json.load(import_diem_account_config_file)
+
     print("Server Config: %s" % conf)
 
     client = testnet.create_client()
@@ -64,8 +83,17 @@ def start_server(
     show_default=False,
 )
 @click.option("--test-debug-api", "-d", default=False, help="Run tests for debug APIs.", type=bool)
-@click.option("--logfile", "-l", default=None, help="Log to a file instead of printing into console.")
+@click.option(
+    "--logfile", "-l", default=None, help="Log to a file instead of printing into console.", type=click.Path()
+)
 @click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
+@click.option(
+    "--import-stub-diem-account-config-file",
+    "-i",
+    default=None,
+    help="Import the diem account config from a file for miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.",
+    type=click.File(),
+)
 def test(
     target: str,
     stub_bind_host: Optional[str],
@@ -75,8 +103,9 @@ def test(
     faucet: str,
     pytest_args: str,
     test_debug_api: bool,
-    logfile: str,
+    logfile: Optional[str],
     verbose: bool,
+    import_stub_diem_account_config_file: Optional[TextIO],
 ) -> None:
     configure_testnet(jsonrpc, faucet)
     os.environ[envs.TARGET_URL] = target
@@ -91,6 +120,8 @@ def test(
         os.environ[envs.DMW_STUB_BIND_PORT] = str(stub_bind_port)
     if stub_diem_account_base_url:
         os.environ[envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL] = stub_diem_account_base_url
+    if import_stub_diem_account_config_file:
+        os.environ[envs.DMW_STUB_DIEM_ACCOUNT_CONFIG] = import_stub_diem_account_config_file.read()
 
     if test_debug_api:
         os.environ[envs.TEST_DEBUG_API] = "Y"
@@ -109,6 +140,11 @@ def test(
     raise SystemExit(code)
 
 
+@click.command()
+def gen_diem_account_config() -> None:
+    print(LocalAccount().to_json())
+
+
 def configure_testnet(jsonrpc: str, faucet: str) -> None:
     testnet.JSON_RPC_URL = jsonrpc
     testnet.FAUCET_URL = faucet
@@ -118,3 +154,4 @@ def configure_testnet(jsonrpc: str, faucet: str) -> None:
 
 main.add_command(start_server)
 main.add_command(test)
+main.add_command(gen_diem_account_config)

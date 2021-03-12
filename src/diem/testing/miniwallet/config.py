@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, Any
 from .client import RestClient
 from .app import App, falcon_api
-from ... import offchain, testnet, jsonrpc, LocalAccount
+from ... import offchain, testnet, jsonrpc, utils, LocalAccount
 import waitress, threading, logging, falcon, json
 
 
@@ -90,7 +90,9 @@ class AppConfig:
 
     def start(self, client: jsonrpc.Client) -> threading.Thread:
         self.setup_account(client)
-        return self.serve(client)
+        t = self.serve(client)
+        utils.wait_for_port(self.server_conf.port)
+        return t
 
     def __str__(self) -> str:
         return json.dumps(asdict(self), indent=2)

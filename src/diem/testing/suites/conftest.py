@@ -11,8 +11,9 @@ from .envs import (
     is_self_check,
     should_test_debug_api,
     dmw_stub_server,
+    dmw_stub_diem_account_config,
 )
-import pytest
+import pytest, json
 
 
 @pytest.fixture(scope="package")
@@ -35,7 +36,12 @@ def diem_client() -> jsonrpc.Client:
 
 @pytest.fixture(scope="package")
 def stub_config() -> AppConfig:
-    return AppConfig(name="stub-wallet", enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
+    conf = AppConfig(name="stub-wallet", enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
+    account_conf = dmw_stub_diem_account_config()
+    if account_conf:
+        print("loads stub account config: %s" % account_conf)
+        conf.account_config = json.loads(account_conf)
+    return conf
 
 
 @pytest.fixture(scope="package")
@@ -55,8 +61,8 @@ def clients(stub_client: RestClient, target_client: RestClient, diem_client: jso
 
 
 @pytest.fixture
-def hrp() -> str:
-    return testnet.HRP
+def hrp(stub_config: AppConfig) -> str:
+    return stub_config.account.hrp
 
 
 @pytest.fixture

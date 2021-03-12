@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from copy import copy
-import time
+import time, json
 
 
 @dataclass
@@ -142,3 +142,10 @@ class LocalAccount:
         d["private_key"] = utils.private_key_bytes(self.private_key).hex()
         d["compliance_key"] = utils.private_key_bytes(self.compliance_key).hex()
         return d
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), indent=2)
+
+    def write_to_file(self, path: str) -> None:
+        with open(path, "w") as f:
+            f.write(self.to_json())

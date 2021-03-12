@@ -11,6 +11,15 @@ log_format: str = "%(name)s [%(asctime)s] %(levelname)s: %(message)s"
 click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
 
 
+def set_env(name: str, is_io: bool = False):  # pyre-ignore
+    def callback(_c, _p, val):  # pyre-ignore
+        if val:
+            os.environ[name] = val.read() if is_io else str(val)
+        return val
+
+    return callback
+
+
 @click.group()
 def main() -> None:
     pass
@@ -59,12 +68,25 @@ def start_server(
 
 
 @click.command()
-@click.option("--target", "-t", default="http://localhost:8888", help="Target mini-wallet application URL.")
-@click.option("--stub-bind-host", "-h", default="localhost", help="The host the miniwallet stub server will bind to")
+@click.option(
+    "--target",
+    "-t",
+    default="http://localhost:8888",
+    callback=set_env(envs.TARGET_URL),
+    help="Target mini-wallet application URL.",
+)
+@click.option(
+    "--stub-bind-host",
+    "-h",
+    default="localhost",
+    callback=set_env(envs.DMW_STUB_BIND_HOST),
+    help="The host the miniwallet stub server will bind to",
+)
 @click.option(
     "--stub-bind-port",
     "-p",
     default=None,
+    callback=set_env(envs.DMW_STUB_BIND_PORT),
     help="The port the miniwallet stub server will bind to. Random if empty.",
     type=int,
 )
@@ -72,6 +94,7 @@ def start_server(
     "--stub-diem-account-base-url",
     "-u",
     default=None,
+    callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL),
     help="The address that will be used for offchain callbacks. Defaults to http://localhost:{random_port}",
 )
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
@@ -82,15 +105,24 @@ def start_server(
     help="Additional pytest arguments, split by empty space, e.g. `--pytest-args '-v -s'`.",
     show_default=False,
 )
-@click.option("--test-debug-api", "-d", default=False, help="Run tests for debug APIs.", type=bool)
+@click.option(
+    "--test-debug-api",
+    "-d",
+    default=False,
+    is_flag=True,
+    callback=set_env(envs.TEST_DEBUG_API),
+    help="Run tests for debug APIs.",
+    type=bool,
+)
 @click.option(
     "--logfile", "-l", default=None, help="Log to a file instead of printing into console.", type=click.Path()
 )
 @click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
-@click.option(
+@click.option(  # pyre-ignore
     "--import-stub-diem-account-config-file",
     "-i",
     default=None,
+    callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_CONFIG, is_io=True),
     help="Import the diem account config from a file for miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.",
     type=click.File(),
 )
@@ -108,23 +140,10 @@ def test(
     import_stub_diem_account_config_file: Optional[TextIO],
 ) -> None:
     configure_testnet(jsonrpc, faucet)
-    os.environ[envs.TARGET_URL] = target
 
     # If stub_bind_host is provided, then stub_diem_account_base_url must be as well or the test won't work
     if stub_bind_host is not None and stub_bind_host != "localhost" and not stub_diem_account_base_url:
         raise click.ClickException("--stub-diem-account-base-url is required when passing in a custom --stub-bind-host")
-
-    if stub_bind_host:
-        os.environ[envs.DMW_STUB_BIND_HOST] = str(stub_bind_host)
-    if stub_bind_port:
-        os.environ[envs.DMW_STUB_BIND_PORT] = str(stub_bind_port)
-    if stub_diem_account_base_url:
-        os.environ[envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL] = stub_diem_account_base_url
-    if import_stub_diem_account_config_file:
-        os.environ[envs.DMW_STUB_DIEM_ACCOUNT_CONFIG] = import_stub_diem_account_config_file.read()
-
-    if test_debug_api:
-        os.environ[envs.TEST_DEBUG_API] = "Y"
 
     args = [arg for arg in re.compile("\\s+").split(pytest_args) if arg]
     args = ["--pyargs", "diem.testing.suites"] + args

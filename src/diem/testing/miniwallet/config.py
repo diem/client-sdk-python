@@ -91,7 +91,7 @@ class AppConfig:
     def start(self, client: jsonrpc.Client) -> threading.Thread:
         self.setup_account(client)
         t = self.serve(client)
-        utils.wait_for_port(self.server_conf.port)
+        utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
         return t
 
     def __str__(self) -> str:

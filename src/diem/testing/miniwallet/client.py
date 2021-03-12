@@ -108,7 +108,7 @@ class AccountResource:
 
     def wait_for_balance(self, currency: str, amount: int) -> None:
         def fn() -> None:
-            assert self.balance(currency) == amount, "currency: %s" % currency
+            assert self.balance(currency) == amount
 
         self.wait_for(fn)
 

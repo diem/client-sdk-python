@@ -7,7 +7,7 @@ from typing import Generator, Optional
 import pytest
 
 
-amount: int = 123
+amount: int = 12345
 
 
 @pytest.fixture
@@ -84,8 +84,13 @@ def test_receive_payment_with_invalid_metadata(
     receiver_account.wait_for_balance(currency, amount)
 
 
+@pytest.mark.parametrize("amount", [1, 123456, 125555])
 def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses(
-    sender_account: AccountResource, receiver_account: AccountResource, currency: str, hrp: str
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    amount: int,
 ) -> None:
     """
     Test Plan:

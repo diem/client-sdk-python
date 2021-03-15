@@ -1,0 +1,418 @@
+openapi: 3.0.3
+info:
+  title: Off-chain API Specification
+  description: >-
+      The Off-chain API specification supports compliance, privacy and scalability on blockchains.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 3.0.0
+security:
+  - authentication: []
+paths:
+  /payment_references:
+    post:
+      summary: Create a payment reference
+      description: >-
+          A payment reference is off-chain reference data for an onchain payment transaction.
+      operationId: create-payment-reference
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentReference'
+        required: true
+      responses:
+        201:
+          description: >-
+              PaymentReference is created, caller is free to submit Diem on-chain payment transaction.
+              This happens when the payment is under travel-rule threshold.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentReference'
+        400:
+          $ref: '#/components/responses/ClientError'
+  /payment_references/{reference_id}/additional_kyc_data:
+    get:
+      summary: Get additional KYC data for the payment reference.
+      operationId: additional-kyc-data
+      parameters:
+      - name: reference_id
+        in: path
+        description: >-
+            PaymentReference resource ID. Got from `POST /payment_references` response.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: >-
+              If it is payment sender's VASP, returns sender's additional KYC data for the
+              payment reference.
+              If it is payment receiver's VASP, returns receiver's additional KYC data for the
+              payment reference.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdditionalKycData'
+        400:
+          $ref: '#/components/responses/ClientError'
+  /payment_references/{reference_id}/recipient_signature:
+    post:
+      summary: Create recipient signature for the PaymentReference.
+      operationId: create-recipient-signature
+      parameters:
+      - name: reference_id
+        in: path
+        description: >-
+            PaymentReference resource ID. Got from `POST /payment_references` response.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipientSignature'
+        required: true
+      responses:
+        201:
+          description: >
+              Recipient signature for the payment reference is created / recorded.
+              Server may or may not choose to submit payment transaction immediately when KYC
+              data is accepted.
+        400:
+          $ref: '#/components/responses/ClientError'
+  /payment_references/{reference_id}/abort:
+    post:
+      summary: Abort payment request.
+      operationId: reject-payment
+      parameters:
+      - name: reference_id
+        in: path
+        description: >-
+            PaymentReference resource ID. Got from `POST /payment_references` response.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AbortPaymentReference'
+        required: true
+      responses:
+        204:
+          description: Reject is accepted.
+        400:
+          $ref: '#/components/responses/ClientError'
+  /payment_references/{reference_id}/status:
+    get:
+      summary: Current status of the PaymentReference.
+      operationId: payment-reference-status
+      parameters:
+      - name: reference_id
+        in: path
+        description: >-
+            PaymentReference resource ID. Got from `POST /payment_references` response.
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentReferenceStatus'
+        400:
+          $ref: '#/components/responses/ClientError'
+components:
+  responses:
+    ClientError:
+      description: Invalid input, request parameters or payload
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - code
+              - message
+            properties:
+              code:
+                type: string
+                description: error code
+              message:
+                type: string
+                description: >-
+                    A short description of the error.
+
+                    It should be single sentence; use data for extra details.
+              data:
+                type: string
+                description: >-
+                    A primitive or structured value that contains additional information about
+                    the error.
+
+                    The value of this member is defined by the server (e.g. detailed error
+                    information, nested errors etc.).
+  schemas:
+    CreatePaymentReference:
+      type: object
+      required:
+      - payer_payment_address
+      - payer_diem_address
+      - payee_payment_address
+      - amount
+      - currency
+      properties:
+        payer_payment_address:
+          $ref: '#/components/schemas/PaymentAddress'
+        payer_kyc_data:
+          $ref: '#/components/schemas/KycData'
+        payer_diem_address:
+          $ref: '#/components/schemas/DiemAccountAddress'
+        payee_payment_address:
+          $ref: '#/components/schemas/PaymentAddress'
+        amount:
+          type: integer
+          format: uint64
+          description: >-
+              Amount of the transfer. Base units are the same as for on-chain transactions for this currency.
+              For example, if Diem XUS is represented on-chain where “1” equals 1e-6 dollars, then “1” equals the same amount here.
+              For any currency, the on-chain mapping must be used for amounts.
+        currency:
+          type: string
+          enum: ["XUS", "XDX"]
+          description: >-
+              One of the supported on-chain currency types.
+        description:
+          type: string
+          description: >-
+              Description of the payment. To be displayed to the user. Unicode utf-8 encoded max length of 255 characters.
+        original_payment_reference_id:
+          type: string
+          format: uuid
+          description: >-
+              Used to refer an old payment known to the other VASP. For example, used for refunds.
+    PaymentReference:
+      type: object
+      required:
+      - id
+      - payer_payment_address
+      - payer_diem_address
+      - payee_payment_address
+      - payee_diem_address
+      - amount
+      - currency
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 4185027f-0574-6f55-2668-3a38fdb5de98
+        payer_payment_address:
+          $ref: '#/components/schemas/PaymentAddress'
+        payer_kyc_data:
+          $ref: '#/components/schemas/KycData'
+        payer_diem_address:
+          $ref: '#/components/schemas/DiemAccountAddress'
+        payee_payment_address:
+          type: string
+          description: The payment address of payee.
+        payee_kyc_data:
+          $ref: '#/components/schemas/KycData'
+        payee_diem_address:
+          $ref: '#/components/schemas/DiemAccountAddress'
+        amount:
+          type: integer
+          format: uint64
+        currency:
+          type: string
+          enum: ["XUS", "XDX"]
+        description:
+          type: string
+          description: >-
+              Description of the payment. To be displayed to the user. Unicode utf-8 encoded max length of 255 characters.
+        original_payment_reference_id:
+          type: string
+          format: uuid
+          description: >-
+              Used to refer an old payment known to the other VASP. For example, used for refunds.
+        timestamp:
+          type: integer
+          format: int64
+          description: >-
+              Unix time indicating the time that the payment reference was created.
+    KycData:
+      type: object
+      description: >
+          A KYCDataObject represents the required information for a single subaddress.
+      example: {"type": "individual", "payload_version": 1, "given_name": "Tom", "surname": "Jack"}
+      required:
+        - payload_version
+        - type
+      properties:
+        payload_version:
+          type: string
+          description: >-
+              Version identifier to allow modifications to KYC data Object without needing to bump version of entire API set. Set to 1
+        type:
+          type: string
+          enum: ["individual", "entity"]
+        given_name:
+          type: string
+          description: Legal given name of the user for which this KYC data Object applies.
+        surname:
+          type: string
+          description: Legal surname of the user for which this KYC data Object applies.
+        address:
+          description: Physical address data for this account
+          $ref: '#/components/schemas/Address'
+        dob:
+          type: string
+          description: >-
+              Date of birth for the holder of this account. Specified as an ISO 8601 calendar date format: https://en.wikipedia.org/wiki/ISO_8601
+        place_of_birth:
+          description: Place of birth for this user. line1 and line2 fields should not be populated for this usage of the address Object
+          $ref: '#/components/schemas/Address'
+        national_id:
+          $ref: '#/components/schemas/NationalId'
+        legal_entity_name:
+          type: string
+          description: >-
+              Name of the legal entity. Used when subaddress represents a legal entity rather than an individual.
+              KycData should only include one of legal_entity_name OR given_name/surname
+    Address:
+      type: object
+      properties:
+        city:
+          type: string
+          description: The city, district, suburb, town, or village
+        country:
+          type: string
+          description: Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+        line1:
+          type: string
+          description: Address line 1
+        line2:
+          type: string
+          description: Address line 2 - apartment, unit, etc.
+        postal_code:
+          type: string
+          description: ZIP or postal code
+        state:
+          type: string
+          description: State, county, province, region.
+    NationalId:
+      type: object
+      required:
+        - id_value
+      description: National ID information for the holder of this account
+      properties:
+        id_value:
+          type: string
+          description: Indicates the national ID value - for example, a social security number
+        county:
+          type: string
+          description: Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+        type:
+          type: string
+          description: Indicates the type of the ID
+    AdditionalKycData:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum: ["json", "xml", "other"]
+          description: >-
+              Indicates what is encoding method of `data` field.
+        data:
+          type: string
+          description: >-
+              Freeform KYC data. If a soft-match occurs, additional KYC data is requested to clear the soft-match.
+              It is suggested that this data be JSON, XML, or another human-readable form.
+    PaymentReferenceStatus:
+      type: object
+      required:
+        - id
+        - status
+      description: Status of the PaymentReference resource
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Payment reference id
+        status:
+          type: string
+          description: >-
+              Status of payment reference.
+
+              * `evaluting-kyc-data`: evaluating counterparty's KYC data in progress.
+              * `soft-match`: counterparty's KYC data resulted in a soft-match, requesting additional KYC data and doing manual review.
+              * `ready-for-settlement`: ready for settlement on-chain transaction.
+              * `abort`: indicates the payment is aborted, instead of settling it.
+              * `internal-error`: indicates there is unexpected error happened internally.
+
+              If the payment is under travel rule threshold, should always return `ready-for-settlement`.
+
+          enum: ["evaluting-kyc-data", "soft-match", "ready-for-settlement", "abort", "internal-error"]
+        message:
+          type: string
+          description: >-
+            An optional short description of the status.
+    RecipientSignature:
+      type: object
+      required:
+        - id
+        - signature
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Payment reference id
+        signature:
+          type: string
+          description: >-
+            Signature of the recipient of this transaction encoded in hex.
+            The is signed with the compliance key of the recipient VASP and is used for on-chain attestation from the recipient party.
+    AbortPaymentReference:
+      type: object
+      required:
+        - id
+        - code
+        - message
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Payment reference id
+        code:
+          type: string
+          enum: ['rejected']
+          description: >-
+            Reason of abort. Represents the error code of the corresponding error.
+
+            * `rejected`: the payment is rejected. The payment reference id should not be used in
+              the `original_payment_reference_id` field of a new payment reference.
+        message:
+          type: string
+          description: Additional details about this error.
+    PaymentAddress:
+      type: string
+      description: Payment address is a unique identifier linked to a user's account in VASP application.
+      example: name@vasp-a
+    DiemAccountAddress:
+      type: string
+      description: hex-encoded bytes, Diem on-chain account address.
+  securitySchemes:
+    authentication:
+      type: http
+      scheme: Signature

@@ -1,6 +1,8 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""This module defines a state machine and data match utils classes for creating conditional states."""
+
 import dataclasses, typing, abc
 
 

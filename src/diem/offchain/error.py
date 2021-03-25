@@ -10,6 +10,8 @@ import typing
 
 
 class Error(Exception):
+    """Error is off-chain error wrapper of `OffChainErrorObject`"""
+
     obj: OffChainErrorObject
 
     def __init__(self, obj: OffChainErrorObject) -> None:
@@ -18,6 +20,7 @@ class Error(Exception):
 
 
 def command_error(code: str, message: str, field: typing.Optional[str] = None) -> Error:
+    """command_error returns `Error` with `OffChainErrorObject` that type is `command_error`"""
     return Error(
         obj=OffChainErrorObject(
             type=OffChainErrorType.command_error,
@@ -29,6 +32,7 @@ def command_error(code: str, message: str, field: typing.Optional[str] = None) -
 
 
 def protocol_error(code: str, message: str, field: typing.Optional[str] = None) -> Error:
+    """protocol_error returns `Error` with `OffChainErrorObject` that type is `protocol_error`"""
     return Error(
         obj=OffChainErrorObject(
             type=OffChainErrorType.protocol_error,

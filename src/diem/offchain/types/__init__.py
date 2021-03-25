@@ -1,6 +1,12 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+""" This module defines off-chain protocol data structures and PaymentCommand data structures.
+
+It also defines `to_json` and `from_json` functions for serializing objects to json string for sending
+out command and deserializing objects from json string for processing inbound request command.
+"""
+
 from .command_types import (
     OffChainErrorType,
     ErrorCode,

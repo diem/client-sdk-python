@@ -61,7 +61,9 @@ publish: dist
 	./venv/bin/pip install --upgrade twine
 	./venv/bin/python3 -m twine upload dist/*
 
-docs: init
+docs: init _docs
+
+_docs:
 	rm -rf docs/diem
 	rm -rf docs/examples
 	./venv/bin/python3 -m pdoc diem --html -o docs

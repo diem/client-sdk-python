@@ -1,6 +1,10 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+""" This module defines states of `PaymentCommand` / `PaymentObject` for validating transitions
+when an actor tries to update the `PaymentObject`.
+"""
+
 from .types import (
     StatusObject,
     Status,
@@ -147,6 +151,8 @@ def trigger_actor(state: State[PaymentObject]) -> Actor:
 
 
 def follow_up_action(actor: Actor, state: State[PaymentObject]) -> typing.Optional[Action]:
+    """For the given actor and state, returns following up action"""
+
     followup = FOLLOW_UP[state]
     if not followup:
         return None
@@ -164,6 +170,18 @@ def summary(
         None,
     ]
 ) -> str:
+    """summary returns a short summary string for a `PaymentObject`.
+
+    flags:
+
+    - `-`: value is not exist or not set
+    - `s`: status is set
+    - `k`: KYC data object is set
+    - `+`: additional KYC data is set
+    - `_`: flags connector
+    - `?`: unknown data
+    """
+
     if obj is None:
         return "-"
     if isinstance(obj, str):

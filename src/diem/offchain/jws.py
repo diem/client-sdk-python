@@ -1,6 +1,16 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""This module defines util functions for encoding and decoding offchain specific JWS messages.
+
+The `serialize` and `deserialize` functions handle JWS message with the following requirements:
+
+  1. Protected header must be `{"alg": "EdDSA"}`
+  2. Characters encoding must be `utf-8`
+  3. JWS encoding must be `compact`
+
+"""
+
 import base64, typing
 
 from . import CommandRequestObject, CommandResponseObject, to_json, from_json

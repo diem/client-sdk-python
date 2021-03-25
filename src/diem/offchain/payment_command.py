@@ -1,6 +1,8 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""This module defines `PaymentCommand` class provides utils for processing `PaymentCommand` properly."""
+
 import typing, dataclasses, uuid, warnings
 
 from .types import (
@@ -26,6 +28,11 @@ from .. import diem_types, identifier, txnmetadata
 
 @dataclasses.dataclass(frozen=True)
 class PaymentCommand(Command):
+    """PaymentCommand is the wrapper object of `PaymentObject` with request information
+
+    This is primary wrapper object for handling `PaymentCommand` defined by off-chain API.
+    """
+
     my_actor_address: str
     payment: PaymentObject
     inbound: bool
@@ -42,6 +49,9 @@ class PaymentCommand(Command):
         description: typing.Optional[str] = None,
         inbound: bool = False,
     ) -> "PaymentCommand":
+        """init functon initializes a new `PaymentCommand` for starting the process of exchanging KYC data
+        and recipient signature."""
+
         return PaymentCommand(
             my_actor_address=sender_account_id,
             payment=new_payment_object(
@@ -57,18 +67,29 @@ class PaymentCommand(Command):
         )
 
     def id(self) -> str:
+        """returns `cid` from the request object"""
         return self.cid
 
     def is_inbound(self) -> bool:
+        """indicates whether this `PaymentCommand` is created when processing an inbound request"""
+
         return self.inbound
 
     def reference_id(self) -> str:
+        """returns `reference_id` of `PaymentObject`"""
+
         return self.payment.reference_id
 
     def follow_up_action(self) -> typing.Optional[Action]:
+        """returns follow up `action` based on the `my_actor` and `state`"""
+
         return follow_up_action(self.my_actor(), self.state())
 
     def validate(self, prior: typing.Optional[Command]) -> None:
+        """validate this `PaymentCommand` object with given `prior` object,
+
+        Raises `diem.offchain.error.Error` if anything is not right
+        """
         prior = typing.cast(PaymentCommand, prior)
         try:
             self.validate_state_trigger_actor()
@@ -82,6 +103,8 @@ class PaymentCommand(Command):
             raise command_error(e.code, str(e), e.field) from e
 
     def my_address(self) -> str:
+        """returns `my_actor_address`"""
+
         return self.my_actor_address
 
     def opponent_address(self) -> str:
@@ -89,9 +112,13 @@ class PaymentCommand(Command):
         return self.counterparty_address()
 
     def counterparty_address(self) -> str:
+        """returns address of `counterparty_actor_obj`"""
+
         return self.counterparty_actor_obj().address
 
     def new_request(self) -> CommandRequestObject:
+        """create a new `deim.offchain.types.command_types.CommandRequestObject` for this command"""
+
         return new_payment_request(self.payment, self.cid)
 
     # the followings are PaymentCommand specific methods
@@ -139,6 +166,12 @@ class PaymentCommand(Command):
         inbound: bool = False,
         metadata: typing.Optional[typing.List[str]] = None,
     ) -> Command:
+        """create a new `PaymentCommand` by replacing some values of this command.
+
+        This is a handy function for helping create new command for complete an action and updating
+        related payment data.
+        """
+
         changes: typing.Dict[str, typing.Any] = {
             self.my_actor().value: replace_payment_actor(
                 self.my_actor_obj(),
@@ -156,12 +189,18 @@ class PaymentCommand(Command):
         return PaymentCommand(my_actor_address=self.my_actor_address, payment=new_payment, inbound=inbound)
 
     def is_sender(self) -> bool:
+        """return true if `my_actor_address` is same with sender address"""
+
         return self.payment.sender.address == self.my_actor_address
 
     def is_receiver(self) -> bool:
+        """return true if `my_actor_address` is same with receiver address"""
+
         return self.payment.receiver.address == self.my_actor_address
 
     def my_actor_obj(self) -> PaymentActorObject:
+        """return sender or receiver `PaymentActorObject` matches the `my_actor_address`"""
+
         return self.payment.sender if self.is_sender() else self.payment.receiver
 
     def opponent_actor_obj(self) -> PaymentActorObject:
@@ -185,6 +224,8 @@ class PaymentCommand(Command):
         return self.my_actor().value
 
     def state(self) -> State[PaymentObject]:
+        """returns state of the `PaymentObject`"""
+
         try:
             return payment_states.match_state(self.payment)
         except ConditionValidationError as e:
@@ -193,12 +234,18 @@ class PaymentCommand(Command):
             raise command_error(ErrorCode.missing_field, msg, fields) from e
 
     def state_trigger_actor(self) -> Actor:
+        """returns actor who can update the `PaymentObject` to current state"""
+
         return trigger_actor(self.state())
 
     def is_valid_transition(self, prior: "PaymentCommand") -> bool:
+        """returns boolean for whether the transition from the prior `PaymentCommand` to this `PaymentCommand` state is valid"""
+
         return payment_states.is_valid_transition(prior.state(), self.state(), self.payment)
 
     def is_initial(self) -> bool:
+        """returns boolean for whether this `PaymentCommand` is an initial state"""
+
         return payment_states.is_initial(self.state())
 
     def is_rsend(self) -> bool:

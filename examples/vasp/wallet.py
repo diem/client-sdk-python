@@ -143,8 +143,11 @@ class WalletApp:
                     offchain.ErrorCode.missing_http_header, "missing %s" % offchain.X_REQUEST_ID
                 )
 
-            inbound_command = self.offchain_client.process_inbound_request(request_sender_address, request_bytes)
-            cid = inbound_command.id()
+            request = self.offchain_client.deserialize_inbound_request(request_sender_address, request_bytes)
+            cid = request.cid
+            inbound_command = self.offchain_client.process_inbound_payment_command_request(
+                request_sender_address, request
+            )
             self.save_command(inbound_command)
             resp = offchain.reply_request(cid)
             code = 200

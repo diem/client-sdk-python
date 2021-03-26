@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import requests, typing, dataclasses, uuid, math
+import requests, typing, dataclasses, uuid, math, warnings
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -135,7 +135,23 @@ class Client:
         return cmd_resp
 
     def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
-        """Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+        """Deprecated
+
+        validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        This function is split into `deserialize_inbound_request` and `process_inbound_payment_command_request`
+        for handling command processing properly in the future when new commands are added.
+        """
+
+        warnings.warn(
+            "`process_inbound_request` is deprecated, call `deserialize_inbound_request` instead, and then call `process_inbound_payment_command_request` if the inbound request is for `PaymentCommand`"
+        )
+
+        request = self.deserialize_inbound_request(request_sender_address, request_bytes)
+        return self.process_inbound_payment_command_request(request_sender_address, request)
+
+    def deserialize_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> CommandRequestObject:
+        """Validate and decode the `request_bytes` into `diem.offchain.command.CommandRequestObject` object.
 
         Raises `diem.offchain.error.Error` with `protocol_error` when:
 
@@ -145,6 +161,17 @@ class Client:
         - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
         - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
         - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+        """
+
+        if not request_sender_address:
+            raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
+        public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+        return _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+
+    def process_inbound_payment_command_request(
+        self, request_sender_address: str, request: CommandRequestObject
+    ) -> PaymentCommand:
+        """Validate the `PaymentCommand` and returns a command wrapper object for next processing step.
 
         Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
 
@@ -155,28 +182,30 @@ class Client:
 
         """
 
-        if not request_sender_address:
-            raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
+        if request.command_type != CommandType.PaymentCommand:
+            raise command_error(
+                ErrorCode.unknown_command_type,
+                f"unknown command_type: {request.command_type}",
+            )
+
+        payment = typing.cast(PaymentCommandObject, request.command).payment
+        self.validate_addresses(payment, request_sender_address)
+        cmd = self.create_inbound_payment_command(request.cid, payment)
+        if cmd.is_initial():
+            self.validate_dual_attestation_limit_by_action(cmd.payment.action)
+        elif cmd.is_rsend():
+            public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+            self.validate_recipient_signature(cmd, public_key)
+        return cmd
+
+    def get_inbound_request_sender_public_key(self, request_sender_address: str) -> Ed25519PublicKey:
+        """find the public key of the request sender address, raises protocol error if not found or public key is invalid"""
+
         try:
             _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
         except ValueError as e:
             raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
-
-        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
-        if request.command_type == CommandType.PaymentCommand:
-            payment = typing.cast(PaymentCommandObject, request.command).payment
-            self.validate_addresses(payment, request_sender_address)
-            cmd = self.create_inbound_payment_command(request.cid, payment)
-            if cmd.is_initial():
-                self.validate_dual_attestation_limit_by_action(cmd.payment.action)
-            elif cmd.is_rsend():
-                self.validate_recipient_signature(cmd, public_key)
-            return cmd
-
-        raise command_error(
-            ErrorCode.unknown_command_type,
-            f"unknown command_type: {request.command_type}",
-        )
+        return public_key
 
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -> None:
         msg = cmd.travel_rule_metadata_signature_message(self.hrp)

@@ -82,14 +82,17 @@ class Base:
 
 class OffChainAPI(Base):
     def offchain_api(self, request_sender_address: str, request_bytes: bytes) -> CommandResponseObject:
-        cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
-        getattr(self, "_handle_offchain_%s" % utils.to_snake(cmd))(cmd)
-        return offchain.reply_request(cid=cmd.id())
+        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+        getattr(self, "_handle_offchain_%s" % utils.to_snake(request.command_type))(request_sender_address, request)
+        return offchain.reply_request(cid=request.cid)
 
     def jws_serialize(self, resp: CommandResponseObject) -> bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
 
-    def _handle_offchain_payment_command(self, new_offchain_cmd: offchain.PaymentCommand) -> None:
+    def _handle_offchain_payment_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -> None:
+        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(request_sender_address, request)
         try:
             cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():

@@ -151,6 +151,68 @@ def test_payment_meets_travel_rule_threshold(
         receiver.wait_for_balance(currency, receiver_initial)
 
 
+def test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender(
+    currency: str,
+    travel_rule_threshold: int,
+    clients: Clients,
+    hrp: str,
+) -> None:
+    amount = travel_rule_threshold
+    sender_client = clients.stub
+    receiver_client = clients.target
+
+    sender: AccountResource = sender_client.create_account(
+        {currency: amount}, kyc_data=receiver_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
+    )
+    receiver: AccountResource = receiver_client.create_account(kyc_data=sender_client.new_valid_kyc_data())
+    sender_initial = sender.balance(currency)
+    receiver_initial = receiver.balance(currency)
+
+    payment_uri = receiver.generate_payment_uri()
+    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    assert send_payment
+
+    def match_exchange_states() -> None:
+        assert payment_command_event_states(sender) == ["S_INIT", "R_SOFT", "S_ABORT"]
+
+    sender.wait_for(match_exchange_states)
+
+    sender.wait_for_balance(currency, sender_initial)
+    receiver.wait_for_balance(currency, receiver_initial)
+
+
+def test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver(
+    currency: str,
+    travel_rule_threshold: int,
+    clients: Clients,
+    hrp: str,
+) -> None:
+    amount = travel_rule_threshold
+    sender_client = clients.target
+    receiver_client = clients.stub
+
+    sender: AccountResource = sender_client.create_account(
+        {currency: amount}, kyc_data=sender_client.new_valid_kyc_data()
+    )
+    receiver: AccountResource = receiver_client.create_account(
+        kyc_data=sender_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
+    )
+    sender_initial = sender.balance(currency)
+    receiver_initial = receiver.balance(currency)
+
+    payment_uri = receiver.generate_payment_uri()
+    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    assert send_payment
+
+    def match_exchange_states() -> None:
+        assert payment_command_event_states(receiver) == ["S_INIT", "R_SEND", "S_SOFT", "R_ABORT"]
+
+    receiver.wait_for(match_exchange_states)
+
+    sender.wait_for_balance(currency, sender_initial)
+    receiver.wait_for_balance(currency, receiver_initial)
+
+
 def payment_state_id(event: Event) -> str:
     payment = offchain.from_dict(json.loads(event.data)["payment_object"], offchain.PaymentObject)
     return offchain.payment_state.MACHINE.match_state(payment).id

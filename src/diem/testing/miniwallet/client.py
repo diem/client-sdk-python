@@ -26,9 +26,17 @@ class RestClient:
         return self
 
     def create_account(
-        self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
+        self,
+        balances: Optional[Dict[str, int]] = None,
+        kyc_data: Optional[str] = None,
+        reject_additional_kyc_data_request: Optional[bool] = None,
     ) -> "AccountResource":
-        account = self.create("/accounts", kyc_data=kyc_data, balances=balances)
+        kwargs = {
+            "balances": balances,
+            "kyc_data": kyc_data,
+            "reject_additional_kyc_data_request": reject_additional_kyc_data_request,
+        }
+        account = self.create("/accounts", **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account["id"], kyc_data=account.get("kyc_data", None))
 
     def new_soft_match_kyc_data(self) -> str:

@@ -242,6 +242,9 @@ class BackgroundTasks(OffChainAPI):
         return self._ready_for_settlement(account_id, cmd)
 
     def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
+        account = self.store.find(Account, id=account_id)
+        if account.reject_additional_kyc_data_request:
+            return self._new_reject_kyc_data(cmd, "no need additional KYC data")
         return cmd.new_command(additional_kyc_data="{%r: %r}" % ("account_id", account_id))
 
     def _offchain_action_review_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
@@ -268,6 +271,9 @@ class App(BackgroundTasks):
         account = self.store.create(
             Account,
             kyc_data=data.get_nullable("kyc_data", str, self._validate_kyc_data),
+            # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
+            # setting up mini-wallet stub to reject additional_kyc_data request.
+            reject_additional_kyc_data_request=data.get_nullable("reject_additional_kyc_data_request", bool),
         )
         balances = data.get_nullable("balances", dict)
         if balances:

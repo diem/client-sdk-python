@@ -16,6 +16,7 @@ class Base:
 @dataclass
 class Account(Base):
     kyc_data: Optional[str] = field(default=None)
+    reject_additional_kyc_data_request: Optional[bool] = field(default=False)
 
     def kyc_data_object(self) -> offchain.KycDataObject:
         if self.kyc_data:

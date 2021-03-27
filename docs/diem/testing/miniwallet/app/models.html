@@ -33,6 +33,7 @@ from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
 from .... import identifier, offchain, diem_types
+import json
 
 
 @dataclass
@@ -145,6 +146,9 @@ class Transaction(Base):
 
     def balance_amount(self) -&gt; int:
         return -self.amount if self.payee else self.amount
+
+    def __str__(self) -&gt; str:
+        return &#34;Transaction %s&#34; % json.dumps(asdict(self), indent=2)
 
 
 @dataclass
@@ -741,7 +745,10 @@ class Transaction(Base):
         return bytes.fromhex(str(self.subaddress_hex))
 
     def balance_amount(self) -&gt; int:
-        return -self.amount if self.payee else self.amount</code></pre>
+        return -self.amount if self.payee else self.amount
+
+    def __str__(self) -&gt; str:
+        return &#34;Transaction %s&#34; % json.dumps(asdict(self), indent=2)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

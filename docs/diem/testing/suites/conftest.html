@@ -39,8 +39,9 @@ from .envs import (
     is_self_check,
     should_test_debug_api,
     dmw_stub_server,
+    dmw_stub_diem_account_config,
 )
-import pytest
+import pytest, json
 
 
 @pytest.fixture(scope=&#34;package&#34;)
@@ -63,7 +64,12 @@ def diem_client() -&gt; jsonrpc.Client:
 
 @pytest.fixture(scope=&#34;package&#34;)
 def stub_config() -&gt; AppConfig:
-    return AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
+    conf = AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
+    account_conf = dmw_stub_diem_account_config()
+    if account_conf:
+        print(&#34;loads stub account config: %s&#34; % account_conf)
+        conf.account_config = json.loads(account_conf)
+    return conf
 
 
 @pytest.fixture(scope=&#34;package&#34;)
@@ -83,8 +89,8 @@ def clients(stub_client: RestClient, target_client: RestClient, diem_client: jso
 
 
 @pytest.fixture
-def hrp() -&gt; str:
-    return testnet.HRP
+def hrp(stub_config: AppConfig) -&gt; str:
+    return stub_config.account.hrp
 
 
 @pytest.fixture
@@ -159,7 +165,7 @@ def diem_client() -&gt; jsonrpc.Client:
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.hrp"><code class="name flex">
-<span>def <span class="ident">hrp</span></span>(<span>) ‑> str</span>
+<span>def <span class="ident">hrp</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -168,8 +174,8 @@ def diem_client() -&gt; jsonrpc.Client:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture
-def hrp() -&gt; str:
-    return testnet.HRP</code></pre>
+def hrp(stub_config: AppConfig) -&gt; str:
+    return stub_config.account.hrp</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.pending_income_account"><code class="name flex">
@@ -213,7 +219,12 @@ def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestC
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
 def stub_config() -&gt; AppConfig:
-    return AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))</code></pre>
+    conf = AppConfig(name=&#34;stub-wallet&#34;, enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
+    account_conf = dmw_stub_diem_account_config()
+    if account_conf:
+        print(&#34;loads stub account config: %s&#34; % account_conf)
+        conf.account_config = json.loads(account_conf)
+    return conf</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.target_client"><code class="name flex">

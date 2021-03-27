@@ -156,12 +156,7 @@ def general_metadata(
 
     Give from_subaddress None for the case transferring from non-custodial to custodial account.
     Give to_subaddress None for the case transferring from custodial to non-custodial account.
-
-    Returns empty bytes array if from_subaddress and to_subaddress both are None.
     &#34;&#34;&#34;
-
-    if from_subaddress is None and to_subaddress is None:
-        return b&#34;&#34;
 
     metadata = diem_types.Metadata__GeneralMetadata(
         value=diem_types.GeneralMetadata__GeneralMetadataVersion0(
@@ -346,8 +341,7 @@ to create refund metadata for the refund transaction.</p></div>
 <p>Use this function to create metadata with from and to sub-addresses for peer to peer transfer
 from custodial account to custodial account under travel rule threshold.</p>
 <p>Give from_subaddress None for the case transferring from non-custodial to custodial account.
-Give to_subaddress None for the case transferring from custodial to non-custodial account.</p>
-<p>Returns empty bytes array if from_subaddress and to_subaddress both are None.</p></div>
+Give to_subaddress None for the case transferring from custodial to non-custodial account.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -364,12 +358,7 @@ Give to_subaddress None for the case transferring from custodial to non-custodia
 
     Give from_subaddress None for the case transferring from non-custodial to custodial account.
     Give to_subaddress None for the case transferring from custodial to non-custodial account.
-
-    Returns empty bytes array if from_subaddress and to_subaddress both are None.
     &#34;&#34;&#34;
-
-    if from_subaddress is None and to_subaddress is None:
-        return b&#34;&#34;
 
     metadata = diem_types.Metadata__GeneralMetadata(
         value=diem_types.GeneralMetadata__GeneralMetadataVersion0(

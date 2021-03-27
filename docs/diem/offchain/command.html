@@ -37,6 +37,8 @@ import typing
 
 
 class Command(ABC):
+    &#34;&#34;&#34;Command defines common interface for all commands &#34;&#34;&#34;
+
     @abstractmethod
     def id(self) -&gt; str:
         &#34;&#34;&#34;Returns cid of command object&#34;&#34;&#34;
@@ -86,13 +88,14 @@ class Command(ABC):
 <span>class <span class="ident">Command</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>Command defines common interface for all commands</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Command(ABC):
+    &#34;&#34;&#34;Command defines common interface for all commands &#34;&#34;&#34;
+
     @abstractmethod
     def id(self) -&gt; str:
         &#34;&#34;&#34;Returns cid of command object&#34;&#34;&#34;

@@ -49,7 +49,7 @@ class Base:
         self.store = InMemoryStore()
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
-        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp)
+        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp, logger=logger)
         self.event_puller.add(account.account_address)
         self.event_puller.head()
 
@@ -110,14 +110,17 @@ class Base:
 
 class OffChainAPI(Base):
     def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-        cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
-        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(cmd))(cmd)
-        return offchain.reply_request(cid=cmd.id())
+        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type))(request_sender_address, request)
+        return offchain.reply_request(cid=request.cid)
 
     def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
 
-    def _handle_offchain_payment_command(self, new_offchain_cmd: offchain.PaymentCommand) -&gt; None:
+    def _handle_offchain_payment_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -&gt; None:
+        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(request_sender_address, request)
         try:
             cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():
@@ -170,7 +173,7 @@ class BackgroundTasks(OffChainAPI):
 
     def _send_pending_payments(self) -&gt; None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
-            self.logger.info(&#34;processing %s&#34; % txn)
+            self.logger.info(&#34;processing %s&#34;, txn)
             try:
                 if self.offchain.is_my_account_id(str(txn.payee)):
                     self._send_internal_payment_txn(txn)
@@ -202,12 +205,12 @@ class BackgroundTasks(OffChainAPI):
                 diem_txn = self.diem_account.client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
                 self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
             except jsonrpc.WaitForTransactionTimeout as e:
-                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.logger.debug(&#34;wait for txn(%s) timeout: %s&#34;, txn, e)
             except jsonrpc.TransactionHashMismatchError as e:
-                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.logger.warn(&#34;txn(%s) hash mismatched(%s), re-submit&#34;, txn, e)
                 self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self._txn_metadata(txn)))
             except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
-                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.logger.error(&#34;txn(%s) execution expired / failed(%s), canceled&#34;, txn, e)
                 reason = &#34;something went wrong with transaction execution: %s&#34; % e
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
         else:
@@ -528,7 +531,7 @@ class App(BackgroundTasks):
 
     def _send_pending_payments(self) -&gt; None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
-            self.logger.info(&#34;processing %s&#34; % txn)
+            self.logger.info(&#34;processing %s&#34;, txn)
             try:
                 if self.offchain.is_my_account_id(str(txn.payee)):
                     self._send_internal_payment_txn(txn)
@@ -560,12 +563,12 @@ class App(BackgroundTasks):
                 diem_txn = self.diem_account.client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
                 self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
             except jsonrpc.WaitForTransactionTimeout as e:
-                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.logger.debug(&#34;wait for txn(%s) timeout: %s&#34;, txn, e)
             except jsonrpc.TransactionHashMismatchError as e:
-                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.logger.warn(&#34;txn(%s) hash mismatched(%s), re-submit&#34;, txn, e)
                 self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self._txn_metadata(txn)))
             except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
-                self.store.create_event(txn.account_id, &#34;info&#34;, str(e))
+                self.logger.error(&#34;txn(%s) execution expired / failed(%s), canceled&#34;, txn, e)
                 reason = &#34;something went wrong with transaction execution: %s&#34; % e
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
         else:
@@ -699,7 +702,7 @@ class App(BackgroundTasks):
         self.store = InMemoryStore()
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
-        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp)
+        self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp, logger=logger)
         self.event_puller.add(account.account_address)
         self.event_puller.head()
 
@@ -774,14 +777,17 @@ class App(BackgroundTasks):
 </summary>
 <pre><code class="python">class OffChainAPI(Base):
     def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-        cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
-        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(cmd))(cmd)
-        return offchain.reply_request(cid=cmd.id())
+        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type))(request_sender_address, request)
+        return offchain.reply_request(cid=request.cid)
 
     def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
 
-    def _handle_offchain_payment_command(self, new_offchain_cmd: offchain.PaymentCommand) -&gt; None:
+    def _handle_offchain_payment_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -&gt; None:
+        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(request_sender_address, request)
         try:
             cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():
@@ -849,9 +855,9 @@ class App(BackgroundTasks):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-    cmd = self.offchain.process_inbound_request(request_sender_address, request_bytes)
-    getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(cmd))(cmd)
-    return offchain.reply_request(cid=cmd.id())</code></pre>
+    request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+    getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type))(request_sender_address, request)
+    return offchain.reply_request(cid=request.cid)</code></pre>
 </details>
 </dd>
 </dl>

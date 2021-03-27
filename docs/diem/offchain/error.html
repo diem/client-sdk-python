@@ -38,6 +38,8 @@ import typing
 
 
 class Error(Exception):
+    &#34;&#34;&#34;Error is off-chain error wrapper of `OffChainErrorObject`&#34;&#34;&#34;
+
     obj: OffChainErrorObject
 
     def __init__(self, obj: OffChainErrorObject) -&gt; None:
@@ -46,6 +48,7 @@ class Error(Exception):
 
 
 def command_error(code: str, message: str, field: typing.Optional[str] = None) -&gt; Error:
+    &#34;&#34;&#34;command_error returns `Error` with `OffChainErrorObject` that type is `command_error`&#34;&#34;&#34;
     return Error(
         obj=OffChainErrorObject(
             type=OffChainErrorType.command_error,
@@ -57,6 +60,7 @@ def command_error(code: str, message: str, field: typing.Optional[str] = None) -
 
 
 def protocol_error(code: str, message: str, field: typing.Optional[str] = None) -&gt; Error:
+    &#34;&#34;&#34;protocol_error returns `Error` with `OffChainErrorObject` that type is `protocol_error`&#34;&#34;&#34;
     return Error(
         obj=OffChainErrorObject(
             type=OffChainErrorType.protocol_error,
@@ -78,12 +82,13 @@ def protocol_error(code: str, message: str, field: typing.Optional[str] = None) 
 <span>def <span class="ident">command_error</span></span>(<span>code: str, message: str, field: Optional[str] = None) ‑> <a title="diem.offchain.error.Error" href="#diem.offchain.error.Error">Error</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>command_error returns <code><a title="diem.offchain.error.Error" href="#diem.offchain.error.Error">Error</a></code> with <code>OffChainErrorObject</code> that type is <code><a title="diem.offchain.error.command_error" href="#diem.offchain.error.command_error">command_error()</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def command_error(code: str, message: str, field: typing.Optional[str] = None) -&gt; Error:
+    &#34;&#34;&#34;command_error returns `Error` with `OffChainErrorObject` that type is `command_error`&#34;&#34;&#34;
     return Error(
         obj=OffChainErrorObject(
             type=OffChainErrorType.command_error,
@@ -98,12 +103,13 @@ def protocol_error(code: str, message: str, field: typing.Optional[str] = None) 
 <span>def <span class="ident">protocol_error</span></span>(<span>code: str, message: str, field: Optional[str] = None) ‑> <a title="diem.offchain.error.Error" href="#diem.offchain.error.Error">Error</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>protocol_error returns <code><a title="diem.offchain.error.Error" href="#diem.offchain.error.Error">Error</a></code> with <code>OffChainErrorObject</code> that type is <code><a title="diem.offchain.error.protocol_error" href="#diem.offchain.error.protocol_error">protocol_error()</a></code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def protocol_error(code: str, message: str, field: typing.Optional[str] = None) -&gt; Error:
+    &#34;&#34;&#34;protocol_error returns `Error` with `OffChainErrorObject` that type is `protocol_error`&#34;&#34;&#34;
     return Error(
         obj=OffChainErrorObject(
             type=OffChainErrorType.protocol_error,
@@ -124,12 +130,14 @@ def protocol_error(code: str, message: str, field: typing.Optional[str] = None) 
 <span>(</span><span>obj: <a title="diem.offchain.types.command_types.OffChainErrorObject" href="types/command_types.html#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<div class="desc"><p>Error is off-chain error wrapper of <code>OffChainErrorObject</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Error(Exception):
+    &#34;&#34;&#34;Error is off-chain error wrapper of `OffChainErrorObject`&#34;&#34;&#34;
+
     obj: OffChainErrorObject
 
     def __init__(self, obj: OffChainErrorObject) -&gt; None:

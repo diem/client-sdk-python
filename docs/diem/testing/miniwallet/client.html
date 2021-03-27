@@ -88,17 +88,29 @@ class RestClient:
 
     def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
         url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
-        self.logger.info(&#34;%s %s: %s&#34; % (method, path, data))
+        self.logger.debug(&#34;%s %s: %s&#34;, method, path, data)
         resp = self.session.request(
             method=method,
             url=url.lower(),
             data=data,
             headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
         )
-        self.logger.info(&#34;response status code: %s&#34; % resp.status_code)
-        self.logger.info(&#34;response body: %s&#34; % resp.text)
+        log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
+        self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
+        self.logger.log(log_level, &#34;response body: \n%s&#34;, try_json(resp.text))
         resp.raise_for_status()
         return resp
+
+
+def try_json(text: str) -&gt; str:
+    try:
+        obj = json.loads(text)
+        if isinstance(obj, dict):
+            # pretty print error json stacktrace info
+            return &#34;\n&#34;.join([&#34;%s: %s&#34; % (k, v) for k, v in obj.items()])
+        return json.dumps(obj, indent=2)
+    except Exception:
+        return text
 
 
 @dataclass
@@ -124,17 +136,20 @@ class AccountResource:
 
     def wait_for_balance(self, currency: str, amount: int) -&gt; None:
         def fn() -&gt; None:
-            assert self.balance(currency) == amount, &#34;currency: %s&#34; % currency
+            assert self.balance(currency) == amount
 
         self.wait_for(fn)
 
+    def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
+        events = [e for e in self.events(start_index) if e.type == event_type]
+        for e in events:
+            if _match(json.loads(e.data), **kwargs):
+                return e
+
     def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
         def fn() -&gt; None:
-            events = [e for e in self.events(start_index) if e.type == event_type]
-            for e in events:
-                if _match(json.loads(e.data), **kwargs):
-                    return
-            assert False, &#34;could not find %s event with %s&#34; % (event_type, kwargs)
+            event = self.find_event(event_type, start_index=start_index, **kwargs)
+            assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
 
         self.wait_for(fn)
 
@@ -191,6 +206,29 @@ class AccountResource:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="diem.testing.miniwallet.client.try_json"><code class="name flex">
+<span>def <span class="ident">try_json</span></span>(<span>text: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def try_json(text: str) -&gt; str:
+    try:
+        obj = json.loads(text)
+        if isinstance(obj, dict):
+            # pretty print error json stacktrace info
+            return &#34;\n&#34;.join([&#34;%s: %s&#34; % (k, v) for k, v in obj.items()])
+        return json.dumps(obj, indent=2)
+    except Exception:
+        return text</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -228,17 +266,20 @@ class AccountResource:
 
     def wait_for_balance(self, currency: str, amount: int) -&gt; None:
         def fn() -&gt; None:
-            assert self.balance(currency) == amount, &#34;currency: %s&#34; % currency
+            assert self.balance(currency) == amount
 
         self.wait_for(fn)
 
+    def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
+        events = [e for e in self.events(start_index) if e.type == event_type]
+        for e in events:
+            if _match(json.loads(e.data), **kwargs):
+                return e
+
     def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
         def fn() -&gt; None:
-            events = [e for e in self.events(start_index) if e.type == event_type]
-            for e in events:
-                if _match(json.loads(e.data), **kwargs):
-                    return
-            assert False, &#34;could not find %s event with %s&#34; % (event_type, kwargs)
+            event = self.find_event(event_type, start_index=start_index, **kwargs)
+            assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
 
         self.wait_for(fn)
 
@@ -369,6 +410,22 @@ class AccountResource:
     return [Event(**obj) for obj in ret[start:]]</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.miniwallet.client.AccountResource.find_event"><code class="name flex">
+<span>def <span class="ident">find_event</span></span>(<span>self, event_type: str, start_index: int = 0, **kwargs: Any) ‑> Optional[<a title="diem.testing.miniwallet.app.models.Event" href="app/models.html#diem.testing.miniwallet.app.models.Event">Event</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
+    events = [e for e in self.events(start_index) if e.type == event_type]
+    for e in events:
+        if _match(json.loads(e.data), **kwargs):
+            return e</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.generate_payment_uri"><code class="name flex">
 <span>def <span class="ident">generate_payment_uri</span></span>(<span>self, currency: Optional[str] = None, amount: Optional[int] = None) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="app/models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
 </code></dt>
@@ -456,7 +513,7 @@ class AccountResource:
 </summary>
 <pre><code class="python">def wait_for_balance(self, currency: str, amount: int) -&gt; None:
     def fn() -&gt; None:
-        assert self.balance(currency) == amount, &#34;currency: %s&#34; % currency
+        assert self.balance(currency) == amount
 
     self.wait_for(fn)</code></pre>
 </details>
@@ -472,11 +529,8 @@ class AccountResource:
 </summary>
 <pre><code class="python">def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
     def fn() -&gt; None:
-        events = [e for e in self.events(start_index) if e.type == event_type]
-        for e in events:
-            if _match(json.loads(e.data), **kwargs):
-                return
-        assert False, &#34;could not find %s event with %s&#34; % (event_type, kwargs)
+        event = self.find_event(event_type, start_index=start_index, **kwargs)
+        assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
 
     self.wait_for(fn)</code></pre>
 </details>
@@ -542,15 +596,16 @@ class RestClient:
 
     def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
         url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
-        self.logger.info(&#34;%s %s: %s&#34; % (method, path, data))
+        self.logger.debug(&#34;%s %s: %s&#34;, method, path, data)
         resp = self.session.request(
             method=method,
             url=url.lower(),
             data=data,
             headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
         )
-        self.logger.info(&#34;response status code: %s&#34; % resp.status_code)
-        self.logger.info(&#34;response body: %s&#34; % resp.text)
+        log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
+        self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
+        self.logger.log(log_level, &#34;response body: \n%s&#34;, try_json(resp.text))
         resp.raise_for_status()
         return resp</code></pre>
 </details>
@@ -709,15 +764,16 @@ class RestClient:
 </summary>
 <pre><code class="python">def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
     url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
-    self.logger.info(&#34;%s %s: %s&#34; % (method, path, data))
+    self.logger.debug(&#34;%s %s: %s&#34;, method, path, data)
     resp = self.session.request(
         method=method,
         url=url.lower(),
         data=data,
         headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
     )
-    self.logger.info(&#34;response status code: %s&#34; % resp.status_code)
-    self.logger.info(&#34;response body: %s&#34; % resp.text)
+    log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
+    self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
+    self.logger.log(log_level, &#34;response body: \n%s&#34;, try_json(resp.text))
     resp.raise_for_status()
     return resp</code></pre>
 </details>
@@ -752,6 +808,11 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet" href="index.html">diem.testing.miniwallet</a></code></li>
 </ul>
 </li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.client.try_json" href="#diem.testing.miniwallet.client.try_json">try_json</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
@@ -762,6 +823,7 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.dump_events" href="#diem.testing.miniwallet.client.AccountResource.dump_events">dump_events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.event_asdict" href="#diem.testing.miniwallet.client.AccountResource.event_asdict">event_asdict</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.events" href="#diem.testing.miniwallet.client.AccountResource.events">events</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.AccountResource.find_event" href="#diem.testing.miniwallet.client.AccountResource.find_event">find_event</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.generate_payment_uri" href="#diem.testing.miniwallet.client.AccountResource.generate_payment_uri">generate_payment_uri</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.id" href="#diem.testing.miniwallet.client.AccountResource.id">id</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.info" href="#diem.testing.miniwallet.client.AccountResource.info">info</a></code></li>

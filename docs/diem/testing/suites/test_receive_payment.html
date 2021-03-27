@@ -35,14 +35,14 @@ from typing import Generator, Optional
 import pytest
 
 
-amount: int = 123
+amount: int = 12345
 
 
 @pytest.fixture
 def sender_account(
-    stub_client: RestClient, currency: str, pending_income_account: AccountResource
+    stub_client: RestClient, currency: str, pending_income_account: AccountResource, travel_rule_threshold: int
 ) -&gt; Generator[AccountResource, None, None]:
-    account = stub_client.create_account(balances={currency: amount})
+    account = stub_client.create_account(balances={currency: travel_rule_threshold})
     yield account
     account.log_events()
     # MiniWallet stub saves the payment without account information (subaddress / reference id)
@@ -59,7 +59,18 @@ def receiver_account(target_client: RestClient) -&gt; Generator[AccountResource,
     account.log_events()
 
 
-@pytest.mark.parametrize(&#34;invalid_metadata&#34;, [b&#34;&#34;, b&#34;invalid metadata&#34;])
+@pytest.mark.parametrize(
+    &#34;invalid_metadata&#34;,
+    [
+        b&#34;&#34;,
+        b&#34;invalid metadata&#34;,
+        b&#34;9900000000&#34;,  # unknown metadata variant
+        b&#34;0109000000&#34;,  # invalid general metadata version
+        b&#34;0209&#34;,  # invalid travel rule metadata version
+        b&#34;0409&#34;,  # invalid refund metadata version
+        b&#34;0509&#34;,  # invalid coin trade metadata version
+    ],
+)
 def test_receive_payment_with_invalid_metadata(
     sender_account: AccountResource,
     receiver_account: AccountResource,
@@ -74,10 +85,12 @@ def test_receive_payment_with_invalid_metadata(
     received such an on-chain transaction.
 
     Test Plan:
+
     1. Generate a valid payment URI from receiver account.
     2. Submit a p2p transaction with invalid metadata, and wait for it is executed.
     3. Send a valid payment to the payment URI.
     4. Assert receiver account received the valid payment.
+
     &#34;&#34;&#34;
 
     uri = receiver_account.generate_payment_uri()
@@ -99,16 +112,24 @@ def test_receive_payment_with_invalid_metadata(
     receiver_account.wait_for_balance(currency, amount)
 
 
+@pytest.mark.parametrize(&#34;amount&#34;, [1, 123456, 125555])
 def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses(
-    sender_account: AccountResource, receiver_account: AccountResource, currency: str, hrp: str
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    amount: int,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
+
     1. Generate a valid payment URI from receiver account.
     2. Send a payment to the payee from the valid payment URI.
-    4. Wait for the transaction executed successfully.
-    5. Assert receiver account received the fund.
+    3. Wait for the transaction executed successfully.
+    4. Assert receiver account received the fund.
+
     &#34;&#34;&#34;
+
     uri = receiver_account.generate_payment_uri()
     pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
     wait_for_payment_transaction_complete(sender_account, pay.id)
@@ -131,12 +152,14 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
     receiver should refund the payment by using RefundMetadata with reason `invalid subaddress`.
 
     Test Plan:
+
     1. Generate a valid payment URI from the receiver account.
     2. Create a general metadata with valid from subaddress and invalid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
     5. Assert sender account received a payment transaction with refund metadata.
     6. Assert receiver account does not receive funds.
+
     &#34;&#34;&#34;
 
     receiver_uri = receiver_account.generate_payment_uri()
@@ -163,6 +186,236 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
         refund_reason=RefundReason.invalid_subaddress,
     )
     assert receiver_account.balance(currency) == 0
+
+
+@pytest.mark.parametrize(  # pyre-ignore
+    &#34;invalid_from_subaddress&#34;, [None, b&#34;&#34;, b&#34;bb4a3ba109a3175f&#34;, b&#34;subaddress_more_than_8_bytes&#34;, b&#34;too_short&#34;]
+)
+def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    invalid_from_subaddress: Optional[bytes],
+) -&gt; None:
+    &#34;&#34;&#34;When received a payment with general metadata and invalid from subaddress,
+    receiver is not required to take any action on it as long as to subaddress is valid.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from the receiver account.
+    2. Create a general metadata with invalid from subaddress and valid to subaddress.
+    3. Send payment transaction from sender to receiver on-chain account.
+    4. Wait for the transaction executed successfully.
+    5. Assert receiver account received funds eventually.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    valid_to_subaddress = receiver_uri.intent(hrp).subaddress
+    invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, valid_to_subaddress)
+    stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount,
+            payee=receiver_account_address,
+            metadata=invalid_metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+    receiver_account.wait_for_balance(currency, amount)
+
+
+@pytest.mark.parametrize(
+    &#34;invalid_from_subaddress&#34;, [None, b&#34;&#34;, b&#34;bb4a3ba109a3175f&#34;, b&#34;subaddress_more_than_8_bytes&#34;, b&#34;too_short&#34;]
+)
+@pytest.mark.parametrize(  # pyre-ignore
+    &#34;invalid_to_subaddress&#34;, [None, b&#34;&#34;, b&#34;bb4a3ba109a3175f&#34;, b&#34;subaddress_more_than_8_bytes&#34;, b&#34;too_short&#34;]
+)
+def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    invalid_to_subaddress: Optional[bytes],
+    invalid_from_subaddress: Optional[bytes],
+    pending_income_account: AccountResource,
+) -&gt; None:
+    &#34;&#34;&#34;When received a payment with general metadata and invalid subaddresses, it is considered
+    same with the case received invalid to subaddress, and receiver should refund the payment.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from the receiver account.
+    2. Create a general metadata with invalid from subaddress and invalid to subaddress.
+    3. Send payment transaction from sender to receiver on-chain account.
+    4. Wait for the transaction executed successfully.
+    5. Assert sender account received a payment transaction with refund metadata.
+    6. Assert receiver account does not receive funds.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, invalid_to_subaddress)
+    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount,
+            payee=receiver_account_address,
+            metadata=invalid_metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+
+    pending_income_account.wait_for_event(
+        &#34;created_transaction&#34;,
+        status=Transaction.Status.completed,
+        refund_diem_txn_version=original_payment_txn.version,
+        refund_reason=RefundReason.invalid_subaddress,
+    )
+    assert receiver_account.balance(currency) == 0
+
+
+def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    travel_rule_threshold: int,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Send a payment meeting travel rule threshold to the payee from the valid payment URI.
+    3. Wait for the transaction executed successfully.
+    4. Assert receiver account received the fund.
+
+    &#34;&#34;&#34;
+
+    uri = receiver_account.generate_payment_uri()
+    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=uri.intent(hrp).account_id)
+    wait_for_payment_transaction_complete(sender_account, pay.id)
+    receiver_account.wait_for_balance(currency, travel_rule_threshold)
+
+
+@pytest.mark.parametrize(  # pyre-ignore
+    &#34;invalid_ref_id&#34;, [None, &#34;&#34;, &#34;ref_id_is_not_uuid&#34;, &#34;4185027f-0574-6f55-2668-3a38fdb5de98&#34;]
+)
+def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    pending_income_account: AccountResource,
+    invalid_ref_id: Optional[str],
+) -&gt; None:
+    &#34;&#34;&#34;
+    There is no way to create travel rule metadata with invalid reference id when the payment
+    amount meets travel rule threshold, because the metadata signature is verified by transaction
+    script.
+    Also, if metadata signature is provided, transaction script will also verify it regardless
+    whether the amount meets travel rule threshold, thus no need to test invalid metadata
+    signature case.
+
+    This test bypasses the transaction script validation by sending payment amount under the
+    travel rule threshold without metadata signature, and receiver should handle it properly and refund.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Submit payment under travel rule threshold transaction from sender to receiver on-chain account.
+    3. Wait for the transaction executed successfully.
+    4. Assert the payment is refund eventually.
+
+    Note: the refund payment will be received by pending income account of the MiniWallet Stub, because
+    no account owns the original invalid payment transaction which is sent by test.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    sender_uri = sender_account.generate_payment_uri()
+    sender_address = sender_uri.intent(hrp).account_address
+    metadata, _ = txnmetadata.travel_rule(invalid_ref_id, sender_address, amount)  # pyre-ignore
+    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount,
+            payee=receiver_account_address,
+            metadata=metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+
+    pending_income_account.wait_for_event(
+        &#34;created_transaction&#34;,
+        status=Transaction.Status.completed,
+        refund_diem_txn_version=original_payment_txn.version,
+    )
+    assert receiver_account.balance(currency) == 0
+
+
+@pytest.mark.parametrize(&#34;invalid_refund_txn_version&#34;, [0, 1, 18446744073709551615])
+def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    pending_income_account: AccountResource,
+    invalid_refund_txn_version: int,
+) -&gt; None:
+    &#34;&#34;&#34;
+    When received a payment transaction with invalid refund metadata, it&#39;s up to wallet
+    application to decide how to handle, this test makes sure the wallet application
+    should be able to continue to receive following up valid payment transactions.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Submit payment transaction with refund metadata and invalid txn version.
+    3. Wait for the transaction executed successfully.
+    4. Send a valid payment to the payment URI.
+    5. Assert receiver account received the valid payment.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    reason = diem_types.RefundReason__OtherReason()
+    metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
+    stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount * 2,
+            payee=receiver_account_address,
+            metadata=metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+    assert receiver_account.balance(currency) == 0
+
+    pay = sender_account.send_payment(currency, amount, payee=receiver_uri.intent(hrp).account_id)
+    wait_for_payment_transaction_complete(sender_account, pay.id)
+    receiver_account.wait_for_balance(currency, amount)
 
 
 def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -&gt; None:
@@ -195,7 +448,7 @@ def receiver_account(target_client: RestClient) -&gt; Generator[AccountResource,
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.sender_account"><code class="name flex">
-<span>def <span class="ident">sender_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+<span>def <span class="ident">sender_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, travel_rule_threshold: int) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -205,9 +458,9 @@ def receiver_account(target_client: RestClient) -&gt; Generator[AccountResource,
 </summary>
 <pre><code class="python">@pytest.fixture
 def sender_account(
-    stub_client: RestClient, currency: str, pending_income_account: AccountResource
+    stub_client: RestClient, currency: str, pending_income_account: AccountResource, travel_rule_threshold: int
 ) -&gt; Generator[AccountResource, None, None]:
-    account = stub_client.create_account(balances={currency: amount})
+    account = stub_client.create_account(balances={currency: travel_rule_threshold})
     yield account
     account.log_events()
     # MiniWallet stub saves the payment without account information (subaddress / reference id)
@@ -217,19 +470,156 @@ def sender_account(
     pending_income_account.log_events()</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_from_subaddress"><code class="name flex">
+<span>def <span class="ident">test_receive_payment_with_general_metadata_and_invalid_from_subaddress</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, invalid_from_subaddress: Optional[bytes]) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>When received a payment with general metadata and invalid from subaddress,
+receiver is not required to take any action on it as long as to subaddress is valid.</p>
+<p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from the receiver account.</li>
+<li>Create a general metadata with invalid from subaddress and valid to subaddress.</li>
+<li>Send payment transaction from sender to receiver on-chain account.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Assert receiver account received funds eventually.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(  # pyre-ignore
+    &#34;invalid_from_subaddress&#34;, [None, b&#34;&#34;, b&#34;bb4a3ba109a3175f&#34;, b&#34;subaddress_more_than_8_bytes&#34;, b&#34;too_short&#34;]
+)
+def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    invalid_from_subaddress: Optional[bytes],
+) -&gt; None:
+    &#34;&#34;&#34;When received a payment with general metadata and invalid from subaddress,
+    receiver is not required to take any action on it as long as to subaddress is valid.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from the receiver account.
+    2. Create a general metadata with invalid from subaddress and valid to subaddress.
+    3. Send payment transaction from sender to receiver on-chain account.
+    4. Wait for the transaction executed successfully.
+    5. Assert receiver account received funds eventually.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    valid_to_subaddress = receiver_uri.intent(hrp).subaddress
+    invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, valid_to_subaddress)
+    stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount,
+            payee=receiver_account_address,
+            metadata=invalid_metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+    receiver_account.wait_for_balance(currency, amount)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_subaddresses"><code class="name flex">
+<span>def <span class="ident">test_receive_payment_with_general_metadata_and_invalid_subaddresses</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, invalid_to_subaddress: Optional[bytes], invalid_from_subaddress: Optional[bytes], pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>When received a payment with general metadata and invalid subaddresses, it is considered
+same with the case received invalid to subaddress, and receiver should refund the payment.</p>
+<p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from the receiver account.</li>
+<li>Create a general metadata with invalid from subaddress and invalid to subaddress.</li>
+<li>Send payment transaction from sender to receiver on-chain account.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Assert sender account received a payment transaction with refund metadata.</li>
+<li>Assert receiver account does not receive funds.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(
+    &#34;invalid_from_subaddress&#34;, [None, b&#34;&#34;, b&#34;bb4a3ba109a3175f&#34;, b&#34;subaddress_more_than_8_bytes&#34;, b&#34;too_short&#34;]
+)
+@pytest.mark.parametrize(  # pyre-ignore
+    &#34;invalid_to_subaddress&#34;, [None, b&#34;&#34;, b&#34;bb4a3ba109a3175f&#34;, b&#34;subaddress_more_than_8_bytes&#34;, b&#34;too_short&#34;]
+)
+def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    invalid_to_subaddress: Optional[bytes],
+    invalid_from_subaddress: Optional[bytes],
+    pending_income_account: AccountResource,
+) -&gt; None:
+    &#34;&#34;&#34;When received a payment with general metadata and invalid subaddresses, it is considered
+    same with the case received invalid to subaddress, and receiver should refund the payment.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from the receiver account.
+    2. Create a general metadata with invalid from subaddress and invalid to subaddress.
+    3. Send payment transaction from sender to receiver on-chain account.
+    4. Wait for the transaction executed successfully.
+    5. Assert sender account received a payment transaction with refund metadata.
+    6. Assert receiver account does not receive funds.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, invalid_to_subaddress)
+    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount,
+            payee=receiver_account_address,
+            metadata=invalid_metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+
+    pending_income_account.wait_for_event(
+        &#34;created_transaction&#34;,
+        status=Transaction.Status.completed,
+        refund_diem_txn_version=original_payment_txn.version,
+        refund_reason=RefundReason.invalid_subaddress,
+    )
+    assert receiver_account.balance(currency) == 0</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_to_subaddress"><code class="name flex">
 <span>def <span class="ident">test_receive_payment_with_general_metadata_and_invalid_to_subaddress</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, invalid_to_subaddress: Optional[bytes]) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>When received a payment with general metadata and invalid to subaddress,
 receiver should refund the payment by using RefundMetadata with reason <code>invalid subaddress</code>.</p>
-<p>Test Plan:
-1. Generate a valid payment URI from the receiver account.
-2. Create a general metadata with valid from subaddress and invalid to subaddress.
-3. Send payment transaction from sender to receiver on-chain account.
-4. Wait for the transaction executed successfully.
-5. Assert sender account received a payment transaction with refund metadata.
-6. Assert receiver account does not receive funds.</p></div>
+<p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from the receiver account.</li>
+<li>Create a general metadata with valid from subaddress and invalid to subaddress.</li>
+<li>Send payment transaction from sender to receiver on-chain account.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Assert sender account received a payment transaction with refund metadata.</li>
+<li>Assert receiver account does not receive funds.</li>
+</ol></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -250,12 +640,14 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
     receiver should refund the payment by using RefundMetadata with reason `invalid subaddress`.
 
     Test Plan:
+
     1. Generate a valid payment URI from the receiver account.
     2. Create a general metadata with valid from subaddress and invalid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
     5. Assert sender account received a payment transaction with refund metadata.
     6. Assert receiver account does not receive funds.
+
     &#34;&#34;&#34;
 
     receiver_uri = receiver_account.generate_payment_uri()
@@ -285,28 +677,38 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, amount: int) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Test Plan:
-1. Generate a valid payment URI from receiver account.
-2. Send a payment to the payee from the valid payment URI.
-4. Wait for the transaction executed successfully.
-5. Assert receiver account received the fund.</p></div>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from receiver account.</li>
+<li>Send a payment to the payee from the valid payment URI.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Assert receiver account received the fund.</li>
+</ol></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses(
-    sender_account: AccountResource, receiver_account: AccountResource, currency: str, hrp: str
+<pre><code class="python">@pytest.mark.parametrize(&#34;amount&#34;, [1, 123456, 125555])
+def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    amount: int,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
+
     1. Generate a valid payment URI from receiver account.
     2. Send a payment to the payee from the valid payment URI.
-    4. Wait for the transaction executed successfully.
-    5. Assert receiver account received the fund.
+    3. Wait for the transaction executed successfully.
+    4. Assert receiver account received the fund.
+
     &#34;&#34;&#34;
+
     uri = receiver_account.generate_payment_uri()
     pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
     wait_for_payment_transaction_complete(sender_account, pay.id)
@@ -320,16 +722,29 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 <div class="desc"><p>When received a payment with invalid metadata, it is up to the wallet application how to handle it.
 This test makes sure target wallet application should continue to process valid transactions after
 received such an on-chain transaction.</p>
-<p>Test Plan:
-1. Generate a valid payment URI from receiver account.
-2. Submit a p2p transaction with invalid metadata, and wait for it is executed.
-3. Send a valid payment to the payment URI.
-4. Assert receiver account received the valid payment.</p></div>
+<p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from receiver account.</li>
+<li>Submit a p2p transaction with invalid metadata, and wait for it is executed.</li>
+<li>Send a valid payment to the payment URI.</li>
+<li>Assert receiver account received the valid payment.</li>
+</ol></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@pytest.mark.parametrize(&#34;invalid_metadata&#34;, [b&#34;&#34;, b&#34;invalid metadata&#34;])
+<pre><code class="python">@pytest.mark.parametrize(
+    &#34;invalid_metadata&#34;,
+    [
+        b&#34;&#34;,
+        b&#34;invalid metadata&#34;,
+        b&#34;9900000000&#34;,  # unknown metadata variant
+        b&#34;0109000000&#34;,  # invalid general metadata version
+        b&#34;0209&#34;,  # invalid travel rule metadata version
+        b&#34;0409&#34;,  # invalid refund metadata version
+        b&#34;0509&#34;,  # invalid coin trade metadata version
+    ],
+)
 def test_receive_payment_with_invalid_metadata(
     sender_account: AccountResource,
     receiver_account: AccountResource,
@@ -344,10 +759,12 @@ def test_receive_payment_with_invalid_metadata(
     received such an on-chain transaction.
 
     Test Plan:
+
     1. Generate a valid payment URI from receiver account.
     2. Submit a p2p transaction with invalid metadata, and wait for it is executed.
     3. Send a valid payment to the payment URI.
     4. Assert receiver account received the valid payment.
+
     &#34;&#34;&#34;
 
     uri = receiver_account.generate_payment_uri()
@@ -367,6 +784,197 @@ def test_receive_payment_with_invalid_metadata(
     pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_refund_metadata_and_invalid_transaction_version"><code class="name flex">
+<span>def <span class="ident">test_receive_payment_with_refund_metadata_and_invalid_transaction_version</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, invalid_refund_txn_version: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>When received a payment transaction with invalid refund metadata, it's up to wallet
+application to decide how to handle, this test makes sure the wallet application
+should be able to continue to receive following up valid payment transactions.</p>
+<p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from receiver account.</li>
+<li>Submit payment transaction with refund metadata and invalid txn version.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Send a valid payment to the payment URI.</li>
+<li>Assert receiver account received the valid payment.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#34;invalid_refund_txn_version&#34;, [0, 1, 18446744073709551615])
+def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    pending_income_account: AccountResource,
+    invalid_refund_txn_version: int,
+) -&gt; None:
+    &#34;&#34;&#34;
+    When received a payment transaction with invalid refund metadata, it&#39;s up to wallet
+    application to decide how to handle, this test makes sure the wallet application
+    should be able to continue to receive following up valid payment transactions.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Submit payment transaction with refund metadata and invalid txn version.
+    3. Wait for the transaction executed successfully.
+    4. Send a valid payment to the payment URI.
+    5. Assert receiver account received the valid payment.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    reason = diem_types.RefundReason__OtherReason()
+    metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
+    stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount * 2,
+            payee=receiver_account_address,
+            metadata=metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+    assert receiver_account.balance(currency) == 0
+
+    pay = sender_account.send_payment(currency, amount, payee=receiver_uri.intent(hrp).account_id)
+    wait_for_payment_transaction_complete(sender_account, pay.id)
+    receiver_account.wait_for_balance(currency, amount)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id"><code class="name flex">
+<span>def <span class="ident">test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, invalid_ref_id: Optional[str]) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>There is no way to create travel rule metadata with invalid reference id when the payment
+amount meets travel rule threshold, because the metadata signature is verified by transaction
+script.
+Also, if metadata signature is provided, transaction script will also verify it regardless
+whether the amount meets travel rule threshold, thus no need to test invalid metadata
+signature case.</p>
+<p>This test bypasses the transaction script validation by sending payment amount under the
+travel rule threshold without metadata signature, and receiver should handle it properly and refund.</p>
+<p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from receiver account.</li>
+<li>Submit payment under travel rule threshold transaction from sender to receiver on-chain account.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Assert the payment is refund eventually.</li>
+</ol>
+<p>Note: the refund payment will be received by pending income account of the MiniWallet Stub, because
+no account owns the original invalid payment transaction which is sent by test.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(  # pyre-ignore
+    &#34;invalid_ref_id&#34;, [None, &#34;&#34;, &#34;ref_id_is_not_uuid&#34;, &#34;4185027f-0574-6f55-2668-3a38fdb5de98&#34;]
+)
+def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    stub_config: AppConfig,
+    diem_client: jsonrpc.Client,
+    pending_income_account: AccountResource,
+    invalid_ref_id: Optional[str],
+) -&gt; None:
+    &#34;&#34;&#34;
+    There is no way to create travel rule metadata with invalid reference id when the payment
+    amount meets travel rule threshold, because the metadata signature is verified by transaction
+    script.
+    Also, if metadata signature is provided, transaction script will also verify it regardless
+    whether the amount meets travel rule threshold, thus no need to test invalid metadata
+    signature case.
+
+    This test bypasses the transaction script validation by sending payment amount under the
+    travel rule threshold without metadata signature, and receiver should handle it properly and refund.
+
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Submit payment under travel rule threshold transaction from sender to receiver on-chain account.
+    3. Wait for the transaction executed successfully.
+    4. Assert the payment is refund eventually.
+
+    Note: the refund payment will be received by pending income account of the MiniWallet Stub, because
+    no account owns the original invalid payment transaction which is sent by test.
+
+    &#34;&#34;&#34;
+
+    receiver_uri = receiver_account.generate_payment_uri()
+    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+
+    sender_uri = sender_account.generate_payment_uri()
+    sender_address = sender_uri.intent(hrp).account_address
+    metadata, _ = txnmetadata.travel_rule(invalid_ref_id, sender_address, amount)  # pyre-ignore
+    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+        diem_client,
+        stdlib.encode_peer_to_peer_with_metadata_script(
+            currency=utils.currency_code(currency),
+            amount=amount,
+            payee=receiver_account_address,
+            metadata=metadata,
+            metadata_signature=b&#34;&#34;,
+        ),
+    )
+
+    pending_income_account.wait_for_event(
+        &#34;created_transaction&#34;,
+        status=Transaction.Status.completed,
+        refund_diem_txn_version=original_payment_txn.version,
+    )
+    assert receiver_account.balance(currency) == 0</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_valid_reference_id"><code class="name flex">
+<span>def <span class="ident">test_receive_payment_with_travel_rule_metadata_and_valid_reference_id</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, travel_rule_threshold: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate a valid payment URI from receiver account.</li>
+<li>Send a payment meeting travel rule threshold to the payee from the valid payment URI.</li>
+<li>Wait for the transaction executed successfully.</li>
+<li>Assert receiver account received the fund.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    currency: str,
+    hrp: str,
+    travel_rule_threshold: int,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid payment URI from receiver account.
+    2. Send a payment meeting travel rule threshold to the payee from the valid payment URI.
+    3. Wait for the transaction executed successfully.
+    4. Assert receiver account received the fund.
+
+    &#34;&#34;&#34;
+
+    uri = receiver_account.generate_payment_uri()
+    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=uri.intent(hrp).account_id)
+    wait_for_payment_transaction_complete(sender_account, pay.id)
+    receiver_account.wait_for_balance(currency, travel_rule_threshold)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.wait_for_payment_transaction_complete"><code class="name flex">
@@ -404,9 +1012,14 @@ def test_receive_payment_with_invalid_metadata(
 <ul class="">
 <li><code><a title="diem.testing.suites.test_receive_payment.receiver_account" href="#diem.testing.suites.test_receive_payment.receiver_account">receiver_account</a></code></li>
 <li><code><a title="diem.testing.suites.test_receive_payment.sender_account" href="#diem.testing.suites.test_receive_payment.sender_account">sender_account</a></code></li>
+<li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_from_subaddress" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_from_subaddress">test_receive_payment_with_general_metadata_and_invalid_from_subaddress</a></code></li>
+<li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_subaddresses" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_subaddresses">test_receive_payment_with_general_metadata_and_invalid_subaddresses</a></code></li>
 <li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_to_subaddress" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_invalid_to_subaddress">test_receive_payment_with_general_metadata_and_invalid_to_subaddress</a></code></li>
 <li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses">test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses</a></code></li>
 <li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_invalid_metadata" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_invalid_metadata">test_receive_payment_with_invalid_metadata</a></code></li>
+<li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_refund_metadata_and_invalid_transaction_version" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_refund_metadata_and_invalid_transaction_version">test_receive_payment_with_refund_metadata_and_invalid_transaction_version</a></code></li>
+<li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id">test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id</a></code></li>
+<li><code><a title="diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_valid_reference_id" href="#diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_valid_reference_id">test_receive_payment_with_travel_rule_metadata_and_valid_reference_id</a></code></li>
 <li><code><a title="diem.testing.suites.test_receive_payment.wait_for_payment_transaction_complete" href="#diem.testing.suites.test_receive_payment.wait_for_payment_transaction_complete">wait_for_payment_transaction_complete</a></code></li>
 </ul>
 </li>

@@ -35,7 +35,7 @@
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
 import hashlib
-import typing
+import typing, time, socket
 
 from . import diem_types, jsonrpc, stdlib
 
@@ -214,7 +214,28 @@ def to_snake(o: typing.Any) -&gt; str:  # pyre-ignore
         return &#34;&#34;.join([&#34;_&#34; + i.lower() if i.isupper() else i for i in o]).lstrip(&#34;_&#34;)
     elif hasattr(o, &#34;__name__&#34;):
         return to_snake(getattr(o, &#34;__name__&#34;))
-    return to_snake(type(o))</code></pre>
+    return to_snake(type(o))
+
+
+def wait_for_port(port: int, host: str = &#34;localhost&#34;, timeout: float = 5.0) -&gt; None:
+    &#34;&#34;&#34;Wait for a port ready for accepting TCP connections.
+    Args:
+        port (int): port number.
+        host (str): host address on which the port should exist.
+        timeout (float): in seconds. wait timeout
+    Raises:
+        TimeoutError
+    &#34;&#34;&#34;
+
+    start_time = time.perf_counter()
+    while True:
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                break
+        except OSError as e:
+            if time.perf_counter() - start_time &gt;= timeout:
+                raise TimeoutError(&#34;waited %s for %s:%s accept connection.&#34; % (timeout, host, port)) from e
+            time.sleep(0.01)</code></pre>
 </details>
 </section>
 <section>
@@ -548,6 +569,47 @@ does not match sub-address length (8 bytes)</p></div>
     raise TypeError(f&#34;unknown currency code type: {code}&#34;)</code></pre>
 </details>
 </dd>
+<dt id="diem.utils.wait_for_port"><code class="name flex">
+<span>def <span class="ident">wait_for_port</span></span>(<span>port: int, host: str = 'localhost', timeout: float = 5.0) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wait for a port ready for accepting TCP connections.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>port</code></strong> :&ensp;<code>int</code></dt>
+<dd>port number.</dd>
+<dt><strong><code>host</code></strong> :&ensp;<code>str</code></dt>
+<dd>host address on which the port should exist.</dd>
+<dt><strong><code>timeout</code></strong> :&ensp;<code>float</code></dt>
+<dd>in seconds. wait timeout</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<p>TimeoutError</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for_port(port: int, host: str = &#34;localhost&#34;, timeout: float = 5.0) -&gt; None:
+    &#34;&#34;&#34;Wait for a port ready for accepting TCP connections.
+    Args:
+        port (int): port number.
+        host (str): host address on which the port should exist.
+        timeout (float): in seconds. wait timeout
+    Raises:
+        TimeoutError
+    &#34;&#34;&#34;
+
+    start_time = time.perf_counter()
+    while True:
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                break
+        except OSError as e:
+            if time.perf_counter() - start_time &gt;= timeout:
+                raise TimeoutError(&#34;waited %s for %s:%s accept connection.&#34; % (timeout, host, port)) from e
+            time.sleep(0.01)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -624,6 +686,7 @@ does not match sub-address length (8 bytes)</p></div>
 <li><code><a title="diem.utils.to_snake" href="#diem.utils.to_snake">to_snake</a></code></li>
 <li><code><a title="diem.utils.transaction_hash" href="#diem.utils.transaction_hash">transaction_hash</a></code></li>
 <li><code><a title="diem.utils.type_tag_to_str" href="#diem.utils.type_tag_to_str">type_tag_to_str</a></code></li>
+<li><code><a title="diem.utils.wait_for_port" href="#diem.utils.wait_for_port">wait_for_port</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

@@ -46,7 +46,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from copy import copy
-import time
+import time, json
 
 
 @dataclass
@@ -172,7 +172,14 @@ class LocalAccount:
         d = copy(self.__dict__)
         d[&#34;private_key&#34;] = utils.private_key_bytes(self.private_key).hex()
         d[&#34;compliance_key&#34;] = utils.private_key_bytes(self.compliance_key).hex()
-        return d</code></pre>
+        return d
+
+    def to_json(self) -&gt; str:
+        return json.dumps(self.to_dict(), indent=2)
+
+    def write_to_file(self, path: str) -&gt; None:
+        with open(path, &#34;w&#34;) as f:
+            f.write(self.to_json())</code></pre>
 </details>
 </section>
 <section>
@@ -324,7 +331,14 @@ class LocalAccount:
         d = copy(self.__dict__)
         d[&#34;private_key&#34;] = utils.private_key_bytes(self.private_key).hex()
         d[&#34;compliance_key&#34;] = utils.private_key_bytes(self.compliance_key).hex()
-        return d</code></pre>
+        return d
+
+    def to_json(self) -&gt; str:
+        return json.dumps(self.to_dict(), indent=2)
+
+    def write_to_file(self, path: str) -&gt; None:
+        with open(path, &#34;w&#34;) as f:
+            f.write(self.to_json())</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -620,6 +634,33 @@ def public_key_bytes(self) -&gt; bytes:
     return d</code></pre>
 </details>
 </dd>
+<dt id="diem.local_account.LocalAccount.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self) -&gt; str:
+    return json.dumps(self.to_dict(), indent=2)</code></pre>
+</details>
+</dd>
+<dt id="diem.local_account.LocalAccount.write_to_file"><code class="name flex">
+<span>def <span class="ident">write_to_file</span></span>(<span>self, path: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_to_file(self, path: str) -&gt; None:
+    with open(path, &#34;w&#34;) as f:
+        f.write(self.to_json())</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -660,10 +701,12 @@ def public_key_bytes(self) -&gt; bytes:
 <li><code><a title="diem.local_account.LocalAccount.submit_and_wait_for_txn" href="#diem.local_account.LocalAccount.submit_and_wait_for_txn">submit_and_wait_for_txn</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.submit_txn" href="#diem.local_account.LocalAccount.submit_txn">submit_txn</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.to_dict" href="#diem.local_account.LocalAccount.to_dict">to_dict</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.to_json" href="#diem.local_account.LocalAccount.to_json">to_json</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.txn_expire_duration_secs" href="#diem.local_account.LocalAccount.txn_expire_duration_secs">txn_expire_duration_secs</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.txn_gas_currency_code" href="#diem.local_account.LocalAccount.txn_gas_currency_code">txn_gas_currency_code</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.txn_gas_unit_price" href="#diem.local_account.LocalAccount.txn_gas_unit_price">txn_gas_unit_price</a></code></li>
 <li><code><a title="diem.local_account.LocalAccount.txn_max_gas_amount" href="#diem.local_account.LocalAccount.txn_max_gas_amount">txn_max_gas_amount</a></code></li>
+<li><code><a title="diem.local_account.LocalAccount.write_to_file" href="#diem.local_account.LocalAccount.write_to_file">write_to_file</a></code></li>
 </ul>
 </li>
 </ul>

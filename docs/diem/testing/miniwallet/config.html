@@ -33,7 +33,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, Any
 from .client import RestClient
 from .app import App, falcon_api
-from ... import offchain, testnet, jsonrpc, LocalAccount
+from ... import offchain, testnet, jsonrpc, utils, LocalAccount
 import waitress, threading, logging, falcon, json
 
 
@@ -70,18 +70,18 @@ class AppConfig:
         return self.server_conf.base_url
 
     def create_client(self) -&gt; RestClient:
-        self.logger.info(f&#34;Creating client pointing to {self.server_url}&#34;)
+        self.logger.info(&#34;Creating client pointing to %s&#34;, self.server_url)
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
         acc = client.get_account(self.account.account_address)
         if not acc or self.need_funds(acc):
-            self.logger.info(&#34;faucet mint %s&#34; % self.account.account_address.to_hex())
+            self.logger.info(&#34;faucet mint %s&#34;, self.account.account_address.to_hex())
             faucet = testnet.Faucet(client)
             faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
         if not acc or self.need_rotate(acc):
-            self.logger.info(&#34;rotate dual attestation info for %s&#34; % self.account.account_address.to_hex())
-            self.logger.info(&#34;set base url to: %s&#34; % self.server_url)
+            self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
+            self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
             self.account.rotate_dual_attestation_info(client, self.server_url)
 
     def need_funds(self, account: jsonrpc.Account) -&gt; bool:
@@ -103,7 +103,7 @@ class AppConfig:
         api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
         def serve() -&gt; None:
-            self.logger.info(f&#34;serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}&#34;)
+            self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
             waitress.serve(
                 api,
                 host=self.server_conf.host,
@@ -118,7 +118,9 @@ class AppConfig:
 
     def start(self, client: jsonrpc.Client) -&gt; threading.Thread:
         self.setup_account(client)
-        return self.serve(client)
+        t = self.serve(client)
+        utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
+        return t
 
     def __str__(self) -&gt; str:
         return json.dumps(asdict(self), indent=2)</code></pre>
@@ -165,18 +167,18 @@ class AppConfig:
         return self.server_conf.base_url
 
     def create_client(self) -&gt; RestClient:
-        self.logger.info(f&#34;Creating client pointing to {self.server_url}&#34;)
+        self.logger.info(&#34;Creating client pointing to %s&#34;, self.server_url)
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
         acc = client.get_account(self.account.account_address)
         if not acc or self.need_funds(acc):
-            self.logger.info(&#34;faucet mint %s&#34; % self.account.account_address.to_hex())
+            self.logger.info(&#34;faucet mint %s&#34;, self.account.account_address.to_hex())
             faucet = testnet.Faucet(client)
             faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
         if not acc or self.need_rotate(acc):
-            self.logger.info(&#34;rotate dual attestation info for %s&#34; % self.account.account_address.to_hex())
-            self.logger.info(&#34;set base url to: %s&#34; % self.server_url)
+            self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
+            self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
             self.account.rotate_dual_attestation_info(client, self.server_url)
 
     def need_funds(self, account: jsonrpc.Account) -&gt; bool:
@@ -198,7 +200,7 @@ class AppConfig:
         api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
         def serve() -&gt; None:
-            self.logger.info(f&#34;serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}&#34;)
+            self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
             waitress.serve(
                 api,
                 host=self.server_conf.host,
@@ -213,7 +215,9 @@ class AppConfig:
 
     def start(self, client: jsonrpc.Client) -&gt; threading.Thread:
         self.setup_account(client)
-        return self.serve(client)
+        t = self.serve(client)
+        utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
+        return t
 
     def __str__(self) -&gt; str:
         return json.dumps(asdict(self), indent=2)</code></pre>
@@ -296,7 +300,7 @@ def server_url(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_client(self) -&gt; RestClient:
-    self.logger.info(f&#34;Creating client pointing to {self.server_url}&#34;)
+    self.logger.info(&#34;Creating client pointing to %s&#34;, self.server_url)
     return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()</code></pre>
 </details>
 </dd>
@@ -348,7 +352,7 @@ def server_url(self) -&gt; str:
     api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
 
     def serve() -&gt; None:
-        self.logger.info(f&#34;serving on {self.server_conf.host}:{self.server_conf.port} at {self.server_url}&#34;)
+        self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
         waitress.serve(
             api,
             host=self.server_conf.host,
@@ -374,12 +378,12 @@ def server_url(self) -&gt; str:
 <pre><code class="python">def setup_account(self, client: jsonrpc.Client) -&gt; None:
     acc = client.get_account(self.account.account_address)
     if not acc or self.need_funds(acc):
-        self.logger.info(&#34;faucet mint %s&#34; % self.account.account_address.to_hex())
+        self.logger.info(&#34;faucet mint %s&#34;, self.account.account_address.to_hex())
         faucet = testnet.Faucet(client)
         faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
     if not acc or self.need_rotate(acc):
-        self.logger.info(&#34;rotate dual attestation info for %s&#34; % self.account.account_address.to_hex())
-        self.logger.info(&#34;set base url to: %s&#34; % self.server_url)
+        self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
+        self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
         self.account.rotate_dual_attestation_info(client, self.server_url)</code></pre>
 </details>
 </dd>
@@ -394,7 +398,9 @@ def server_url(self) -&gt; str:
 </summary>
 <pre><code class="python">def start(self, client: jsonrpc.Client) -&gt; threading.Thread:
     self.setup_account(client)
-    return self.serve(client)</code></pre>
+    t = self.serve(client)
+    utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
+    return t</code></pre>
 </details>
 </dd>
 </dl>

@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import requests, typing, dataclasses, uuid, math
+import requests, typing, dataclasses, uuid, math, warnings
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -163,7 +163,23 @@ class Client:
         return cmd_resp
 
     def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
-        &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+        &#34;&#34;&#34;Deprecated
+
+        validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        This function is split into `deserialize_inbound_request` and `process_inbound_payment_command_request`
+        for handling command processing properly in the future when new commands are added.
+        &#34;&#34;&#34;
+
+        warnings.warn(
+            &#34;`process_inbound_request` is deprecated, call `deserialize_inbound_request` instead, and then call `process_inbound_payment_command_request` if the inbound request is for `PaymentCommand`&#34;
+        )
+
+        request = self.deserialize_inbound_request(request_sender_address, request_bytes)
+        return self.process_inbound_payment_command_request(request_sender_address, request)
+
+    def deserialize_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandRequestObject:
+        &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.CommandRequestObject` object.
 
         Raises `diem.offchain.error.Error` with `protocol_error` when:
 
@@ -173,6 +189,17 @@ class Client:
         - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
         - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
         - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+        &#34;&#34;&#34;
+
+        if not request_sender_address:
+            raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+        public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+        return _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+
+    def process_inbound_payment_command_request(
+        self, request_sender_address: str, request: CommandRequestObject
+    ) -&gt; PaymentCommand:
+        &#34;&#34;&#34;Validate the `PaymentCommand` and returns a command wrapper object for next processing step.
 
         Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
 
@@ -183,28 +210,30 @@ class Client:
 
         &#34;&#34;&#34;
 
-        if not request_sender_address:
-            raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+        if request.command_type != CommandType.PaymentCommand:
+            raise command_error(
+                ErrorCode.unknown_command_type,
+                f&#34;unknown command_type: {request.command_type}&#34;,
+            )
+
+        payment = typing.cast(PaymentCommandObject, request.command).payment
+        self.validate_addresses(payment, request_sender_address)
+        cmd = self.create_inbound_payment_command(request.cid, payment)
+        if cmd.is_initial():
+            self.validate_dual_attestation_limit_by_action(cmd.payment.action)
+        elif cmd.is_rsend():
+            public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+            self.validate_recipient_signature(cmd, public_key)
+        return cmd
+
+    def get_inbound_request_sender_public_key(self, request_sender_address: str) -&gt; Ed25519PublicKey:
+        &#34;&#34;&#34;find the public key of the request sender address, raises protocol error if not found or public key is invalid&#34;&#34;&#34;
+
         try:
             _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
         except ValueError as e:
             raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
-
-        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
-        if request.command_type == CommandType.PaymentCommand:
-            payment = typing.cast(PaymentCommandObject, request.command).payment
-            self.validate_addresses(payment, request_sender_address)
-            cmd = self.create_inbound_payment_command(request.cid, payment)
-            if cmd.is_initial():
-                self.validate_dual_attestation_limit_by_action(cmd.payment.action)
-            elif cmd.is_rsend():
-                self.validate_recipient_signature(cmd, public_key)
-            return cmd
-
-        raise command_error(
-            ErrorCode.unknown_command_type,
-            f&#34;unknown command_type: {request.command_type}&#34;,
-        )
+        return public_key
 
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -&gt; None:
         msg = cmd.travel_rule_metadata_signature_message(self.hrp)
@@ -470,7 +499,23 @@ class Client:
         return cmd_resp
 
     def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
-        &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+        &#34;&#34;&#34;Deprecated
+
+        validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+        This function is split into `deserialize_inbound_request` and `process_inbound_payment_command_request`
+        for handling command processing properly in the future when new commands are added.
+        &#34;&#34;&#34;
+
+        warnings.warn(
+            &#34;`process_inbound_request` is deprecated, call `deserialize_inbound_request` instead, and then call `process_inbound_payment_command_request` if the inbound request is for `PaymentCommand`&#34;
+        )
+
+        request = self.deserialize_inbound_request(request_sender_address, request_bytes)
+        return self.process_inbound_payment_command_request(request_sender_address, request)
+
+    def deserialize_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandRequestObject:
+        &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.CommandRequestObject` object.
 
         Raises `diem.offchain.error.Error` with `protocol_error` when:
 
@@ -480,6 +525,17 @@ class Client:
         - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
         - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
         - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+        &#34;&#34;&#34;
+
+        if not request_sender_address:
+            raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+        public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+        return _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+
+    def process_inbound_payment_command_request(
+        self, request_sender_address: str, request: CommandRequestObject
+    ) -&gt; PaymentCommand:
+        &#34;&#34;&#34;Validate the `PaymentCommand` and returns a command wrapper object for next processing step.
 
         Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
 
@@ -490,28 +546,30 @@ class Client:
 
         &#34;&#34;&#34;
 
-        if not request_sender_address:
-            raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+        if request.command_type != CommandType.PaymentCommand:
+            raise command_error(
+                ErrorCode.unknown_command_type,
+                f&#34;unknown command_type: {request.command_type}&#34;,
+            )
+
+        payment = typing.cast(PaymentCommandObject, request.command).payment
+        self.validate_addresses(payment, request_sender_address)
+        cmd = self.create_inbound_payment_command(request.cid, payment)
+        if cmd.is_initial():
+            self.validate_dual_attestation_limit_by_action(cmd.payment.action)
+        elif cmd.is_rsend():
+            public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+            self.validate_recipient_signature(cmd, public_key)
+        return cmd
+
+    def get_inbound_request_sender_public_key(self, request_sender_address: str) -&gt; Ed25519PublicKey:
+        &#34;&#34;&#34;find the public key of the request sender address, raises protocol error if not found or public key is invalid&#34;&#34;&#34;
+
         try:
             _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
         except ValueError as e:
             raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
-
-        request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
-        if request.command_type == CommandType.PaymentCommand:
-            payment = typing.cast(PaymentCommandObject, request.command).payment
-            self.validate_addresses(payment, request_sender_address)
-            cmd = self.create_inbound_payment_command(request.cid, payment)
-            if cmd.is_initial():
-                self.validate_dual_attestation_limit_by_action(cmd.payment.action)
-            elif cmd.is_rsend():
-                self.validate_recipient_signature(cmd, public_key)
-            return cmd
-
-        raise command_error(
-            ErrorCode.unknown_command_type,
-            f&#34;unknown command_type: {request.command_type}&#34;,
-        )
+        return public_key
 
     def validate_recipient_signature(self, cmd: PaymentCommand, public_key: Ed25519PublicKey) -&gt; None:
         msg = cmd.travel_rule_metadata_signature_message(self.hrp)
@@ -671,6 +729,43 @@ class Client:
     raise command_error(ErrorCode.unknown_address, &#34;unknown actor addresses: {obj}&#34;)</code></pre>
 </details>
 </dd>
+<dt id="diem.offchain.client.Client.deserialize_inbound_request"><code class="name flex">
+<span>def <span class="ident">deserialize_inbound_request</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validate and decode the <code>request_bytes</code> into <code>diem.offchain.command.CommandRequestObject</code> object.</p>
+<p>Raises <code><a title="diem.offchain.error.Error" href="error.html#diem.offchain.error.Error">Error</a></code> with <code>protocol_error</code> when:</p>
+<ul>
+<li><code>request_sender_address</code> is not provided.</li>
+<li>Cannot find on-chain account by the <code>request_sender_address</code>.</li>
+<li>Cannot get base url and public key from the on-chain account found by the <code>request_sender_address</code>.</li>
+<li><code>request_bytes</code> is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.</li>
+<li>Cannot decode <code>request_bytes</code> into <code><a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code>.</li>
+<li>Decoded <code><a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code> is invalid according to DIP-1 data structure requirements.</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandRequestObject:
+    &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.CommandRequestObject` object.
+
+    Raises `diem.offchain.error.Error` with `protocol_error` when:
+
+    - `request_sender_address` is not provided.
+    - Cannot find on-chain account by the `request_sender_address`.
+    - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
+    - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
+    - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
+    - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+    &#34;&#34;&#34;
+
+    if not request_sender_address:
+        raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
+    public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+    return _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)</code></pre>
+</details>
+</dd>
 <dt id="diem.offchain.client.Client.get_base_url_and_compliance_key"><code class="name flex">
 <span>def <span class="ident">get_base_url_and_compliance_key</span></span>(<span>self, account_id: str) ‑> Tuple[str, cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey]</span>
 </code></dt>
@@ -683,6 +778,25 @@ class Client:
 <pre><code class="python">def get_base_url_and_compliance_key(self, account_id: str) -&gt; typing.Tuple[str, Ed25519PublicKey]:
     account_address, _ = identifier.decode_account(account_id, self.hrp)
     return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.get_inbound_request_sender_public_key"><code class="name flex">
+<span>def <span class="ident">get_inbound_request_sender_public_key</span></span>(<span>self, request_sender_address: str) ‑> cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey</span>
+</code></dt>
+<dd>
+<div class="desc"><p>find the public key of the request sender address, raises protocol error if not found or public key is invalid</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_inbound_request_sender_public_key(self, request_sender_address: str) -&gt; Ed25519PublicKey:
+    &#34;&#34;&#34;find the public key of the request sender address, raises protocol error if not found or public key is invalid&#34;&#34;&#34;
+
+    try:
+        _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+    except ValueError as e:
+        raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
+    return public_key</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.client.Client.is_my_account_id"><code class="name flex">
@@ -733,20 +847,11 @@ class Client:
                 )</code></pre>
 </details>
 </dd>
-<dt id="diem.offchain.client.Client.process_inbound_request"><code class="name flex">
-<span>def <span class="ident">process_inbound_request</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></span>
+<dt id="diem.offchain.client.Client.process_inbound_payment_command_request"><code class="name flex">
+<span>def <span class="ident">process_inbound_payment_command_request</span></span>(<span>self, request_sender_address: str, request: <a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a>) ‑> <a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Validate and decode the <code>request_bytes</code> into <code><a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></code> object.</p>
-<p>Raises <code><a title="diem.offchain.error.Error" href="error.html#diem.offchain.error.Error">Error</a></code> with <code>protocol_error</code> when:</p>
-<ul>
-<li><code>request_sender_address</code> is not provided.</li>
-<li>Cannot find on-chain account by the <code>request_sender_address</code>.</li>
-<li>Cannot get base url and public key from the on-chain account found by the <code>request_sender_address</code>.</li>
-<li><code>request_bytes</code> is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.</li>
-<li>Cannot decode <code>request_bytes</code> into <code><a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code>.</li>
-<li>Decoded <code><a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a></code> is invalid according to DIP-1 data structure requirements.</li>
-</ul>
+<div class="desc"><p>Validate the <code>PaymentCommand</code> and returns a command wrapper object for next processing step.</p>
 <p>Raises <code><a title="diem.offchain.error.Error" href="error.html#diem.offchain.error.Error">Error</a></code> with <code>command_error</code> when <code><a title="diem.offchain.types.command_types.CommandRequestObject.command" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject.command">CommandRequestObject.command</a></code> is <code><a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></code>:</p>
 <ul>
 <li><code><a title="diem.offchain.types.payment_types.PaymentObject.sender" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject.sender">PaymentObject.sender</a></code> or <code><a title="diem.offchain.types.payment_types.PaymentObject.sender" href="types/payment_types.html#diem.offchain.types.payment_types.PaymentObject.sender">PaymentObject.sender</a></code>.address is invalid.</li>
@@ -758,17 +863,10 @@ class Client:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
-    &#34;&#34;&#34;Validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
-
-    Raises `diem.offchain.error.Error` with `protocol_error` when:
-
-    - `request_sender_address` is not provided.
-    - Cannot find on-chain account by the `request_sender_address`.
-    - Cannot get base url and public key from the on-chain account found by the `request_sender_address`.
-    - `request_bytes` is an invalid JWS message: JWS message format or content is invalid, or signature is invalid.
-    - Cannot decode `request_bytes` into `diem.offchain.types.command_types.CommandRequestObject`.
-    - Decoded `diem.offchain.types.command_types.CommandRequestObject` is invalid according to DIP-1 data structure requirements.
+<pre><code class="python">def process_inbound_payment_command_request(
+    self, request_sender_address: str, request: CommandRequestObject
+) -&gt; PaymentCommand:
+    &#34;&#34;&#34;Validate the `PaymentCommand` and returns a command wrapper object for next processing step.
 
     Raises `diem.offchain.error.Error` with `command_error` when `diem.offchain.types.command_types.CommandRequestObject.command` is `diem.offchain.payment_command.PaymentCommand`:
 
@@ -779,28 +877,50 @@ class Client:
 
     &#34;&#34;&#34;
 
-    if not request_sender_address:
-        raise protocol_error(ErrorCode.missing_http_header, f&#34;missing {http_header.X_REQUEST_SENDER_ADDRESS}&#34;)
-    try:
-        _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
-    except ValueError as e:
-        raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
+    if request.command_type != CommandType.PaymentCommand:
+        raise command_error(
+            ErrorCode.unknown_command_type,
+            f&#34;unknown command_type: {request.command_type}&#34;,
+        )
 
-    request = _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
-    if request.command_type == CommandType.PaymentCommand:
-        payment = typing.cast(PaymentCommandObject, request.command).payment
-        self.validate_addresses(payment, request_sender_address)
-        cmd = self.create_inbound_payment_command(request.cid, payment)
-        if cmd.is_initial():
-            self.validate_dual_attestation_limit_by_action(cmd.payment.action)
-        elif cmd.is_rsend():
-            self.validate_recipient_signature(cmd, public_key)
-        return cmd
+    payment = typing.cast(PaymentCommandObject, request.command).payment
+    self.validate_addresses(payment, request_sender_address)
+    cmd = self.create_inbound_payment_command(request.cid, payment)
+    if cmd.is_initial():
+        self.validate_dual_attestation_limit_by_action(cmd.payment.action)
+    elif cmd.is_rsend():
+        public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+        self.validate_recipient_signature(cmd, public_key)
+    return cmd</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.client.Client.process_inbound_request"><code class="name flex">
+<span>def <span class="ident">process_inbound_request</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deprecated</p>
+<p>validate and decode the <code>request_bytes</code> into <code><a title="diem.offchain.command.Command" href="command.html#diem.offchain.command.Command">Command</a></code> object.</p>
+<p>This function is split into <code>deserialize_inbound_request</code> and <code>process_inbound_payment_command_request</code>
+for handling command processing properly in the future when new commands are added.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -&gt; Command:
+    &#34;&#34;&#34;Deprecated
 
-    raise command_error(
-        ErrorCode.unknown_command_type,
-        f&#34;unknown command_type: {request.command_type}&#34;,
-    )</code></pre>
+    validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
+
+    This function is split into `deserialize_inbound_request` and `process_inbound_payment_command_request`
+    for handling command processing properly in the future when new commands are added.
+    &#34;&#34;&#34;
+
+    warnings.warn(
+        &#34;`process_inbound_request` is deprecated, call `deserialize_inbound_request` instead, and then call `process_inbound_payment_command_request` if the inbound request is for `PaymentCommand`&#34;
+    )
+
+    request = self.deserialize_inbound_request(request_sender_address, request_bytes)
+    return self.process_inbound_payment_command_request(request_sender_address, request)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.client.Client.send_command"><code class="name flex">
@@ -1046,13 +1166,16 @@ class Client:
 <ul class="">
 <li><code><a title="diem.offchain.client.Client.account_id" href="#diem.offchain.client.Client.account_id">account_id</a></code></li>
 <li><code><a title="diem.offchain.client.Client.create_inbound_payment_command" href="#diem.offchain.client.Client.create_inbound_payment_command">create_inbound_payment_command</a></code></li>
+<li><code><a title="diem.offchain.client.Client.deserialize_inbound_request" href="#diem.offchain.client.Client.deserialize_inbound_request">deserialize_inbound_request</a></code></li>
 <li><code><a title="diem.offchain.client.Client.get_base_url_and_compliance_key" href="#diem.offchain.client.Client.get_base_url_and_compliance_key">get_base_url_and_compliance_key</a></code></li>
+<li><code><a title="diem.offchain.client.Client.get_inbound_request_sender_public_key" href="#diem.offchain.client.Client.get_inbound_request_sender_public_key">get_inbound_request_sender_public_key</a></code></li>
 <li><code><a title="diem.offchain.client.Client.hrp" href="#diem.offchain.client.Client.hrp">hrp</a></code></li>
 <li><code><a title="diem.offchain.client.Client.is_my_account_id" href="#diem.offchain.client.Client.is_my_account_id">is_my_account_id</a></code></li>
 <li><code><a title="diem.offchain.client.Client.is_under_dual_attestation_limit" href="#diem.offchain.client.Client.is_under_dual_attestation_limit">is_under_dual_attestation_limit</a></code></li>
 <li><code><a title="diem.offchain.client.Client.jsonrpc_client" href="#diem.offchain.client.Client.jsonrpc_client">jsonrpc_client</a></code></li>
 <li><code><a title="diem.offchain.client.Client.my_compliance_key_account_address" href="#diem.offchain.client.Client.my_compliance_key_account_address">my_compliance_key_account_address</a></code></li>
 <li><code><a title="diem.offchain.client.Client.my_compliance_key_account_id" href="#diem.offchain.client.Client.my_compliance_key_account_id">my_compliance_key_account_id</a></code></li>
+<li><code><a title="diem.offchain.client.Client.process_inbound_payment_command_request" href="#diem.offchain.client.Client.process_inbound_payment_command_request">process_inbound_payment_command_request</a></code></li>
 <li><code><a title="diem.offchain.client.Client.process_inbound_request" href="#diem.offchain.client.Client.process_inbound_request">process_inbound_request</a></code></li>
 <li><code><a title="diem.offchain.client.Client.send_command" href="#diem.offchain.client.Client.send_command">send_command</a></code></li>
 <li><code><a title="diem.offchain.client.Client.send_request" href="#diem.offchain.client.Client.send_request">send_request</a></code></li>

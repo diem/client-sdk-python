@@ -67,28 +67,6 @@ def test_send_payment_and_events(clients: Clients, hrp: str, currency: str) -&gt
     assert sorted(list(json.loads(new_events[4].data).keys())) == [&#34;diem_transaction_version&#34;, &#34;id&#34;, &#34;status&#34;]
 
 
-def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -&gt; None:
-    receiver = clients.stub.create_account()
-    payment_uri = receiver.generate_payment_uri()
-
-    index = len(receiver.events())
-    amount = 1234
-    sender = clients.target.create_account({currency: amount})
-    payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
-
-    receiver.wait_for_balance(currency, amount)
-    sender.wait_for_balance(currency, 0)
-
-    new_events = [e for e in receiver.events(index) if e.type != &#34;info&#34;]
-    assert len(new_events) == 1
-    assert new_events[0].type == &#34;created_transaction&#34;
-    txn = Transaction(**json.loads(new_events[0].data))
-    assert txn.id
-    assert txn.currency == payment.currency
-    assert txn.amount == payment.amount
-    assert txn.diem_transaction_version
-
-
 def test_receive_multiple_payments(clients: Clients, hrp: str, currency: str) -&gt; None:
     receiver = clients.stub.create_account()
     payment_uri = receiver.generate_payment_uri()
@@ -402,37 +380,6 @@ def test_openapi_spec(target_client: RestClient) -&gt; None:
     assert new_events[1].type == &#34;created_transaction&#34;</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_miniwallet_api.test_receive_payment_and_events"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_and_events</span></span>(<span>clients: <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a>, currency: str, hrp: str) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_receive_payment_and_events(clients: Clients, currency: str, hrp: str) -&gt; None:
-    receiver = clients.stub.create_account()
-    payment_uri = receiver.generate_payment_uri()
-
-    index = len(receiver.events())
-    amount = 1234
-    sender = clients.target.create_account({currency: amount})
-    payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
-
-    receiver.wait_for_balance(currency, amount)
-    sender.wait_for_balance(currency, 0)
-
-    new_events = [e for e in receiver.events(index) if e.type != &#34;info&#34;]
-    assert len(new_events) == 1
-    assert new_events[0].type == &#34;created_transaction&#34;
-    txn = Transaction(**json.loads(new_events[0].data))
-    assert txn.id
-    assert txn.currency == payment.currency
-    assert txn.amount == payment.amount
-    assert txn.diem_transaction_version</code></pre>
-</details>
-</dd>
 <dt id="diem.testing.suites.test_miniwallet_api.test_return_client_error_if_send_payment_more_than_account_balance"><code class="name flex">
 <span>def <span class="ident">test_return_client_error_if_send_payment_more_than_account_balance</span></span>(<span>clients: <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a>, currency: str, hrp: str) ‑> NoneType</span>
 </code></dt>
@@ -577,7 +524,6 @@ def test_send_payment_payee_is_invalid(clients: Clients, currency: str, invalid_
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_internal_transfer" href="#diem.testing.suites.test_miniwallet_api.test_internal_transfer">test_internal_transfer</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_openapi_spec" href="#diem.testing.suites.test_miniwallet_api.test_openapi_spec">test_openapi_spec</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_receive_multiple_payments" href="#diem.testing.suites.test_miniwallet_api.test_receive_multiple_payments">test_receive_multiple_payments</a></code></li>
-<li><code><a title="diem.testing.suites.test_miniwallet_api.test_receive_payment_and_events" href="#diem.testing.suites.test_miniwallet_api.test_receive_payment_and_events">test_receive_payment_and_events</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_return_client_error_if_send_payment_more_than_account_balance" href="#diem.testing.suites.test_miniwallet_api.test_return_client_error_if_send_payment_more_than_account_balance">test_return_client_error_if_send_payment_more_than_account_balance</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_send_payment_and_events" href="#diem.testing.suites.test_miniwallet_api.test_send_payment_and_events">test_send_payment_and_events</a></code></li>
 <li><code><a title="diem.testing.suites.test_miniwallet_api.test_send_payment_meets_travel_rule_limit" href="#diem.testing.suites.test_miniwallet_api.test_send_payment_meets_travel_rule_limit">test_send_payment_meets_travel_rule_limit</a></code></li>

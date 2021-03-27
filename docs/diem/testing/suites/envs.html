@@ -40,6 +40,11 @@ SELF_CHECK: str = &#34;DMW_SELF_CHECK&#34;
 DMW_STUB_BIND_HOST: str = &#34;DMW_STUB_BIND_HOST&#34;
 DMW_STUB_BIND_PORT: str = &#34;DMW_STUB_BIND_PORT&#34;
 DMW_STUB_DIEM_ACCOUNT_BASE_URL: str = &#34;DMW_STUB_DIEM_ACCOUNT_BASE_URL&#34;
+DMW_STUB_DIEM_ACCOUNT_CONFIG: str = &#34;DMW_STUB_DIEM_ACCOUNT_CONFIG&#34;
+
+
+def dmw_stub_diem_account_config() -&gt; Optional[str]:
+    return getenv(DMW_STUB_DIEM_ACCOUNT_CONFIG)
 
 
 def dmw_stub_diem_account_base_url() -&gt; Optional[str]:
@@ -128,6 +133,19 @@ def should_test_debug_api() -&gt; bool:
     return getenv(DMW_STUB_DIEM_ACCOUNT_BASE_URL)</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.suites.envs.dmw_stub_diem_account_config"><code class="name flex">
+<span>def <span class="ident">dmw_stub_diem_account_config</span></span>(<span>) ‑> Optional[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dmw_stub_diem_account_config() -&gt; Optional[str]:
+    return getenv(DMW_STUB_DIEM_ACCOUNT_CONFIG)</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.suites.envs.dmw_stub_server"><code class="name flex">
 <span>def <span class="ident">dmw_stub_server</span></span>(<span>) ‑> Dict[str, Any]</span>
 </code></dt>
@@ -209,6 +227,7 @@ def should_test_debug_api() -&gt; bool:
 <li><code><a title="diem.testing.suites.envs.dmw_stub_bind_host" href="#diem.testing.suites.envs.dmw_stub_bind_host">dmw_stub_bind_host</a></code></li>
 <li><code><a title="diem.testing.suites.envs.dmw_stub_bind_port" href="#diem.testing.suites.envs.dmw_stub_bind_port">dmw_stub_bind_port</a></code></li>
 <li><code><a title="diem.testing.suites.envs.dmw_stub_diem_account_base_url" href="#diem.testing.suites.envs.dmw_stub_diem_account_base_url">dmw_stub_diem_account_base_url</a></code></li>
+<li><code><a title="diem.testing.suites.envs.dmw_stub_diem_account_config" href="#diem.testing.suites.envs.dmw_stub_diem_account_config">dmw_stub_diem_account_config</a></code></li>
 <li><code><a title="diem.testing.suites.envs.dmw_stub_server" href="#diem.testing.suites.envs.dmw_stub_server">dmw_stub_server</a></code></li>
 <li><code><a title="diem.testing.suites.envs.is_self_check" href="#diem.testing.suites.envs.is_self_check">is_self_check</a></code></li>
 <li><code><a title="diem.testing.suites.envs.should_test_debug_api" href="#diem.testing.suites.envs.should_test_debug_api">should_test_debug_api</a></code></li>

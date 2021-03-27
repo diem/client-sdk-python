@@ -29,12 +29,12 @@
 <pre><code class="python"># Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from copy import copy
 from dataclasses import dataclass, field
 from typing import Dict, Callable, Any
 from .store import InMemoryStore, NotFoundError
 from .models import Transaction, Subaddress, PaymentCommand, RefundReason
 from .... import jsonrpc, diem_types, txnmetadata, identifier, utils
+import copy, logging
 
 
 PENDING_INBOUND_ACCOUNT_ID: str = &#34;pending_inbound_account&#34;
@@ -45,6 +45,7 @@ class EventPuller:
     client: jsonrpc.Client
     store: InMemoryStore
     hrp: str
+    logger: logging.Logger
     state: Dict[str, int] = field(default_factory=dict)
 
     def add(self, address: diem_types.AccountAddress) -&gt; None:
@@ -62,44 +63,62 @@ class EventPuller:
     def head(self) -&gt; None:
         state = None
         while state != self.state:
-            state = copy(self.state)
+            state = copy.copy(self.state)
             self.fetch(lambda _: None)
 
     def save_payment_txn(self, event: jsonrpc.Event) -&gt; None:
+        self.logger.info(&#34;processing Event:\n%s&#34;, event)
         try:
             self._save_payment_txn(event)
-        except (NotFoundError, ValueError) as e:
+        except (NotFoundError, ValueError):
+            self.logger.exception(&#34;process event failed&#34;)
             self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
-            self.store.create_event(PENDING_INBOUND_ACCOUNT_ID, &#34;info&#34;, str(e))
 
     def _save_payment_txn(self, event: jsonrpc.Event) -&gt; None:
         metadata = txnmetadata.decode_structure(event.data.metadata)
         if isinstance(metadata, diem_types.GeneralMetadataV0):
+            subaddress = utils.hex(metadata.to_subaddress)
             try:
-                res = self.store.find(Subaddress, subaddress_hex=utils.hex(metadata.to_subaddress))
-                return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
+                res = self.store.find(Subaddress, subaddress_hex=subaddress)
             except NotFoundError:
-                self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
-                payee = identifier.encode_account(event.data.sender, metadata.from_subaddress, self.hrp)
-                return self._refund(payee, RefundReason.invalid_subaddress, event)
-        elif isinstance(metadata, diem_types.TravelRuleMetadataV0) and metadata.off_chain_reference_id:
-            cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
+                self.logger.exception(&#34;invalid general metadata to_subaddress&#34;)
+                return self._refund(RefundReason.invalid_subaddress, event)
+            return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
+        elif isinstance(metadata, diem_types.TravelRuleMetadataV0):
+            try:
+                cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
+            except NotFoundError:
+                self.logger.exception(&#34;invalid travel rule metadata off-chain reference id&#34;)
+                return self._refund(RefundReason.other, event)
             return self._create_txn(cmd.account_id, event, reference_id=cmd.reference_id)
         elif isinstance(metadata, diem_types.RefundMetadataV0):
             version = int(metadata.transaction_version)
             reason = RefundReason.from_diem_type(metadata.reason)
-            diem_txn = self.client.get_transactions(version, 1)[0]
-            if diem_txn.transaction.script and diem_txn.transaction.script.metadata:
-                original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
-                if isinstance(original_metadata, diem_types.GeneralMetadataV0):
-                    original_sender_subaddress = utils.hex(original_metadata.from_subaddress)
-                    sub = self.store.find(Subaddress, subaddress_hex=original_sender_subaddress)
-                    return self._create_txn(
-                        sub.account_id, event, refund_diem_txn_version=version, refund_reason=reason
-                    )
+            account_id = self._find_refund_account_id(version)
+            return self._create_txn(account_id, event, refund_diem_txn_version=version, refund_reason=reason)
         raise ValueError(&#34;unrecognized metadata: %r&#34; % event.data.metadata)
 
-    def _refund(self, payee: str, reason: RefundReason, event: jsonrpc.Event) -&gt; None:
+    def _find_refund_account_id(self, version: int) -&gt; str:
+        diem_txns = self.client.get_transactions(version, 1)
+        if diem_txns:
+            diem_txn = diem_txns[0]
+            self.logger.error(&#34;diem_txn script: %r&#34;, diem_txn.transaction.script)
+            original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
+            if isinstance(original_metadata, diem_types.GeneralMetadataV0):
+                original_sender = utils.hex(original_metadata.from_subaddress)
+                try:
+                    return self.store.find(Subaddress, subaddress_hex=original_sender).account_id
+                except NotFoundError:
+                    self.logger.exception(&#34;invalid original transaction metadata from_subaddress&#34;)
+            else:
+                self.logger.error(&#34;invalid original txn metadata %r&#34;, diem_txn.transaction.script.metadata)
+        else:
+            self.logger.error(&#34;could not find diem txn by version: %s&#34;, version)
+        return PENDING_INBOUND_ACCOUNT_ID
+
+    def _refund(self, reason: RefundReason, event: jsonrpc.Event) -&gt; None:
+        self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
+        payee = identifier.encode_account(event.data.sender, None, self.hrp)
         self.store.create(
             Transaction,
             account_id=PENDING_INBOUND_ACCOUNT_ID,
@@ -112,6 +131,7 @@ class EventPuller:
         )
 
     def _create_txn(self, account_id: str, event: jsonrpc.Event, **kwargs: Any) -&gt; None:
+        self.logger.info(&#34;account(id=%s) receives payment amount %s&#34;, account_id, event.data.amount.amount)
         self.store.create(
             Transaction,
             account_id=account_id,
@@ -134,10 +154,10 @@ class EventPuller:
 <dl>
 <dt id="diem.testing.miniwallet.app.event_puller.EventPuller"><code class="flex name class">
 <span>class <span class="ident">EventPuller</span></span>
-<span>(</span><span>client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, store: <a title="diem.testing.miniwallet.app.store.InMemoryStore" href="store.html#diem.testing.miniwallet.app.store.InMemoryStore">InMemoryStore</a>, hrp: str, state: Dict[str, int] = &lt;factory&gt;)</span>
+<span>(</span><span>client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, store: <a title="diem.testing.miniwallet.app.store.InMemoryStore" href="store.html#diem.testing.miniwallet.app.store.InMemoryStore">InMemoryStore</a>, hrp: str, logger: logging.Logger, state: Dict[str, int] = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>EventPuller(client: diem.jsonrpc.client.Client, store: diem.testing.miniwallet.app.store.InMemoryStore, hrp: str, state: Dict[str, int] = <factory>)</p></div>
+<div class="desc"><p>EventPuller(client: diem.jsonrpc.client.Client, store: diem.testing.miniwallet.app.store.InMemoryStore, hrp: str, logger: logging.Logger, state: Dict[str, int] = <factory>)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -147,6 +167,7 @@ class EventPuller:
     client: jsonrpc.Client
     store: InMemoryStore
     hrp: str
+    logger: logging.Logger
     state: Dict[str, int] = field(default_factory=dict)
 
     def add(self, address: diem_types.AccountAddress) -&gt; None:
@@ -164,44 +185,62 @@ class EventPuller:
     def head(self) -&gt; None:
         state = None
         while state != self.state:
-            state = copy(self.state)
+            state = copy.copy(self.state)
             self.fetch(lambda _: None)
 
     def save_payment_txn(self, event: jsonrpc.Event) -&gt; None:
+        self.logger.info(&#34;processing Event:\n%s&#34;, event)
         try:
             self._save_payment_txn(event)
-        except (NotFoundError, ValueError) as e:
+        except (NotFoundError, ValueError):
+            self.logger.exception(&#34;process event failed&#34;)
             self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
-            self.store.create_event(PENDING_INBOUND_ACCOUNT_ID, &#34;info&#34;, str(e))
 
     def _save_payment_txn(self, event: jsonrpc.Event) -&gt; None:
         metadata = txnmetadata.decode_structure(event.data.metadata)
         if isinstance(metadata, diem_types.GeneralMetadataV0):
+            subaddress = utils.hex(metadata.to_subaddress)
             try:
-                res = self.store.find(Subaddress, subaddress_hex=utils.hex(metadata.to_subaddress))
-                return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
+                res = self.store.find(Subaddress, subaddress_hex=subaddress)
             except NotFoundError:
-                self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
-                payee = identifier.encode_account(event.data.sender, metadata.from_subaddress, self.hrp)
-                return self._refund(payee, RefundReason.invalid_subaddress, event)
-        elif isinstance(metadata, diem_types.TravelRuleMetadataV0) and metadata.off_chain_reference_id:
-            cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
+                self.logger.exception(&#34;invalid general metadata to_subaddress&#34;)
+                return self._refund(RefundReason.invalid_subaddress, event)
+            return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
+        elif isinstance(metadata, diem_types.TravelRuleMetadataV0):
+            try:
+                cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
+            except NotFoundError:
+                self.logger.exception(&#34;invalid travel rule metadata off-chain reference id&#34;)
+                return self._refund(RefundReason.other, event)
             return self._create_txn(cmd.account_id, event, reference_id=cmd.reference_id)
         elif isinstance(metadata, diem_types.RefundMetadataV0):
             version = int(metadata.transaction_version)
             reason = RefundReason.from_diem_type(metadata.reason)
-            diem_txn = self.client.get_transactions(version, 1)[0]
-            if diem_txn.transaction.script and diem_txn.transaction.script.metadata:
-                original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
-                if isinstance(original_metadata, diem_types.GeneralMetadataV0):
-                    original_sender_subaddress = utils.hex(original_metadata.from_subaddress)
-                    sub = self.store.find(Subaddress, subaddress_hex=original_sender_subaddress)
-                    return self._create_txn(
-                        sub.account_id, event, refund_diem_txn_version=version, refund_reason=reason
-                    )
+            account_id = self._find_refund_account_id(version)
+            return self._create_txn(account_id, event, refund_diem_txn_version=version, refund_reason=reason)
         raise ValueError(&#34;unrecognized metadata: %r&#34; % event.data.metadata)
 
-    def _refund(self, payee: str, reason: RefundReason, event: jsonrpc.Event) -&gt; None:
+    def _find_refund_account_id(self, version: int) -&gt; str:
+        diem_txns = self.client.get_transactions(version, 1)
+        if diem_txns:
+            diem_txn = diem_txns[0]
+            self.logger.error(&#34;diem_txn script: %r&#34;, diem_txn.transaction.script)
+            original_metadata = txnmetadata.decode_structure(diem_txn.transaction.script.metadata)
+            if isinstance(original_metadata, diem_types.GeneralMetadataV0):
+                original_sender = utils.hex(original_metadata.from_subaddress)
+                try:
+                    return self.store.find(Subaddress, subaddress_hex=original_sender).account_id
+                except NotFoundError:
+                    self.logger.exception(&#34;invalid original transaction metadata from_subaddress&#34;)
+            else:
+                self.logger.error(&#34;invalid original txn metadata %r&#34;, diem_txn.transaction.script.metadata)
+        else:
+            self.logger.error(&#34;could not find diem txn by version: %s&#34;, version)
+        return PENDING_INBOUND_ACCOUNT_ID
+
+    def _refund(self, reason: RefundReason, event: jsonrpc.Event) -&gt; None:
+        self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
+        payee = identifier.encode_account(event.data.sender, None, self.hrp)
         self.store.create(
             Transaction,
             account_id=PENDING_INBOUND_ACCOUNT_ID,
@@ -214,6 +253,7 @@ class EventPuller:
         )
 
     def _create_txn(self, account_id: str, event: jsonrpc.Event, **kwargs: Any) -&gt; None:
+        self.logger.info(&#34;account(id=%s) receives payment amount %s&#34;, account_id, event.data.amount.amount)
         self.store.create(
             Transaction,
             account_id=account_id,
@@ -231,6 +271,10 @@ class EventPuller:
 <div class="desc"></div>
 </dd>
 <dt id="diem.testing.miniwallet.app.event_puller.EventPuller.hrp"><code class="name">var <span class="ident">hrp</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.event_puller.EventPuller.logger"><code class="name">var <span class="ident">logger</span> : logging.Logger</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -289,7 +333,7 @@ class EventPuller:
 <pre><code class="python">def head(self) -&gt; None:
     state = None
     while state != self.state:
-        state = copy(self.state)
+        state = copy.copy(self.state)
         self.fetch(lambda _: None)</code></pre>
 </details>
 </dd>
@@ -303,11 +347,12 @@ class EventPuller:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def save_payment_txn(self, event: jsonrpc.Event) -&gt; None:
+    self.logger.info(&#34;processing Event:\n%s&#34;, event)
     try:
         self._save_payment_txn(event)
-    except (NotFoundError, ValueError) as e:
-        self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
-        self.store.create_event(PENDING_INBOUND_ACCOUNT_ID, &#34;info&#34;, str(e))</code></pre>
+    except (NotFoundError, ValueError):
+        self.logger.exception(&#34;process event failed&#34;)
+        self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)</code></pre>
 </details>
 </dd>
 </dl>
@@ -336,6 +381,7 @@ class EventPuller:
 <li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.fetch" href="#diem.testing.miniwallet.app.event_puller.EventPuller.fetch">fetch</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.head" href="#diem.testing.miniwallet.app.event_puller.EventPuller.head">head</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.hrp" href="#diem.testing.miniwallet.app.event_puller.EventPuller.hrp">hrp</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.logger" href="#diem.testing.miniwallet.app.event_puller.EventPuller.logger">logger</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.save_payment_txn" href="#diem.testing.miniwallet.app.event_puller.EventPuller.save_payment_txn">save_payment_txn</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.state" href="#diem.testing.miniwallet.app.event_puller.EventPuller.state">state</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.event_puller.EventPuller.store" href="#diem.testing.miniwallet.app.event_puller.EventPuller.store">store</a></code></li>

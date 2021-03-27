@@ -45,10 +45,10 @@ class LoggerMiddleware:
     logger: logging.Logger
 
     def process_request(self, req, resp):  # pyre-ignore
-        self.logger.info(&#34;%s %s&#34; % (req.method, req.relative_uri))
+        self.logger.debug(&#34;%s %s&#34;, req.method, req.relative_uri)
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        self.logger.info(resp.status)
+        self.logger.info(&#34;%s %s - %s&#34;, req.method, req.relative_uri, resp.status)
 
 
 def rest_handler(fn: Any):  # pyre-ignore
@@ -56,7 +56,7 @@ def rest_handler(fn: Any):  # pyre-ignore
         try:
             try:
                 data = json.load(req.stream)
-                self.app.logger.info(&#34;request body: %s&#34; % data)
+                self.app.logger.debug(&#34;request body: %s&#34;, data)
             except Exception:
                 data = {}
             status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -175,7 +175,7 @@ def falcon_api(app: App, enable_debug_api: bool = False) -&gt; falcon.API:
         try:
             try:
                 data = json.load(req.stream)
-                self.app.logger.info(&#34;request body: %s&#34; % data)
+                self.app.logger.debug(&#34;request body: %s&#34;, data)
             except Exception:
                 data = {}
             status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -270,7 +270,7 @@ class Endpoints:
     try:
         try:
             data = json.load(req.stream)
-            self.app.logger.info(&#34;request body: %s&#34; % data)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
         except Exception:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -294,7 +294,7 @@ class Endpoints:
     try:
         try:
             data = json.load(req.stream)
-            self.app.logger.info(&#34;request body: %s&#34; % data)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
         except Exception:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -331,7 +331,7 @@ class Endpoints:
     try:
         try:
             data = json.load(req.stream)
-            self.app.logger.info(&#34;request body: %s&#34; % data)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
         except Exception:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -355,7 +355,7 @@ class Endpoints:
     try:
         try:
             data = json.load(req.stream)
-            self.app.logger.info(&#34;request body: %s&#34; % data)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
         except Exception:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -403,7 +403,7 @@ class Endpoints:
     try:
         try:
             data = json.load(req.stream)
-            self.app.logger.info(&#34;request body: %s&#34; % data)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
         except Exception:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -427,7 +427,7 @@ class Endpoints:
     try:
         try:
             data = json.load(req.stream)
-            self.app.logger.info(&#34;request body: %s&#34; % data)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
         except Exception:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
@@ -455,10 +455,10 @@ class LoggerMiddleware:
     logger: logging.Logger
 
     def process_request(self, req, resp):  # pyre-ignore
-        self.logger.info(&#34;%s %s&#34; % (req.method, req.relative_uri))
+        self.logger.debug(&#34;%s %s&#34;, req.method, req.relative_uri)
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        self.logger.info(resp.status)</code></pre>
+        self.logger.info(&#34;%s %s - %s&#34;, req.method, req.relative_uri, resp.status)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -479,7 +479,7 @@ class LoggerMiddleware:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def process_request(self, req, resp):  # pyre-ignore
-    self.logger.info(&#34;%s %s&#34; % (req.method, req.relative_uri))</code></pre>
+    self.logger.debug(&#34;%s %s&#34;, req.method, req.relative_uri)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.falcon.LoggerMiddleware.process_response"><code class="name flex">
@@ -492,7 +492,7 @@ class LoggerMiddleware:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-    self.logger.info(resp.status)</code></pre>
+    self.logger.info(&#34;%s %s - %s&#34;, req.method, req.relative_uri, resp.status)</code></pre>
 </details>
 </dd>
 </dl>

@@ -158,6 +158,12 @@ paths:
         required: true
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentURI'
+        required: true
       responses:
         201:
           description: A new payment URI is generated.

@@ -1,6 +1,9 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+"""This module provides command-line interface for starting mini-wallet application and running test suites.
+"""
+
 from diem import testnet
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig

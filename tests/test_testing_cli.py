@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from click.testing import CliRunner, Result
-from diem.testing.cli import click
+from diem.testing import cli
 from diem.testing.suites import envs
 from diem.testing.miniwallet import ServerConfig
 from diem.testing import LocalAccount
@@ -22,7 +22,7 @@ def runner() -> CliRunner:
 
 
 def test_gen_diem_account_config(runner: CliRunner) -> None:
-    result = runner.invoke(click.gen_diem_account_config, [])
+    result = runner.invoke(cli.gen_diem_account_config, [])
 
     assert result.exit_code == 0
 
@@ -57,7 +57,7 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
 def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -> Result:
     stub_conf = ServerConfig()
     return runner.invoke(
-        click.test,
+        cli.test,
         [
             "--target",
             conf.base_url,
@@ -83,7 +83,7 @@ def start_target_server(runner: CliRunner, options: List[str] = []) -> ServerCon
 
     def start_server():
         runner.invoke(
-            click.start_server,
+            cli.start_server,
             [
                 "--jsonrpc",
                 testnet.JSON_RPC_URL,

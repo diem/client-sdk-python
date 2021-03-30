@@ -101,7 +101,7 @@ class AccountResource:
     kyc_data: Optional[str] = field(default=None)
 
     def balance(self, currency: str) -> int:
-        return self._balances().get(currency, 0)
+        return self.balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -> Payment:
         p = self.client.create(self._resources("payment"), payee=payee, currency=currency, amount=amount)
@@ -168,7 +168,7 @@ class AccountResource:
     def info(self, *args: Any, **kwargs: Any) -> None:
         self.client.logger.info(*args, **kwargs)
 
-    def _balances(self) -> Dict[str, int]:
+    def balances(self) -> Dict[str, int]:
         """returns account balances object
 
         should always prefer to use func `balance(currency) -> int`, which returns zero

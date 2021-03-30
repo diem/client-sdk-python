@@ -39,7 +39,8 @@ class Base:
 
     def _validate_account_identifier(self, name: str, val: str) -> None:
         try:
-            self.diem_account.account.decode_account_identifier(val)
+            account_address, _ = self.diem_account.account.decode_account_identifier(val)
+            self.diem_account.client.must_get_account(account_address)
         except ValueError as e:
             raise ValueError("%r is invalid account identifier: %s" % (name, e))
 

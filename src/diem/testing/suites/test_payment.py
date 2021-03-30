@@ -9,33 +9,6 @@ from .clients import Clients
 import pytest, json
 
 
-@pytest.mark.parametrize("amount", [1, 999_999])
-@pytest.mark.parametrize("actor", ["sender", "receiver"])
-def test_payment_under_threshold_succeed(
-    actor: str,
-    amount: int,
-    currency: str,
-    clients: Clients,
-    hrp: str,
-) -> None:
-    sender_client = clients.target if actor == "sender" else clients.stub
-    receiver_client = clients.stub if actor == "sender" else clients.target
-
-    sender = sender_client.create_account({currency: amount})
-    receiver = receiver_client.create_account()
-    sender_initial = sender.balance(currency)
-    receiver_initial = receiver.balance(currency)
-
-    payment_uri = receiver.generate_payment_uri()
-    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
-    assert send_payment.currency == currency
-    assert send_payment.amount == amount
-    assert send_payment.payee == payment_uri.intent(hrp).account_id
-
-    sender.wait_for_balance(currency, sender_initial - amount)
-    receiver.wait_for_balance(currency, receiver_initial + amount)
-
-
 @pytest.mark.parametrize(
     "sender_kyc, receiver_kyc, exchange_states, payment_result",
     [

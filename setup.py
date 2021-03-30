@@ -24,10 +24,10 @@ setup(
     url="https://github.com/diem/client-sdk-python",
     author="The Diem Core Contributors",
     author_email="developers@diem.com",
-    py_modules=["diem.testing.cli.click"],
+    py_modules=["diem.testing.cli"],
     entry_points='''
         [console_scripts]
-        dmw=diem.testing.cli.click:main
+        dmw=diem.testing.cli:main
     ''',
     python_requires=">=3.7", # requires dataclasses
     packages=["diem"],

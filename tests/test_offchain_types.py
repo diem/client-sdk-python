@@ -1,7 +1,8 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import identifier, offchain, LocalAccount
+from diem import identifier, offchain
+from diem.testing import LocalAccount
 import dataclasses, json, pytest, uuid
 
 

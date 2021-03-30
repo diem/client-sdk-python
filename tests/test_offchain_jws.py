@@ -1,7 +1,8 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import offchain, LocalAccount
+from diem import offchain
+from diem.testing import LocalAccount
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 import cryptography, pytest
 

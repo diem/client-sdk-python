@@ -100,5 +100,5 @@ Sub-modules:
 - `identifier`: Diem Account Identifier and Diem Intent Identifier. [DIP-5](https://dip.diem.com/dip-5/)
 - `txnmetadata`: utils for creating peer to peer transaction metadata. [DIP-4](https://dip.diem.com/dip-4/)
 - `testnet`: Testnet utility, minting coins, create Testnet client, chain id, Testnet JSON-RPC URL.
-- `LocalAccount` | `local_account`: utility for managing local account keys, generate random local account.
+- `testing`: Testing utility, MiniWallet application, MiniWallet test suites, `LocalAccount` for managing local account keys and generating random local account.
 - `chain_ids`: list of static chain ids

@@ -9,7 +9,8 @@ from .diem_account import DiemAccount
 from .models import PaymentUri, Subaddress, Account, Transaction, Event, KycSample, Payment, PaymentCommand
 from .event_puller import EventPuller
 from .json_input import JsonInput
-from .... import jsonrpc, offchain, utils, LocalAccount, identifier
+from ... import LocalAccount
+from .... import jsonrpc, offchain, utils, identifier
 from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
 import threading, logging, numpy
 

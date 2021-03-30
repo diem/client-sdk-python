@@ -7,10 +7,10 @@ LocalAccount provides operations we need for creating auth key, account address 
 raw transaction.
 """
 
-from . import diem_types, jsonrpc, utils, stdlib, identifier
-from .serde_types import uint64
+from .. import diem_types, jsonrpc, utils, stdlib, identifier
+from ..serde_types import uint64
 
-from .auth_key import AuthKey
+from ..auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field

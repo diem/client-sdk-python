@@ -9,8 +9,8 @@ from diem import (
     stdlib,
     testnet,
     utils,
-    LocalAccount,
 )
+from diem.testing import LocalAccount
 
 
 def test_create_child_vasp():

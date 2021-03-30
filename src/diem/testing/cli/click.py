@@ -1,7 +1,8 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import testnet, LocalAccount
+from diem import testnet
+from diem.testing import LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO

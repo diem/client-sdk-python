@@ -5,7 +5,8 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, Any
 from .client import RestClient
 from .app import App, falcon_api
-from ... import offchain, testnet, jsonrpc, utils, LocalAccount
+from .. import LocalAccount
+from ... import offchain, testnet, jsonrpc, utils
 import waitress, threading, logging, falcon, json
 
 

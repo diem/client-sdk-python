@@ -4,7 +4,8 @@
 from dataclasses import dataclass
 from typing import Tuple
 from .models import Transaction, RefundReason
-from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, LocalAccount
+from ... import LocalAccount
+from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata
 
 
 @dataclass

@@ -3,4 +3,4 @@
 
 from .app import App
 from .models import Account, Transaction, PaymentUri, Event, KycSample, Payment, PaymentCommand, RefundReason
-from .falcon import falcon_api
+from .api import falcon_api

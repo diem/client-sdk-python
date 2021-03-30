@@ -5,7 +5,8 @@ from click.testing import CliRunner, Result
 from diem.testing.cli import click
 from diem.testing.suites import envs
 from diem.testing.miniwallet import ServerConfig
-from diem import identifier, testnet, utils, LocalAccount
+from diem.testing import LocalAccount
+from diem import identifier, testnet, utils
 from typing import List
 import json, threading, pytest
 

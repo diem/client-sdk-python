@@ -10,7 +10,8 @@ from diem.offchain import (
     CommandResponseError,
     PaymentActionObject,
 )
-from diem import LocalAccount, testnet
+from diem import testnet
+from diem.testing import LocalAccount
 from ..vasp.wallet import ActionResult
 import dataclasses, requests, json, copy, pytest, uuid
 

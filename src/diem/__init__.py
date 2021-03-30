@@ -5,4 +5,6 @@
 
 from .utils import InvalidAccountAddressError, InvalidSubAddressError
 from .auth_key import AuthKey
-from .local_account import LocalAccount
+
+# keep this import for backwards compatible
+from .testing import LocalAccount

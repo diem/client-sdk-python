@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem import testnet, offchain, identifier, LocalAccount
+from diem import testnet, offchain, identifier
+from diem.testing import LocalAccount
 import pytest
 
 

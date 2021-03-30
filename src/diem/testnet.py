@@ -5,7 +5,8 @@
 
 ```python
 
-from diem import testnet, LocalAccount
+from diem import testnet
+from diem.testing import LocalAccount
 
 # create client connects to testnet
 client = testnet.create_client()
@@ -23,7 +24,8 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier
+from .testing import LocalAccount
 
 
 JSON_RPC_URL: str = "http://testnet.diem.com/v1"

@@ -1,7 +1,8 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import identifier, utils, LocalAccount
+from diem import identifier, utils
+from diem.testing import LocalAccount
 
 
 def test_from_private_key_hex():

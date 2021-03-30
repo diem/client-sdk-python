@@ -9,8 +9,8 @@ from diem import (
     testnet,
     utils,
     InvalidAccountAddressError,
-    LocalAccount,
 )
+from diem.testing import LocalAccount
 
 import time
 import pytest

@@ -11,9 +11,9 @@ from diem import (
     stdlib,
     testnet,
     utils,
-    LocalAccount,
     offchain,
 )
+from diem.testing import LocalAccount
 import logging, threading, typing
 
 logger: logging.Logger = logging.getLogger(__name__)

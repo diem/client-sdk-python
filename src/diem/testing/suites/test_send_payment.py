@@ -32,7 +32,7 @@ def sender_account(
     as the API is optional for testing target application to implement.
     """
 
-    account = target_client.create_account(balances={currency: travel_rule_threshold})
+    account = target_client.create_account(balances={currency: travel_rule_threshold * 10})
     yield account
     account.log_events()
 
@@ -214,3 +214,36 @@ def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
 
     receiver_account.wait_for_balance(currency, amount)
     sender_account.wait_for_balance(currency, initial_amount - amount)
+
+
+@pytest.mark.parametrize(
+    "amount",
+    [
+        1,
+        999_999_999,
+        1_000_000_000,
+        2_000_000_000,
+    ],
+)
+def test_send_payment_to_the_other_account_in_the_same_wallet(
+    sender_account: AccountResource, target_client: RestClient, currency: str, amount: int, hrp: str
+) -> None:
+    """
+    Test Plan:
+
+    1. Create 2 accounts in target wallet application, one for sender, one for receiver.
+    2. Generate valid receive payment account identifier from the receiver account.
+    3. Send payment from sender account to receiver account.
+    4. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    """
+
+    sender_initial_balance = sender_account.balance(currency)
+    receiver_account = target_client.create_account()
+    receiver_account_identifier = receiver_account.generate_payment_uri().intent(hrp).account_id
+
+    payment = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
+    assert payment.amount == amount
+    assert payment.payee == receiver_account_identifier
+
+    sender_account.wait_for_balance(currency, sender_initial_balance - amount)
+    receiver_account.wait_for_balance(currency, amount)

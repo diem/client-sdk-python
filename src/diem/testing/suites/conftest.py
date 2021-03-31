@@ -5,7 +5,6 @@
 from ... import testnet, jsonrpc
 from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig
 from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
-from .clients import Clients
 from .envs import (
     target_url,
     is_self_check,
@@ -51,15 +50,6 @@ def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -> RestClie
     return stub_config.create_client()
 
 
-@pytest.fixture(scope="package")
-def clients(stub_client: RestClient, target_client: RestClient, diem_client: jsonrpc.Client) -> Clients:
-    return Clients(
-        target=target_client,
-        stub=stub_client,
-        diem=diem_client,
-    )
-
-
 @pytest.fixture
 def hrp(stub_config: AppConfig) -> str:
     return stub_config.account.hrp
@@ -71,9 +61,9 @@ def currency() -> str:
 
 
 @pytest.fixture
-def travel_rule_threshold(clients: Clients) -> int:
+def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
     # todo: convert the limit base on currency
-    return clients.diem.get_metadata().dual_attestation_limit
+    return diem_client.get_metadata().dual_attestation_limit
 
 
 @pytest.fixture

@@ -2,10 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem.testing.miniwallet import Event, AccountResource
+from diem.testing.miniwallet import Event, AccountResource, RestClient
 from diem import offchain
 from typing import List
-from .clients import Clients
 import pytest, json
 
 
@@ -89,12 +88,13 @@ def test_payment_meets_travel_rule_threshold(
     payment_result: str,
     currency: str,
     travel_rule_threshold: int,
-    clients: Clients,
+    target_client: RestClient,
+    stub_client: RestClient,
     hrp: str,
 ) -> None:
     amount = travel_rule_threshold
-    sender_client = clients.target if actor == "sender" else clients.stub
-    receiver_client = clients.stub if actor == "sender" else clients.target
+    sender_client = target_client if actor == "sender" else stub_client
+    receiver_client = stub_client if actor == "sender" else target_client
 
     sender = sender_client.create_account(
         {currency: amount}, kyc_data=getattr(receiver_client, "new_%s" % sender_kyc)()
@@ -109,7 +109,7 @@ def test_payment_meets_travel_rule_threshold(
     assert send_payment.amount == amount
     assert send_payment.payee == payment_uri.intent(hrp).account_id
 
-    stub_account: AccountResource = sender if clients.stub == sender.client else receiver
+    stub_account: AccountResource = sender if stub_client == sender.client else receiver
 
     def match_exchange_states() -> None:
         assert payment_command_event_states(stub_account) == exchange_states
@@ -127,12 +127,13 @@ def test_payment_meets_travel_rule_threshold(
 def test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender(
     currency: str,
     travel_rule_threshold: int,
-    clients: Clients,
+    target_client: RestClient,
+    stub_client: RestClient,
     hrp: str,
 ) -> None:
     amount = travel_rule_threshold
-    sender_client = clients.stub
-    receiver_client = clients.target
+    sender_client = stub_client
+    receiver_client = target_client
 
     sender: AccountResource = sender_client.create_account(
         {currency: amount}, kyc_data=receiver_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
@@ -157,12 +158,13 @@ def test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender(
 def test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver(
     currency: str,
     travel_rule_threshold: int,
-    clients: Clients,
+    target_client: RestClient,
+    stub_client: RestClient,
     hrp: str,
 ) -> None:
     amount = travel_rule_threshold
-    sender_client = clients.target
-    receiver_client = clients.stub
+    sender_client = target_client
+    receiver_client = stub_client
 
     sender: AccountResource = sender_client.create_account(
         {currency: amount}, kyc_data=sender_client.new_valid_kyc_data()

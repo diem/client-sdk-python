@@ -30,38 +30,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem.testing.miniwallet import Event, AccountResource
+from diem.testing.miniwallet import Event, AccountResource, RestClient
 from diem import offchain
 from typing import List
-from .clients import Clients
 import pytest, json
-
-
-@pytest.mark.parametrize(&#34;amount&#34;, [1, 999_999])
-@pytest.mark.parametrize(&#34;actor&#34;, [&#34;sender&#34;, &#34;receiver&#34;])
-def test_payment_under_threshold_succeed(
-    actor: str,
-    amount: int,
-    currency: str,
-    clients: Clients,
-    hrp: str,
-) -&gt; None:
-    sender_client = clients.target if actor == &#34;sender&#34; else clients.stub
-    receiver_client = clients.stub if actor == &#34;sender&#34; else clients.target
-
-    sender = sender_client.create_account({currency: amount})
-    receiver = receiver_client.create_account()
-    sender_initial = sender.balance(currency)
-    receiver_initial = receiver.balance(currency)
-
-    payment_uri = receiver.generate_payment_uri()
-    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
-    assert send_payment.currency == currency
-    assert send_payment.amount == amount
-    assert send_payment.payee == payment_uri.intent(hrp).account_id
-
-    sender.wait_for_balance(currency, sender_initial - amount)
-    receiver.wait_for_balance(currency, receiver_initial + amount)
 
 
 @pytest.mark.parametrize(
@@ -144,12 +116,13 @@ def test_payment_meets_travel_rule_threshold(
     payment_result: str,
     currency: str,
     travel_rule_threshold: int,
-    clients: Clients,
+    target_client: RestClient,
+    stub_client: RestClient,
     hrp: str,
 ) -&gt; None:
     amount = travel_rule_threshold
-    sender_client = clients.target if actor == &#34;sender&#34; else clients.stub
-    receiver_client = clients.stub if actor == &#34;sender&#34; else clients.target
+    sender_client = target_client if actor == &#34;sender&#34; else stub_client
+    receiver_client = stub_client if actor == &#34;sender&#34; else target_client
 
     sender = sender_client.create_account(
         {currency: amount}, kyc_data=getattr(receiver_client, &#34;new_%s&#34; % sender_kyc)()
@@ -164,7 +137,7 @@ def test_payment_meets_travel_rule_threshold(
     assert send_payment.amount == amount
     assert send_payment.payee == payment_uri.intent(hrp).account_id
 
-    stub_account: AccountResource = sender if clients.stub == sender.client else receiver
+    stub_account: AccountResource = sender if stub_client == sender.client else receiver
 
     def match_exchange_states() -&gt; None:
         assert payment_command_event_states(stub_account) == exchange_states
@@ -177,6 +150,70 @@ def test_payment_meets_travel_rule_threshold(
     else:
         sender.wait_for_balance(currency, sender_initial)
         receiver.wait_for_balance(currency, receiver_initial)
+
+
+def test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -&gt; None:
+    amount = travel_rule_threshold
+    sender_client = stub_client
+    receiver_client = target_client
+
+    sender: AccountResource = sender_client.create_account(
+        {currency: amount}, kyc_data=receiver_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
+    )
+    receiver: AccountResource = receiver_client.create_account(kyc_data=sender_client.new_valid_kyc_data())
+    sender_initial = sender.balance(currency)
+    receiver_initial = receiver.balance(currency)
+
+    payment_uri = receiver.generate_payment_uri()
+    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    assert send_payment
+
+    def match_exchange_states() -&gt; None:
+        assert payment_command_event_states(sender) == [&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_ABORT&#34;]
+
+    sender.wait_for(match_exchange_states)
+
+    sender.wait_for_balance(currency, sender_initial)
+    receiver.wait_for_balance(currency, receiver_initial)
+
+
+def test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -&gt; None:
+    amount = travel_rule_threshold
+    sender_client = target_client
+    receiver_client = stub_client
+
+    sender: AccountResource = sender_client.create_account(
+        {currency: amount}, kyc_data=sender_client.new_valid_kyc_data()
+    )
+    receiver: AccountResource = receiver_client.create_account(
+        kyc_data=sender_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
+    )
+    sender_initial = sender.balance(currency)
+    receiver_initial = receiver.balance(currency)
+
+    payment_uri = receiver.generate_payment_uri()
+    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    assert send_payment
+
+    def match_exchange_states() -&gt; None:
+        assert payment_command_event_states(receiver) == [&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_ABORT&#34;]
+
+    receiver.wait_for(match_exchange_states)
+
+    sender.wait_for_balance(currency, sender_initial)
+    receiver.wait_for_balance(currency, receiver_initial)
 
 
 def payment_state_id(event: Event) -&gt; str:
@@ -240,7 +277,7 @@ def is_payment_command_event(e: Event) -&gt; bool:
 </details>
 </dd>
 <dt id="diem.testing.suites.test_payment.test_payment_meets_travel_rule_threshold"><code class="name flex">
-<span>def <span class="ident">test_payment_meets_travel_rule_threshold</span></span>(<span>actor: str, sender_kyc: str, receiver_kyc: str, exchange_states: List[str], payment_result: str, currency: str, travel_rule_threshold: int, clients: <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_payment_meets_travel_rule_threshold</span></span>(<span>actor: str, sender_kyc: str, receiver_kyc: str, exchange_states: List[str], payment_result: str, currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -328,12 +365,13 @@ def test_payment_meets_travel_rule_threshold(
     payment_result: str,
     currency: str,
     travel_rule_threshold: int,
-    clients: Clients,
+    target_client: RestClient,
+    stub_client: RestClient,
     hrp: str,
 ) -&gt; None:
     amount = travel_rule_threshold
-    sender_client = clients.target if actor == &#34;sender&#34; else clients.stub
-    receiver_client = clients.stub if actor == &#34;sender&#34; else clients.target
+    sender_client = target_client if actor == &#34;sender&#34; else stub_client
+    receiver_client = stub_client if actor == &#34;sender&#34; else target_client
 
     sender = sender_client.create_account(
         {currency: amount}, kyc_data=getattr(receiver_client, &#34;new_%s&#34; % sender_kyc)()
@@ -348,7 +386,7 @@ def test_payment_meets_travel_rule_threshold(
     assert send_payment.amount == amount
     assert send_payment.payee == payment_uri.intent(hrp).account_id
 
-    stub_account: AccountResource = sender if clients.stub == sender.client else receiver
+    stub_account: AccountResource = sender if stub_client == sender.client else receiver
 
     def match_exchange_states() -&gt; None:
         assert payment_command_event_states(stub_account) == exchange_states
@@ -363,8 +401,8 @@ def test_payment_meets_travel_rule_threshold(
         receiver.wait_for_balance(currency, receiver_initial)</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment.test_payment_under_threshold_succeed"><code class="name flex">
-<span>def <span class="ident">test_payment_under_threshold_succeed</span></span>(<span>actor: str, amount: int, currency: str, clients: <a title="diem.testing.suites.clients.Clients" href="clients.html#diem.testing.suites.clients.Clients">Clients</a>, hrp: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.test_payment.test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender"><code class="name flex">
+<span>def <span class="ident">test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -372,31 +410,77 @@ def test_payment_meets_travel_rule_threshold(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@pytest.mark.parametrize(&#34;amount&#34;, [1, 999_999])
-@pytest.mark.parametrize(&#34;actor&#34;, [&#34;sender&#34;, &#34;receiver&#34;])
-def test_payment_under_threshold_succeed(
-    actor: str,
-    amount: int,
+<pre><code class="python">def test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender(
     currency: str,
-    clients: Clients,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
     hrp: str,
 ) -&gt; None:
-    sender_client = clients.target if actor == &#34;sender&#34; else clients.stub
-    receiver_client = clients.stub if actor == &#34;sender&#34; else clients.target
+    amount = travel_rule_threshold
+    sender_client = stub_client
+    receiver_client = target_client
 
-    sender = sender_client.create_account({currency: amount})
-    receiver = receiver_client.create_account()
+    sender: AccountResource = sender_client.create_account(
+        {currency: amount}, kyc_data=receiver_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
+    )
+    receiver: AccountResource = receiver_client.create_account(kyc_data=sender_client.new_valid_kyc_data())
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
     payment_uri = receiver.generate_payment_uri()
     send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
-    assert send_payment.currency == currency
-    assert send_payment.amount == amount
-    assert send_payment.payee == payment_uri.intent(hrp).account_id
+    assert send_payment
 
-    sender.wait_for_balance(currency, sender_initial - amount)
-    receiver.wait_for_balance(currency, receiver_initial + amount)</code></pre>
+    def match_exchange_states() -&gt; None:
+        assert payment_command_event_states(sender) == [&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_ABORT&#34;]
+
+    sender.wait_for(match_exchange_states)
+
+    sender.wait_for_balance(currency, sender_initial)
+    receiver.wait_for_balance(currency, receiver_initial)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_payment.test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver"><code class="name flex">
+<span>def <span class="ident">test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -&gt; None:
+    amount = travel_rule_threshold
+    sender_client = target_client
+    receiver_client = stub_client
+
+    sender: AccountResource = sender_client.create_account(
+        {currency: amount}, kyc_data=sender_client.new_valid_kyc_data()
+    )
+    receiver: AccountResource = receiver_client.create_account(
+        kyc_data=sender_client.new_soft_match_kyc_data(), reject_additional_kyc_data_request=True
+    )
+    sender_initial = sender.balance(currency)
+    receiver_initial = receiver.balance(currency)
+
+    payment_uri = receiver.generate_payment_uri()
+    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    assert send_payment
+
+    def match_exchange_states() -&gt; None:
+        assert payment_command_event_states(receiver) == [&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_ABORT&#34;]
+
+    receiver.wait_for(match_exchange_states)
+
+    sender.wait_for_balance(currency, sender_initial)
+    receiver.wait_for_balance(currency, receiver_initial)</code></pre>
 </details>
 </dd>
 </dl>
@@ -421,7 +505,8 @@ def test_payment_under_threshold_succeed(
 <li><code><a title="diem.testing.suites.test_payment.payment_command_event_states" href="#diem.testing.suites.test_payment.payment_command_event_states">payment_command_event_states</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment.payment_state_id" href="#diem.testing.suites.test_payment.payment_state_id">payment_state_id</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment.test_payment_meets_travel_rule_threshold" href="#diem.testing.suites.test_payment.test_payment_meets_travel_rule_threshold">test_payment_meets_travel_rule_threshold</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment.test_payment_under_threshold_succeed" href="#diem.testing.suites.test_payment.test_payment_under_threshold_succeed">test_payment_under_threshold_succeed</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment.test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender" href="#diem.testing.suites.test_payment.test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender">test_target_as_receiver_soft_match_kyc_data_and_then_rejected_by_sender</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment.test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver" href="#diem.testing.suites.test_payment.test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver">test_target_as_sender_soft_match_kyc_data_and_then_rejected_by_receiver</a></code></li>
 </ul>
 </li>
 </ul>

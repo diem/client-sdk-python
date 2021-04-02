@@ -32,7 +32,8 @@
 from dataclasses import dataclass
 from typing import Tuple
 from .models import Transaction, RefundReason
-from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, LocalAccount
+from ... import LocalAccount
+from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata
 
 
 @dataclass
@@ -74,10 +75,10 @@ class DiemAccount:
 <dl>
 <dt id="diem.testing.miniwallet.app.diem_account.DiemAccount"><code class="flex name class">
 <span>class <span class="ident">DiemAccount</span></span>
-<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>)</span>
+<span>(</span><span>account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>DiemAccount(account: diem.local_account.LocalAccount, client: diem.jsonrpc.client.Client)</p></div>
+<div class="desc"><p>DiemAccount(account: diem.testing.local_account.LocalAccount, client: diem.jsonrpc.client.Client)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -111,7 +112,7 @@ class DiemAccount:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.account"><code class="name">var <span class="ident">account</span> : <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a></code></dt>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.account"><code class="name">var <span class="ident">account</span> : <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

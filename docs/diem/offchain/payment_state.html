@@ -79,7 +79,6 @@ S_ABORT: State[PaymentObject] = State(
     id=&#34;S_ABORT&#34;,
     require=require(
         status(&#34;sender&#34;, Status.abort),
-        status(&#34;receiver&#34;, Status.ready_for_settlement),
     ),
 )
 S_SOFT: State[PaymentObject] = State(
@@ -109,7 +108,6 @@ READY: State[PaymentObject] = State(
 R_ABORT: State[PaymentObject] = State(
     id=&#34;R_ABORT&#34;,
     require=require(
-        status(&#34;sender&#34;, Status.needs_kyc_data),
         status(&#34;receiver&#34;, Status.abort),
     ),
 )
@@ -151,9 +149,11 @@ MACHINE: Machine[PaymentObject] = build_machine(
         new_transition(R_SEND, S_ABORT),
         new_transition(R_SEND, S_SOFT),
         new_transition(R_SOFT, S_SOFT_SEND),
+        new_transition(R_SOFT, S_ABORT),
         new_transition(S_SOFT_SEND, R_ABORT),
         new_transition(S_SOFT_SEND, R_SEND),
         new_transition(S_SOFT, R_SOFT_SEND),
+        new_transition(S_SOFT, R_ABORT),
         new_transition(R_SOFT_SEND, S_ABORT),
         new_transition(R_SOFT_SEND, READY),
     ]

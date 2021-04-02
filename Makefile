@@ -69,6 +69,7 @@ _docs:
 	rm -rf docs/examples
 	./venv/bin/python3 -m pdoc diem --html -o docs
 	./venv/bin/python3 -m pdoc examples --html -o docs
+	cp src/diem/testing/miniwallet/app/static/openapi.yaml docs/openapi.yaml
 	rm -rf docs/examples/tests
 
 server:

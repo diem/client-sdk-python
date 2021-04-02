@@ -44,6 +44,7 @@ class Base:
 @dataclass
 class Account(Base):
     kyc_data: Optional[str] = field(default=None)
+    reject_additional_kyc_data_request: Optional[bool] = field(default=False)
 
     def kyc_data_object(self) -&gt; offchain.KycDataObject:
         if self.kyc_data:
@@ -56,8 +57,6 @@ class Account(Base):
 class PaymentUri(Base):
     account_id: str
     payment_uri: str
-    currency: Optional[str] = field(default=None)
-    amount: Optional[int] = field(default=None)
 
     def intent(self, hrp: str) -&gt; identifier.Intent:
         return identifier.decode_intent(self.payment_uri, hrp)
@@ -184,10 +183,10 @@ class PaymentCommand(Base):
 <dl>
 <dt id="diem.testing.miniwallet.app.models.Account"><code class="flex name class">
 <span>class <span class="ident">Account</span></span>
-<span>(</span><span>id: str, kyc_data: Optional[str] = None)</span>
+<span>(</span><span>id: str, kyc_data: Optional[str] = None, reject_additional_kyc_data_request: Optional[bool] = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Account(id: str, kyc_data: Optional[str] = None)</p></div>
+<div class="desc"><p>Account(id: str, kyc_data: Optional[str] = None, reject_additional_kyc_data_request: Optional[bool] = False)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -195,6 +194,7 @@ class PaymentCommand(Base):
 <pre><code class="python">@dataclass
 class Account(Base):
     kyc_data: Optional[str] = field(default=None)
+    reject_additional_kyc_data_request: Optional[bool] = field(default=False)
 
     def kyc_data_object(self) -&gt; offchain.KycDataObject:
         if self.kyc_data:
@@ -209,6 +209,10 @@ class Account(Base):
 <h3>Class variables</h3>
 <dl>
 <dt id="diem.testing.miniwallet.app.models.Account.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.models.Account.reject_additional_kyc_data_request"><code class="name">var <span class="ident">reject_additional_kyc_data_request</span> : Optional[bool]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -547,10 +551,10 @@ class PaymentCommand(Base):
 </dd>
 <dt id="diem.testing.miniwallet.app.models.PaymentUri"><code class="flex name class">
 <span>class <span class="ident">PaymentUri</span></span>
-<span>(</span><span>id: str, account_id: str, payment_uri: str, currency: Optional[str] = None, amount: Optional[int] = None)</span>
+<span>(</span><span>id: str, account_id: str, payment_uri: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>PaymentUri(id: str, account_id: str, payment_uri: str, currency: Optional[str] = None, amount: Optional[int] = None)</p></div>
+<div class="desc"><p>PaymentUri(id: str, account_id: str, payment_uri: str)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -559,8 +563,6 @@ class PaymentCommand(Base):
 class PaymentUri(Base):
     account_id: str
     payment_uri: str
-    currency: Optional[str] = field(default=None)
-    amount: Optional[int] = field(default=None)
 
     def intent(self, hrp: str) -&gt; identifier.Intent:
         return identifier.decode_intent(self.payment_uri, hrp)</code></pre>
@@ -572,14 +574,6 @@ class PaymentUri(Base):
 <h3>Class variables</h3>
 <dl>
 <dt id="diem.testing.miniwallet.app.models.PaymentUri.account_id"><code class="name">var <span class="ident">account_id</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.PaymentUri.amount"><code class="name">var <span class="ident">amount</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.PaymentUri.currency"><code class="name">var <span class="ident">currency</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -860,6 +854,7 @@ class Transaction(Base):
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.app.models.Account.kyc_data" href="#diem.testing.miniwallet.app.models.Account.kyc_data">kyc_data</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Account.kyc_data_object" href="#diem.testing.miniwallet.app.models.Account.kyc_data_object">kyc_data_object</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.Account.reject_additional_kyc_data_request" href="#diem.testing.miniwallet.app.models.Account.reject_additional_kyc_data_request">reject_additional_kyc_data_request</a></code></li>
 </ul>
 </li>
 <li>
@@ -917,8 +912,6 @@ class Transaction(Base):
 <h4><code><a title="diem.testing.miniwallet.app.models.PaymentUri" href="#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></code></h4>
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.account_id" href="#diem.testing.miniwallet.app.models.PaymentUri.account_id">account_id</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.amount" href="#diem.testing.miniwallet.app.models.PaymentUri.amount">amount</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.currency" href="#diem.testing.miniwallet.app.models.PaymentUri.currency">currency</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.intent" href="#diem.testing.miniwallet.app.models.PaymentUri.intent">intent</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.payment_uri" href="#diem.testing.miniwallet.app.models.PaymentUri.payment_uri">payment_uri</a></code></li>
 </ul>

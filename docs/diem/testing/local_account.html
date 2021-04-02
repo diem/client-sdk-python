@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>diem.local_account API documentation</title>
+<title>diem.testing.local_account API documentation</title>
 <meta name="description" content="Provides LocalAccount class for holding local account private key …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>diem.local_account</code></h1>
+<h1 class="title">Module <code>diem.testing.local_account</code></h1>
 </header>
 <section id="section-intro">
 <p>Provides LocalAccount class for holding local account private key.</p>
@@ -38,10 +38,10 @@ LocalAccount provides operations we need for creating auth key, account address 
 raw transaction.
 &#34;&#34;&#34;
 
-from . import diem_types, jsonrpc, utils, stdlib, identifier
-from .serde_types import uint64
+from .. import diem_types, jsonrpc, utils, stdlib, identifier
+from ..serde_types import uint64
 
-from .auth_key import AuthKey
+from ..auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field
@@ -147,6 +147,18 @@ class LocalAccount:
         )
 
     def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+        &#34;&#34;&#34;submit transaction with the given script
+
+        This function creates transaction with current account sequence number (by json-rpc `get_account`
+        method), and retries on JsonRpcError in case there is another process is submitting transaction
+        at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+        &#34;&#34;&#34;
+        retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
+        return retry.execute(lambda: self._submit_txn_without_retry(client, script))
+
+    def _submit_txn_without_retry(
+        self, client: jsonrpc.Client, script: diem_types.Script
+    ) -&gt; diem_types.SignedTransaction:
         txn = self.create_txn(client, script)
         client.submit(txn)
         return txn
@@ -191,7 +203,7 @@ class LocalAccount:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="diem.local_account.LocalAccount"><code class="flex name class">
+<dt id="diem.testing.local_account.LocalAccount"><code class="flex name class">
 <span>class <span class="ident">LocalAccount</span></span>
 <span>(</span><span>private_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey = &lt;factory&gt;, compliance_key: cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey = &lt;factory&gt;, hrp: str = 'tdm', txn_gas_currency_code: str = 'XDX', txn_max_gas_amount: int = 1000000, txn_gas_unit_price: int = 0, txn_expire_duration_secs: int = 30)</span>
 </code></dt>
@@ -306,6 +318,18 @@ class LocalAccount:
         )
 
     def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
+        &#34;&#34;&#34;submit transaction with the given script
+
+        This function creates transaction with current account sequence number (by json-rpc `get_account`
+        method), and retries on JsonRpcError in case there is another process is submitting transaction
+        at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+        &#34;&#34;&#34;
+        retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
+        return retry.execute(lambda: self._submit_txn_without_retry(client, script))
+
+    def _submit_txn_without_retry(
+        self, client: jsonrpc.Client, script: diem_types.Script
+    ) -&gt; diem_types.SignedTransaction:
         txn = self.create_txn(client, script)
         client.submit(txn)
         return txn
@@ -342,39 +366,39 @@ class LocalAccount:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="diem.local_account.LocalAccount.compliance_key"><code class="name">var <span class="ident">compliance_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.compliance_key"><code class="name">var <span class="ident">compliance_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.local_account.LocalAccount.hrp"><code class="name">var <span class="ident">hrp</span> : str</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.hrp"><code class="name">var <span class="ident">hrp</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.local_account.LocalAccount.private_key"><code class="name">var <span class="ident">private_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.private_key"><code class="name">var <span class="ident">private_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PrivateKey</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.local_account.LocalAccount.txn_expire_duration_secs"><code class="name">var <span class="ident">txn_expire_duration_secs</span> : int</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.txn_expire_duration_secs"><code class="name">var <span class="ident">txn_expire_duration_secs</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.local_account.LocalAccount.txn_gas_currency_code"><code class="name">var <span class="ident">txn_gas_currency_code</span> : str</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.txn_gas_currency_code"><code class="name">var <span class="ident">txn_gas_currency_code</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.local_account.LocalAccount.txn_gas_unit_price"><code class="name">var <span class="ident">txn_gas_unit_price</span> : int</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.txn_gas_unit_price"><code class="name">var <span class="ident">txn_gas_unit_price</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.local_account.LocalAccount.txn_max_gas_amount"><code class="name">var <span class="ident">txn_max_gas_amount</span> : int</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.txn_max_gas_amount"><code class="name">var <span class="ident">txn_max_gas_amount</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="diem.local_account.LocalAccount.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>dic: Dict[str, str]) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
+<dt id="diem.testing.local_account.LocalAccount.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>dic: Dict[str, str]) ‑> <a title="diem.testing.local_account.LocalAccount" href="#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>from a dict that is created by LocalAccount#to_dict</p>
@@ -401,8 +425,8 @@ def from_dict(dic: Dict[str, str]) -&gt; &#34;LocalAccount&#34;:
     return LocalAccount(**dic)  # pyre-ignore</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.from_private_key_hex"><code class="name flex">
-<span>def <span class="ident">from_private_key_hex</span></span>(<span>key: str) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
+<dt id="diem.testing.local_account.LocalAccount.from_private_key_hex"><code class="name flex">
+<span>def <span class="ident">from_private_key_hex</span></span>(<span>key: str) ‑> <a title="diem.testing.local_account.LocalAccount" href="#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -415,8 +439,8 @@ def from_private_key_hex(key: str) -&gt; &#34;LocalAccount&#34;:
     return LocalAccount.from_dict({&#34;private_key&#34;: key})</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.generate"><code class="name flex">
-<span>def <span class="ident">generate</span></span>(<span>) ‑> <a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></span>
+<dt id="diem.testing.local_account.LocalAccount.generate"><code class="name flex">
+<span>def <span class="ident">generate</span></span>(<span>) ‑> <a title="diem.testing.local_account.LocalAccount" href="#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate a random private key and initialize local account</p></div>
@@ -434,7 +458,7 @@ def generate() -&gt; &#34;LocalAccount&#34;:
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="diem.local_account.LocalAccount.account_address"><code class="name">var <span class="ident">account_address</span> : <a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></code></dt>
+<dt id="diem.testing.local_account.LocalAccount.account_address"><code class="name">var <span class="ident">account_address</span> : <a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -446,7 +470,7 @@ def account_address(self) -&gt; diem_types.AccountAddress:
     return self.auth_key.account_address()</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.auth_key"><code class="name">var <span class="ident">auth_key</span> : <a title="diem.auth_key.AuthKey" href="auth_key.html#diem.auth_key.AuthKey">AuthKey</a></code></dt>
+<dt id="diem.testing.local_account.LocalAccount.auth_key"><code class="name">var <span class="ident">auth_key</span> : <a title="diem.auth_key.AuthKey" href="../auth_key.html#diem.auth_key.AuthKey">AuthKey</a></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -458,7 +482,7 @@ def auth_key(self) -&gt; AuthKey:
     return AuthKey.from_public_key(self.public_key)</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.compliance_public_key_bytes"><code class="name">var <span class="ident">compliance_public_key_bytes</span> : bytes</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.compliance_public_key_bytes"><code class="name">var <span class="ident">compliance_public_key_bytes</span> : bytes</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -470,7 +494,7 @@ def compliance_public_key_bytes(self) -&gt; bytes:
     return utils.public_key_bytes(self.compliance_key.public_key())</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.public_key"><code class="name">var <span class="ident">public_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.public_key"><code class="name">var <span class="ident">public_key</span> : cryptography.hazmat.primitives.asymmetric.ed25519.Ed25519PublicKey</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -482,7 +506,7 @@ def public_key(self) -&gt; Ed25519PublicKey:
     return self.private_key.public_key()</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.public_key_bytes"><code class="name">var <span class="ident">public_key_bytes</span> : bytes</code></dt>
+<dt id="diem.testing.local_account.LocalAccount.public_key_bytes"><code class="name">var <span class="ident">public_key_bytes</span> : bytes</code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">
@@ -497,7 +521,7 @@ def public_key_bytes(self) -&gt; bytes:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="diem.local_account.LocalAccount.account_identifier"><code class="name flex">
+<dt id="diem.testing.local_account.LocalAccount.account_identifier"><code class="name flex">
 <span>def <span class="ident">account_identifier</span></span>(<span>self, subaddress: Union[str, bytes, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
@@ -510,8 +534,8 @@ def public_key_bytes(self) -&gt; bytes:
     return identifier.encode_account(self.account_address, subaddress, self.hrp)</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.create_txn"><code class="name flex">
-<span>def <span class="ident">create_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+<dt id="diem.testing.local_account.LocalAccount.create_txn"><code class="name flex">
+<span>def <span class="ident">create_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="../diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="../diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -536,8 +560,8 @@ def public_key_bytes(self) -&gt; bytes:
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.decode_account_identifier"><code class="name flex">
-<span>def <span class="ident">decode_account_identifier</span></span>(<span>self, encoded_id: str) ‑> Tuple[<a title="diem.diem_types.AccountAddress" href="diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, Optional[bytes]]</span>
+<dt id="diem.testing.local_account.LocalAccount.decode_account_identifier"><code class="name flex">
+<span>def <span class="ident">decode_account_identifier</span></span>(<span>self, encoded_id: str) ‑> Tuple[<a title="diem.diem_types.AccountAddress" href="../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, Optional[bytes]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -549,8 +573,8 @@ def public_key_bytes(self) -&gt; bytes:
     return identifier.decode_account(encoded_id, self.hrp)</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.rotate_dual_attestation_info"><code class="name flex">
-<span>def <span class="ident">rotate_dual_attestation_info</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str) ‑> jsonrpc_pb2.Transaction</span>
+<dt id="diem.testing.local_account.LocalAccount.rotate_dual_attestation_info"><code class="name flex">
+<span>def <span class="ident">rotate_dual_attestation_info</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str) ‑> jsonrpc_pb2.Transaction</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -567,8 +591,8 @@ def public_key_bytes(self) -&gt; bytes:
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.sign"><code class="name flex">
-<span>def <span class="ident">sign</span></span>(<span>self, txn: <a title="diem.diem_types.RawTransaction" href="diem_types/index.html#diem.diem_types.RawTransaction">RawTransaction</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+<dt id="diem.testing.local_account.LocalAccount.sign"><code class="name flex">
+<span>def <span class="ident">sign</span></span>(<span>self, txn: <a title="diem.diem_types.RawTransaction" href="../diem_types/index.html#diem.diem_types.RawTransaction">RawTransaction</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="../diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create signed transaction for given raw transaction</p></div>
@@ -583,8 +607,8 @@ def public_key_bytes(self) -&gt; bytes:
     return utils.create_signed_transaction(txn, self.public_key_bytes, signature)</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.submit_and_wait_for_txn"><code class="name flex">
-<span>def <span class="ident">submit_and_wait_for_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> jsonrpc_pb2.Transaction</span>
+<dt id="diem.testing.local_account.LocalAccount.submit_and_wait_for_txn"><code class="name flex">
+<span>def <span class="ident">submit_and_wait_for_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="../diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> jsonrpc_pb2.Transaction</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -597,22 +621,30 @@ def public_key_bytes(self) -&gt; bytes:
     return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.submit_txn"><code class="name flex">
-<span>def <span class="ident">submit_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
+<dt id="diem.testing.local_account.LocalAccount.submit_txn"><code class="name flex">
+<span>def <span class="ident">submit_txn</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, script: <a title="diem.diem_types.Script" href="../diem_types/index.html#diem.diem_types.Script">Script</a>) ‑> <a title="diem.diem_types.SignedTransaction" href="../diem_types/index.html#diem.diem_types.SignedTransaction">SignedTransaction</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>submit transaction with the given script</p>
+<p>This function creates transaction with current account sequence number (by json-rpc <code>get_account</code>
+method), and retries on JsonRpcError in case there is another process is submitting transaction
+at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -&gt; diem_types.SignedTransaction:
-    txn = self.create_txn(client, script)
-    client.submit(txn)
-    return txn</code></pre>
+    &#34;&#34;&#34;submit transaction with the given script
+
+    This function creates transaction with current account sequence number (by json-rpc `get_account`
+    method), and retries on JsonRpcError in case there is another process is submitting transaction
+    at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+    &#34;&#34;&#34;
+    retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
+    return retry.execute(lambda: self._submit_txn_without_retry(client, script))</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.to_dict"><code class="name flex">
+<dt id="diem.testing.local_account.LocalAccount.to_dict"><code class="name flex">
 <span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
@@ -634,7 +666,7 @@ def public_key_bytes(self) -&gt; bytes:
     return d</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.to_json"><code class="name flex">
+<dt id="diem.testing.local_account.LocalAccount.to_json"><code class="name flex">
 <span>def <span class="ident">to_json</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -647,7 +679,7 @@ def public_key_bytes(self) -&gt; bytes:
     return json.dumps(self.to_dict(), indent=2)</code></pre>
 </details>
 </dd>
-<dt id="diem.local_account.LocalAccount.write_to_file"><code class="name flex">
+<dt id="diem.testing.local_account.LocalAccount.write_to_file"><code class="name flex">
 <span>def <span class="ident">write_to_file</span></span>(<span>self, path: str) ‑> NoneType</span>
 </code></dt>
 <dd>
@@ -674,39 +706,39 @@ def public_key_bytes(self) -&gt; bytes:
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="diem" href="index.html">diem</a></code></li>
+<li><code><a title="diem.testing" href="index.html">diem.testing</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="diem.local_account.LocalAccount" href="#diem.local_account.LocalAccount">LocalAccount</a></code></h4>
+<h4><code><a title="diem.testing.local_account.LocalAccount" href="#diem.testing.local_account.LocalAccount">LocalAccount</a></code></h4>
 <ul class="">
-<li><code><a title="diem.local_account.LocalAccount.account_address" href="#diem.local_account.LocalAccount.account_address">account_address</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.account_identifier" href="#diem.local_account.LocalAccount.account_identifier">account_identifier</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.auth_key" href="#diem.local_account.LocalAccount.auth_key">auth_key</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.compliance_key" href="#diem.local_account.LocalAccount.compliance_key">compliance_key</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.compliance_public_key_bytes" href="#diem.local_account.LocalAccount.compliance_public_key_bytes">compliance_public_key_bytes</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.create_txn" href="#diem.local_account.LocalAccount.create_txn">create_txn</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.decode_account_identifier" href="#diem.local_account.LocalAccount.decode_account_identifier">decode_account_identifier</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.from_dict" href="#diem.local_account.LocalAccount.from_dict">from_dict</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.from_private_key_hex" href="#diem.local_account.LocalAccount.from_private_key_hex">from_private_key_hex</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.generate" href="#diem.local_account.LocalAccount.generate">generate</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.hrp" href="#diem.local_account.LocalAccount.hrp">hrp</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.private_key" href="#diem.local_account.LocalAccount.private_key">private_key</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.public_key" href="#diem.local_account.LocalAccount.public_key">public_key</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.public_key_bytes" href="#diem.local_account.LocalAccount.public_key_bytes">public_key_bytes</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.rotate_dual_attestation_info" href="#diem.local_account.LocalAccount.rotate_dual_attestation_info">rotate_dual_attestation_info</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.sign" href="#diem.local_account.LocalAccount.sign">sign</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.submit_and_wait_for_txn" href="#diem.local_account.LocalAccount.submit_and_wait_for_txn">submit_and_wait_for_txn</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.submit_txn" href="#diem.local_account.LocalAccount.submit_txn">submit_txn</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.to_dict" href="#diem.local_account.LocalAccount.to_dict">to_dict</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.to_json" href="#diem.local_account.LocalAccount.to_json">to_json</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.txn_expire_duration_secs" href="#diem.local_account.LocalAccount.txn_expire_duration_secs">txn_expire_duration_secs</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.txn_gas_currency_code" href="#diem.local_account.LocalAccount.txn_gas_currency_code">txn_gas_currency_code</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.txn_gas_unit_price" href="#diem.local_account.LocalAccount.txn_gas_unit_price">txn_gas_unit_price</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.txn_max_gas_amount" href="#diem.local_account.LocalAccount.txn_max_gas_amount">txn_max_gas_amount</a></code></li>
-<li><code><a title="diem.local_account.LocalAccount.write_to_file" href="#diem.local_account.LocalAccount.write_to_file">write_to_file</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.account_address" href="#diem.testing.local_account.LocalAccount.account_address">account_address</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.account_identifier" href="#diem.testing.local_account.LocalAccount.account_identifier">account_identifier</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.auth_key" href="#diem.testing.local_account.LocalAccount.auth_key">auth_key</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.compliance_key" href="#diem.testing.local_account.LocalAccount.compliance_key">compliance_key</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.compliance_public_key_bytes" href="#diem.testing.local_account.LocalAccount.compliance_public_key_bytes">compliance_public_key_bytes</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.create_txn" href="#diem.testing.local_account.LocalAccount.create_txn">create_txn</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.decode_account_identifier" href="#diem.testing.local_account.LocalAccount.decode_account_identifier">decode_account_identifier</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.from_dict" href="#diem.testing.local_account.LocalAccount.from_dict">from_dict</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.from_private_key_hex" href="#diem.testing.local_account.LocalAccount.from_private_key_hex">from_private_key_hex</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.generate" href="#diem.testing.local_account.LocalAccount.generate">generate</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.hrp" href="#diem.testing.local_account.LocalAccount.hrp">hrp</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.private_key" href="#diem.testing.local_account.LocalAccount.private_key">private_key</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.public_key" href="#diem.testing.local_account.LocalAccount.public_key">public_key</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.public_key_bytes" href="#diem.testing.local_account.LocalAccount.public_key_bytes">public_key_bytes</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.rotate_dual_attestation_info" href="#diem.testing.local_account.LocalAccount.rotate_dual_attestation_info">rotate_dual_attestation_info</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.sign" href="#diem.testing.local_account.LocalAccount.sign">sign</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.submit_and_wait_for_txn" href="#diem.testing.local_account.LocalAccount.submit_and_wait_for_txn">submit_and_wait_for_txn</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.submit_txn" href="#diem.testing.local_account.LocalAccount.submit_txn">submit_txn</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.to_dict" href="#diem.testing.local_account.LocalAccount.to_dict">to_dict</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.to_json" href="#diem.testing.local_account.LocalAccount.to_json">to_json</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.txn_expire_duration_secs" href="#diem.testing.local_account.LocalAccount.txn_expire_duration_secs">txn_expire_duration_secs</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.txn_gas_currency_code" href="#diem.testing.local_account.LocalAccount.txn_gas_currency_code">txn_gas_currency_code</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.txn_gas_unit_price" href="#diem.testing.local_account.LocalAccount.txn_gas_unit_price">txn_gas_unit_price</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.txn_max_gas_amount" href="#diem.testing.local_account.LocalAccount.txn_max_gas_amount">txn_max_gas_amount</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.write_to_file" href="#diem.testing.local_account.LocalAccount.write_to_file">write_to_file</a></code></li>
 </ul>
 </li>
 </ul>

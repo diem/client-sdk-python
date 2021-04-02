@@ -37,7 +37,8 @@ from .diem_account import DiemAccount
 from .models import PaymentUri, Subaddress, Account, Transaction, Event, KycSample, Payment, PaymentCommand
 from .event_puller import EventPuller
 from .json_input import JsonInput
-from .... import jsonrpc, offchain, utils, LocalAccount, identifier
+from ... import LocalAccount
+from .... import jsonrpc, offchain, utils, identifier
 from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
 import threading, logging, numpy
 
@@ -67,7 +68,8 @@ class Base:
 
     def _validate_account_identifier(self, name: str, val: str) -&gt; None:
         try:
-            self.diem_account.account.decode_account_identifier(val)
+            account_address, _ = self.diem_account.account.decode_account_identifier(val)
+            self.diem_account.client.must_get_account(account_address)
         except ValueError as e:
             raise ValueError(&#34;%r is invalid account identifier: %s&#34; % (name, e))
 
@@ -242,9 +244,9 @@ class BackgroundTasks(OffChainAPI):
                     amount=txn.amount,
                     receiver_account_id=str(txn.payee),
                 )
-                self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
                 self._create_payment_command(txn.account_id, command)
                 self.store.update(txn, reference_id=command.reference_id())
+                self._send_offchain_command(command)
 
     def _process_offchain_commands(self) -&gt; None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
@@ -255,11 +257,24 @@ class BackgroundTasks(OffChainAPI):
                 if action:
                     fn = getattr(self, &#34;_offchain_action_%s&#34; % action.value)
                     new_offchain_cmd = fn(cmd.account_id, offchain_cmd)
-                    self.offchain.send_command(new_offchain_cmd, self.diem_account.account.compliance_key.sign)
                     self._update_payment_command(cmd, new_offchain_cmd)
+                    self._send_offchain_command(new_offchain_cmd)
             except Exception as e:
                 self.logger.exception(e)
                 self.store.update(cmd, process_error=str(e))
+
+    def _send_offchain_command(self, command: offchain.Command) -&gt; None:
+        &#34;&#34;&#34;send offchain command with retries
+
+        We only do limited in process retries, as we are expecting counterparty service
+        should be available in dev / testing environment, and fail immediately if counterparty
+        service is not available.
+        In production environment, you may need implement better retry system for handling
+        counterparty service temporarily not available case.
+        &#34;&#34;&#34;
+
+        retry = jsonrpc.Retry(5, 0.2, Exception)
+        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.account.compliance_key.sign))
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data
@@ -270,6 +285,9 @@ class BackgroundTasks(OffChainAPI):
         return self._ready_for_settlement(account_id, cmd)
 
     def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        account = self.store.find(Account, id=account_id)
+        if account.reject_additional_kyc_data_request:
+            return self._new_reject_kyc_data(cmd, &#34;no need additional KYC data&#34;)
         return cmd.new_command(additional_kyc_data=&#34;{%r: %r}&#34; % (&#34;account_id&#34;, account_id))
 
     def _offchain_action_review_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
@@ -296,6 +314,9 @@ class App(BackgroundTasks):
         account = self.store.create(
             Account,
             kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+            # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
+            # setting up mini-wallet stub to reject additional_kyc_data request.
+            reject_additional_kyc_data_request=data.get_nullable(&#34;reject_additional_kyc_data_request&#34;, bool),
         )
         balances = data.get_nullable(&#34;balances&#34;, dict)
         if balances:
@@ -303,7 +324,7 @@ class App(BackgroundTasks):
                 self._create_transaction(
                     account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
                 )
-        return account
+        return Account(id=account.id)
 
     def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
         self.store.find(Account, id=account_id)
@@ -318,7 +339,7 @@ class App(BackgroundTasks):
         sub = self._gen_subaddress(account_id)
         diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
         uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
+        return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)
 
     def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
         self.store.find(Account, id=account_id)
@@ -352,7 +373,7 @@ class App(BackgroundTasks):
 <dl>
 <dt id="diem.testing.miniwallet.app.app.App"><code class="flex name class">
 <span>class <span class="ident">App</span></span>
-<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+<span>(</span><span>account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -365,6 +386,9 @@ class App(BackgroundTasks):
         account = self.store.create(
             Account,
             kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+            # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
+            # setting up mini-wallet stub to reject additional_kyc_data request.
+            reject_additional_kyc_data_request=data.get_nullable(&#34;reject_additional_kyc_data_request&#34;, bool),
         )
         balances = data.get_nullable(&#34;balances&#34;, dict)
         if balances:
@@ -372,7 +396,7 @@ class App(BackgroundTasks):
                 self._create_transaction(
                     account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
                 )
-        return account
+        return Account(id=account.id)
 
     def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
         self.store.find(Account, id=account_id)
@@ -387,7 +411,7 @@ class App(BackgroundTasks):
         sub = self._gen_subaddress(account_id)
         diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
         uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
+        return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)
 
     def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
         self.store.find(Account, id=account_id)
@@ -430,6 +454,9 @@ class App(BackgroundTasks):
     account = self.store.create(
         Account,
         kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+        # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
+        # setting up mini-wallet stub to reject additional_kyc_data request.
+        reject_additional_kyc_data_request=data.get_nullable(&#34;reject_additional_kyc_data_request&#34;, bool),
     )
     balances = data.get_nullable(&#34;balances&#34;, dict)
     if balances:
@@ -437,7 +464,7 @@ class App(BackgroundTasks):
             self._create_transaction(
                 account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
             )
-    return account</code></pre>
+    return Account(id=account.id)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.app.App.create_account_payment"><code class="name flex">
@@ -472,7 +499,7 @@ class App(BackgroundTasks):
     sub = self._gen_subaddress(account_id)
     diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
     uri = identifier.encode_intent(diem_acc_id, currency, amount)
-    return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)</code></pre>
+    return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.app.App.get_account_balances"><code class="name flex">
@@ -506,7 +533,7 @@ class App(BackgroundTasks):
 </dd>
 <dt id="diem.testing.miniwallet.app.app.BackgroundTasks"><code class="flex name class">
 <span>class <span class="ident">BackgroundTasks</span></span>
-<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+<span>(</span><span>account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -600,9 +627,9 @@ class App(BackgroundTasks):
                     amount=txn.amount,
                     receiver_account_id=str(txn.payee),
                 )
-                self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
                 self._create_payment_command(txn.account_id, command)
                 self.store.update(txn, reference_id=command.reference_id())
+                self._send_offchain_command(command)
 
     def _process_offchain_commands(self) -&gt; None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
@@ -613,11 +640,24 @@ class App(BackgroundTasks):
                 if action:
                     fn = getattr(self, &#34;_offchain_action_%s&#34; % action.value)
                     new_offchain_cmd = fn(cmd.account_id, offchain_cmd)
-                    self.offchain.send_command(new_offchain_cmd, self.diem_account.account.compliance_key.sign)
                     self._update_payment_command(cmd, new_offchain_cmd)
+                    self._send_offchain_command(new_offchain_cmd)
             except Exception as e:
                 self.logger.exception(e)
                 self.store.update(cmd, process_error=str(e))
+
+    def _send_offchain_command(self, command: offchain.Command) -&gt; None:
+        &#34;&#34;&#34;send offchain command with retries
+
+        We only do limited in process retries, as we are expecting counterparty service
+        should be available in dev / testing environment, and fail immediately if counterparty
+        service is not available.
+        In production environment, you may need implement better retry system for handling
+        counterparty service temporarily not available case.
+        &#34;&#34;&#34;
+
+        retry = jsonrpc.Retry(5, 0.2, Exception)
+        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.account.compliance_key.sign))
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data
@@ -628,6 +668,9 @@ class App(BackgroundTasks):
         return self._ready_for_settlement(account_id, cmd)
 
     def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
+        account = self.store.find(Account, id=account_id)
+        if account.reject_additional_kyc_data_request:
+            return self._new_reject_kyc_data(cmd, &#34;no need additional KYC data&#34;)
         return cmd.new_command(additional_kyc_data=&#34;{%r: %r}&#34; % (&#34;account_id&#34;, account_id))
 
     def _offchain_action_review_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
@@ -687,7 +730,7 @@ class App(BackgroundTasks):
 </dd>
 <dt id="diem.testing.miniwallet.app.app.Base"><code class="flex name class">
 <span>class <span class="ident">Base</span></span>
-<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+<span>(</span><span>account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -720,7 +763,8 @@ class App(BackgroundTasks):
 
     def _validate_account_identifier(self, name: str, val: str) -&gt; None:
         try:
-            self.diem_account.account.decode_account_identifier(val)
+            account_address, _ = self.diem_account.account.decode_account_identifier(val)
+            self.diem_account.client.must_get_account(account_address)
         except ValueError as e:
             raise ValueError(&#34;%r is invalid account identifier: %s&#34; % (name, e))
 
@@ -767,7 +811,7 @@ class App(BackgroundTasks):
 </dd>
 <dt id="diem.testing.miniwallet.app.app.OffChainAPI"><code class="flex name class">
 <span>class <span class="ident">OffChainAPI</span></span>
-<span>(</span><span>account: <a title="diem.local_account.LocalAccount" href="../../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
+<span>(</span><span>account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, name: str, logger: logging.Logger)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

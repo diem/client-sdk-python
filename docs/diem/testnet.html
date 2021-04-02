@@ -24,7 +24,8 @@
 <section id="section-intro">
 <p>Provides utilities for working with Diem Testnet.</p>
 <pre><code class="language-python">
-from diem import testnet, LocalAccount
+from diem import testnet
+from diem.testing import LocalAccount
 
 # create client connects to testnet
 client = testnet.create_client()
@@ -47,7 +48,8 @@ account: LocalAccount = faucet.gen_account()
 
 ```python
 
-from diem import testnet, LocalAccount
+from diem import testnet
+from diem.testing import LocalAccount
 
 # create client connects to testnet
 client = testnet.create_client()
@@ -65,7 +67,8 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier, LocalAccount
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier
+from .testing import LocalAccount
 
 
 JSON_RPC_URL: str = &#34;http://testnet.diem.com/v1&#34;
@@ -187,7 +190,7 @@ class Faucet:
 </details>
 </dd>
 <dt id="diem.testnet.gen_account"><code class="name flex">
-<span>def <span class="ident">gen_account</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, dd_account: bool = False, base_url: Optional[str] = None) ‑> <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a></span>
+<span>def <span class="ident">gen_account</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, dd_account: bool = False, base_url: Optional[str] = None) ‑> <a title="diem.testing.local_account.LocalAccount" href="testing/local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>generates a Testnet onchain account</p></div>
@@ -207,7 +210,7 @@ class Faucet:
 </details>
 </dd>
 <dt id="diem.testnet.gen_child_vasp"><code class="name flex">
-<span>def <span class="ident">gen_child_vasp</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, parent_vasp: <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a>, initial_balance: int = 10000000000, currency: str = 'XUS') ‑> <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a></span>
+<span>def <span class="ident">gen_child_vasp</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, parent_vasp: <a title="diem.testing.local_account.LocalAccount" href="testing/local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, initial_balance: int = 10000000000, currency: str = 'XUS') ‑> <a title="diem.testing.local_account.LocalAccount" href="testing/local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -236,7 +239,7 @@ class Faucet:
 </details>
 </dd>
 <dt id="diem.testnet.gen_vasp_account"><code class="name flex">
-<span>def <span class="ident">gen_vasp_account</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str) ‑> <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a></span>
+<span>def <span class="ident">gen_vasp_account</span></span>(<span>client: <a title="diem.jsonrpc.client.Client" href="jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str) ‑> <a title="diem.testing.local_account.LocalAccount" href="testing/local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -312,7 +315,7 @@ class Faucet:
 <h3>Methods</h3>
 <dl>
 <dt id="diem.testnet.Faucet.gen_account"><code class="name flex">
-<span>def <span class="ident">gen_account</span></span>(<span>self, currency_code: str = 'XUS', dd_account: bool = False) ‑> <a title="diem.local_account.LocalAccount" href="local_account.html#diem.local_account.LocalAccount">LocalAccount</a></span>
+<span>def <span class="ident">gen_account</span></span>(<span>self, currency_code: str = 'XUS', dd_account: bool = False) ‑> <a title="diem.testing.local_account.LocalAccount" href="testing/local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>

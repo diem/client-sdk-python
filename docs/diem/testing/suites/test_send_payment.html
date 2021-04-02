@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>diem.testing.suites.test_send_payment API documentation</title>
+<meta name="description" content="This module includes test cases for testing target wallet application sending payment to another wallet …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>diem.testing.suites.test_send_payment</code></h1>
+</header>
+<section id="section-intro">
+<p>This module includes test cases for testing target wallet application sending payment to another wallet.</p>
+<p>The onchain accounts of target wallet application should be set up with at least 1_000_000_000_000 coins before running tests.
+We can't mint coins for the sending payment onchain account, because depending on implementation details, sending
+payment accounts maybe different with the onchain accounts used for receiving payments.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+
+&#34;&#34;&#34;This module includes test cases for testing target wallet application sending payment to another wallet.
+
+The onchain accounts of target wallet application should be set up with at least 1_000_000_000_000 coins before running tests.
+We can&#39;t mint coins for the sending payment onchain account, because depending on implementation details, sending
+payment accounts maybe different with the onchain accounts used for receiving payments.
+&#34;&#34;&#34;
+
+
+from diem.testing.miniwallet import RestClient, AccountResource
+from diem import identifier, LocalAccount
+from typing import Generator
+import pytest, requests
+
+
+amount: int = 12345
+
+
+@pytest.fixture
+def sender_account(
+    target_client: RestClient, currency: str, travel_rule_threshold: int
+) -&gt; Generator[AccountResource, None, None]:
+    &#34;&#34;&#34;sender account for the sending payment test cases
+
+    The account is created on testing target application with initial balance amount equal
+    to travel rule threshold number.
+
+    In teardown, `GET /events` API will be called, but failure will be ignored
+    as the API is optional for testing target application to implement.
+    &#34;&#34;&#34;
+
+    account = target_client.create_account(balances={currency: travel_rule_threshold * 10})
+    yield account
+    account.log_events()
+
+
+@pytest.fixture
+def receiver_account(stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+    &#34;&#34;&#34;receiver account for the sending payment test cases
+
+    The account is created from stub wallet application.
+    In teardown, `GET /events` API will be called, and response result will be printed in log.
+    &#34;&#34;&#34;
+
+    account = stub_client.create_account()
+    yield account
+    account.log_events()
+
+
+@pytest.fixture
+def receiver_account_identifier(receiver_account: AccountResource, hrp: str) -&gt; str:
+    payment_uri = receiver_account.generate_payment_uri()
+    return payment_uri.intent(hrp).account_id
+
+
+@pytest.mark.parametrize(&#34;invalid_currency&#34;, [&#34;XU&#34;, &#34;USD&#34;, &#34;xus&#34;, &#34;&#34;, &#39;&#34;XUS&#34;&#39;, &#34;X&#34;])
+def test_send_payment_with_invalid_currency(
+    sender_account: AccountResource, receiver_account_identifier: str, invalid_currency: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Call send payment `POST /accounts/{account_id}/payments` with invalid currency code.
+    3. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_balances = sender_account.balances()
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=invalid_currency, amount=amount, payee=receiver_account_identifier)
+    assert sender_account.balances() == initial_balances
+
+
+@pytest.mark.parametrize(&#34;invalid_amount&#34;, [-1, 0.1])
+def test_send_payment_with_invalid_amount(
+    sender_account: AccountResource, receiver_account_identifier: str, invalid_amount: float, currency: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Call send payment `POST /accounts/{account_id}/payments` with invalid amount numbers.
+    3. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_balances = sender_account.balances()
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(
+            currency=currency, amount=invalid_amount, payee=receiver_account_identifier  # pyre-ignore
+        )
+    assert sender_account.balances() == initial_balances
+
+
+def test_send_payment_with_invalid_account_identifier_as_payee(sender_account: AccountResource, currency: str) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Call send payment `POST /accounts/{account_id}/payments` with `invalid account identifier` as payee.
+    2. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=&#34;invalid account identifier&#34;)
+    assert sender_account.balance(currency) == initial_amount
+
+
+def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Manuplate valid account identifier&#39;s checksum chars.
+    3. Call send payment `POST /accounts/{account_id}/payments` with invalid account identifier.
+    4. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    invalid_account_identifier = receiver_account_identifier[:-6] + &#34;000000&#34;
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
+    assert sender_account.balance(currency) == initial_amount
+
+
+def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Extract account onchain address and subaddress from receiving payment account identifier.
+    3. Use a different hrp and extracted account address and subaddress to create a new account identifier.
+    4. Call send payment `POST /accounts/{account_id}/payments` with created account identifier.
+    5. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    account_address, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
+    new_hrp = identifier.TDM if hrp != identifier.TDM else identifier.PDM
+    new_account_identifier = identifier.encode_account(account_address, subaddress, new_hrp)
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=new_account_identifier)
+    assert sender_account.balance(currency) == initial_amount
+
+
+def test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Extract account onchain address and subaddress from receiving payment account identifier.
+    3. Use an invalid onchain account address and extracted subaddress to create a new account identifier.
+    4. Call send payment `POST /accounts/{account_id}/payments` with created account identifier.
+    5. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    _, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
+    invalid_account_address = LocalAccount().account_address
+    invalid_account_identifier = identifier.encode_account(invalid_account_address, subaddress, hrp)
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
+    assert sender_account.balance(currency) == initial_amount
+
+
+def test_send_payment_with_an_amount_exceeding_account_balance(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Get sender account balance.
+    3. Call send payment `POST /accounts/{account_id}/payments` with amount = sender account balance + 1.
+    4. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    amount = initial_amount + 1
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
+    assert sender_account.balance(currency) == initial_amount
+
+
+@pytest.mark.parametrize(&#34;amount&#34;, [1, 123456, 125555])
+def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    receiver_account_identifier: str,
+    amount: int,
+    currency: str,
+    hrp: str,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Call send payment `POST /accounts/{account_id}/payments` with the account identifier.
+    3. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    assert receiver_account.balance(currency) == 0
+
+    sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
+
+    receiver_account.wait_for_balance(currency, amount)
+    sender_account.wait_for_balance(currency, initial_amount - amount)
+
+
+@pytest.mark.parametrize(
+    &#34;amount&#34;,
+    [
+        1,
+        999_999_999,
+        1_000_000_000,
+        2_000_000_000,
+    ],
+)
+def test_send_payment_to_the_other_account_in_the_same_wallet(
+    sender_account: AccountResource, target_client: RestClient, currency: str, amount: int, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Create 2 accounts in target wallet application, one for sender, one for receiver.
+    2. Generate valid receive payment account identifier from the receiver account.
+    3. Send payment from sender account to receiver account.
+    4. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    &#34;&#34;&#34;
+
+    sender_initial_balance = sender_account.balance(currency)
+    receiver_account = target_client.create_account()
+    receiver_account_identifier = receiver_account.generate_payment_uri().intent(hrp).account_id
+
+    payment = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
+    assert payment.amount == amount
+    assert payment.payee == receiver_account_identifier
+
+    sender_account.wait_for_balance(currency, sender_initial_balance - amount)
+    receiver_account.wait_for_balance(currency, amount)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="diem.testing.suites.test_send_payment.receiver_account"><code class="name flex">
+<span>def <span class="ident">receiver_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>receiver account for the sending payment test cases</p>
+<p>The account is created from stub wallet application.
+In teardown, <code>GET /events</code> API will be called, and response result will be printed in log.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture
+def receiver_account(stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+    &#34;&#34;&#34;receiver account for the sending payment test cases
+
+    The account is created from stub wallet application.
+    In teardown, `GET /events` API will be called, and response result will be printed in log.
+    &#34;&#34;&#34;
+
+    account = stub_client.create_account()
+    yield account
+    account.log_events()</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.receiver_account_identifier"><code class="name flex">
+<span>def <span class="ident">receiver_account_identifier</span></span>(<span>receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, hrp: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture
+def receiver_account_identifier(receiver_account: AccountResource, hrp: str) -&gt; str:
+    payment_uri = receiver_account.generate_payment_uri()
+    return payment_uri.intent(hrp).account_id</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.sender_account"><code class="name flex">
+<span>def <span class="ident">sender_account</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, travel_rule_threshold: int) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>sender account for the sending payment test cases</p>
+<p>The account is created on testing target application with initial balance amount equal
+to travel rule threshold number.</p>
+<p>In teardown, <code>GET /events</code> API will be called, but failure will be ignored
+as the API is optional for testing target application to implement.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture
+def sender_account(
+    target_client: RestClient, currency: str, travel_rule_threshold: int
+) -&gt; Generator[AccountResource, None, None]:
+    &#34;&#34;&#34;sender account for the sending payment test cases
+
+    The account is created on testing target application with initial balance amount equal
+    to travel rule threshold number.
+
+    In teardown, `GET /events` API will be called, but failure will be ignored
+    as the API is optional for testing target application to implement.
+    &#34;&#34;&#34;
+
+    account = target_client.create_account(balances={currency: travel_rule_threshold * 10})
+    yield account
+    account.log_events()</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_to_the_other_account_in_the_same_wallet"><code class="name flex">
+<span>def <span class="ident">test_send_payment_to_the_other_account_in_the_same_wallet</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, amount: int, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Create 2 accounts in target wallet application, one for sender, one for receiver.</li>
+<li>Generate valid receive payment account identifier from the receiver account.</li>
+<li>Send payment from sender account to receiver account.</li>
+<li>Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(
+    &#34;amount&#34;,
+    [
+        1,
+        999_999_999,
+        1_000_000_000,
+        2_000_000_000,
+    ],
+)
+def test_send_payment_to_the_other_account_in_the_same_wallet(
+    sender_account: AccountResource, target_client: RestClient, currency: str, amount: int, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Create 2 accounts in target wallet application, one for sender, one for receiver.
+    2. Generate valid receive payment account identifier from the receiver account.
+    3. Send payment from sender account to receiver account.
+    4. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    &#34;&#34;&#34;
+
+    sender_initial_balance = sender_account.balance(currency)
+    receiver_account = target_client.create_account()
+    receiver_account_identifier = receiver_account.generate_payment_uri().intent(hrp).account_id
+
+    payment = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
+    assert payment.amount == amount
+    assert payment.payee == receiver_account_identifier
+
+    sender_account.wait_for_balance(currency, sender_initial_balance - amount)
+    receiver_account.wait_for_balance(currency, amount)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_an_amount_exceeding_account_balance"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_an_amount_exceeding_account_balance</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, currency: str, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Get sender account balance.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with amount = sender account balance + 1.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_send_payment_with_an_amount_exceeding_account_balance(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Get sender account balance.
+    3. Call send payment `POST /accounts/{account_id}/payments` with amount = sender account balance + 1.
+    4. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    amount = initial_amount + 1
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
+    assert sender_account.balance(currency) == initial_amount</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_as_payee"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_invalid_account_identifier_as_payee</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with <code>invalid account identifier</code> as payee.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_send_payment_with_invalid_account_identifier_as_payee(sender_account: AccountResource, currency: str) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Call send payment `POST /accounts/{account_id}/payments` with `invalid account identifier` as payee.
+    2. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=&#34;invalid account identifier&#34;)
+    assert sender_account.balance(currency) == initial_amount</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_checksum_as_payee"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_invalid_account_identifier_checksum_as_payee</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, currency: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Manuplate valid account identifier's checksum chars.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with invalid account identifier.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Manuplate valid account identifier&#39;s checksum chars.
+    3. Call send payment `POST /accounts/{account_id}/payments` with invalid account identifier.
+    4. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    invalid_account_identifier = receiver_account_identifier[:-6] + &#34;000000&#34;
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
+    assert sender_account.balance(currency) == initial_amount</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_hrp_as_payee"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_invalid_account_identifier_hrp_as_payee</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, currency: str, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Extract account onchain address and subaddress from receiving payment account identifier.</li>
+<li>Use a different hrp and extracted account address and subaddress to create a new account identifier.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with created account identifier.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Extract account onchain address and subaddress from receiving payment account identifier.
+    3. Use a different hrp and extracted account address and subaddress to create a new account identifier.
+    4. Call send payment `POST /accounts/{account_id}/payments` with created account identifier.
+    5. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    account_address, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
+    new_hrp = identifier.TDM if hrp != identifier.TDM else identifier.PDM
+    new_account_identifier = identifier.encode_account(account_address, subaddress, new_hrp)
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=new_account_identifier)
+    assert sender_account.balance(currency) == initial_amount</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, currency: str, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Extract account onchain address and subaddress from receiving payment account identifier.</li>
+<li>Use an invalid onchain account address and extracted subaddress to create a new account identifier.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with created account identifier.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee(
+    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Extract account onchain address and subaddress from receiving payment account identifier.
+    3. Use an invalid onchain account address and extracted subaddress to create a new account identifier.
+    4. Call send payment `POST /accounts/{account_id}/payments` with created account identifier.
+    5. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    _, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
+    invalid_account_address = LocalAccount().account_address
+    invalid_account_identifier = identifier.encode_account(invalid_account_address, subaddress, hrp)
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
+    assert sender_account.balance(currency) == initial_amount</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_amount"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_invalid_amount</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, invalid_amount: float, currency: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with invalid amount numbers.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#34;invalid_amount&#34;, [-1, 0.1])
+def test_send_payment_with_invalid_amount(
+    sender_account: AccountResource, receiver_account_identifier: str, invalid_amount: float, currency: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Call send payment `POST /accounts/{account_id}/payments` with invalid amount numbers.
+    3. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_balances = sender_account.balances()
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(
+            currency=currency, amount=invalid_amount, payee=receiver_account_identifier  # pyre-ignore
+        )
+    assert sender_account.balances() == initial_balances</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_currency"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_invalid_currency</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, invalid_currency: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with invalid currency code.</li>
+<li>Expect server response 400 client error, and sender account balance is not changed.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#34;invalid_currency&#34;, [&#34;XU&#34;, &#34;USD&#34;, &#34;xus&#34;, &#34;&#34;, &#39;&#34;XUS&#34;&#39;, &#34;X&#34;])
+def test_send_payment_with_invalid_currency(
+    sender_account: AccountResource, receiver_account_identifier: str, invalid_currency: str
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Call send payment `POST /accounts/{account_id}/payments` with invalid currency code.
+    3. Expect server response 400 client error, and sender account balance is not changed.
+    &#34;&#34;&#34;
+
+    initial_balances = sender_account.balances()
+    with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
+        sender_account.send_payment(currency=invalid_currency, amount=amount, payee=receiver_account_identifier)
+    assert sender_account.balances() == initial_balances</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_send_payment.test_send_payment_with_valid_inputs_under_the_travel_rule_threshold"><code class="name flex">
+<span>def <span class="ident">test_send_payment_with_valid_inputs_under_the_travel_rule_threshold</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account_identifier: str, amount: int, currency: str, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate valid receive payment account identifier.</li>
+<li>Call send payment <code>POST /accounts/{account_id}/payments</code> with the account identifier.</li>
+<li>Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#34;amount&#34;, [1, 123456, 125555])
+def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    receiver_account_identifier: str,
+    amount: int,
+    currency: str,
+    hrp: str,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate valid receive payment account identifier.
+    2. Call send payment `POST /accounts/{account_id}/payments` with the account identifier.
+    3. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    &#34;&#34;&#34;
+
+    initial_amount = sender_account.balance(currency)
+    assert receiver_account.balance(currency) == 0
+
+    sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
+
+    receiver_account.wait_for_balance(currency, amount)
+    sender_account.wait_for_balance(currency, initial_amount - amount)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="diem.testing.suites" href="index.html">diem.testing.suites</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="diem.testing.suites.test_send_payment.receiver_account" href="#diem.testing.suites.test_send_payment.receiver_account">receiver_account</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.receiver_account_identifier" href="#diem.testing.suites.test_send_payment.receiver_account_identifier">receiver_account_identifier</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.sender_account" href="#diem.testing.suites.test_send_payment.sender_account">sender_account</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_to_the_other_account_in_the_same_wallet" href="#diem.testing.suites.test_send_payment.test_send_payment_to_the_other_account_in_the_same_wallet">test_send_payment_to_the_other_account_in_the_same_wallet</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_an_amount_exceeding_account_balance" href="#diem.testing.suites.test_send_payment.test_send_payment_with_an_amount_exceeding_account_balance">test_send_payment_with_an_amount_exceeding_account_balance</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_as_payee" href="#diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_as_payee">test_send_payment_with_invalid_account_identifier_as_payee</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_checksum_as_payee" href="#diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_checksum_as_payee">test_send_payment_with_invalid_account_identifier_checksum_as_payee</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_hrp_as_payee" href="#diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_hrp_as_payee">test_send_payment_with_invalid_account_identifier_hrp_as_payee</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee" href="#diem.testing.suites.test_send_payment.test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee">test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_amount" href="#diem.testing.suites.test_send_payment.test_send_payment_with_invalid_amount">test_send_payment_with_invalid_amount</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_invalid_currency" href="#diem.testing.suites.test_send_payment.test_send_payment_with_invalid_currency">test_send_payment_with_invalid_currency</a></code></li>
+<li><code><a title="diem.testing.suites.test_send_payment.test_send_payment_with_valid_inputs_under_the_travel_rule_threshold" href="#diem.testing.suites.test_send_payment.test_send_payment_with_valid_inputs_under_the_travel_rule_threshold">test_send_payment_with_valid_inputs_under_the_travel_rule_threshold</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

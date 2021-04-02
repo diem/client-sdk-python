@@ -54,9 +54,17 @@ class RestClient:
         return self
 
     def create_account(
-        self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
+        self,
+        balances: Optional[Dict[str, int]] = None,
+        kyc_data: Optional[str] = None,
+        reject_additional_kyc_data_request: Optional[bool] = None,
     ) -&gt; &#34;AccountResource&#34;:
-        account = self.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
+        kwargs = {
+            &#34;balances&#34;: balances,
+            &#34;kyc_data&#34;: kyc_data,
+            &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
+        }
+        account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))
 
     def new_soft_match_kyc_data(self) -&gt; str:
@@ -121,7 +129,7 @@ class AccountResource:
     kyc_data: Optional[str] = field(default=None)
 
     def balance(self, currency: str) -&gt; int:
-        return self._balances().get(currency, 0)
+        return self.balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
@@ -188,7 +196,7 @@ class AccountResource:
     def info(self, *args: Any, **kwargs: Any) -&gt; None:
         self.client.logger.info(*args, **kwargs)
 
-    def _balances(self) -&gt; Dict[str, int]:
+    def balances(self) -&gt; Dict[str, int]:
         &#34;&#34;&#34;returns account balances object
 
         should always prefer to use func `balance(currency) -&gt; int`, which returns zero
@@ -251,7 +259,7 @@ class AccountResource:
     kyc_data: Optional[str] = field(default=None)
 
     def balance(self, currency: str) -&gt; int:
-        return self._balances().get(currency, 0)
+        return self.balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
@@ -318,7 +326,7 @@ class AccountResource:
     def info(self, *args: Any, **kwargs: Any) -&gt; None:
         self.client.logger.info(*args, **kwargs)
 
-    def _balances(self) -&gt; Dict[str, int]:
+    def balances(self) -&gt; Dict[str, int]:
         &#34;&#34;&#34;returns account balances object
 
         should always prefer to use func `balance(currency) -&gt; int`, which returns zero
@@ -357,7 +365,28 @@ class AccountResource:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def balance(self, currency: str) -&gt; int:
-    return self._balances().get(currency, 0)</code></pre>
+    return self.balances().get(currency, 0)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.client.AccountResource.balances"><code class="name flex">
+<span>def <span class="ident">balances</span></span>(<span>self) ‑> Dict[str, int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>returns account balances object</p>
+<p>should always prefer to use func <code>balance(currency) -&gt; int</code>, which returns zero
+when currency not exist in the response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def balances(self) -&gt; Dict[str, int]:
+    &#34;&#34;&#34;returns account balances object
+
+    should always prefer to use func `balance(currency) -&gt; int`, which returns zero
+    when currency not exist in the response.
+    &#34;&#34;&#34;
+
+    return self.client.get(self._resources(&#34;balance&#34;))</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.dump_events"><code class="name flex">
@@ -562,9 +591,17 @@ class RestClient:
         return self
 
     def create_account(
-        self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
+        self,
+        balances: Optional[Dict[str, int]] = None,
+        kyc_data: Optional[str] = None,
+        reject_additional_kyc_data_request: Optional[bool] = None,
     ) -&gt; &#34;AccountResource&#34;:
-        account = self.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
+        kwargs = {
+            &#34;balances&#34;: balances,
+            &#34;kyc_data&#34;: kyc_data,
+            &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
+        }
+        account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))
 
     def new_soft_match_kyc_data(self) -&gt; str:
@@ -644,7 +681,7 @@ class RestClient:
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.create_account"><code class="name flex">
-<span>def <span class="ident">create_account</span></span>(<span>self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
+<span>def <span class="ident">create_account</span></span>(<span>self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None, reject_additional_kyc_data_request: Optional[bool] = None) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -653,9 +690,17 @@ class RestClient:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_account(
-    self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None
+    self,
+    balances: Optional[Dict[str, int]] = None,
+    kyc_data: Optional[str] = None,
+    reject_additional_kyc_data_request: Optional[bool] = None,
 ) -&gt; &#34;AccountResource&#34;:
-    account = self.create(&#34;/accounts&#34;, kyc_data=kyc_data, balances=balances)
+    kwargs = {
+        &#34;balances&#34;: balances,
+        &#34;kyc_data&#34;: kyc_data,
+        &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
+    }
+    account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
     return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))</code></pre>
 </details>
 </dd>
@@ -819,6 +864,7 @@ class RestClient:
 <h4><code><a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></code></h4>
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.balance" href="#diem.testing.miniwallet.client.AccountResource.balance">balance</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.AccountResource.balances" href="#diem.testing.miniwallet.client.AccountResource.balances">balances</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.client" href="#diem.testing.miniwallet.client.AccountResource.client">client</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.dump_events" href="#diem.testing.miniwallet.client.AccountResource.dump_events">dump_events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.event_asdict" href="#diem.testing.miniwallet.client.AccountResource.event_asdict">event_asdict</a></code></li>

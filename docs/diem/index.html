@@ -34,7 +34,9 @@
 
 from .utils import InvalidAccountAddressError, InvalidSubAddressError
 from .auth_key import AuthKey
-from .local_account import LocalAccount</code></pre>
+
+# keep this import for backwards compatible
+from .testing import LocalAccount</code></pre>
 </details>
 </section>
 <section>
@@ -64,10 +66,6 @@ from .local_account import LocalAccount</code></pre>
 <dd>
 <div class="desc"><p>This package provides a client for connecting to Diem JSON-RPC Service API …</p></div>
 </dd>
-<dt><code class="name"><a title="diem.local_account" href="local_account.html">diem.local_account</a></code></dt>
-<dd>
-<div class="desc"><p>Provides LocalAccount class for holding local account private key …</p></div>
-</dd>
 <dt><code class="name"><a title="diem.offchain" href="offchain/index.html">diem.offchain</a></code></dt>
 <dd>
 <div class="desc"><p>This package provides data structures and utilities for implementing Diem Offchain API Service …</p></div>
@@ -86,7 +84,7 @@ from .local_account import LocalAccount</code></pre>
 </dd>
 <dt><code class="name"><a title="diem.testing" href="testing/index.html">diem.testing</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This module provides testing utilities: …</p></div>
 </dd>
 <dt><code class="name"><a title="diem.testnet" href="testnet.html">diem.testnet</a></code></dt>
 <dd>
@@ -123,7 +121,6 @@ from .local_account import LocalAccount</code></pre>
 <li><code><a title="diem.diem_types" href="diem_types/index.html">diem.diem_types</a></code></li>
 <li><code><a title="diem.identifier" href="identifier/index.html">diem.identifier</a></code></li>
 <li><code><a title="diem.jsonrpc" href="jsonrpc/index.html">diem.jsonrpc</a></code></li>
-<li><code><a title="diem.local_account" href="local_account.html">diem.local_account</a></code></li>
 <li><code><a title="diem.offchain" href="offchain/index.html">diem.offchain</a></code></li>
 <li><code><a title="diem.serde_binary" href="serde_binary/index.html">diem.serde_binary</a></code></li>
 <li><code><a title="diem.serde_types" href="serde_types/index.html">diem.serde_types</a></code></li>

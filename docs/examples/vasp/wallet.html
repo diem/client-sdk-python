@@ -39,9 +39,9 @@ from diem import (
     stdlib,
     testnet,
     utils,
-    LocalAccount,
     offchain,
 )
+from diem.testing import LocalAccount
 import logging, threading, typing
 
 logger: logging.Logger = logging.getLogger(__name__)
@@ -537,7 +537,7 @@ class User:
 </dd>
 <dt id="examples.vasp.wallet.WalletApp"><code class="flex name class">
 <span>class <span class="ident">WalletApp</span></span>
-<span>(</span><span>name: str, jsonrpc_client: diem.jsonrpc.client.Client, parent_vasp: diem.local_account.LocalAccount, offchain_service_port: int, hrp: str = 'tdm', saved_commands: Dict[str, diem.offchain.command.Command] = &lt;factory&gt;, child_vasps: List[diem.local_account.LocalAccount] = &lt;factory&gt;, users: Dict[str, <a title="examples.vasp.wallet.User" href="#examples.vasp.wallet.User">User</a>] = &lt;factory&gt;, evaluate_kyc_data_result: Dict[str, <a title="examples.vasp.wallet.ActionResultType" href="#examples.vasp.wallet.ActionResultType">ActionResultType</a>] = &lt;factory&gt;, manual_review_result: Dict[str, <a title="examples.vasp.wallet.ActionResultType" href="#examples.vasp.wallet.ActionResultType">ActionResultType</a>] = &lt;factory&gt;, task_queue: List[Callable[[ForwardRef('<a title="examples.vasp.wallet.WalletApp" href="#examples.vasp.wallet.WalletApp">WalletApp</a>')], Tuple[Optional[diem.offchain.action.Action], <a title="examples.vasp.wallet.ActionResultType" href="#examples.vasp.wallet.ActionResultType">ActionResultType</a>]]] = &lt;factory&gt;, locks: Dict[str, <built-in function allocate_lock>] = &lt;factory&gt;)</span>
+<span>(</span><span>name: str, jsonrpc_client: diem.jsonrpc.client.Client, parent_vasp: diem.testing.local_account.LocalAccount, offchain_service_port: int, hrp: str = 'tdm', saved_commands: Dict[str, diem.offchain.command.Command] = &lt;factory&gt;, child_vasps: List[diem.testing.local_account.LocalAccount] = &lt;factory&gt;, users: Dict[str, <a title="examples.vasp.wallet.User" href="#examples.vasp.wallet.User">User</a>] = &lt;factory&gt;, evaluate_kyc_data_result: Dict[str, <a title="examples.vasp.wallet.ActionResultType" href="#examples.vasp.wallet.ActionResultType">ActionResultType</a>] = &lt;factory&gt;, manual_review_result: Dict[str, <a title="examples.vasp.wallet.ActionResultType" href="#examples.vasp.wallet.ActionResultType">ActionResultType</a>] = &lt;factory&gt;, task_queue: List[Callable[[ForwardRef('<a title="examples.vasp.wallet.WalletApp" href="#examples.vasp.wallet.WalletApp">WalletApp</a>')], Tuple[Optional[diem.offchain.action.Action], <a title="examples.vasp.wallet.ActionResultType" href="#examples.vasp.wallet.ActionResultType">ActionResultType</a>]]] = &lt;factory&gt;, locks: Dict[str, <built-in function allocate_lock>] = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>WalletApp is an example of custodial wallet application</p></div>
@@ -852,7 +852,7 @@ class WalletApp:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="examples.vasp.wallet.WalletApp.child_vasps"><code class="name">var <span class="ident">child_vasps</span> : List[diem.local_account.LocalAccount]</code></dt>
+<dt id="examples.vasp.wallet.WalletApp.child_vasps"><code class="name">var <span class="ident">child_vasps</span> : List[diem.testing.local_account.LocalAccount]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -892,7 +892,7 @@ class WalletApp:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="examples.vasp.wallet.WalletApp.parent_vasp"><code class="name">var <span class="ident">parent_vasp</span> : diem.local_account.LocalAccount</code></dt>
+<dt id="examples.vasp.wallet.WalletApp.parent_vasp"><code class="name">var <span class="ident">parent_vasp</span> : diem.testing.local_account.LocalAccount</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

@@ -33,7 +33,8 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, Any
 from .client import RestClient
 from .app import App, falcon_api
-from ... import offchain, testnet, jsonrpc, utils, LocalAccount
+from .. import LocalAccount
+from ... import offchain, testnet, jsonrpc, utils
 import waitress, threading, logging, falcon, json
 
 
@@ -251,7 +252,7 @@ class AppConfig:
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="diem.testing.miniwallet.config.AppConfig.account"><code class="name">var <span class="ident">account</span> : <a title="diem.local_account.LocalAccount" href="../../local_account.html#diem.local_account.LocalAccount">LocalAccount</a></code></dt>
+<dt id="diem.testing.miniwallet.config.AppConfig.account"><code class="name">var <span class="ident">account</span> : <a title="diem.testing.local_account.LocalAccount" href="../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></code></dt>
 <dd>
 <div class="desc"></div>
 <details class="source">

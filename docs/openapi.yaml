@@ -276,8 +276,6 @@ components:
         id:
           type: string
           readOnly: true
-        kyc_data:
-          $ref: '#/components/schemas/KycDataObject'
     CreateAccountRequest:
       type: object
       properties:
@@ -301,8 +299,10 @@ components:
         currency:
           type: string
           enum: ["XUS", "XDX"]
+          writeOnly: true
         amount:
           type: integer
+          writeOnly: true
         payment_uri:
           type: string
           description: >

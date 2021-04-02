@@ -45,9 +45,11 @@ def test_find_all():
 
 def test_find_all_by_matching_default_none():
     s = store.InMemoryStore()
-    uri = s.create(PaymentUri, account_id="1", payment_uri="payment uri")
-    assert s.find_all(PaymentUri, currency=None, account_id="1") == [uri]
-    assert s.find_all(PaymentUri, currency="XUS") == []
+    cmd = s.create(
+        PaymentCommand, account_id="1", reference_id="2", cid="3", is_sender=True, process_error=None, payment_object={}
+    )
+    assert s.find_all(PaymentCommand, process_error=None, account_id="1") == [cmd]
+    assert s.find_all(PaymentCommand, currency="XUS") == []
 
 
 def test_find_all_by_matching_default_bool_values():

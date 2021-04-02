@@ -17,8 +17,6 @@ def test_generate_account_payment_uri_without_currency_and_amount(account: Accou
     uri = account.generate_payment_uri()
     assert uri.id
     assert uri.account_id == account.id
-    assert uri.currency is None
-    assert uri.amount is None
     assert uri.payment_uri
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
@@ -32,8 +30,6 @@ def test_generate_account_payment_uri_with_currency(account: AccountResource, cu
     uri = account.generate_payment_uri(currency=currency)
     assert uri.id
     assert uri.account_id == account.id
-    assert uri.currency == currency
-    assert uri.amount is None
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
@@ -47,8 +43,6 @@ def test_generate_account_payment_uri_with_amount(account: AccountResource, hrp:
     uri = account.generate_payment_uri(amount=amount)
     assert uri.id
     assert uri.account_id == account.id
-    assert uri.currency is None
-    assert uri.amount == amount
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
@@ -64,8 +58,6 @@ def test_generate_account_payment_uri_with_currency_and_amount(
     uri = account.generate_payment_uri(currency=currency, amount=amount)
     assert uri.id
     assert uri.account_id == account.id
-    assert uri.currency == currency
-    assert uri.amount == amount
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address

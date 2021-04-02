@@ -216,9 +216,9 @@ class BackgroundTasks(OffChainAPI):
                     amount=txn.amount,
                     receiver_account_id=str(txn.payee),
                 )
-                self.offchain.send_command(command, self.diem_account.account.compliance_key.sign)
                 self._create_payment_command(txn.account_id, command)
                 self.store.update(txn, reference_id=command.reference_id())
+                self._send_offchain_command(command)
 
     def _process_offchain_commands(self) -> None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
@@ -229,11 +229,24 @@ class BackgroundTasks(OffChainAPI):
                 if action:
                     fn = getattr(self, "_offchain_action_%s" % action.value)
                     new_offchain_cmd = fn(cmd.account_id, offchain_cmd)
-                    self.offchain.send_command(new_offchain_cmd, self.diem_account.account.compliance_key.sign)
                     self._update_payment_command(cmd, new_offchain_cmd)
+                    self._send_offchain_command(new_offchain_cmd)
             except Exception as e:
                 self.logger.exception(e)
                 self.store.update(cmd, process_error=str(e))
+
+    def _send_offchain_command(self, command: offchain.Command) -> None:
+        """send offchain command with retries
+
+        We only do limited in process retries, as we are expecting counterparty service
+        should be available in dev / testing environment, and fail immediately if counterparty
+        service is not available.
+        In production environment, you may need implement better retry system for handling
+        counterparty service temporarily not available case.
+        """
+
+        retry = jsonrpc.Retry(5, 0.2, Exception)
+        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.account.compliance_key.sign))
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data

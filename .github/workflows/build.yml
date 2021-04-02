@@ -21,9 +21,13 @@ jobs:
     - name: Install dependencies
       run: |
         make init
+    - name: submodule for docker compose
+      run: |
+        git submodule update --init diem
+        make docker
     - name: Test
       run: |
-        make build
+        make build dt=1
     - name: Test Dist
       run: |
         make dist
@@ -39,9 +43,13 @@ jobs:
     - name: Install dependencies
       run: |
         make init
+    - name: submodule for docker compose
+      run: |
+        git submodule update --init diem
+        make docker
     - name: Test
       run: |
-        make test
+        make test dt=1
     - name: Test Dist
       run: |
         make dist
@@ -57,9 +65,13 @@ jobs:
     - name: Install dependencies
       run: |
         make init
+    - name: submodule for docker compose
+      run: |
+        git submodule update --init diem
+        make docker
     - name: Test
       run: |
-        make test
+        make test dt=1
     - name: Test Dist
       run: |
         make dist

@@ -29,8 +29,6 @@ class Account(Base):
 class PaymentUri(Base):
     account_id: str
     payment_uri: str
-    currency: Optional[str] = field(default=None)
-    amount: Optional[int] = field(default=None)
 
     def intent(self, hrp: str) -> identifier.Intent:
         return identifier.decode_intent(self.payment_uri, hrp)

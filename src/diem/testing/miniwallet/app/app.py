@@ -296,7 +296,7 @@ class App(BackgroundTasks):
                 self._create_transaction(
                     account.id, Transaction.Status.completed, JsonInput({"currency": c, "amount": a})
                 )
-        return account
+        return Account(id=account.id)
 
     def create_account_payment(self, account_id: str, data: JsonInput) -> Payment:
         self.store.find(Account, id=account_id)
@@ -311,7 +311,7 @@ class App(BackgroundTasks):
         sub = self._gen_subaddress(account_id)
         diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
         uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return PaymentUri(id=sub.id, account_id=account_id, currency=currency, amount=amount, payment_uri=uri)
+        return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)
 
     def get_account_balances(self, account_id: str) -> Dict[str, int]:
         self.store.find(Account, id=account_id)

@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import RestClient, AccountResource, Transaction, AppConfig, RefundReason
-from diem import jsonrpc, stdlib, utils, txnmetadata, diem_types
-from typing import Generator, Optional
-import pytest
+from diem import offchain, jsonrpc, stdlib, utils, txnmetadata, diem_types
+from typing import Generator, Optional, List
+import pytest, json
 
 
 amount: int = 12345
@@ -394,3 +394,372 @@ def wait_for_payment_transaction_complete(account: AccountResource, payment_id: 
     # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
     # Payment id is same with Transaction id.
     account.wait_for_event("updated_transaction", status=Transaction.Status.completed, id=payment_id)
+
+
+def test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with minimum valid kyc data and enough balance in the stub wallet application.
+    2. Create receiver account with minimum valid kyc data with 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SEND", "READY"]
+    5 . Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="minimum"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        payment_command_states=["S_INIT", "R_SEND", "READY"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected_by_the_receiver(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with kyc data that will be rejected by the target wallet application in the stub wallet application.
+    2. Create receiver account with minimum valid kyc data and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_ABORT"]
+    5 . Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="reject"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        payment_command_states=["S_INIT", "R_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_by_the_sender(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with minimum valid kyc data and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be rejected by the stub wallet application and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SEND", "S_ABORT"]
+    5. Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="minimum"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="reject")),
+        payment_command_states=["S_INIT", "R_SEND", "S_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with kyc data that will be soft matched by the target wallet application and enough balance in the stub wallet application.
+    2. Create receiver account with minimum valid kyc data and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "READY"]
+    4. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "READY"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with minimum valid kyc data and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be soft matched by the stub wallet application and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"]
+    5. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="minimum"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_match")),
+        payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with kyc data that will be soft matched and then rejected by the target wallet application in the stub wallet application.
+    2. Create receiver account with minimum valid kyc data and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_ABORT"]
+    5. Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="soft_reject"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with minimum valid kyc data and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be soft matched and then rejected by the stub wallet application and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"]
+    5. Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="minimum"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_reject")),
+        payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_receiver_aborts_for_sending_additional_kyc_data(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with minimum valid kyc data and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be soft matched by the stub wallet application and 0 balance in the target wallet application.
+    3. Setup the stub wallet applicatoin to abort the payment command if receiver requests additional KYC data (soft match).
+    4. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    5. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SEND", "S_SOFT", "R_ABORT"]
+    6. Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+            reject_additional_kyc_data_request=True,
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        payment_command_states=["S_INIT", "R_SOFT", "S_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_are_soft_match_then_accepted_after_reviewing_additional_kyc_data(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with kyc data that will be soft matched and then accepted by the target wallet application and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be soft matched and then accepted by the stub wallet application and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"]
+    5. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_match")),
+        payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_rejected(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with kyc data that will be soft matched and then accepted by the target wallet application and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be rejected by the stub wallet application and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_ABORT"]
+    5. Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="reject")),
+        payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_soft_match_and_rejected(
+    currency: str,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+    stub_client: RestClient,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create sender account with kyc data that will be soft matched and then accepted by the target wallet application and enough balance in the stub wallet application.
+    2. Create receiver account with kyc data that will be soft matched and then rejected by the stub wallet application and 0 balance in the target wallet application.
+    3. Send payment from sender account to receiver account, amount is equal to travel_rule threshold.
+    4. Wait for stub wallet application account events include payment command states: ["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"]
+    5. Expect sender and receiver accounts' balances are not changed.
+    """
+
+    receive_payment_meets_travel_rule_threshold(
+        sender=stub_client.create_account(
+            balances={currency: travel_rule_threshold},
+            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+        ),
+        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_reject")),
+        payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
+        currency=currency,
+        amount=travel_rule_threshold,
+        hrp=hrp,
+    )
+
+
+def receive_payment_meets_travel_rule_threshold(
+    sender: AccountResource,
+    receiver: AccountResource,
+    payment_command_states: List[str],
+    currency: str,
+    amount: int,
+    hrp: str,
+    sender_reject_additional_kyc_data_request: bool = False,
+) -> None:
+    sender_initial = sender.balance(currency)
+    receiver_initial = receiver.balance(currency)
+
+    payment_uri = receiver.generate_payment_uri()
+    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    assert send_payment.currency == currency
+    assert send_payment.amount == amount
+    assert send_payment.payee == payment_uri.intent(hrp).account_id
+
+    def match_exchange_states() -> None:
+        states = []
+        for e in sender.events():
+            if e.type in ["created_payment_command", "updated_payment_command"]:
+                payment_object = json.loads(e.data)["payment_object"]
+                payment = offchain.from_dict(payment_object, offchain.PaymentObject)
+                states.append(offchain.payment_state.MACHINE.match_state(payment).id)
+        assert states == payment_command_states
+
+    sender.wait_for(match_exchange_states)
+
+    if payment_command_states[-1] == "READY":
+        sender.wait_for_balance(currency, sender_initial - amount)
+        receiver.wait_for_balance(currency, receiver_initial + amount)
+    else:
+        sender.wait_for_balance(currency, sender_initial)
+        receiver.wait_for_balance(currency, receiver_initial)

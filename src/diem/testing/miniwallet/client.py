@@ -141,7 +141,7 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries >= max_tries:
-                    raise TimeoutError("%s, events: \n%s" % (e, self.dump_events())) from e
+                    raise TimeoutError("account(%s) events: %s" % (self.id, self.dump_events())) from e
                 time.sleep(delay)
 
     def log_events(self) -> None:

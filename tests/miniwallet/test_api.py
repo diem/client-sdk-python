@@ -5,6 +5,14 @@ from diem.testing.miniwallet import RestClient, Account
 import pytest, requests, json, time
 
 
+def test_create_account_with_balances_and_kyc_data(target_client: RestClient, currency: str) -> None:
+    kyc_data = target_client.new_kyc_data(sample="minimum")
+    balances = {currency: 123}
+    account = target_client.create_account(balances, kyc_data=kyc_data)
+    assert account.kyc_data == kyc_data
+    assert account.balances() == balances
+
+
 @pytest.mark.parametrize(
     "kyc_data",
     [

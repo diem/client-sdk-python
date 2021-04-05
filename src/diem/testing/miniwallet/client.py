@@ -37,7 +37,7 @@ class RestClient:
             "reject_additional_kyc_data_request": reject_additional_kyc_data_request,
         }
         account = self.create("/accounts", **{k: v for k, v in kwargs.items() if v})
-        return AccountResource(client=self, id=account["id"], kyc_data=account.get("kyc_data", None))
+        return AccountResource(client=self, id=account["id"], kyc_data=kyc_data)
 
     def new_soft_match_kyc_data(self) -> str:
         return self.new_kyc_data(sample="soft_match")

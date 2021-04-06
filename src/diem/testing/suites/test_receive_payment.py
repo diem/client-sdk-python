@@ -282,7 +282,7 @@ def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
 
 
 @pytest.mark.parametrize(  # pyre-ignore
-    "invalid_ref_id", [None, "", "ref_id_is_not_uuid", "4185027f-0574-6f55-2668-3a38fdb5de98"]
+    "invalid_ref_id", [None, "", "ref_id_is_not_uuid", "6cd81d79-f041-4f28-867f-e4d54950833e"]
 )
 def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
     sender_account: AccountResource,

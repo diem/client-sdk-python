@@ -75,6 +75,10 @@ class Endpoints:
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
         try:
+            if not offchain.UUID_REGEX.match(request_id):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.invalid_http_header, "invalid %s" % offchain.X_REQUEST_ID
+                )
             resp_obj = self.app.offchain_api(request_sender_address, input_data)
         except offchain.Error as e:
             self.app.logger.info(input_data)

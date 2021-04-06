@@ -15,6 +15,7 @@ from .command_types import (
     CommandRequestObject,
     CommandResponseStatus,
     FundPullPreApprovalCommandObject,
+    UUID_REGEX,
 )
 from .payment_types import (
     AbortCode,

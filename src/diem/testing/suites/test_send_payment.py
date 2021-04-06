@@ -53,8 +53,9 @@ def receiver_account(stub_client: RestClient) -> Generator[AccountResource, None
 
 @pytest.fixture
 def receiver_account_identifier(receiver_account: AccountResource, hrp: str) -> str:
-    payment_uri = receiver_account.generate_payment_uri()
-    return payment_uri.intent(hrp).account_id
+    """Generates a new receiver account identifier"""
+
+    return receiver_account.generate_account_identifier(hrp)
 
 
 @pytest.mark.parametrize("invalid_currency", ["XU", "USD", "xus", "", '"XUS"', "X"])
@@ -240,7 +241,7 @@ def test_send_payment_to_the_other_account_in_the_same_wallet(
 
     sender_initial_balance = sender_account.balance(currency)
     receiver_account = target_client.create_account()
-    receiver_account_identifier = receiver_account.generate_payment_uri().intent(hrp).account_id
+    receiver_account_identifier = receiver_account.generate_account_identifier(hrp)
 
     payment = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
     assert payment.amount == amount
@@ -584,11 +585,11 @@ def send_payment_meets_travel_rule_threshold(
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payment_uri = receiver.generate_payment_uri()
-    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    payee = receiver.generate_account_identifier(hrp)
+    send_payment = sender.send_payment(currency, amount, payee)
     assert send_payment.currency == currency
     assert send_payment.amount == amount
-    assert send_payment.payee == payment_uri.intent(hrp).account_id
+    assert send_payment.payee == payee
 
     def match_exchange_states() -> None:
         states = []

@@ -740,11 +740,11 @@ def receive_payment_meets_travel_rule_threshold(
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payment_uri = receiver.generate_payment_uri()
-    send_payment = sender.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    payee = receiver.generate_account_identifier(hrp)
+    send_payment = sender.send_payment(currency, amount, payee)
     assert send_payment.currency == currency
     assert send_payment.amount == amount
-    assert send_payment.payee == payment_uri.intent(hrp).account_id
+    assert send_payment.payee == payee
 
     def match_exchange_states() -> None:
         states = []

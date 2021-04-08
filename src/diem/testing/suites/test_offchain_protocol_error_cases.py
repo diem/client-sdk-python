@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import identifier, jsonrpc, offchain
+from diem import identifier, jsonrpc, offchain, testnet
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import RestClient, AppConfig
 from typing import Dict, Any, Tuple, Optional
@@ -184,6 +184,136 @@ def test_missing_x_request_sender_address(
     assert_response_error(resp, "missing_http_header", "protocol_error")
 
 
+def test_x_request_sender_is_valid_but_no_compliance_key(
+    target_client: RestClient,
+    diem_client: jsonrpc.Client,
+    currency: str,
+    travel_rule_threshold: int,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create a new on-chain account without base_url and compliance key.
+    2. Use new on-chain account address as sender address to create payment command request.
+    3. Send request to the target wallet application offchain API endpoint with new on-chain account address.
+    4. Expect response status code is 400
+    5. Expect response `CommandResponseObject` with failure status, `protocol_error` error type,
+       and `invalid_http_header` error code.
+    """
+
+    new_stub_account = testnet.gen_account(diem_client)
+    receiver_address = target_client.create_account().generate_account_identifier(hrp)
+    sender_address = new_stub_account.account_identifier()
+    request = payment_command_request_sample(
+        sender_address=sender_address,
+        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        receiver_address=receiver_address,
+        currency=currency,
+        amount=travel_rule_threshold,
+    )
+    status_code, resp = send_request_json(
+        diem_client,
+        new_stub_account,
+        sender_address,
+        receiver_address,
+        json.dumps(request),
+        hrp,
+    )
+    assert status_code == 400
+    assert resp.status == "failure"
+    assert_response_error(resp, "invalid_http_header", "protocol_error")
+
+
+def test_invalid_jws_message_body_that_misses_parts(
+    stub_config: AppConfig,
+    target_client: RestClient,
+    stub_client: RestClient,
+    diem_client: jsonrpc.Client,
+    currency: str,
+    travel_rule_threshold: int,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create a new on-chain account with base_url and compliance key.
+    2. Use new on-chain account address as sender address to create payment command request.
+    3. Send request that missed jws header part to the target wallet application offchain API endpoint.
+    4. Expect response status code is 400
+    5. Expect response `CommandResponseObject` with failure status, `protocol_error` error type,
+       and `invalid_jws` error code.
+    """
+
+    receiver_address = target_client.create_account().generate_account_identifier(hrp)
+    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    request = payment_command_request_sample(
+        sender_address=sender_address,
+        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        receiver_address=receiver_address,
+        currency=currency,
+        amount=travel_rule_threshold,
+    )
+    status_code, resp = send_request_json(
+        diem_client,
+        stub_config.account,
+        sender_address,
+        receiver_address,
+        json.dumps(request),
+        hrp,
+        request_body=b"invalid.jws_msg",
+    )
+    assert status_code == 400
+    assert resp.status == "failure"
+    assert_response_error(resp, "invalid_jws", "protocol_error")
+
+
+def test_invalid_jws_message_signature(
+    stub_config: AppConfig,
+    target_client: RestClient,
+    diem_client: jsonrpc.Client,
+    currency: str,
+    travel_rule_threshold: int,
+    hrp: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Create a new on-chain account with base_url and a new compliance key.
+    2. Use new on-chain account address as sender address to create payment command request.
+    3. Send request to the target wallet application offchain API endpoint with new on-chain account address and a different compliance key.
+    4. Expect response status code is 400
+    5. Expect response `CommandResponseObject` with failure status, `protocol_error` error type,
+       and `invalid_jws_signature` error code.
+    """
+
+    new_stub_account = testnet.gen_account(diem_client)
+    new_compliance_key = LocalAccount().compliance_public_key_bytes
+    new_stub_account.rotate_dual_attestation_info(diem_client, stub_config.server_url, new_compliance_key)
+
+    receiver_address = target_client.create_account().generate_account_identifier(hrp)
+    sender_address = new_stub_account.account_identifier()
+    request = payment_command_request_sample(
+        sender_address=sender_address,
+        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        receiver_address=receiver_address,
+        currency=currency,
+        amount=travel_rule_threshold,
+    )
+
+    status_code, resp = send_request_json(
+        diem_client,
+        new_stub_account,
+        sender_address,
+        receiver_address,
+        json.dumps(request),
+        hrp,
+    )
+    assert status_code == 400
+    assert resp.status == "failure"
+    assert_response_error(resp, "invalid_jws_signature", "protocol_error")
+
+
 def send_request_json(
     diem_client: jsonrpc.Client,
     sender_account: LocalAccount,
@@ -192,6 +322,7 @@ def send_request_json(
     request_json: str,
     hrp: str,
     x_request_id: Optional[str] = str(uuid.uuid4()),
+    request_body: Optional[bytes] = None,
 ) -> Tuple[int, offchain.CommandResponseObject]:
     headers = {}
     if x_request_id:
@@ -201,9 +332,11 @@ def send_request_json(
 
     account_address, _ = identifier.decode_account(receiver_address, hrp)
     base_url, public_key = diem_client.get_base_url_and_compliance_key(account_address)
+    if request_body is None:
+        request_body = offchain.jws.serialize_string(request_json, sender_account.compliance_key.sign)
     resp = requests.Session().post(
         f"{base_url.rstrip('/')}/v2/command",
-        data=offchain.jws.serialize_string(request_json, sender_account.compliance_key.sign),
+        data=request_body,
         headers=headers,
     )
 

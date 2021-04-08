@@ -48,9 +48,11 @@ def test_dumps_and_loads_request_command():
 
     request = offchain.CommandRequestObject(
         command_type=offchain.CommandType.PaymentCommand,
-        command=offchain.PaymentCommandObject(
-            _ObjectType=offchain.CommandType.PaymentCommand,
-            payment=payment,
+        command=offchain.to_dict(
+            offchain.PaymentCommandObject(
+                _ObjectType=offchain.CommandType.PaymentCommand,
+                payment=payment,
+            )
         ),
         cid="3185027f-0574-6f55-2668-3a38fdb5de98",
     )
@@ -163,7 +165,7 @@ def test_new_payment_request_and_object(factory):
     assert uuid.UUID(reference_id)
     assert "-" in reference_id
 
-    payment = request.command.payment
+    payment = offchain.from_dict(request.command, offchain.PaymentCommandObject).payment
     address, subaddress = identifier.decode_account(payment.sender.address, identifier.TDM)
     assert subaddress is not None
     assert address == sender.account_address
@@ -326,29 +328,14 @@ def test_invalid_object():
     assert e.value.code == "invalid_object"
 
 
-def test_field_value_because_of_invalid_object_type_for_union_type():
+def test_field_value_because_of_invalid_object_type_for_command():
     request_json = """{
   "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
   "command_type": "PaymentCommand",
   "command": "invalid",
   "_ObjectType": "CommandRequestObject"
 }"""
-    with pytest.raises(offchain.FieldError, match="expect json object, but got str: ") as e:
-        offchain.from_json(request_json)
-
-    assert e.value.code == "invalid_field_value"
-
-
-def test_invalid_object_type():
-    request_json = """{
-  "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
-  "command_type": "PaymentCommand",
-  "command": {
-    "_ObjectType": "InvalidCommand"
-  },
-  "_ObjectType": "CommandRequestObject"
-}"""
-    with pytest.raises(offchain.FieldError, match="could not find object type: InvalidCommand") as e:
+    with pytest.raises(offchain.FieldError, match="expect type dict, but got str") as e:
         offchain.from_json(request_json)
 
     assert e.value.code == "invalid_field_value"
@@ -440,9 +427,10 @@ def assert_cid(cid: str):
     assert "-" in cid
 
 
-def assert_field_error(json_dic, code, field, match):
+def assert_field_error(json_dic, code, field, match, command_type=offchain.PaymentCommandObject):
     with pytest.raises(offchain.FieldError, match=match) as e:
-        offchain.from_json(json.dumps(json_dic))
+        req = offchain.from_json(json.dumps(json_dic))
+        offchain.from_dict(req.command, field_path="command")
 
     assert e.value.code == code
     assert e.value.field == field

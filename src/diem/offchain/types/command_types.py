@@ -89,10 +89,6 @@ class OffChainErrorType:
     protocol_error = "protocol_error"
 
 
-# Late import to solve circular dependency and be able to list all the command types
-from .payment_types import PaymentCommandObject
-
-
 @dataclass(frozen=True)
 class FundPullPreApprovalCommandObject:
     _ObjectType: str = datafield(metadata={"valid-values": [CommandType.FundPullPreApprovalCommand]})
@@ -103,10 +99,8 @@ class CommandRequestObject:
     # A unique identifier for the Command.
     cid: str = datafield(metadata={"valid-values": UUID_REGEX})
     # A string representing the type of Command contained in the request.
-    command_type: str = datafield(
-        metadata={"valid-values": [CommandType.PaymentCommand, CommandType.FundPullPreApprovalCommand]}
-    )
-    command: typing.Union[PaymentCommandObject, FundPullPreApprovalCommandObject]
+    command_type: str
+    command: dict  # pyre-ignore
     _ObjectType: str = datafield(default="CommandRequestObject", metadata={"valid-values": ["CommandRequestObject"]})
 
 

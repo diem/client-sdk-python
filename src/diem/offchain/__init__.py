@@ -35,6 +35,7 @@ from .types import (
     individual_kyc_data,
     entity_kyc_data,
     to_json,
+    to_dict,
     from_json,
     from_dict,
     validate_write_once_fields,

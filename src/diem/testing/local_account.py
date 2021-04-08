@@ -136,12 +136,14 @@ class LocalAccount:
         txn = self.submit_txn(client, script)
         return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
 
-    def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -> jsonrpc.Transaction:
+    def rotate_dual_attestation_info(
+        self, client: jsonrpc.Client, base_url: str, compliance_key: Optional[bytes] = None
+    ) -> jsonrpc.Transaction:
+        if not compliance_key:
+            compliance_key = self.compliance_public_key_bytes
         return self.submit_and_wait_for_txn(
             client,
-            stdlib.encode_rotate_dual_attestation_info_script(
-                new_url=base_url.encode("utf-8"), new_key=self.compliance_public_key_bytes
-            ),
+            stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode("utf-8"), new_key=compliance_key),
         )
 
     def to_dict(self) -> Dict[str, str]:

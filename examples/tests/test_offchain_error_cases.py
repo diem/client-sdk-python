@@ -32,7 +32,7 @@ def test_send_command_failed_by_invalid_jws_signature_and_retry_by_bg_job(monkey
         with pytest.raises(CommandResponseError) as err:
             sender_app.run_once_background_job()
 
-        assert_response_command_error(err.value.resp, "invalid_jws_signature")
+        assert_response_protocol_error(err.value.resp, "invalid_jws_signature")
 
         assert len(sender_app.saved_commands) == 1
         assert len(receiver_app.saved_commands) == 0
@@ -113,14 +113,14 @@ def test_invalid_command_request_json(sender_app, receiver_app):
     resp = send_request("invalid_request_json", sender_app, receiver_app, "failure")
 
     assert resp.cid is None
-    assert_response_command_error(resp, "invalid_object")
+    assert_response_protocol_error(resp, "invalid_object")
 
 
 def test_invalid_json(sender_app, receiver_app):
     resp = send_request_json("invalid_json", sender_app, receiver_app, "failure")
 
     assert resp.cid is None
-    assert_response_command_error(resp, "invalid_json")
+    assert_response_protocol_error(resp, "invalid_json")
 
 
 def test_missing_required_fields(sender_app, receiver_app):
@@ -134,7 +134,10 @@ def test_missing_required_fields(sender_app, receiver_app):
         new_req = copy.deepcopy(request)
         set_field(new_req, field, None)
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "missing_field", field)
+        if field.startswith("command."):
+            assert_response_command_error(resp, "missing_field", field)
+        else:
+            assert_response_protocol_error(resp, "missing_field", field)
 
 
 def test_unknown_fields(sender_app, receiver_app):
@@ -145,7 +148,10 @@ def test_unknown_fields(sender_app, receiver_app):
         unknown_field = field + "-unknown"
         set_field(new_req, unknown_field, "any")
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "unknown_field", unknown_field)
+        if field.startswith("command."):
+            assert_response_command_error(resp, "unknown_field", unknown_field)
+        else:
+            assert_response_protocol_error(resp, "unknown_field", unknown_field)
 
 
 def test_invalid_field_value(sender_app, receiver_app):
@@ -153,7 +159,6 @@ def test_invalid_field_value(sender_app, receiver_app):
 
     fields = [
         "_ObjectType",
-        "command_type",
         "command._ObjectType",
         "command.payment.action.action",
         "command.payment.receiver.status.status",
@@ -167,7 +172,19 @@ def test_invalid_field_value(sender_app, receiver_app):
         new_req = copy.deepcopy(request)
         set_field(new_req, field, "invalid-value")
         resp = send_request(new_req, sender_app, receiver_app, "failure")
-        assert_response_command_error(resp, "invalid_field_value", field)
+        if field.startswith("command."):
+            assert_response_command_error(resp, "invalid_field_value", field)
+        else:
+            assert_response_protocol_error(resp, "invalid_field_value", field)
+
+
+def test_unknown_command_type(sender_app, receiver_app):
+    request = minimum_required_fields_request_sample(sender_app, receiver_app)
+
+    field = "command_type"
+    set_field(request, field, "invalid-value")
+    resp = send_request(request, sender_app, receiver_app, "failure")
+    assert_response_protocol_error(resp, "unknown_command_type", field)
 
 
 def test_invalid_field_value_type(sender_app, receiver_app):
@@ -319,7 +336,7 @@ def test_cid_uuid(sender_app, receiver_app):
     request = minimum_required_fields_request_sample(sender_app, receiver_app)
     request["cid"] = "invalid uuid"
     resp = send_request(request, sender_app, receiver_app, "failure")
-    assert_response_command_error(resp, "invalid_field_value", "cid")
+    assert_response_protocol_error(resp, "invalid_field_value", "cid")
 
 
 def test_reference_id_uuid(sender_app, receiver_app):

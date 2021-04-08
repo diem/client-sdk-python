@@ -22,8 +22,9 @@ from .types import (
     PaymentCommandObject,
     ErrorCode,
     FieldError,
+    from_dict,
 )
-from .error import command_error, protocol_error, Error
+from .error import command_error, protocol_error
 
 from . import jws, http_header
 from .. import jsonrpc, diem_types, identifier, utils
@@ -31,6 +32,7 @@ from .. import jsonrpc, diem_types, identifier, utils
 
 DEFAULT_CONNECT_TIMEOUT_SECS: float = 2.0
 DEFAULT_TIMEOUT_SECS: float = 30.0
+T = typing.TypeVar("T")
 
 
 class CommandResponseError(Exception):
@@ -129,7 +131,7 @@ class Client:
         if response.status_code not in [200, 400]:
             response.raise_for_status()
 
-        cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key, protocol_error)
+        cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key)
         if cmd_resp.status == CommandResponseStatus.failure:
             raise CommandResponseError(cmd_resp)
         return cmd_resp
@@ -166,7 +168,7 @@ class Client:
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
         public_key = self.get_inbound_request_sender_public_key(request_sender_address)
-        return _deserialize_jws(request_bytes, CommandRequestObject, public_key, command_error)
+        return _deserialize_jws(request_bytes, CommandRequestObject, public_key)
 
     def process_inbound_payment_command_request(
         self, request_sender_address: str, request: CommandRequestObject
@@ -183,12 +185,13 @@ class Client:
         """
 
         if request.command_type != CommandType.PaymentCommand:
-            raise command_error(
+            raise protocol_error(
                 ErrorCode.unknown_command_type,
                 f"unknown command_type: {request.command_type}",
+                field="command_type",
             )
 
-        payment = typing.cast(PaymentCommandObject, request.command).payment
+        payment = deserialize_command(request.command, PaymentCommandObject).payment
         self.validate_addresses(payment, request_sender_address)
         cmd = self.create_inbound_payment_command(request.cid, payment)
         if cmd.is_initial():
@@ -310,20 +313,26 @@ def _filter_supported_currency_codes(
 
 def _deserialize_jws(
     content_bytes: bytes,
-    klass: typing.Type[jws.T],
+    klass: typing.Type[T],
     public_key: Ed25519PublicKey,
-    error_fn: typing.Callable[[str, str, typing.Optional[str]], Error],
-) -> jws.T:
+) -> T:
     try:
         return jws.deserialize(content_bytes, klass, public_key.verify)
     except JSONDecodeError as e:
-        raise error_fn(ErrorCode.invalid_json, f"decode json string failed: {e}", None) from e
+        raise protocol_error(ErrorCode.invalid_json, f"decode json string failed: {e}", None) from e
     except FieldError as e:
-        raise error_fn(e.code, f"invalid {klass.__name__} json: {e}", e.field) from e
+        raise protocol_error(e.code, f"invalid {klass.__name__} json: {e}", e.field) from e
     except InvalidSignature as e:
-        raise error_fn(ErrorCode.invalid_jws_signature, f"invalid jws signature: {e}", None) from e
+        raise protocol_error(ErrorCode.invalid_jws_signature, f"invalid jws signature: {e}", None) from e
     except ValueError as e:
-        raise error_fn(ErrorCode.invalid_jws, f"deserialize JWS bytes failed: {e}", None) from e
+        raise protocol_error(ErrorCode.invalid_jws, f"deserialize JWS bytes failed: {e}", None) from e
+
+
+def deserialize_command(command: typing.Dict[str, typing.Any], klass: typing.Type[T]) -> T:
+    try:
+        return from_dict(command, klass, field_path="command")
+    except FieldError as e:
+        raise command_error(e.code, f"invalid {klass.__name__} json: {e}", e.field) from e
 
 
 def _is_under_the_threshold(limit: int, rate: float, amount: int) -> bool:

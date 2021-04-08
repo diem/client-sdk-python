@@ -64,20 +64,24 @@ _OBJECT_TYPE_FIELD_NAME = "_ObjectType"
 
 
 def to_json(obj: T, indent: typing.Optional[int] = None) -> str:
+    return json.dumps(to_dict(obj), indent=indent)
+
+
+def to_dict(obj: T) -> typing.Dict[str, typing.Any]:
     if dataclasses.is_dataclass(obj):
         raw = dataclasses.asdict(obj)
     elif isinstance(obj, list):
         raw = list(map(dataclasses.asdict, obj))
     else:
         raw = obj
-    return json.dumps(_delete_none(raw), indent=indent)
+    return _delete_none(raw)
 
 
 def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -> T:
     return from_dict(json.loads(data), klass)
 
 
-def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str = "") -> T:  # pyre-ignore
+def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]] = None, field_path: str = "") -> T:  # pyre-ignore
     if klass is None or _is_union(klass):
         if not isinstance(obj, dict):
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
@@ -100,17 +104,18 @@ def _from_dict(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str)
         return obj
 
     unknown_fields = list(obj.keys())
+    fields = {}
     for field in dataclasses.fields(klass):
         if field.name in unknown_fields:
             unknown_fields.remove(field.name)
-        obj[field.name] = _field_value_from_dict(field, obj, field_path)
+        fields[field.name] = _field_value_from_dict(field, obj, field_path)
 
     if len(unknown_fields) > 0:
         unknown_fields.sort()
         full_name = _join_field_path(field_path, unknown_fields[0])
         field_names = ", ".join(unknown_fields)
         raise FieldError(ErrorCode.unknown_field, full_name, f"{field_path}: {field_names}")
-    return klass(**obj)
+    return klass(**fields)
 
 
 def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path: str) -> typing.Any:  # pyre-ignore
@@ -223,9 +228,11 @@ def new_payment_request(
     return CommandRequestObject(
         cid=cid or str(uuid.uuid4()),
         command_type=CommandType.PaymentCommand,
-        command=PaymentCommandObject(
-            _ObjectType=CommandType.PaymentCommand,
-            payment=payment,
+        command=to_dict(
+            PaymentCommandObject(
+                _ObjectType=CommandType.PaymentCommand,
+                payment=payment,
+            )
         ),
     )
 

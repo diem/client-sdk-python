@@ -3,7 +3,7 @@
 
 
 from diem.testing.miniwallet import RestClient, AccountResource
-from diem import identifier, utils
+from diem import identifier
 from typing import Union
 import pytest, requests
 
@@ -21,7 +21,6 @@ def test_generate_account_payment_uri_without_currency_and_amount(account: Accou
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code is None
     assert intent.amount is None
 
@@ -33,7 +32,6 @@ def test_generate_account_payment_uri_with_currency(account: AccountResource, cu
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code == currency
     assert intent.amount is None
 
@@ -46,7 +44,6 @@ def test_generate_account_payment_uri_with_amount(account: AccountResource, hrp:
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code is None
     assert intent.amount == amount
 
@@ -61,7 +58,6 @@ def test_generate_account_payment_uri_with_currency_and_amount(
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code == currency
     assert intent.amount == amount
 
@@ -82,11 +78,3 @@ def test_generate_account_payment_uri_with_integer_overflow_amount(account: Acco
     amount = 324234324342234234234234242234234324323423432432423423243242342342342342342342342334234
     with pytest.raises(requests.HTTPError, match="400 Client Error"):
         account.generate_payment_uri(amount=amount)
-
-
-def test_generate_account_payment_URI_should_include_unique_subaddress(account: AccountResource, hrp: str) -> None:
-    def subaddress(uri: str) -> str:
-        return utils.hex(identifier.decode_intent(uri, hrp).subaddress)
-
-    subaddresses = [subaddress(account.generate_payment_uri().payment_uri) for _ in range(10)]
-    assert sorted(subaddresses) == sorted(list(set(subaddresses)))

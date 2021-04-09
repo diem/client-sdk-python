@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import RestClient, Account
+from diem import utils, identifier
 import pytest, requests, json, time
 
 
@@ -120,3 +121,13 @@ def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) 
 def test_openapi_spec(target_client: RestClient) -> None:
     resp = target_client.send("GET", "/openapi.yaml")
     assert resp.text
+
+
+def test_generate_account_payment_URI_should_include_unique_subaddress(target_client: RestClient, hrp: str) -> None:
+    account = target_client.create_account()
+
+    def subaddress(uri: str) -> str:
+        return utils.hex(identifier.decode_intent(uri, hrp).subaddress)
+
+    subaddresses = [subaddress(account.generate_payment_uri().payment_uri) for _ in range(10)]
+    assert sorted(subaddresses) == sorted(list(set(subaddresses)))

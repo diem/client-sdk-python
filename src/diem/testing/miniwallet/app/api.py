@@ -47,7 +47,7 @@ class Endpoints:
 
     @rest_handler
     def on_post_accounts(self, input: JsonInput) -> Tuple[str, Dict[str, str]]:
-        return (falcon.HTTP_201, asdict(self.app.create_account(input)))
+        return (falcon.HTTP_201, self.app.create_account(input))
 
     @rest_handler
     def on_post_payments(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, Any]]:

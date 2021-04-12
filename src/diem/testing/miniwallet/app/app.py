@@ -26,9 +26,9 @@ class Base:
         self.event_puller.add(account.account_address)
         self.event_puller.head()
 
-    def _validate_kyc_data(self, name: str, val: str) -> None:
+    def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
         try:
-            offchain.from_json(val, KycDataObject)
+            offchain.from_dict(val, KycDataObject)
         except (JSONDecodeError, offchain.types.FieldError) as e:
             raise ValueError("%r must be JSON-encoded KycDataObject: %s" % (name, e))
 
@@ -282,10 +282,10 @@ class BackgroundTasks(OffChainAPI):
 
 
 class App(BackgroundTasks):
-    def create_account(self, data: JsonInput) -> Account:
+    def create_account(self, data: JsonInput) -> Dict[str, str]:
         account = self.store.create(
             Account,
-            kyc_data=data.get_nullable("kyc_data", str, self._validate_kyc_data),
+            kyc_data=data.get_nullable("kyc_data", dict, self._validate_kyc_data),
             # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
             # setting up mini-wallet stub to reject additional_kyc_data request.
             reject_additional_kyc_data_request=data.get_nullable("reject_additional_kyc_data_request", bool),
@@ -296,7 +296,7 @@ class App(BackgroundTasks):
                 self._create_transaction(
                     account.id, Transaction.Status.completed, JsonInput({"currency": c, "amount": a})
                 )
-        return Account(id=account.id)
+        return {"id": account.id}
 
     def create_account_payment(self, account_id: str, data: JsonInput) -> Payment:
         self.store.find(Account, id=account_id)

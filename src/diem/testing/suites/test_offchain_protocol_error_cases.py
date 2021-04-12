@@ -1,6 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+from dataclasses import asdict
 from diem import identifier, jsonrpc, offchain, testnet
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import RestClient, AppConfig
@@ -32,7 +33,7 @@ def test_invalid_x_request_id(
     sender_address = stub_client.create_account().generate_account_identifier(hrp)
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -74,7 +75,7 @@ def test_missing_x_request_id(
     sender_address = stub_client.create_account().generate_account_identifier(hrp)
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -125,7 +126,7 @@ def test_invalid_x_request_sender_address(
     sender_address = stub_client.create_account().generate_account_identifier(hrp)
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -166,7 +167,7 @@ def test_missing_x_request_sender_address(
     sender_address = stub_client.create_account().generate_account_identifier(hrp)
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -207,7 +208,7 @@ def test_x_request_sender_is_valid_but_no_compliance_key(
     sender_address = new_stub_account.account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -249,7 +250,7 @@ def test_invalid_jws_message_body_that_misses_parts(
     sender_address = stub_client.create_account().generate_account_identifier(hrp)
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -295,7 +296,7 @@ def test_invalid_jws_message_signature(
     sender_address = new_stub_account.account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=json.loads(target_client.new_kyc_data(sample="minimum")),
+        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -346,7 +347,7 @@ def send_request_json(
 
 
 def payment_command_request_sample(
-    sender_address: str, sender_kyc_data: Dict[str, Any], receiver_address: str, currency: str, amount: int
+    sender_address: str, sender_kyc_data: offchain.KycDataObject, receiver_address: str, currency: str, amount: int
 ) -> Dict[str, Any]:
     """Creates a `PaymentCommand` initial state request JSON object (dictionary).
 
@@ -366,7 +367,7 @@ def payment_command_request_sample(
                 "sender": {
                     "address": sender_address,
                     "status": {"status": "needs_kyc_data"},
-                    "kyc_data": sender_kyc_data,
+                    "kyc_data": asdict(sender_kyc_data),
                 },
                 "receiver": {
                     "address": receiver_address,

@@ -15,14 +15,11 @@ class Base:
 
 @dataclass
 class Account(Base):
-    kyc_data: Optional[str] = field(default=None)
+    kyc_data: Optional[offchain.KycDataObject] = field(default=None)
     reject_additional_kyc_data_request: Optional[bool] = field(default=False)
 
     def kyc_data_object(self) -> offchain.KycDataObject:
-        if self.kyc_data:
-            return offchain.from_json(str(self.kyc_data), offchain.KycDataObject)
-        else:
-            return offchain.individual_kyc_data()
+        return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore
 
 
 @dataclass
@@ -58,20 +55,20 @@ class Event(Base):
 
 @dataclass
 class KycSample:
-    minimum: str
-    reject: str
-    soft_match: str
-    soft_reject: str
+    minimum: offchain.KycDataObject
+    reject: offchain.KycDataObject
+    soft_match: offchain.KycDataObject
+    soft_reject: offchain.KycDataObject
 
     @staticmethod
     def gen(surname: str) -> "KycSample":
-        def gen_kyc_data(name: str) -> str:
-            return offchain.to_json(offchain.individual_kyc_data(given_name=name, surname=surname))
+        def gen_kyc_data(name: str) -> offchain.KycDataObject:
+            return offchain.individual_kyc_data(given_name=name, surname=surname)
 
         return KycSample(**{f.name: gen_kyc_data("%s-kyc" % f.name) for f in fields(KycSample)})
 
     def match_kyc_data(self, field: str, kyc: offchain.KycDataObject) -> bool:
-        subset = asdict(offchain.from_json(getattr(self, field), offchain.KycDataObject))
+        subset = asdict(getattr(self, field))
         return all(getattr(kyc, k) == v for k, v in subset.items() if v)
 
     def match_any_kyc_data(self, fields: List[str], kyc: offchain.KycDataObject) -> bool:

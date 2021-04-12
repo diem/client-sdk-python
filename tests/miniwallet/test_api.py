@@ -3,6 +3,7 @@
 
 from diem.testing.miniwallet import RestClient, Account
 from diem import utils, identifier
+from typing import Dict, Any
 import pytest, requests, json, time
 
 
@@ -17,14 +18,13 @@ def test_create_account_with_balances_and_kyc_data(target_client: RestClient, cu
 @pytest.mark.parametrize(
     "kyc_data",
     [
-        "invalid json",
-        '{"type": "individual"}',
-        '{"type": "entity"}',
-        '{"payload_version": 1}',
-        '{"type": "individual", "payload_version": "1"}',
+        {"type": "individual"},
+        {"type": "entity"},
+        {"payload_version": 1},
+        {"type": "individual", "payload_version": "1"},
     ],
 )
-def test_create_an_account_with_invalid_kyc_data(target_client: RestClient, kyc_data: str) -> None:
+def test_create_an_account_with_invalid_kyc_data(target_client: RestClient, kyc_data: Dict[str, Any]) -> None:
     with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
         target_client.create("/accounts", kyc_data=kyc_data)
 
@@ -80,7 +80,7 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
     amount = travel_rule_threshold
     receiver = target_client.create_account()
     payment_uri = receiver.generate_payment_uri()
-    sender = stub_client.create_account({currency: amount}, kyc_data=target_client.new_reject_kyc_data())
+    sender = stub_client.create_account({currency: amount}, kyc_data=target_client.new_kyc_data(sample="reject"))
     # payment should be rejected during offchain kyc data exchange
     payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
 

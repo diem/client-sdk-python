@@ -28,37 +28,25 @@ class RestClient:
     def create_account(
         self,
         balances: Optional[Dict[str, int]] = None,
-        kyc_data: Optional[str] = None,
+        kyc_data: Optional[offchain.KycDataObject] = None,
         reject_additional_kyc_data_request: Optional[bool] = None,
     ) -> "AccountResource":
         kwargs = {
             "balances": balances,
-            "kyc_data": kyc_data,
+            "kyc_data": asdict(kyc_data) if kyc_data else None,
             "reject_additional_kyc_data_request": reject_additional_kyc_data_request,
         }
         account = self.create("/accounts", **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account["id"], kyc_data=kyc_data)
 
-    def new_soft_match_kyc_data(self) -> str:
-        return self.new_kyc_data(sample="soft_match")
-
-    def new_reject_kyc_data(self) -> str:
-        return self.new_kyc_data(sample="reject")
-
-    def new_soft_reject_kyc_data(self) -> str:
-        return self.new_kyc_data(sample="soft_reject")
-
-    def new_valid_kyc_data(self) -> str:
-        return self.new_kyc_data(sample="minimum")
-
-    def new_kyc_data(self, name: Optional[str] = None, sample: str = "minimum") -> str:
-        obj = offchain.from_json(getattr(self.kyc_sample(), sample), offchain.KycDataObject)
+    def new_kyc_data(self, name: Optional[str] = None, sample: str = "minimum") -> offchain.KycDataObject:
+        obj = getattr(self.kyc_sample(), sample)
         if not name:
             name = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        return offchain.to_json(replace(obj, legal_entity_name=name))
+        return replace(obj, legal_entity_name=name)
 
     def kyc_sample(self) -> KycSample:
-        return KycSample(**self.send("GET", "/kyc_sample").json())
+        return offchain.from_dict(self.send("GET", "/kyc_sample").json(), KycSample)
 
     def create(self, path: str, **kwargs: Any) -> Dict[str, Any]:
         return self.send("POST", path, json.dumps(kwargs) if kwargs else None).json()
@@ -98,7 +86,7 @@ class AccountResource:
 
     client: RestClient
     id: str
-    kyc_data: Optional[str] = field(default=None)
+    kyc_data: Optional[offchain.KycDataObject] = field(default=None)
 
     def balance(self, currency: str) -> int:
         """Get account balance for the given currency
@@ -227,17 +215,11 @@ class AccountResource:
 
         As we use JSON-encoded string field, this function tries to decoding all JSON-encoded
         string as dictionary for pretty print event data in log.
-
-        First try to decode `data` as JSON-encoded object.
-        If there is `kyc_data` field, try decoding it as JSON-encoded object as well (for the
-        Python SDK mini-wallet application `created_account` event.
         """
 
         ret = asdict(event)
         try:
             ret["data"] = json.loads(event.data)
-            if ret["data"].get("kyc_data"):
-                ret["data"]["kyc_data"] = json.loads(ret["data"]["kyc_data"])
         except json.decoder.JSONDecodeError:
             pass
         return ret

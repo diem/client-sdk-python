@@ -9,7 +9,7 @@ from diem import offchain
 
 def test_match_kyc_data():
     ks = KycSample.gen("foo")
-    obj = offchain.from_json(ks.soft_match, offchain.KycDataObject)
+    obj = ks.soft_match
     assert ks.match_kyc_data("soft_match", obj)
     assert not ks.match_kyc_data("reject", obj)
 
@@ -26,7 +26,7 @@ def test_decode_account_kyc_data():
     sample = KycSample.gen("foo")
     account = Account(id="1", kyc_data=sample.minimum)
     assert account.kyc_data_object()
-    assert offchain.to_json(account.kyc_data_object()) == sample.minimum
+    assert account.kyc_data_object() == sample.minimum
 
 
 def test_payment_uri_intent_identifier():

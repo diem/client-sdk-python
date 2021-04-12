@@ -8,7 +8,6 @@ from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
 from .envs import (
     target_url,
     is_self_check,
-    should_test_debug_api,
     dmw_stub_server,
     dmw_stub_diem_account_config,
 )
@@ -18,7 +17,7 @@ import pytest, json
 @pytest.fixture(scope="package")
 def target_client(diem_client: jsonrpc.Client) -> RestClient:
     if is_self_check():
-        conf = AppConfig(name="target-wallet", enable_debug_api=should_test_debug_api())
+        conf = AppConfig(name="target-wallet")
         print("self-checking, launch target app with config %s" % conf)
         conf.start(diem_client)
         return conf.create_client()
@@ -35,7 +34,7 @@ def diem_client() -> jsonrpc.Client:
 
 @pytest.fixture(scope="package")
 def stub_config() -> AppConfig:
-    conf = AppConfig(name="stub-wallet", enable_debug_api=True, server_conf=ServerConfig(**dmw_stub_server()))
+    conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()))
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print("loads stub account config: %s" % account_conf)

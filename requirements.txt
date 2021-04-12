@@ -10,6 +10,6 @@ pyre-check==0.0.58
 pytest-cov
 mypy-protobuf
 pdoc3
-falcon
+falcon==2.0.0
 waitress
 pygount

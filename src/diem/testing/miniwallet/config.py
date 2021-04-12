@@ -24,7 +24,7 @@ class ServerConfig:
 @dataclass
 class AppConfig:
     name: str = field(default="mini-wallet")
-    enable_debug_api: bool = field(default=False)
+    disable_events_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
     server_conf: ServerConfig = field(default_factory=ServerConfig)
     initial_amount: int = field(default=1_000_000_000_000)
@@ -73,7 +73,7 @@ class AppConfig:
         return False
 
     def serve(self, client: jsonrpc.Client) -> threading.Thread:
-        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
+        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
 
         def serve() -> None:
             self.logger.info("serving on %s:%s at %s", self.server_conf.host, self.server_conf.port, self.server_url)

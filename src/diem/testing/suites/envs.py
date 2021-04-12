@@ -6,7 +6,6 @@ from typing import Optional, Dict, Any
 
 
 TARGET_URL: str = "DMW_TEST_TARGET"
-TEST_DEBUG_API: str = "DMW_TEST_DEBUG_API"
 SELF_CHECK: str = "DMW_SELF_CHECK"
 
 DMW_STUB_BIND_HOST: str = "DMW_STUB_BIND_HOST"
@@ -51,7 +50,3 @@ def target_url() -> str:
 
 def is_self_check() -> bool:
     return getenv(SELF_CHECK) is not None
-
-
-def should_test_debug_api() -> bool:
-    return getenv(TEST_DEBUG_API) is not None

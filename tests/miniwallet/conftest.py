@@ -38,7 +38,7 @@ def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
 
 
 def start_app(diem_client: jsonrpc.Client, app_name: str) -> AppConfig:
-    conf = AppConfig(name=app_name, enable_debug_api=True)
+    conf = AppConfig(name=app_name)
     print("launch %s with config %s" % (app_name, conf))
     conf.start(diem_client)
     return conf

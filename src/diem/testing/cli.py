@@ -35,7 +35,7 @@ def main() -> None:
 @click.option("--port", "-p", default=8888, help="Start server port.")
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
-@click.option("--enable-debug-api", "-o", default=True, help="Enable debug API.", type=bool, is_flag=True)
+@click.option("--disable-events-api", "-o", default=False, help="Disable account events API.", type=bool, is_flag=True)
 @click.option(
     "--logfile", "-l", default=None, type=click.Path(), help="Log to a file instead of printing into console."
 )
@@ -52,14 +52,14 @@ def start_server(
     port: int,
     jsonrpc: str,
     faucet: str,
-    enable_debug_api: bool,
+    disable_events_api: bool,
     import_diem_account_config_file: Optional[TextIO],
     logfile: Optional[str],
 ) -> None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
-    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), enable_debug_api=enable_debug_api)
+    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), disable_events_api=disable_events_api)
     if import_diem_account_config_file:
         conf.account_config = json.load(import_diem_account_config_file)
 
@@ -110,15 +110,6 @@ def start_server(
     show_default=False,
 )
 @click.option(
-    "--test-debug-api",
-    "-d",
-    default=False,
-    is_flag=True,
-    callback=set_env(envs.TEST_DEBUG_API),
-    help="Run tests for debug APIs.",
-    type=bool,
-)
-@click.option(
     "--logfile", "-l", default=None, help="Log to a file instead of printing into console.", type=click.Path()
 )
 @click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
@@ -138,7 +129,6 @@ def test(
     jsonrpc: str,
     faucet: str,
     pytest_args: str,
-    test_debug_api: bool,
     logfile: Optional[str],
     verbose: bool,
     import_stub_diem_account_config_file: Optional[TextIO],

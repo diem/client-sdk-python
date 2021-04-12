@@ -95,15 +95,16 @@ class Endpoints:
         raise falcon.HTTPMovedPermanently("/index.html")
 
 
-def falcon_api(app: App, enable_debug_api: bool = False) -> falcon.API:
+def falcon_api(app: App, disable_events_api: bool = False) -> falcon.API:
     endpoints = Endpoints(app=app)
     api = falcon.API(middleware=[LoggerMiddleware(logger=app.logger)])
     api.add_static_route("/", base_path)
     api.add_route("/", endpoints, suffix="index")
     api.add_route("/accounts", endpoints, suffix="accounts")
     for res in ["balances", "payments", "payment_uris", "events"]:
-        if res != "events" or enable_debug_api:
-            api.add_route("/accounts/{account_id}/%s" % res, endpoints, suffix=res)
+        if res == "events" and disable_events_api:
+            continue
+        api.add_route("/accounts/{account_id}/%s" % res, endpoints, suffix=res)
     api.add_route("/kyc_sample", endpoints, suffix="kyc_sample")
     api.add_route("/v2/command", endpoints, suffix="offchain")
     app.start_sync()

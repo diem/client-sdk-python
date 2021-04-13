@@ -6,11 +6,11 @@ from typing import List, Tuple, Dict, Optional, Any
 from json.decoder import JSONDecodeError
 from .store import InMemoryStore, NotFoundError
 from .diem_account import DiemAccount
-from .models import PaymentUri, Subaddress, Account, Transaction, Event, KycSample, Payment, PaymentCommand
+from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentCommand
 from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
-from .... import jsonrpc, offchain, utils, identifier
+from .... import jsonrpc, offchain, utils
 from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
 import threading, logging, numpy
 
@@ -325,22 +325,19 @@ class App(BackgroundTasks):
                 )
         return {"id": account.id}
 
-    def create_account_payment(self, account_id: str, data: JsonInput) -> Payment:
+    def create_account_payment(self, account_id: str, data: JsonInput) -> Dict[str, Any]:
         self.store.find(Account, id=account_id)
         payee = data.get("payee", str, self._validate_account_identifier)
         txn = self._create_transaction(
             account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
         )
-        return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)
+        return {"id": txn.id}
 
-    def create_account_payment_uri(self, account_id: str, data: JsonInput) -> PaymentUri:
-        currency = data.get_nullable("currency", str, self._validate_currency_code)
-        amount = data.get_nullable("amount", int, self._validate_amount)
+    def create_account_identifier(self, account_id: str, data: JsonInput) -> Dict[str, str]:
         self.store.find(Account, id=account_id)
         sub = self._gen_subaddress(account_id)
         diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
-        uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)
+        return {"account_identifier": diem_acc_id}
 
     def get_account_balances(self, account_id: str) -> Dict[str, int]:
         self.store.find(Account, id=account_id)

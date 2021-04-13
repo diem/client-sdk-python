@@ -3,7 +3,7 @@
 
 
 from dataclasses import replace, asdict
-from diem.testing.miniwallet import KycSample, Account, PaymentUri, Transaction, PaymentCommand
+from diem.testing.miniwallet import KycSample, Account, Transaction, PaymentCommand
 from diem import offchain
 
 
@@ -27,16 +27,6 @@ def test_decode_account_kyc_data():
     account = Account(id="1", kyc_data=sample.minimum)
     assert account.kyc_data_object()
     assert account.kyc_data_object() == sample.minimum
-
-
-def test_payment_uri_intent_identifier():
-    uri = PaymentUri(
-        id="1",
-        account_id="2",
-        payment_uri="diem://dm1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4us2vfufk",
-    )
-    assert uri.intent("dm")
-    assert uri.intent("dm").sub_address.hex() == "cf64428bdeb62af2"
 
 
 def test_transaction_balance_amount():

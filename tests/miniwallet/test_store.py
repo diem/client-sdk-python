@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem.testing.miniwallet.app import store, PaymentUri, Event, PaymentCommand, Account
+from diem.testing.miniwallet.app import store, Event, PaymentCommand, Account, Subaddress
 import pytest
 
 
@@ -91,25 +91,26 @@ def test_next_id():
 
 def test_create_should_create_record_event():
     s = store.InMemoryStore()
-    s.create(PaymentUri, account_id="1", payment_uri="payment uri")
+    s.create(Subaddress, account_id="account_123", subaddress_hex="cf64428bdeb62af2")
     events = s.find_all(Event)
     assert len(events) == 1
-    assert events[0].account_id == "1"
-    assert events[0].type == "created_payment_uri"
-    assert events[0].data == '{"account_id": "1", "payment_uri": "payment uri", "id": "1"}'
+    assert events[0].account_id == "account_123"
+    assert events[0].type == "created_subaddress"
+    assert events[0].data == '{"account_id": "account_123", "subaddress_hex": "cf64428bdeb62af2", "id": "1"}'
 
 
 def test_update():
     s = store.InMemoryStore()
-    uri = s.create(PaymentUri, account_id="1", payment_uri="payment uri")
-    s.update(uri, payment_uri="abc")
-    assert uri.payment_uri == "abc"
-    assert s.find(PaymentUri, id=uri.id).payment_uri == "abc"
+    subaddress = s.create(Subaddress, account_id="account_123", subaddress_hex="cf64428bdeb62af2")
+
+    s.update(subaddress, subaddress_hex="aaaaa28bdeb62af2")
+    assert subaddress.subaddress_hex == "aaaaa28bdeb62af2"
+    assert s.find(Subaddress, id=subaddress.id).subaddress_hex == "aaaaa28bdeb62af2"
     events = s.find_all(Event)
     assert len(events) == 2
-    assert events[1].account_id == "1"
-    assert events[1].type == "updated_payment_uri"
-    assert events[1].data == '{"payment_uri": "abc", "id": "1"}'
+    assert events[1].account_id == "account_123"
+    assert events[1].type == "updated_subaddress"
+    assert events[1].data == '{"subaddress_hex": "aaaaa28bdeb62af2", "id": "1"}'
 
 
 def test_record_create_account_event():
@@ -123,7 +124,7 @@ def test_record_create_account_event():
 
 def test_update_obj_not_found():
     s = store.InMemoryStore()
-    uri = s.create(PaymentUri, account_id="1", payment_uri="payment uri")
-    uri.id = "unknown"
+    subaddress = s.create(Subaddress, account_id="1", subaddress_hex="cf64428bdeb62af2")
+    subaddress.id = "unknown"
     with pytest.raises(store.NotFoundError):
-        s.update(uri, payment_uri="abc")
+        s.update(subaddress, subaddress_hex="0000000000000000")

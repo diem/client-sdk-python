@@ -52,17 +52,17 @@ def test_create_an_account_with_invalid_initial_deposit_balance_currency(
     assert err_msg in einfo.value.response.text
 
 
-def test_receive_multiple_payments(target_client: RestClient, stub_client: RestClient, hrp: str, currency: str) -> None:
+def test_receive_multiple_payments(target_client: RestClient, stub_client: RestClient, currency: str) -> None:
     receiver = stub_client.create_account()
-    payment_uri = receiver.generate_payment_uri()
+    receiver_account_identifier = receiver.generate_account_identifier()
 
     index = len(receiver.events())
     amount = 1234
     sender1 = target_client.create_account({currency: amount})
-    sender1.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    sender1.send_payment(currency, amount, receiver_account_identifier)
 
     sender2 = target_client.create_account({currency: amount})
-    sender2.send_payment(currency, amount, payment_uri.intent(hrp).account_id)
+    sender2.send_payment(currency, amount, receiver_account_identifier)
 
     sender1.wait_for_balance(currency, 0)
     sender2.wait_for_balance(currency, 0)
@@ -75,18 +75,18 @@ def test_receive_multiple_payments(target_client: RestClient, stub_client: RestC
 
 
 def test_account_balance_validation_should_exclude_canceled_transactions(
-    target_client: RestClient, stub_client: RestClient, currency: str, travel_rule_threshold: int, hrp: str
+    target_client: RestClient, stub_client: RestClient, currency: str, travel_rule_threshold: int
 ) -> None:
     amount = travel_rule_threshold
     receiver = target_client.create_account()
-    payment_uri = receiver.generate_payment_uri()
+    payee = receiver.generate_account_identifier()
     sender = stub_client.create_account({currency: amount}, kyc_data=target_client.new_kyc_data(sample="reject"))
     # payment should be rejected during offchain kyc data exchange
-    payment = sender.send_payment(currency, amount, payee=payment_uri.intent(hrp).account_id)
+    payment = sender.send_payment(currency, amount, payee=payee)
 
     sender.wait_for_event("updated_transaction", id=payment.id, status="canceled")
 
-    sender.send_payment(currency, travel_rule_threshold - 1, payment_uri.intent(hrp).account_id)
+    sender.send_payment(currency, travel_rule_threshold - 1, payee)
 
     receiver.wait_for_balance(currency, travel_rule_threshold - 1)
     sender.wait_for_balance(currency, 1)
@@ -109,10 +109,10 @@ def test_create_account_event(target_client: RestClient, currency: str) -> None:
     assert event_data.id == account.id
 
 
-def test_create_account_payment_uri_events(target_client: RestClient, hrp: str) -> None:
+def test_create_account_identifier_events(target_client: RestClient) -> None:
     account = target_client.create_account()
     index = len(account.events())
-    ret = account.generate_payment_uri()
+    ret = account.generate_account_identifier()
     assert ret
     assert len(account.events(index)) == 1
     assert account.events(index)[0].type == "created_subaddress"
@@ -126,8 +126,8 @@ def test_openapi_spec(target_client: RestClient) -> None:
 def test_generate_account_payment_URI_should_include_unique_subaddress(target_client: RestClient, hrp: str) -> None:
     account = target_client.create_account()
 
-    def subaddress(uri: str) -> str:
-        return utils.hex(identifier.decode_intent(uri, hrp).subaddress)
+    def subaddress(account_identifier: str) -> str:
+        return utils.hex(identifier.decode_account_subaddress(account_identifier, hrp))
 
-    subaddresses = [subaddress(account.generate_payment_uri().payment_uri) for _ in range(10)]
+    subaddresses = [subaddress(account.generate_account_identifier()) for _ in range(10)]
     assert sorted(subaddresses) == sorted(list(set(subaddresses)))

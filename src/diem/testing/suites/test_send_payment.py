@@ -51,16 +51,9 @@ def receiver_account(stub_client: RestClient) -> Generator[AccountResource, None
     account.log_events()
 
 
-@pytest.fixture
-def receiver_account_identifier(receiver_account: AccountResource, hrp: str) -> str:
-    """Generates a new receiver account identifier"""
-
-    return receiver_account.generate_account_identifier(hrp)
-
-
 @pytest.mark.parametrize("invalid_currency", ["XU", "USD", "xus", "", '"XUS"', "X"])
 def test_send_payment_with_invalid_currency(
-    sender_account: AccountResource, receiver_account_identifier: str, invalid_currency: str
+    sender_account: AccountResource, receiver_account: AccountResource, invalid_currency: str
 ) -> None:
     """
     Test Plan:
@@ -71,6 +64,7 @@ def test_send_payment_with_invalid_currency(
     """
 
     initial_balances = sender_account.balances()
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     with pytest.raises(requests.HTTPError, match="400 Client Error"):
         sender_account.send_payment(currency=invalid_currency, amount=amount, payee=receiver_account_identifier)
     assert sender_account.balances() == initial_balances
@@ -78,7 +72,7 @@ def test_send_payment_with_invalid_currency(
 
 @pytest.mark.parametrize("invalid_amount", [-1, 0.1])
 def test_send_payment_with_invalid_amount(
-    sender_account: AccountResource, receiver_account_identifier: str, invalid_amount: float, currency: str
+    sender_account: AccountResource, receiver_account: AccountResource, invalid_amount: float, currency: str
 ) -> None:
     """
     Test Plan:
@@ -89,6 +83,7 @@ def test_send_payment_with_invalid_amount(
     """
 
     initial_balances = sender_account.balances()
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     with pytest.raises(requests.HTTPError, match="400 Client Error"):
         sender_account.send_payment(
             currency=currency, amount=invalid_amount, payee=receiver_account_identifier  # pyre-ignore
@@ -111,7 +106,7 @@ def test_send_payment_with_invalid_account_identifier_as_payee(sender_account: A
 
 
 def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
-    sender_account: AccountResource, receiver_account_identifier: str, currency: str
+    sender_account: AccountResource, receiver_account: AccountResource, currency: str
 ) -> None:
     """
     Test Plan:
@@ -123,6 +118,7 @@ def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
     """
 
     initial_amount = sender_account.balance(currency)
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     invalid_account_identifier = receiver_account_identifier[:-6] + "000000"
     with pytest.raises(requests.HTTPError, match="400 Client Error"):
         sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
@@ -130,7 +126,7 @@ def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
 
 
 def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
-    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+    sender_account: AccountResource, receiver_account: AccountResource, currency: str, hrp: str
 ) -> None:
     """
     Test Plan:
@@ -143,6 +139,7 @@ def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
     """
 
     initial_amount = sender_account.balance(currency)
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     account_address, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
     new_hrp = identifier.TDM if hrp != identifier.TDM else identifier.PDM
     new_account_identifier = identifier.encode_account(account_address, subaddress, new_hrp)
@@ -152,7 +149,7 @@ def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
 
 
 def test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee(
-    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+    sender_account: AccountResource, receiver_account: AccountResource, currency: str, hrp: str
 ) -> None:
     """
     Test Plan:
@@ -165,6 +162,7 @@ def test_send_payment_with_invalid_account_identifier_onchain_account_address_as
     """
 
     initial_amount = sender_account.balance(currency)
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     _, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
     invalid_account_address = LocalAccount().account_address
     invalid_account_identifier = identifier.encode_account(invalid_account_address, subaddress, hrp)
@@ -174,7 +172,7 @@ def test_send_payment_with_invalid_account_identifier_onchain_account_address_as
 
 
 def test_send_payment_with_an_amount_exceeding_account_balance(
-    sender_account: AccountResource, receiver_account_identifier: str, currency: str, hrp: str
+    sender_account: AccountResource, receiver_account: AccountResource, currency: str
 ) -> None:
     """
     Test Plan:
@@ -186,6 +184,7 @@ def test_send_payment_with_an_amount_exceeding_account_balance(
     """
 
     initial_amount = sender_account.balance(currency)
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     amount = initial_amount + 1
     with pytest.raises(requests.HTTPError, match="400 Client Error"):
         sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
@@ -196,10 +195,8 @@ def test_send_payment_with_an_amount_exceeding_account_balance(
 def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
     sender_account: AccountResource,
     receiver_account: AccountResource,
-    receiver_account_identifier: str,
     amount: int,
     currency: str,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -212,6 +209,7 @@ def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
     initial_amount = sender_account.balance(currency)
     assert receiver_account.balance(currency) == 0
 
+    receiver_account_identifier = receiver_account.generate_account_identifier()
     sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
 
     receiver_account.wait_for_balance(currency, amount)
@@ -228,7 +226,10 @@ def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
     ],
 )
 def test_send_payment_to_the_other_account_in_the_same_wallet(
-    sender_account: AccountResource, target_client: RestClient, currency: str, amount: int, hrp: str
+    sender_account: AccountResource,
+    target_client: RestClient,
+    currency: str,
+    amount: int,
 ) -> None:
     """
     Test Plan:
@@ -241,11 +242,9 @@ def test_send_payment_to_the_other_account_in_the_same_wallet(
 
     sender_initial_balance = sender_account.balance(currency)
     receiver_account = target_client.create_account()
-    receiver_account_identifier = receiver_account.generate_account_identifier(hrp)
+    receiver_account_identifier = receiver_account.generate_account_identifier()
 
-    payment = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
-    assert payment.amount == amount
-    assert payment.payee == receiver_account_identifier
+    sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
 
     sender_account.wait_for_balance(currency, sender_initial_balance - amount)
     receiver_account.wait_for_balance(currency, amount)
@@ -256,7 +255,6 @@ def test_send_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -276,7 +274,6 @@ def test_send_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_
         payment_command_states=["S_INIT", "R_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -285,7 +282,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected_by
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -305,7 +301,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected_by
         payment_command_states=["S_INIT", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -314,7 +309,6 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -334,7 +328,6 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_
         payment_command_states=["S_INIT", "R_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -343,7 +336,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -363,7 +355,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -372,7 +363,6 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_matc
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -392,7 +382,6 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_matc
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -401,7 +390,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -421,7 +409,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -430,7 +417,6 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_matc
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -450,7 +436,6 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_matc
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -459,7 +444,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -482,7 +466,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -491,7 +474,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_a
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -511,7 +493,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_a
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -520,7 +501,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -540,7 +520,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -549,7 +528,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -> None:
     """
     Test Plan:
@@ -569,7 +547,6 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -579,17 +556,13 @@ def send_payment_meets_travel_rule_threshold(
     payment_command_states: List[str],
     currency: str,
     amount: int,
-    hrp: str,
     receiver_reject_additional_kyc_data_request: bool = False,
 ) -> None:
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payee = receiver.generate_account_identifier(hrp)
-    send_payment = sender.send_payment(currency, amount, payee)
-    assert send_payment.currency == currency
-    assert send_payment.amount == amount
-    assert send_payment.payee == payee
+    payee = receiver.generate_account_identifier()
+    sender.send_payment(currency, amount, payee)
 
     def match_exchange_states() -> None:
         states = []

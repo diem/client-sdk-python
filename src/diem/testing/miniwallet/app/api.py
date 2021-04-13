@@ -51,11 +51,11 @@ class Endpoints:
 
     @rest_handler
     def on_post_payments(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_202, asdict(self.app.create_account_payment(account_id, input)))
+        return (falcon.HTTP_202, self.app.create_account_payment(account_id, input))
 
     @rest_handler
-    def on_post_payment_uris(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_200, asdict(self.app.create_account_payment_uri(account_id, input)))
+    def on_post_account_identifiers(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, Any]]:
+        return (falcon.HTTP_200, self.app.create_account_identifier(account_id, input))
 
     @rest_handler
     def on_get_balances(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, int]]:
@@ -90,7 +90,7 @@ def falcon_api(app: App, disable_events_api: bool = False) -> falcon.API:
     api.add_static_route("/", base_path)
     api.add_route("/", endpoints, suffix="index")
     api.add_route("/accounts", endpoints, suffix="accounts")
-    for res in ["balances", "payments", "payment_uris", "events"]:
+    for res in ["balances", "payments", "account_identifiers", "events"]:
         if res == "events" and disable_events_api:
             continue
         api.add_route("/accounts/{account_id}/%s" % res, endpoints, suffix=res)

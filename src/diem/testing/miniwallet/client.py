@@ -5,10 +5,19 @@ from dataclasses import dataclass, field, replace, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
-from .app import PaymentUri, KycSample, Event, Payment
+from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
 import requests, logging, random, string, json, time
+
+
+@dataclass
+class Payment:
+    id: str
+    account_id: str
+    currency: str
+    amount: int
+    payee: str
 
 
 @dataclass
@@ -104,23 +113,16 @@ class AccountResource:
         """
 
         p = self.client.create(self._resources("payment"), payee=payee, currency=currency, amount=amount)
-        return Payment(**p)
+        return Payment(id=p["id"], account_id=self.id, payee=payee, currency=currency, amount=amount)
 
-    def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -> PaymentUri:
-        """Generate payment URI
-
-        Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
-        """
-
-        return PaymentUri(**self.client.create(self._resources("payment_uri"), currency=currency, amount=amount))
-
-    def generate_account_identifier(self, hrp: str) -> str:
+    def generate_account_identifier(self) -> str:
         """Generate an account identifier
 
-        Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+        Calls `POST /accounts/{account_id}/account_identifiers` to generate account identifier.
         """
 
-        return self.generate_payment_uri().intent(hrp).account_id
+        ret = self.client.create(self._resources("account_identifier"))
+        return ret["account_identifier"]
 
     def events(self, start: int = 0) -> List[Event]:
         """Get account events

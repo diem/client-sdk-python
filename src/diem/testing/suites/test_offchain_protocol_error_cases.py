@@ -29,8 +29,8 @@ def test_invalid_x_request_id(
        and `invalid_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -71,8 +71,8 @@ def test_missing_x_request_id(
        and `missing_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -122,8 +122,8 @@ def test_invalid_x_request_sender_address(
        and `invalid_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -163,8 +163,8 @@ def test_missing_x_request_sender_address(
        and `missing_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -204,7 +204,7 @@ def test_x_request_sender_is_valid_but_no_compliance_key(
     """
 
     new_stub_account = testnet.gen_account(diem_client)
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
     sender_address = new_stub_account.account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
@@ -246,8 +246,8 @@ def test_invalid_jws_message_body_that_misses_parts(
        and `invalid_jws` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -292,7 +292,7 @@ def test_invalid_jws_message_signature(
     new_compliance_key = LocalAccount().compliance_public_key_bytes
     new_stub_account.rotate_dual_attestation_info(diem_client, stub_config.server_url, new_compliance_key)
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
     sender_address = new_stub_account.account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
@@ -332,8 +332,8 @@ def test_decoded_jws_message_body_is_not_json_encoded_string(
        and `invalid_json` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     status_code, resp = send_request_json(
         diem_client,
         stub_config.account,
@@ -369,8 +369,8 @@ def test_decoded_command_request_object_missing_required_field(
        and `missing_field` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -415,8 +415,8 @@ def test_decoded_command_request_object_field_value_is_invalid(
        and `invalid_field_value` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -459,8 +459,8 @@ def test_decoded_command_request_object_command_type_is_unknown(
        and `unknown_command_type` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
@@ -506,8 +506,8 @@ def test_decoded_command_request_object_field_value_type_is_invalid(
        and `invalid_field_value` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier(hrp)
-    sender_address = stub_client.create_account().generate_account_identifier(hrp)
+    receiver_address = target_client.create_account().generate_account_identifier()
+    sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
         sender_kyc_data=target_client.new_kyc_data(sample="minimum"),

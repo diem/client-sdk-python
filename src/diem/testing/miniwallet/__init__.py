@@ -5,13 +5,12 @@ from .app import (
     App,
     Account,
     Transaction,
-    PaymentUri,
     Event,
-    Payment,
     PaymentCommand,
     KycSample,
     RefundReason,
+    Subaddress,
     falcon_api,
 )
-from .client import RestClient, AccountResource
+from .client import RestClient, AccountResource, Payment
 from .config import AppConfig, ServerConfig

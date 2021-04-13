@@ -4,7 +4,7 @@
 from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from .... import identifier, offchain, diem_types
+from .... import offchain, diem_types
 import json
 
 
@@ -23,26 +23,9 @@ class Account(Base):
 
 
 @dataclass
-class PaymentUri(Base):
-    account_id: str
-    payment_uri: str
-
-    def intent(self, hrp: str) -> identifier.Intent:
-        return identifier.decode_intent(self.payment_uri, hrp)
-
-
-@dataclass
 class Subaddress(Base):
     account_id: str
     subaddress_hex: str
-
-
-@dataclass
-class Payment(Base):
-    account_id: str
-    currency: str
-    amount: int
-    payee: str
 
 
 @dataclass

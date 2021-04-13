@@ -56,37 +56,25 @@ class RestClient:
     def create_account(
         self,
         balances: Optional[Dict[str, int]] = None,
-        kyc_data: Optional[str] = None,
+        kyc_data: Optional[offchain.KycDataObject] = None,
         reject_additional_kyc_data_request: Optional[bool] = None,
     ) -&gt; &#34;AccountResource&#34;:
         kwargs = {
             &#34;balances&#34;: balances,
-            &#34;kyc_data&#34;: kyc_data,
+            &#34;kyc_data&#34;: asdict(kyc_data) if kyc_data else None,
             &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
         }
         account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
-        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))
+        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)
 
-    def new_soft_match_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;soft_match&#34;)
-
-    def new_reject_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;reject&#34;)
-
-    def new_soft_reject_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;soft_reject&#34;)
-
-    def new_valid_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;minimum&#34;)
-
-    def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; str:
-        obj = offchain.from_json(getattr(self.kyc_sample(), sample), offchain.KycDataObject)
+    def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; offchain.KycDataObject:
+        obj = getattr(self.kyc_sample(), sample)
         if not name:
             name = &#34;&#34;.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        return offchain.to_json(replace(obj, legal_entity_name=name))
+        return replace(obj, legal_entity_name=name)
 
     def kyc_sample(self) -&gt; KycSample:
-        return KycSample(**self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json())
+        return offchain.from_dict(self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json(), KycSample)
 
     def create(self, path: str, **kwargs: Any) -&gt; Dict[str, Any]:
         return self.send(&#34;POST&#34;, path, json.dumps(kwargs) if kwargs else None).json()
@@ -126,35 +114,84 @@ class AccountResource:
 
     client: RestClient
     id: str
-    kyc_data: Optional[str] = field(default=None)
+    kyc_data: Optional[offchain.KycDataObject] = field(default=None)
 
     def balance(self, currency: str) -&gt; int:
+        &#34;&#34;&#34;Get account balance for the given currency
+
+        Calls `GET /accounts/{account_id}/balances` endpoint and only return balance of the given currency.
+        Returns 0 if given currency does not exist in the returned balances.
+        &#34;&#34;&#34;
+
         return self.balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
+        &#34;&#34;&#34;Send amount of currency to payee
+
+        Calls `POST /accounts/{account_id}/payments` endpoint and returns payment details.
+        &#34;&#34;&#34;
+
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
         return Payment(**p)
 
     def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
+        &#34;&#34;&#34;Generate payment URI
+
+        Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
+        &#34;&#34;&#34;
+
         return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))
 
+    def generate_account_identifier(self, hrp: str) -&gt; str:
+        &#34;&#34;&#34;Generate an account identifier
+
+        Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+        &#34;&#34;&#34;
+
+        return self.generate_payment_uri().intent(hrp).account_id
+
     def events(self, start: int = 0) -&gt; List[Event]:
+        &#34;&#34;&#34;Get account events
+
+        Calls to `GET /accounts/{account_id}/events` endpoint and returns events list.
+
+        Raises `requests.HTTPError`, if the endpoint is not implemented.
+        &#34;&#34;&#34;
+
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
         return [Event(**obj) for obj in ret[start:]]
 
     def wait_for_balance(self, currency: str, amount: int) -&gt; None:
+        &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`
+
+        Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
+        120 tries for every 0.1 second).
+        &#34;&#34;&#34;
+
         def fn() -&gt; None:
             assert self.balance(currency) == amount
 
         self.wait_for(fn)
 
     def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
+        &#34;&#34;&#34;Find a specific event by `type`, `start_index` and `data`
+
+        When matching the event `data`, it assumes `data` is JSON encoded dictionary, and
+        returns the event if the `**kwargs` is subset of the dictionary decoded from event `data` field.
+        &#34;&#34;&#34;
+
         events = [e for e in self.events(start_index) if e.type == event_type]
         for e in events:
             if _match(json.loads(e.data), **kwargs):
                 return e
 
     def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
+        &#34;&#34;&#34;Wait for a specific event happened.
+
+        Internally calls to `find_event` to decided whether the event happened.
+        See `find_event` for arguments document.
+        &#34;&#34;&#34;
+
         def fn() -&gt; None:
             event = self.find_event(event_type, start_index=start_index, **kwargs)
             assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
@@ -162,6 +199,14 @@ class AccountResource:
         self.wait_for(fn)
 
     def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -&gt; None:
+        &#34;&#34;&#34;Wait for a fucntion call success
+
+        The given `fn` argument should:
+
+            1. Raise `AssertionError` for the case condition not meet and continue to wait.
+            2. Return `None` for success (meet condition)
+        &#34;&#34;&#34;
+
         tries = 0
         while True:
             tries += 1
@@ -169,31 +214,47 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries &gt;= max_tries:
-                    raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, self.dump_events())) from e
+                    raise TimeoutError(&#34;account(%s) events: %s&#34; % (self.id, self.dump_events())) from e
                 time.sleep(delay)
 
     def log_events(self) -&gt; None:
+        &#34;&#34;&#34;Log account events as INFO
+
+        Does nothing if get events API is not implemented.
+        &#34;&#34;&#34;
+
         events = self.dump_events()
         if events:
             self.client.logger.info(&#34;account(%s) events: %s&#34;, self.id, events)
 
     def dump_events(self) -&gt; str:
+        &#34;&#34;&#34;Dump account events as JSON encoded string (well formatted, and indent=2)
+
+        Returns empty string if get events API is not implemented.
+        &#34;&#34;&#34;
+
         try:
             return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
         except requests.HTTPError:
             return &#34;&#34;
 
     def event_asdict(self, event: Event) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Returns `Event` as dictionary object.
+
+        As we use JSON-encoded string field, this function tries to decoding all JSON-encoded
+        string as dictionary for pretty print event data in log.
+        &#34;&#34;&#34;
+
         ret = asdict(event)
         try:
             ret[&#34;data&#34;] = json.loads(event.data)
-            if ret[&#34;data&#34;].get(&#34;kyc_data&#34;):
-                ret[&#34;data&#34;][&#34;kyc_data&#34;] = json.loads(ret[&#34;data&#34;][&#34;kyc_data&#34;])
         except json.decoder.JSONDecodeError:
             pass
         return ret
 
     def info(self, *args: Any, **kwargs: Any) -&gt; None:
+        &#34;&#34;&#34;Log info to `client.logger`&#34;&#34;&#34;
+
         self.client.logger.info(*args, **kwargs)
 
     def balances(self) -&gt; Dict[str, int]:
@@ -243,10 +304,10 @@ class AccountResource:
 <dl>
 <dt id="diem.testing.miniwallet.client.AccountResource"><code class="flex name class">
 <span>class <span class="ident">AccountResource</span></span>
-<span>(</span><span>client: <a title="diem.testing.miniwallet.client.RestClient" href="#diem.testing.miniwallet.client.RestClient">RestClient</a>, id: str, kyc_data: Optional[str] = None)</span>
+<span>(</span><span>client: <a title="diem.testing.miniwallet.client.RestClient" href="#diem.testing.miniwallet.client.RestClient">RestClient</a>, id: str, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>AccountResource(client: diem.testing.miniwallet.client.RestClient, id: str, kyc_data: Optional[str] = None)</p></div>
+<div class="desc"><p>AccountResource(client: diem.testing.miniwallet.client.RestClient, id: str, kyc_data: Optional[diem.offchain.types.payment_types.KycDataObject] = None)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -256,35 +317,84 @@ class AccountResource:
 
     client: RestClient
     id: str
-    kyc_data: Optional[str] = field(default=None)
+    kyc_data: Optional[offchain.KycDataObject] = field(default=None)
 
     def balance(self, currency: str) -&gt; int:
+        &#34;&#34;&#34;Get account balance for the given currency
+
+        Calls `GET /accounts/{account_id}/balances` endpoint and only return balance of the given currency.
+        Returns 0 if given currency does not exist in the returned balances.
+        &#34;&#34;&#34;
+
         return self.balances().get(currency, 0)
 
     def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
+        &#34;&#34;&#34;Send amount of currency to payee
+
+        Calls `POST /accounts/{account_id}/payments` endpoint and returns payment details.
+        &#34;&#34;&#34;
+
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
         return Payment(**p)
 
     def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
+        &#34;&#34;&#34;Generate payment URI
+
+        Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
+        &#34;&#34;&#34;
+
         return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))
 
+    def generate_account_identifier(self, hrp: str) -&gt; str:
+        &#34;&#34;&#34;Generate an account identifier
+
+        Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+        &#34;&#34;&#34;
+
+        return self.generate_payment_uri().intent(hrp).account_id
+
     def events(self, start: int = 0) -&gt; List[Event]:
+        &#34;&#34;&#34;Get account events
+
+        Calls to `GET /accounts/{account_id}/events` endpoint and returns events list.
+
+        Raises `requests.HTTPError`, if the endpoint is not implemented.
+        &#34;&#34;&#34;
+
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
         return [Event(**obj) for obj in ret[start:]]
 
     def wait_for_balance(self, currency: str, amount: int) -&gt; None:
+        &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`
+
+        Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
+        120 tries for every 0.1 second).
+        &#34;&#34;&#34;
+
         def fn() -&gt; None:
             assert self.balance(currency) == amount
 
         self.wait_for(fn)
 
     def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
+        &#34;&#34;&#34;Find a specific event by `type`, `start_index` and `data`
+
+        When matching the event `data`, it assumes `data` is JSON encoded dictionary, and
+        returns the event if the `**kwargs` is subset of the dictionary decoded from event `data` field.
+        &#34;&#34;&#34;
+
         events = [e for e in self.events(start_index) if e.type == event_type]
         for e in events:
             if _match(json.loads(e.data), **kwargs):
                 return e
 
     def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
+        &#34;&#34;&#34;Wait for a specific event happened.
+
+        Internally calls to `find_event` to decided whether the event happened.
+        See `find_event` for arguments document.
+        &#34;&#34;&#34;
+
         def fn() -&gt; None:
             event = self.find_event(event_type, start_index=start_index, **kwargs)
             assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
@@ -292,6 +402,14 @@ class AccountResource:
         self.wait_for(fn)
 
     def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -&gt; None:
+        &#34;&#34;&#34;Wait for a fucntion call success
+
+        The given `fn` argument should:
+
+            1. Raise `AssertionError` for the case condition not meet and continue to wait.
+            2. Return `None` for success (meet condition)
+        &#34;&#34;&#34;
+
         tries = 0
         while True:
             tries += 1
@@ -299,31 +417,47 @@ class AccountResource:
                 return fn()
             except AssertionError as e:
                 if tries &gt;= max_tries:
-                    raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, self.dump_events())) from e
+                    raise TimeoutError(&#34;account(%s) events: %s&#34; % (self.id, self.dump_events())) from e
                 time.sleep(delay)
 
     def log_events(self) -&gt; None:
+        &#34;&#34;&#34;Log account events as INFO
+
+        Does nothing if get events API is not implemented.
+        &#34;&#34;&#34;
+
         events = self.dump_events()
         if events:
             self.client.logger.info(&#34;account(%s) events: %s&#34;, self.id, events)
 
     def dump_events(self) -&gt; str:
+        &#34;&#34;&#34;Dump account events as JSON encoded string (well formatted, and indent=2)
+
+        Returns empty string if get events API is not implemented.
+        &#34;&#34;&#34;
+
         try:
             return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
         except requests.HTTPError:
             return &#34;&#34;
 
     def event_asdict(self, event: Event) -&gt; Dict[str, Any]:
+        &#34;&#34;&#34;Returns `Event` as dictionary object.
+
+        As we use JSON-encoded string field, this function tries to decoding all JSON-encoded
+        string as dictionary for pretty print event data in log.
+        &#34;&#34;&#34;
+
         ret = asdict(event)
         try:
             ret[&#34;data&#34;] = json.loads(event.data)
-            if ret[&#34;data&#34;].get(&#34;kyc_data&#34;):
-                ret[&#34;data&#34;][&#34;kyc_data&#34;] = json.loads(ret[&#34;data&#34;][&#34;kyc_data&#34;])
         except json.decoder.JSONDecodeError:
             pass
         return ret
 
     def info(self, *args: Any, **kwargs: Any) -&gt; None:
+        &#34;&#34;&#34;Log info to `client.logger`&#34;&#34;&#34;
+
         self.client.logger.info(*args, **kwargs)
 
     def balances(self) -&gt; Dict[str, int]:
@@ -348,7 +482,7 @@ class AccountResource:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[str]</code></dt>
+<dt id="diem.testing.miniwallet.client.AccountResource.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -359,12 +493,20 @@ class AccountResource:
 <span>def <span class="ident">balance</span></span>(<span>self, currency: str) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get account balance for the given currency</p>
+<p>Calls <code>GET /accounts/{account_id}/balances</code> endpoint and only return balance of the given currency.
+Returns 0 if given currency does not exist in the returned balances.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def balance(self, currency: str) -&gt; int:
+    &#34;&#34;&#34;Get account balance for the given currency
+
+    Calls `GET /accounts/{account_id}/balances` endpoint and only return balance of the given currency.
+    Returns 0 if given currency does not exist in the returned balances.
+    &#34;&#34;&#34;
+
     return self.balances().get(currency, 0)</code></pre>
 </details>
 </dd>
@@ -393,12 +535,18 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">dump_events</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Dump account events as JSON encoded string (well formatted, and indent=2)</p>
+<p>Returns empty string if get events API is not implemented.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def dump_events(self) -&gt; str:
+    &#34;&#34;&#34;Dump account events as JSON encoded string (well formatted, and indent=2)
+
+    Returns empty string if get events API is not implemented.
+    &#34;&#34;&#34;
+
     try:
         return json.dumps(list(map(self.event_asdict, self.events())), indent=2)
     except requests.HTTPError:
@@ -409,17 +557,23 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">event_asdict</span></span>(<span>self, event: <a title="diem.testing.miniwallet.app.models.Event" href="app/models.html#diem.testing.miniwallet.app.models.Event">Event</a>) ‑> Dict[str, Any]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Returns <code>Event</code> as dictionary object.</p>
+<p>As we use JSON-encoded string field, this function tries to decoding all JSON-encoded
+string as dictionary for pretty print event data in log.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def event_asdict(self, event: Event) -&gt; Dict[str, Any]:
+    &#34;&#34;&#34;Returns `Event` as dictionary object.
+
+    As we use JSON-encoded string field, this function tries to decoding all JSON-encoded
+    string as dictionary for pretty print event data in log.
+    &#34;&#34;&#34;
+
     ret = asdict(event)
     try:
         ret[&#34;data&#34;] = json.loads(event.data)
-        if ret[&#34;data&#34;].get(&#34;kyc_data&#34;):
-            ret[&#34;data&#34;][&#34;kyc_data&#34;] = json.loads(ret[&#34;data&#34;][&#34;kyc_data&#34;])
     except json.decoder.JSONDecodeError:
         pass
     return ret</code></pre>
@@ -429,12 +583,21 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">events</span></span>(<span>self, start: int = 0) ‑> List[<a title="diem.testing.miniwallet.app.models.Event" href="app/models.html#diem.testing.miniwallet.app.models.Event">Event</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get account events</p>
+<p>Calls to <code>GET /accounts/{account_id}/events</code> endpoint and returns events list.</p>
+<p>Raises <code>requests.HTTPError</code>, if the endpoint is not implemented.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def events(self, start: int = 0) -&gt; List[Event]:
+    &#34;&#34;&#34;Get account events
+
+    Calls to `GET /accounts/{account_id}/events` endpoint and returns events list.
+
+    Raises `requests.HTTPError`, if the endpoint is not implemented.
+    &#34;&#34;&#34;
+
     ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
     return [Event(**obj) for obj in ret[start:]]</code></pre>
 </details>
@@ -443,28 +606,61 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">find_event</span></span>(<span>self, event_type: str, start_index: int = 0, **kwargs: Any) ‑> Optional[<a title="diem.testing.miniwallet.app.models.Event" href="app/models.html#diem.testing.miniwallet.app.models.Event">Event</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Find a specific event by <code>type</code>, <code>start_index</code> and <code>data</code></p>
+<p>When matching the event <code>data</code>, it assumes <code>data</code> is JSON encoded dictionary, and
+returns the event if the <code>**kwargs</code> is subset of the dictionary decoded from event <code>data</code> field.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
+    &#34;&#34;&#34;Find a specific event by `type`, `start_index` and `data`
+
+    When matching the event `data`, it assumes `data` is JSON encoded dictionary, and
+    returns the event if the `**kwargs` is subset of the dictionary decoded from event `data` field.
+    &#34;&#34;&#34;
+
     events = [e for e in self.events(start_index) if e.type == event_type]
     for e in events:
         if _match(json.loads(e.data), **kwargs):
             return e</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.miniwallet.client.AccountResource.generate_account_identifier"><code class="name flex">
+<span>def <span class="ident">generate_account_identifier</span></span>(<span>self, hrp: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate an account identifier</p>
+<p>Calls <code>generate_payment_uri</code> to generate payment URI and then decode account identifier from it.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate_account_identifier(self, hrp: str) -&gt; str:
+    &#34;&#34;&#34;Generate an account identifier
+
+    Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+    &#34;&#34;&#34;
+
+    return self.generate_payment_uri().intent(hrp).account_id</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.generate_payment_uri"><code class="name flex">
 <span>def <span class="ident">generate_payment_uri</span></span>(<span>self, currency: Optional[str] = None, amount: Optional[int] = None) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="app/models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Generate payment URI</p>
+<p>Calls <code>POST /accounts/{account_id}/payment_uris</code> endpoint and returns payment URI string and <code>id</code>.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
+    &#34;&#34;&#34;Generate payment URI
+
+    Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
+    &#34;&#34;&#34;
+
     return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))</code></pre>
 </details>
 </dd>
@@ -472,12 +668,14 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">info</span></span>(<span>self, *args: Any, **kwargs: Any) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Log info to <code>client.logger</code></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def info(self, *args: Any, **kwargs: Any) -&gt; None:
+    &#34;&#34;&#34;Log info to `client.logger`&#34;&#34;&#34;
+
     self.client.logger.info(*args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -485,12 +683,18 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">log_events</span></span>(<span>self) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Log account events as INFO</p>
+<p>Does nothing if get events API is not implemented.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def log_events(self) -&gt; None:
+    &#34;&#34;&#34;Log account events as INFO
+
+    Does nothing if get events API is not implemented.
+    &#34;&#34;&#34;
+
     events = self.dump_events()
     if events:
         self.client.logger.info(&#34;account(%s) events: %s&#34;, self.id, events)</code></pre>
@@ -500,12 +704,18 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">send_payment</span></span>(<span>self, currency: str, amount: int, payee: str) ‑> <a title="diem.testing.miniwallet.app.models.Payment" href="app/models.html#diem.testing.miniwallet.app.models.Payment">Payment</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Send amount of currency to payee</p>
+<p>Calls <code>POST /accounts/{account_id}/payments</code> endpoint and returns payment details.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def send_payment(self, currency: str, amount: int, payee: str) -&gt; Payment:
+    &#34;&#34;&#34;Send amount of currency to payee
+
+    Calls `POST /accounts/{account_id}/payments` endpoint and returns payment details.
+    &#34;&#34;&#34;
+
     p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
     return Payment(**p)</code></pre>
 </details>
@@ -514,12 +724,24 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">wait_for</span></span>(<span>self, fn: Callable[[], NoneType], max_tries: int = 120, delay: float = 0.1) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Wait for a fucntion call success</p>
+<p>The given <code>fn</code> argument should:</p>
+<pre><code>1. Raise &lt;code&gt;AssertionError&lt;/code&gt; for the case condition not meet and continue to wait.
+2. Return &lt;code&gt;None&lt;/code&gt; for success (meet condition)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -&gt; None:
+    &#34;&#34;&#34;Wait for a fucntion call success
+
+    The given `fn` argument should:
+
+        1. Raise `AssertionError` for the case condition not meet and continue to wait.
+        2. Return `None` for success (meet condition)
+    &#34;&#34;&#34;
+
     tries = 0
     while True:
         tries += 1
@@ -527,7 +749,7 @@ when currency not exist in the response.</p></div>
             return fn()
         except AssertionError as e:
             if tries &gt;= max_tries:
-                raise TimeoutError(&#34;%s, events: \n%s&#34; % (e, self.dump_events())) from e
+                raise TimeoutError(&#34;account(%s) events: %s&#34; % (self.id, self.dump_events())) from e
             time.sleep(delay)</code></pre>
 </details>
 </dd>
@@ -535,12 +757,20 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">wait_for_balance</span></span>(<span>self, currency: str, amount: int) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Wait for account balance of the given currency meets given <code>amount</code></p>
+<p>Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
+120 tries for every 0.1 second).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def wait_for_balance(self, currency: str, amount: int) -&gt; None:
+    &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`
+
+    Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
+    120 tries for every 0.1 second).
+    &#34;&#34;&#34;
+
     def fn() -&gt; None:
         assert self.balance(currency) == amount
 
@@ -551,12 +781,20 @@ when currency not exist in the response.</p></div>
 <span>def <span class="ident">wait_for_event</span></span>(<span>self, event_type: str, start_index: int = 0, **kwargs: Any) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Wait for a specific event happened.</p>
+<p>Internally calls to <code>find_event</code> to decided whether the event happened.
+See <code>find_event</code> for arguments document.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
+    &#34;&#34;&#34;Wait for a specific event happened.
+
+    Internally calls to `find_event` to decided whether the event happened.
+    See `find_event` for arguments document.
+    &#34;&#34;&#34;
+
     def fn() -&gt; None:
         event = self.find_event(event_type, start_index=start_index, **kwargs)
         assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
@@ -593,37 +831,25 @@ class RestClient:
     def create_account(
         self,
         balances: Optional[Dict[str, int]] = None,
-        kyc_data: Optional[str] = None,
+        kyc_data: Optional[offchain.KycDataObject] = None,
         reject_additional_kyc_data_request: Optional[bool] = None,
     ) -&gt; &#34;AccountResource&#34;:
         kwargs = {
             &#34;balances&#34;: balances,
-            &#34;kyc_data&#34;: kyc_data,
+            &#34;kyc_data&#34;: asdict(kyc_data) if kyc_data else None,
             &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
         }
         account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
-        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))
+        return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)
 
-    def new_soft_match_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;soft_match&#34;)
-
-    def new_reject_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;reject&#34;)
-
-    def new_soft_reject_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;soft_reject&#34;)
-
-    def new_valid_kyc_data(self) -&gt; str:
-        return self.new_kyc_data(sample=&#34;minimum&#34;)
-
-    def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; str:
-        obj = offchain.from_json(getattr(self.kyc_sample(), sample), offchain.KycDataObject)
+    def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; offchain.KycDataObject:
+        obj = getattr(self.kyc_sample(), sample)
         if not name:
             name = &#34;&#34;.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        return offchain.to_json(replace(obj, legal_entity_name=name))
+        return replace(obj, legal_entity_name=name)
 
     def kyc_sample(self) -&gt; KycSample:
-        return KycSample(**self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json())
+        return offchain.from_dict(self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json(), KycSample)
 
     def create(self, path: str, **kwargs: Any) -&gt; Dict[str, Any]:
         return self.send(&#34;POST&#34;, path, json.dumps(kwargs) if kwargs else None).json()
@@ -681,7 +907,7 @@ class RestClient:
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.create_account"><code class="name flex">
-<span>def <span class="ident">create_account</span></span>(<span>self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[str] = None, reject_additional_kyc_data_request: Optional[bool] = None) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
+<span>def <span class="ident">create_account</span></span>(<span>self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None, reject_additional_kyc_data_request: Optional[bool] = None) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -692,16 +918,16 @@ class RestClient:
 <pre><code class="python">def create_account(
     self,
     balances: Optional[Dict[str, int]] = None,
-    kyc_data: Optional[str] = None,
+    kyc_data: Optional[offchain.KycDataObject] = None,
     reject_additional_kyc_data_request: Optional[bool] = None,
 ) -&gt; &#34;AccountResource&#34;:
     kwargs = {
         &#34;balances&#34;: balances,
-        &#34;kyc_data&#34;: kyc_data,
+        &#34;kyc_data&#34;: asdict(kyc_data) if kyc_data else None,
         &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
     }
     account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
-    return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=account.get(&#34;kyc_data&#34;, None))</code></pre>
+    return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.get"><code class="name flex">
@@ -727,11 +953,11 @@ class RestClient:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def kyc_sample(self) -&gt; KycSample:
-    return KycSample(**self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json())</code></pre>
+    return offchain.from_dict(self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json(), KycSample)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.new_kyc_data"><code class="name flex">
-<span>def <span class="ident">new_kyc_data</span></span>(<span>self, name: Optional[str] = None, sample: str = 'minimum') ‑> str</span>
+<span>def <span class="ident">new_kyc_data</span></span>(<span>self, name: Optional[str] = None, sample: str = 'minimum') ‑> <a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -739,63 +965,11 @@ class RestClient:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; str:
-    obj = offchain.from_json(getattr(self.kyc_sample(), sample), offchain.KycDataObject)
+<pre><code class="python">def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; offchain.KycDataObject:
+    obj = getattr(self.kyc_sample(), sample)
     if not name:
         name = &#34;&#34;.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    return offchain.to_json(replace(obj, legal_entity_name=name))</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.RestClient.new_reject_kyc_data"><code class="name flex">
-<span>def <span class="ident">new_reject_kyc_data</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def new_reject_kyc_data(self) -&gt; str:
-    return self.new_kyc_data(sample=&#34;reject&#34;)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.RestClient.new_soft_match_kyc_data"><code class="name flex">
-<span>def <span class="ident">new_soft_match_kyc_data</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def new_soft_match_kyc_data(self) -&gt; str:
-    return self.new_kyc_data(sample=&#34;soft_match&#34;)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.RestClient.new_soft_reject_kyc_data"><code class="name flex">
-<span>def <span class="ident">new_soft_reject_kyc_data</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def new_soft_reject_kyc_data(self) -&gt; str:
-    return self.new_kyc_data(sample=&#34;soft_reject&#34;)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.RestClient.new_valid_kyc_data"><code class="name flex">
-<span>def <span class="ident">new_valid_kyc_data</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def new_valid_kyc_data(self) -&gt; str:
-    return self.new_kyc_data(sample=&#34;minimum&#34;)</code></pre>
+    return replace(obj, legal_entity_name=name)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.send"><code class="name flex">
@@ -870,6 +1044,7 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.event_asdict" href="#diem.testing.miniwallet.client.AccountResource.event_asdict">event_asdict</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.events" href="#diem.testing.miniwallet.client.AccountResource.events">events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.find_event" href="#diem.testing.miniwallet.client.AccountResource.find_event">find_event</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.AccountResource.generate_account_identifier" href="#diem.testing.miniwallet.client.AccountResource.generate_account_identifier">generate_account_identifier</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.generate_payment_uri" href="#diem.testing.miniwallet.client.AccountResource.generate_payment_uri">generate_payment_uri</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.id" href="#diem.testing.miniwallet.client.AccountResource.id">id</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.info" href="#diem.testing.miniwallet.client.AccountResource.info">info</a></code></li>
@@ -883,7 +1058,7 @@ class RestClient:
 </li>
 <li>
 <h4><code><a title="diem.testing.miniwallet.client.RestClient" href="#diem.testing.miniwallet.client.RestClient">RestClient</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="diem.testing.miniwallet.client.RestClient.create" href="#diem.testing.miniwallet.client.RestClient.create">create</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.create_account" href="#diem.testing.miniwallet.client.RestClient.create_account">create_account</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.get" href="#diem.testing.miniwallet.client.RestClient.get">get</a></code></li>
@@ -891,10 +1066,6 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.RestClient.logger" href="#diem.testing.miniwallet.client.RestClient.logger">logger</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.name" href="#diem.testing.miniwallet.client.RestClient.name">name</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.new_kyc_data" href="#diem.testing.miniwallet.client.RestClient.new_kyc_data">new_kyc_data</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.RestClient.new_reject_kyc_data" href="#diem.testing.miniwallet.client.RestClient.new_reject_kyc_data">new_reject_kyc_data</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.RestClient.new_soft_match_kyc_data" href="#diem.testing.miniwallet.client.RestClient.new_soft_match_kyc_data">new_soft_match_kyc_data</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.RestClient.new_soft_reject_kyc_data" href="#diem.testing.miniwallet.client.RestClient.new_soft_reject_kyc_data">new_soft_reject_kyc_data</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.RestClient.new_valid_kyc_data" href="#diem.testing.miniwallet.client.RestClient.new_valid_kyc_data">new_valid_kyc_data</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.send" href="#diem.testing.miniwallet.client.RestClient.send">send</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.server_url" href="#diem.testing.miniwallet.client.RestClient.server_url">server_url</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.session" href="#diem.testing.miniwallet.client.RestClient.session">session</a></code></li>

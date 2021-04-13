@@ -34,7 +34,6 @@ from typing import Optional, Dict, Any
 
 
 TARGET_URL: str = &#34;DMW_TEST_TARGET&#34;
-TEST_DEBUG_API: str = &#34;DMW_TEST_DEBUG_API&#34;
 SELF_CHECK: str = &#34;DMW_SELF_CHECK&#34;
 
 DMW_STUB_BIND_HOST: str = &#34;DMW_STUB_BIND_HOST&#34;
@@ -78,11 +77,7 @@ def target_url() -&gt; str:
 
 
 def is_self_check() -&gt; bool:
-    return getenv(SELF_CHECK) is not None
-
-
-def should_test_debug_api() -&gt; bool:
-    return getenv(TEST_DEBUG_API) is not None</code></pre>
+    return getenv(SELF_CHECK) is not None</code></pre>
 </details>
 </section>
 <section>
@@ -180,19 +175,6 @@ def should_test_debug_api() -&gt; bool:
     return getenv(SELF_CHECK) is not None</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.envs.should_test_debug_api"><code class="name flex">
-<span>def <span class="ident">should_test_debug_api</span></span>(<span>) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def should_test_debug_api() -&gt; bool:
-    return getenv(TEST_DEBUG_API) is not None</code></pre>
-</details>
-</dd>
 <dt id="diem.testing.suites.envs.target_url"><code class="name flex">
 <span>def <span class="ident">target_url</span></span>(<span>) ‑> str</span>
 </code></dt>
@@ -230,7 +212,6 @@ def should_test_debug_api() -&gt; bool:
 <li><code><a title="diem.testing.suites.envs.dmw_stub_diem_account_config" href="#diem.testing.suites.envs.dmw_stub_diem_account_config">dmw_stub_diem_account_config</a></code></li>
 <li><code><a title="diem.testing.suites.envs.dmw_stub_server" href="#diem.testing.suites.envs.dmw_stub_server">dmw_stub_server</a></code></li>
 <li><code><a title="diem.testing.suites.envs.is_self_check" href="#diem.testing.suites.envs.is_self_check">is_self_check</a></code></li>
-<li><code><a title="diem.testing.suites.envs.should_test_debug_api" href="#diem.testing.suites.envs.should_test_debug_api">should_test_debug_api</a></code></li>
 <li><code><a title="diem.testing.suites.envs.target_url" href="#diem.testing.suites.envs.target_url">target_url</a></code></li>
 </ul>
 </li>

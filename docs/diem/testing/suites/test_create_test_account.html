@@ -52,11 +52,13 @@ def test_create_an_account_with_initial_deposit_balances(target_client: RestClie
 @pytest.mark.parametrize(  # pyre-ignore
     &#34;kyc_data&#34;,
     [
-        offchain.to_json(offchain.individual_kyc_data()),
-        offchain.to_json(offchain.entity_kyc_data()),
+        offchain.individual_kyc_data(),
+        offchain.entity_kyc_data(),
     ],
 )
-def test_create_an_account_with_minimum_valid_kyc_data(target_client: RestClient, kyc_data: str) -&gt; None:
+def test_create_an_account_with_minimum_valid_kyc_data(
+    target_client: RestClient, kyc_data: offchain.KycDataObject
+) -&gt; None:
     account = target_client.create_account(kyc_data=kyc_data)
     assert account.id
 
@@ -64,7 +66,7 @@ def test_create_an_account_with_minimum_valid_kyc_data(target_client: RestClient
 def test_create_an_account_with_valid_kyc_data_and_initial_deposit_balances(
     target_client: RestClient, currency: str
 ) -&gt; None:
-    minimum_kyc_data = offchain.to_json(offchain.individual_kyc_data())
+    minimum_kyc_data = offchain.individual_kyc_data()
     account = target_client.create_account(kyc_data=minimum_kyc_data, balances={currency: 123})
     assert account.id
 
@@ -129,7 +131,7 @@ def test_create_an_account_with_initial_deposit_balances(target_client: RestClie
 </details>
 </dd>
 <dt id="diem.testing.suites.test_create_test_account.test_create_an_account_with_minimum_valid_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_create_an_account_with_minimum_valid_kyc_data</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, kyc_data: str) ‑> NoneType</span>
+<span>def <span class="ident">test_create_an_account_with_minimum_valid_kyc_data</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, kyc_data: <a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -140,11 +142,13 @@ def test_create_an_account_with_initial_deposit_balances(target_client: RestClie
 <pre><code class="python">@pytest.mark.parametrize(  # pyre-ignore
     &#34;kyc_data&#34;,
     [
-        offchain.to_json(offchain.individual_kyc_data()),
-        offchain.to_json(offchain.entity_kyc_data()),
+        offchain.individual_kyc_data(),
+        offchain.entity_kyc_data(),
     ],
 )
-def test_create_an_account_with_minimum_valid_kyc_data(target_client: RestClient, kyc_data: str) -&gt; None:
+def test_create_an_account_with_minimum_valid_kyc_data(
+    target_client: RestClient, kyc_data: offchain.KycDataObject
+) -&gt; None:
     account = target_client.create_account(kyc_data=kyc_data)
     assert account.id</code></pre>
 </details>
@@ -161,7 +165,7 @@ def test_create_an_account_with_minimum_valid_kyc_data(target_client: RestClient
 <pre><code class="python">def test_create_an_account_with_valid_kyc_data_and_initial_deposit_balances(
     target_client: RestClient, currency: str
 ) -&gt; None:
-    minimum_kyc_data = offchain.to_json(offchain.individual_kyc_data())
+    minimum_kyc_data = offchain.individual_kyc_data()
     account = target_client.create_account(kyc_data=minimum_kyc_data, balances={currency: 123})
     assert account.id</code></pre>
 </details>

@@ -75,7 +75,7 @@ class Endpoints:
 
     @rest_handler
     def on_post_accounts(self, input: JsonInput) -&gt; Tuple[str, Dict[str, str]]:
-        return (falcon.HTTP_201, asdict(self.app.create_account(input)))
+        return (falcon.HTTP_201, self.app.create_account(input))
 
     @rest_handler
     def on_post_payments(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
@@ -103,6 +103,14 @@ class Endpoints:
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
         try:
+            if not request_id:
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
+                )
+            if not offchain.UUID_REGEX.match(request_id):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
+                )
             resp_obj = self.app.offchain_api(request_sender_address, input_data)
         except offchain.Error as e:
             self.app.logger.info(input_data)
@@ -115,15 +123,16 @@ class Endpoints:
         raise falcon.HTTPMovedPermanently(&#34;/index.html&#34;)
 
 
-def falcon_api(app: App, enable_debug_api: bool = False) -&gt; falcon.API:
+def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
     endpoints = Endpoints(app=app)
     api = falcon.API(middleware=[LoggerMiddleware(logger=app.logger)])
     api.add_static_route(&#34;/&#34;, base_path)
     api.add_route(&#34;/&#34;, endpoints, suffix=&#34;index&#34;)
     api.add_route(&#34;/accounts&#34;, endpoints, suffix=&#34;accounts&#34;)
     for res in [&#34;balances&#34;, &#34;payments&#34;, &#34;payment_uris&#34;, &#34;events&#34;]:
-        if res != &#34;events&#34; or enable_debug_api:
-            api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
+        if res == &#34;events&#34; and disable_events_api:
+            continue
+        api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
     api.add_route(&#34;/kyc_sample&#34;, endpoints, suffix=&#34;kyc_sample&#34;)
     api.add_route(&#34;/v2/command&#34;, endpoints, suffix=&#34;offchain&#34;)
     app.start_sync()
@@ -138,7 +147,7 @@ def falcon_api(app: App, enable_debug_api: bool = False) -&gt; falcon.API:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="diem.testing.miniwallet.app.api.falcon_api"><code class="name flex">
-<span>def <span class="ident">falcon_api</span></span>(<span>app: <a title="diem.testing.miniwallet.app.app.App" href="app.html#diem.testing.miniwallet.app.app.App">App</a>, enable_debug_api: bool = False) ‑> falcon.api.API</span>
+<span>def <span class="ident">falcon_api</span></span>(<span>app: <a title="diem.testing.miniwallet.app.app.App" href="app.html#diem.testing.miniwallet.app.app.App">App</a>, disable_events_api: bool = False) ‑> falcon.api.API</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -146,15 +155,16 @@ def falcon_api(app: App, enable_debug_api: bool = False) -&gt; falcon.API:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def falcon_api(app: App, enable_debug_api: bool = False) -&gt; falcon.API:
+<pre><code class="python">def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
     endpoints = Endpoints(app=app)
     api = falcon.API(middleware=[LoggerMiddleware(logger=app.logger)])
     api.add_static_route(&#34;/&#34;, base_path)
     api.add_route(&#34;/&#34;, endpoints, suffix=&#34;index&#34;)
     api.add_route(&#34;/accounts&#34;, endpoints, suffix=&#34;accounts&#34;)
     for res in [&#34;balances&#34;, &#34;payments&#34;, &#34;payment_uris&#34;, &#34;events&#34;]:
-        if res != &#34;events&#34; or enable_debug_api:
-            api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
+        if res == &#34;events&#34; and disable_events_api:
+            continue
+        api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
     api.add_route(&#34;/kyc_sample&#34;, endpoints, suffix=&#34;kyc_sample&#34;)
     api.add_route(&#34;/v2/command&#34;, endpoints, suffix=&#34;offchain&#34;)
     app.start_sync()
@@ -209,7 +219,7 @@ class Endpoints:
 
     @rest_handler
     def on_post_accounts(self, input: JsonInput) -&gt; Tuple[str, Dict[str, str]]:
-        return (falcon.HTTP_201, asdict(self.app.create_account(input)))
+        return (falcon.HTTP_201, self.app.create_account(input))
 
     @rest_handler
     def on_post_payments(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
@@ -237,6 +247,14 @@ class Endpoints:
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
         try:
+            if not request_id:
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
+                )
+            if not offchain.UUID_REGEX.match(request_id):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
+                )
             resp_obj = self.app.offchain_api(request_sender_address, input_data)
         except offchain.Error as e:
             self.app.logger.info(input_data)
@@ -381,6 +399,14 @@ class Endpoints:
     request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
     input_data = req.stream.read()
     try:
+        if not request_id:
+            raise offchain.protocol_error(
+                offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
+            )
+        if not offchain.UUID_REGEX.match(request_id):
+            raise offchain.protocol_error(
+                offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
+            )
         resp_obj = self.app.offchain_api(request_sender_address, input_data)
     except offchain.Error as e:
         self.app.logger.info(input_data)

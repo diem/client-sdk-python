@@ -46,6 +46,7 @@ from .command_types import (
     CommandRequestObject,
     CommandResponseStatus,
     FundPullPreApprovalCommandObject,
+    UUID_REGEX,
 )
 from .payment_types import (
     AbortCode,
@@ -94,20 +95,24 @@ _OBJECT_TYPE_FIELD_NAME = &#34;_ObjectType&#34;
 
 
 def to_json(obj: T, indent: typing.Optional[int] = None) -&gt; str:
+    return json.dumps(to_dict(obj), indent=indent)
+
+
+def to_dict(obj: T) -&gt; typing.Dict[str, typing.Any]:
     if dataclasses.is_dataclass(obj):
         raw = dataclasses.asdict(obj)
     elif isinstance(obj, list):
         raw = list(map(dataclasses.asdict, obj))
     else:
         raw = obj
-    return json.dumps(_delete_none(raw), indent=indent)
+    return _delete_none(raw)
 
 
 def from_json(data: str, klass: typing.Optional[typing.Type[T]] = None) -&gt; T:
     return from_dict(json.loads(data), klass)
 
 
-def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str = &#34;&#34;) -&gt; T:  # pyre-ignore
+def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]] = None, field_path: str = &#34;&#34;) -&gt; T:  # pyre-ignore
     if klass is None or _is_union(klass):
         if not isinstance(obj, dict):
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
@@ -130,17 +135,18 @@ def _from_dict(obj: typing.Any, klass: typing.Type[typing.Any], field_path: str)
         return obj
 
     unknown_fields = list(obj.keys())
+    fields = {}
     for field in dataclasses.fields(klass):
         if field.name in unknown_fields:
             unknown_fields.remove(field.name)
-        obj[field.name] = _field_value_from_dict(field, obj, field_path)
+        fields[field.name] = _field_value_from_dict(field, obj, field_path)
 
     if len(unknown_fields) &gt; 0:
         unknown_fields.sort()
         full_name = _join_field_path(field_path, unknown_fields[0])
         field_names = &#34;, &#34;.join(unknown_fields)
         raise FieldError(ErrorCode.unknown_field, full_name, f&#34;{field_path}: {field_names}&#34;)
-    return klass(**obj)
+    return klass(**fields)
 
 
 def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path: str) -&gt; typing.Any:  # pyre-ignore
@@ -253,9 +259,11 @@ def new_payment_request(
     return CommandRequestObject(
         cid=cid or str(uuid.uuid4()),
         command_type=CommandType.PaymentCommand,
-        command=PaymentCommandObject(
-            _ObjectType=CommandType.PaymentCommand,
-            payment=payment,
+        command=to_dict(
+            PaymentCommandObject(
+                _ObjectType=CommandType.PaymentCommand,
+                payment=payment,
+            )
         ),
     )
 
@@ -374,7 +382,7 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 </details>
 </dd>
 <dt id="diem.offchain.types.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>obj: Any, klass: Optional[Type[~T]], field_path: str = '') ‑> ~T</span>
+<span>def <span class="ident">from_dict</span></span>(<span>obj: Any, klass: Optional[Type[~T]] = None, field_path: str = '') ‑> ~T</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -382,7 +390,7 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]], field_path: str = &#34;&#34;) -&gt; T:  # pyre-ignore
+<pre><code class="python">def from_dict(obj: typing.Any, klass: typing.Optional[typing.Type[T]] = None, field_path: str = &#34;&#34;) -&gt; T:  # pyre-ignore
     if klass is None or _is_union(klass):
         if not isinstance(obj, dict):
             code = ErrorCode.invalid_field_value if field_path else ErrorCode.invalid_object
@@ -477,9 +485,11 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
     return CommandRequestObject(
         cid=cid or str(uuid.uuid4()),
         command_type=CommandType.PaymentCommand,
-        command=PaymentCommandObject(
-            _ObjectType=CommandType.PaymentCommand,
-            payment=payment,
+        command=to_dict(
+            PaymentCommandObject(
+                _ObjectType=CommandType.PaymentCommand,
+                payment=payment,
+            )
         ),
     )</code></pre>
 </details>
@@ -566,6 +576,25 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
     )</code></pre>
 </details>
 </dd>
+<dt id="diem.offchain.types.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>obj: ~T) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(obj: T) -&gt; typing.Dict[str, typing.Any]:
+    if dataclasses.is_dataclass(obj):
+        raw = dataclasses.asdict(obj)
+    elif isinstance(obj, list):
+        raw = list(map(dataclasses.asdict, obj))
+    else:
+        raw = obj
+    return _delete_none(raw)</code></pre>
+</details>
+</dd>
 <dt id="diem.offchain.types.to_json"><code class="name flex">
 <span>def <span class="ident">to_json</span></span>(<span>obj: ~T, indent: Optional[int] = None) ‑> str</span>
 </code></dt>
@@ -576,13 +605,7 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_json(obj: T, indent: typing.Optional[int] = None) -&gt; str:
-    if dataclasses.is_dataclass(obj):
-        raw = dataclasses.asdict(obj)
-    elif isinstance(obj, list):
-        raw = list(map(dataclasses.asdict, obj))
-    else:
-        raw = obj
-    return json.dumps(_delete_none(raw), indent=indent)</code></pre>
+    return json.dumps(to_dict(obj), indent=indent)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.types.validate_write_once_fields"><code class="name flex">
@@ -704,6 +727,7 @@ def _is_union(klass: typing.Any) -&gt; bool:  # pyre-ignore
 <li><code><a title="diem.offchain.types.replace_payment_actor" href="#diem.offchain.types.replace_payment_actor">replace_payment_actor</a></code></li>
 <li><code><a title="diem.offchain.types.replace_payment_status" href="#diem.offchain.types.replace_payment_status">replace_payment_status</a></code></li>
 <li><code><a title="diem.offchain.types.reply_request" href="#diem.offchain.types.reply_request">reply_request</a></code></li>
+<li><code><a title="diem.offchain.types.to_dict" href="#diem.offchain.types.to_dict">to_dict</a></code></li>
 <li><code><a title="diem.offchain.types.to_json" href="#diem.offchain.types.to_json">to_json</a></code></li>
 <li><code><a title="diem.offchain.types.validate_write_once_fields" href="#diem.offchain.types.validate_write_once_fields">validate_write_once_fields</a></code></li>
 </ul>

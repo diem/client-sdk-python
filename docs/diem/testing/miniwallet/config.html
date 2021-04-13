@@ -52,7 +52,7 @@ class ServerConfig:
 @dataclass
 class AppConfig:
     name: str = field(default=&#34;mini-wallet&#34;)
-    enable_debug_api: bool = field(default=False)
+    disable_events_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
     server_conf: ServerConfig = field(default_factory=ServerConfig)
     initial_amount: int = field(default=1_000_000_000_000)
@@ -101,7 +101,7 @@ class AppConfig:
         return False
 
     def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
+        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
 
         def serve() -&gt; None:
             self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -138,10 +138,10 @@ class AppConfig:
 <dl>
 <dt id="diem.testing.miniwallet.config.AppConfig"><code class="flex name class">
 <span>class <span class="ident">AppConfig</span></span>
-<span>(</span><span>name: str = 'mini-wallet', enable_debug_api: bool = False, account_config: Dict[str, Any] = &lt;factory&gt;, server_conf: <a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a> = &lt;factory&gt;, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</span>
+<span>(</span><span>name: str = 'mini-wallet', disable_events_api: bool = False, account_config: Dict[str, Any] = &lt;factory&gt;, server_conf: <a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a> = &lt;factory&gt;, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>AppConfig(name: str = 'mini-wallet', enable_debug_api: bool = False, account_config: Dict[str, Any] = <factory>, server_conf: diem.testing.miniwallet.config.ServerConfig = <factory>, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</p></div>
+<div class="desc"><p>AppConfig(name: str = 'mini-wallet', disable_events_api: bool = False, account_config: Dict[str, Any] = <factory>, server_conf: diem.testing.miniwallet.config.ServerConfig = <factory>, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -149,7 +149,7 @@ class AppConfig:
 <pre><code class="python">@dataclass
 class AppConfig:
     name: str = field(default=&#34;mini-wallet&#34;)
-    enable_debug_api: bool = field(default=False)
+    disable_events_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
     server_conf: ServerConfig = field(default_factory=ServerConfig)
     initial_amount: int = field(default=1_000_000_000_000)
@@ -198,7 +198,7 @@ class AppConfig:
         return False
 
     def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
+        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
 
         def serve() -&gt; None:
             self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -229,7 +229,7 @@ class AppConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.config.AppConfig.enable_debug_api"><code class="name">var <span class="ident">enable_debug_api</span> : bool</code></dt>
+<dt id="diem.testing.miniwallet.config.AppConfig.disable_events_api"><code class="name">var <span class="ident">disable_events_api</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -350,7 +350,7 @@ def server_url(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-    api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.enable_debug_api)
+    api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
 
     def serve() -&gt; None:
         self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -464,7 +464,7 @@ class ServerConfig:
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.account" href="#diem.testing.miniwallet.config.AppConfig.account">account</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.account_config" href="#diem.testing.miniwallet.config.AppConfig.account_config">account_config</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.create_client" href="#diem.testing.miniwallet.config.AppConfig.create_client">create_client</a></code></li>
-<li><code><a title="diem.testing.miniwallet.config.AppConfig.enable_debug_api" href="#diem.testing.miniwallet.config.AppConfig.enable_debug_api">enable_debug_api</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.AppConfig.disable_events_api" href="#diem.testing.miniwallet.config.AppConfig.disable_events_api">disable_events_api</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.initial_amount" href="#diem.testing.miniwallet.config.AppConfig.initial_amount">initial_amount</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.initial_currency" href="#diem.testing.miniwallet.config.AppConfig.initial_currency">initial_currency</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.logger" href="#diem.testing.miniwallet.config.AppConfig.logger">logger</a></code></li>

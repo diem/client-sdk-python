@@ -54,9 +54,9 @@ class Base:
         self.event_puller.add(account.account_address)
         self.event_puller.head()
 
-    def _validate_kyc_data(self, name: str, val: str) -&gt; None:
+    def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -&gt; None:
         try:
-            offchain.from_json(val, KycDataObject)
+            offchain.from_dict(val, KycDataObject)
         except (JSONDecodeError, offchain.types.FieldError) as e:
             raise ValueError(&#34;%r must be JSON-encoded KycDataObject: %s&#34; % (name, e))
 
@@ -310,10 +310,10 @@ class BackgroundTasks(OffChainAPI):
 
 
 class App(BackgroundTasks):
-    def create_account(self, data: JsonInput) -&gt; Account:
+    def create_account(self, data: JsonInput) -&gt; Dict[str, str]:
         account = self.store.create(
             Account,
-            kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+            kyc_data=data.get_nullable(&#34;kyc_data&#34;, dict, self._validate_kyc_data),
             # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
             # setting up mini-wallet stub to reject additional_kyc_data request.
             reject_additional_kyc_data_request=data.get_nullable(&#34;reject_additional_kyc_data_request&#34;, bool),
@@ -324,7 +324,7 @@ class App(BackgroundTasks):
                 self._create_transaction(
                     account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
                 )
-        return Account(id=account.id)
+        return {&#34;id&#34;: account.id}
 
     def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
         self.store.find(Account, id=account_id)
@@ -382,10 +382,10 @@ class App(BackgroundTasks):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class App(BackgroundTasks):
-    def create_account(self, data: JsonInput) -&gt; Account:
+    def create_account(self, data: JsonInput) -&gt; Dict[str, str]:
         account = self.store.create(
             Account,
-            kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+            kyc_data=data.get_nullable(&#34;kyc_data&#34;, dict, self._validate_kyc_data),
             # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
             # setting up mini-wallet stub to reject additional_kyc_data request.
             reject_additional_kyc_data_request=data.get_nullable(&#34;reject_additional_kyc_data_request&#34;, bool),
@@ -396,7 +396,7 @@ class App(BackgroundTasks):
                 self._create_transaction(
                     account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
                 )
-        return Account(id=account.id)
+        return {&#34;id&#34;: account.id}
 
     def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
         self.store.find(Account, id=account_id)
@@ -442,7 +442,7 @@ class App(BackgroundTasks):
 <h3>Methods</h3>
 <dl>
 <dt id="diem.testing.miniwallet.app.app.App.create_account"><code class="name flex">
-<span>def <span class="ident">create_account</span></span>(<span>self, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> <a title="diem.testing.miniwallet.app.models.Account" href="models.html#diem.testing.miniwallet.app.models.Account">Account</a></span>
+<span>def <span class="ident">create_account</span></span>(<span>self, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -450,10 +450,10 @@ class App(BackgroundTasks):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create_account(self, data: JsonInput) -&gt; Account:
+<pre><code class="python">def create_account(self, data: JsonInput) -&gt; Dict[str, str]:
     account = self.store.create(
         Account,
-        kyc_data=data.get_nullable(&#34;kyc_data&#34;, str, self._validate_kyc_data),
+        kyc_data=data.get_nullable(&#34;kyc_data&#34;, dict, self._validate_kyc_data),
         # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
         # setting up mini-wallet stub to reject additional_kyc_data request.
         reject_additional_kyc_data_request=data.get_nullable(&#34;reject_additional_kyc_data_request&#34;, bool),
@@ -464,7 +464,7 @@ class App(BackgroundTasks):
             self._create_transaction(
                 account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
             )
-    return Account(id=account.id)</code></pre>
+    return {&#34;id&#34;: account.id}</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.app.App.create_account_payment"><code class="name flex">
@@ -749,9 +749,9 @@ class App(BackgroundTasks):
         self.event_puller.add(account.account_address)
         self.event_puller.head()
 
-    def _validate_kyc_data(self, name: str, val: str) -&gt; None:
+    def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -&gt; None:
         try:
-            offchain.from_json(val, KycDataObject)
+            offchain.from_dict(val, KycDataObject)
         except (JSONDecodeError, offchain.types.FieldError) as e:
             raise ValueError(&#34;%r must be JSON-encoded KycDataObject: %s&#34; % (name, e))
 

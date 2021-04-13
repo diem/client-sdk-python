@@ -211,7 +211,7 @@ paths:
             | `created_account`         | JSON-encoded string | An account is created.                                                            |
             | `created_transaction`     | JSON-encoded string | An incoming or outgoing transaction is created.                                   |
             | `updated_transaction`     | JSON-encoded string | Outgoing transactions are updated due to Diem transactions being submitted or executed. |
-            | `created_payment_uri`     | JSON-encoded string | A PaymentURI is created.                                                          |
+            | `created_subaddress`      | JSON-encoded string | A Subaddress is created.                                                          |
             | `created_payment_command` | JSON-encoded string | Off-chain payment command is created.                                             |
             | `updated_payment_command` | JSON-encoded string | Off-chain payment command is updated.                                             |
 
@@ -262,12 +262,6 @@ components:
           example: 1000000000
         XDX:
           type: integer
-    KycDataObject:
-      type: string
-      description: >
-        KycDataObject should be valid object that matches Diem off-chain KycDataObject
-        listed at https://dip.diem.com/dip-1/#kycdataobject.
-      example: "{\"type\": \"individual\", \"payload_version\": 1, \"given_name\": \"Tom\", \"surname\": \"Jack\"}"
     Account:
       required:
       - id
@@ -406,3 +400,81 @@ components:
           description: Milliseconds since the unix epoch. The time event object is
             created by the system.
           readOnly: true
+    KycDataObject:
+      type: object
+      description: >
+          A KycDataObject represents the know your customer or know your client (KYC) data required for exchanging
+          KYC data in Diem off-chain API.
+
+          It matches Diem off-chain KycDataObject listed at https://dip.diem.com/dip-1/#kycdataobject.
+      example: {"type": "individual", "payload_version": 1, "given_name": "Tom", "surname": "Jack"}
+      required:
+        - payload_version
+        - type
+      properties:
+        payload_version:
+          type: string
+          description: >-
+              Version identifier to allow modifications to KYC data Object without needing to bump version of entire API set. Set to 1
+        type:
+          type: string
+          enum: ["individual", "entity"]
+        given_name:
+          type: string
+          description: Legal given name of the user for which this KYC data Object applies.
+        surname:
+          type: string
+          description: Legal surname of the user for which this KYC data Object applies.
+        address:
+          description: Physical address data for this account
+          $ref: '#/components/schemas/Address'
+        dob:
+          type: string
+          description: >-
+              Date of birth for the holder of this account. Specified as an ISO 8601 calendar date format: https://en.wikipedia.org/wiki/ISO_8601
+        place_of_birth:
+          description: Place of birth for this user. line1 and line2 fields should not be populated for this usage of the address Object
+          $ref: '#/components/schemas/Address'
+        national_id:
+          $ref: '#/components/schemas/NationalId'
+        legal_entity_name:
+          type: string
+          description: >-
+              Name of the legal entity. Used when subaddress represents a legal entity rather than an individual.
+              KycData should only include one of legal_entity_name OR given_name/surname
+    Address:
+      type: object
+      properties:
+        city:
+          type: string
+          description: The city, district, suburb, town, or village
+        country:
+          type: string
+          description: Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+        line1:
+          type: string
+          description: Address line 1
+        line2:
+          type: string
+          description: Address line 2 - apartment, unit, etc.
+        postal_code:
+          type: string
+          description: ZIP or postal code
+        state:
+          type: string
+          description: State, county, province, region.
+    NationalId:
+      type: object
+      required:
+        - id_value
+      description: National ID information for the holder of this account
+      properties:
+        id_value:
+          type: string
+          description: Indicates the national ID value - for example, a social security number
+        county:
+          type: string
+          description: Two-letter country code (https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)
+        type:
+          type: string
+          description: Indicates the type of the ID

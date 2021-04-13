@@ -64,7 +64,7 @@ def main() -&gt; None:
 @click.option(&#34;--port&#34;, &#34;-p&#34;, default=8888, help=&#34;Start server port.&#34;)
 @click.option(&#34;--jsonrpc&#34;, &#34;-j&#34;, default=testnet.JSON_RPC_URL, help=&#34;Diem fullnode JSON-RPC URL.&#34;)
 @click.option(&#34;--faucet&#34;, &#34;-f&#34;, default=testnet.FAUCET_URL, help=&#34;Testnet faucet URL.&#34;)
-@click.option(&#34;--enable-debug-api&#34;, &#34;-o&#34;, default=True, help=&#34;Enable debug API.&#34;, type=bool, is_flag=True)
+@click.option(&#34;--disable-events-api&#34;, &#34;-o&#34;, default=False, help=&#34;Disable account events API.&#34;, type=bool, is_flag=True)
 @click.option(
     &#34;--logfile&#34;, &#34;-l&#34;, default=None, type=click.Path(), help=&#34;Log to a file instead of printing into console.&#34;
 )
@@ -81,14 +81,14 @@ def start_server(
     port: int,
     jsonrpc: str,
     faucet: str,
-    enable_debug_api: bool,
+    disable_events_api: bool,
     import_diem_account_config_file: Optional[TextIO],
     logfile: Optional[str],
 ) -&gt; None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
-    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), enable_debug_api=enable_debug_api)
+    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), disable_events_api=disable_events_api)
     if import_diem_account_config_file:
         conf.account_config = json.load(import_diem_account_config_file)
 
@@ -139,15 +139,6 @@ def start_server(
     show_default=False,
 )
 @click.option(
-    &#34;--test-debug-api&#34;,
-    &#34;-d&#34;,
-    default=False,
-    is_flag=True,
-    callback=set_env(envs.TEST_DEBUG_API),
-    help=&#34;Run tests for debug APIs.&#34;,
-    type=bool,
-)
-@click.option(
     &#34;--logfile&#34;, &#34;-l&#34;, default=None, help=&#34;Log to a file instead of printing into console.&#34;, type=click.Path()
 )
 @click.option(&#34;--verbose&#34;, &#34;-v&#34;, default=False, help=&#34;Enable verbose log output.&#34;, type=bool, is_flag=True)
@@ -167,7 +158,6 @@ def test(
     jsonrpc: str,
     faucet: str,
     pytest_args: str,
-    test_debug_api: bool,
     logfile: Optional[str],
     verbose: bool,
     import_stub_diem_account_config_file: Optional[TextIO],

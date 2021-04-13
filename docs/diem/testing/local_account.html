@@ -167,12 +167,14 @@ class LocalAccount:
         txn = self.submit_txn(client, script)
         return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
 
-    def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -&gt; jsonrpc.Transaction:
+    def rotate_dual_attestation_info(
+        self, client: jsonrpc.Client, base_url: str, compliance_key: Optional[bytes] = None
+    ) -&gt; jsonrpc.Transaction:
+        if not compliance_key:
+            compliance_key = self.compliance_public_key_bytes
         return self.submit_and_wait_for_txn(
             client,
-            stdlib.encode_rotate_dual_attestation_info_script(
-                new_url=base_url.encode(&#34;utf-8&#34;), new_key=self.compliance_public_key_bytes
-            ),
+            stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode(&#34;utf-8&#34;), new_key=compliance_key),
         )
 
     def to_dict(self) -&gt; Dict[str, str]:
@@ -338,12 +340,14 @@ class LocalAccount:
         txn = self.submit_txn(client, script)
         return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
 
-    def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -&gt; jsonrpc.Transaction:
+    def rotate_dual_attestation_info(
+        self, client: jsonrpc.Client, base_url: str, compliance_key: Optional[bytes] = None
+    ) -&gt; jsonrpc.Transaction:
+        if not compliance_key:
+            compliance_key = self.compliance_public_key_bytes
         return self.submit_and_wait_for_txn(
             client,
-            stdlib.encode_rotate_dual_attestation_info_script(
-                new_url=base_url.encode(&#34;utf-8&#34;), new_key=self.compliance_public_key_bytes
-            ),
+            stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode(&#34;utf-8&#34;), new_key=compliance_key),
         )
 
     def to_dict(self) -&gt; Dict[str, str]:
@@ -574,7 +578,7 @@ def public_key_bytes(self) -&gt; bytes:
 </details>
 </dd>
 <dt id="diem.testing.local_account.LocalAccount.rotate_dual_attestation_info"><code class="name flex">
-<span>def <span class="ident">rotate_dual_attestation_info</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str) ‑> jsonrpc_pb2.Transaction</span>
+<span>def <span class="ident">rotate_dual_attestation_info</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str, compliance_key: Optional[bytes] = None) ‑> jsonrpc_pb2.Transaction</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -582,12 +586,14 @@ def public_key_bytes(self) -&gt; bytes:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def rotate_dual_attestation_info(self, client: jsonrpc.Client, base_url: str) -&gt; jsonrpc.Transaction:
+<pre><code class="python">def rotate_dual_attestation_info(
+    self, client: jsonrpc.Client, base_url: str, compliance_key: Optional[bytes] = None
+) -&gt; jsonrpc.Transaction:
+    if not compliance_key:
+        compliance_key = self.compliance_public_key_bytes
     return self.submit_and_wait_for_txn(
         client,
-        stdlib.encode_rotate_dual_attestation_info_script(
-            new_url=base_url.encode(&#34;utf-8&#34;), new_key=self.compliance_public_key_bytes
-        ),
+        stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode(&#34;utf-8&#34;), new_key=compliance_key),
     )</code></pre>
 </details>
 </dd>

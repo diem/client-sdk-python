@@ -43,14 +43,11 @@ class Base:
 
 @dataclass
 class Account(Base):
-    kyc_data: Optional[str] = field(default=None)
+    kyc_data: Optional[offchain.KycDataObject] = field(default=None)
     reject_additional_kyc_data_request: Optional[bool] = field(default=False)
 
     def kyc_data_object(self) -&gt; offchain.KycDataObject:
-        if self.kyc_data:
-            return offchain.from_json(str(self.kyc_data), offchain.KycDataObject)
-        else:
-            return offchain.individual_kyc_data()
+        return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore
 
 
 @dataclass
@@ -86,20 +83,20 @@ class Event(Base):
 
 @dataclass
 class KycSample:
-    minimum: str
-    reject: str
-    soft_match: str
-    soft_reject: str
+    minimum: offchain.KycDataObject
+    reject: offchain.KycDataObject
+    soft_match: offchain.KycDataObject
+    soft_reject: offchain.KycDataObject
 
     @staticmethod
     def gen(surname: str) -&gt; &#34;KycSample&#34;:
-        def gen_kyc_data(name: str) -&gt; str:
-            return offchain.to_json(offchain.individual_kyc_data(given_name=name, surname=surname))
+        def gen_kyc_data(name: str) -&gt; offchain.KycDataObject:
+            return offchain.individual_kyc_data(given_name=name, surname=surname)
 
         return KycSample(**{f.name: gen_kyc_data(&#34;%s-kyc&#34; % f.name) for f in fields(KycSample)})
 
     def match_kyc_data(self, field: str, kyc: offchain.KycDataObject) -&gt; bool:
-        subset = asdict(offchain.from_json(getattr(self, field), offchain.KycDataObject))
+        subset = asdict(getattr(self, field))
         return all(getattr(kyc, k) == v for k, v in subset.items() if v)
 
     def match_any_kyc_data(self, fields: List[str], kyc: offchain.KycDataObject) -&gt; bool:
@@ -183,24 +180,21 @@ class PaymentCommand(Base):
 <dl>
 <dt id="diem.testing.miniwallet.app.models.Account"><code class="flex name class">
 <span>class <span class="ident">Account</span></span>
-<span>(</span><span>id: str, kyc_data: Optional[str] = None, reject_additional_kyc_data_request: Optional[bool] = False)</span>
+<span>(</span><span>id: str, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None, reject_additional_kyc_data_request: Optional[bool] = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Account(id: str, kyc_data: Optional[str] = None, reject_additional_kyc_data_request: Optional[bool] = False)</p></div>
+<div class="desc"><p>Account(id: str, kyc_data: Optional[diem.offchain.types.payment_types.KycDataObject] = None, reject_additional_kyc_data_request: Optional[bool] = False)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@dataclass
 class Account(Base):
-    kyc_data: Optional[str] = field(default=None)
+    kyc_data: Optional[offchain.KycDataObject] = field(default=None)
     reject_additional_kyc_data_request: Optional[bool] = field(default=False)
 
     def kyc_data_object(self) -&gt; offchain.KycDataObject:
-        if self.kyc_data:
-            return offchain.from_json(str(self.kyc_data), offchain.KycDataObject)
-        else:
-            return offchain.individual_kyc_data()</code></pre>
+        return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -208,7 +202,7 @@ class Account(Base):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="diem.testing.miniwallet.app.models.Account.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[str]</code></dt>
+<dt id="diem.testing.miniwallet.app.models.Account.kyc_data"><code class="name">var <span class="ident">kyc_data</span> : Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -229,10 +223,7 @@ class Account(Base):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def kyc_data_object(self) -&gt; offchain.KycDataObject:
-    if self.kyc_data:
-        return offchain.from_json(str(self.kyc_data), offchain.KycDataObject)
-    else:
-        return offchain.individual_kyc_data()</code></pre>
+    return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore</code></pre>
 </details>
 </dd>
 </dl>
@@ -312,30 +303,30 @@ class Event(Base):
 </dd>
 <dt id="diem.testing.miniwallet.app.models.KycSample"><code class="flex name class">
 <span>class <span class="ident">KycSample</span></span>
-<span>(</span><span>minimum: str, reject: str, soft_match: str, soft_reject: str)</span>
+<span>(</span><span>minimum: <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>, reject: <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>, soft_match: <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>, soft_reject: <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>KycSample(minimum: str, reject: str, soft_match: str, soft_reject: str)</p></div>
+<div class="desc"><p>KycSample(minimum: diem.offchain.types.payment_types.KycDataObject, reject: diem.offchain.types.payment_types.KycDataObject, soft_match: diem.offchain.types.payment_types.KycDataObject, soft_reject: diem.offchain.types.payment_types.KycDataObject)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@dataclass
 class KycSample:
-    minimum: str
-    reject: str
-    soft_match: str
-    soft_reject: str
+    minimum: offchain.KycDataObject
+    reject: offchain.KycDataObject
+    soft_match: offchain.KycDataObject
+    soft_reject: offchain.KycDataObject
 
     @staticmethod
     def gen(surname: str) -&gt; &#34;KycSample&#34;:
-        def gen_kyc_data(name: str) -&gt; str:
-            return offchain.to_json(offchain.individual_kyc_data(given_name=name, surname=surname))
+        def gen_kyc_data(name: str) -&gt; offchain.KycDataObject:
+            return offchain.individual_kyc_data(given_name=name, surname=surname)
 
         return KycSample(**{f.name: gen_kyc_data(&#34;%s-kyc&#34; % f.name) for f in fields(KycSample)})
 
     def match_kyc_data(self, field: str, kyc: offchain.KycDataObject) -&gt; bool:
-        subset = asdict(offchain.from_json(getattr(self, field), offchain.KycDataObject))
+        subset = asdict(getattr(self, field))
         return all(getattr(kyc, k) == v for k, v in subset.items() if v)
 
     def match_any_kyc_data(self, fields: List[str], kyc: offchain.KycDataObject) -&gt; bool:
@@ -343,19 +334,19 @@ class KycSample:
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="diem.testing.miniwallet.app.models.KycSample.minimum"><code class="name">var <span class="ident">minimum</span> : str</code></dt>
+<dt id="diem.testing.miniwallet.app.models.KycSample.minimum"><code class="name">var <span class="ident">minimum</span> : <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.app.models.KycSample.reject"><code class="name">var <span class="ident">reject</span> : str</code></dt>
+<dt id="diem.testing.miniwallet.app.models.KycSample.reject"><code class="name">var <span class="ident">reject</span> : <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.app.models.KycSample.soft_match"><code class="name">var <span class="ident">soft_match</span> : str</code></dt>
+<dt id="diem.testing.miniwallet.app.models.KycSample.soft_match"><code class="name">var <span class="ident">soft_match</span> : <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.app.models.KycSample.soft_reject"><code class="name">var <span class="ident">soft_reject</span> : str</code></dt>
+<dt id="diem.testing.miniwallet.app.models.KycSample.soft_reject"><code class="name">var <span class="ident">soft_reject</span> : <a title="diem.offchain.types.payment_types.KycDataObject" href="../../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -373,8 +364,8 @@ class KycSample:
 </summary>
 <pre><code class="python">@staticmethod
 def gen(surname: str) -&gt; &#34;KycSample&#34;:
-    def gen_kyc_data(name: str) -&gt; str:
-        return offchain.to_json(offchain.individual_kyc_data(given_name=name, surname=surname))
+    def gen_kyc_data(name: str) -&gt; offchain.KycDataObject:
+        return offchain.individual_kyc_data(given_name=name, surname=surname)
 
     return KycSample(**{f.name: gen_kyc_data(&#34;%s-kyc&#34; % f.name) for f in fields(KycSample)})</code></pre>
 </details>
@@ -405,7 +396,7 @@ def gen(surname: str) -&gt; &#34;KycSample&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def match_kyc_data(self, field: str, kyc: offchain.KycDataObject) -&gt; bool:
-    subset = asdict(offchain.from_json(getattr(self, field), offchain.KycDataObject))
+    subset = asdict(getattr(self, field))
     return all(getattr(kyc, k) == v for k, v in subset.items() if v)</code></pre>
 </details>
 </dd>

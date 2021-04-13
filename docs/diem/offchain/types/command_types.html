@@ -117,10 +117,6 @@ class OffChainErrorType:
     protocol_error = &#34;protocol_error&#34;
 
 
-# Late import to solve circular dependency and be able to list all the command types
-from .payment_types import PaymentCommandObject
-
-
 @dataclass(frozen=True)
 class FundPullPreApprovalCommandObject:
     _ObjectType: str = datafield(metadata={&#34;valid-values&#34;: [CommandType.FundPullPreApprovalCommand]})
@@ -131,10 +127,8 @@ class CommandRequestObject:
     # A unique identifier for the Command.
     cid: str = datafield(metadata={&#34;valid-values&#34;: UUID_REGEX})
     # A string representing the type of Command contained in the request.
-    command_type: str = datafield(
-        metadata={&#34;valid-values&#34;: [CommandType.PaymentCommand, CommandType.FundPullPreApprovalCommand]}
-    )
-    command: typing.Union[PaymentCommandObject, FundPullPreApprovalCommandObject]
+    command_type: str
+    command: dict  # pyre-ignore
     _ObjectType: str = datafield(default=&#34;CommandRequestObject&#34;, metadata={&#34;valid-values&#34;: [&#34;CommandRequestObject&#34;]})
 
 
@@ -180,10 +174,10 @@ class CommandResponseObject:
 <dl>
 <dt id="diem.offchain.types.command_types.CommandRequestObject"><code class="flex name class">
 <span>class <span class="ident">CommandRequestObject</span></span>
-<span>(</span><span>cid: str, command_type: str, command: Union[<a title="diem.offchain.types.payment_types.PaymentCommandObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentCommandObject">PaymentCommandObject</a>, <a title="diem.offchain.types.command_types.FundPullPreApprovalCommandObject" href="#diem.offchain.types.command_types.FundPullPreApprovalCommandObject">FundPullPreApprovalCommandObject</a>])</span>
+<span>(</span><span>cid: str, command_type: str, command: dict)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>CommandRequestObject(cid: str, command_type: str, command: Union[diem.offchain.types.payment_types.PaymentCommandObject, diem.offchain.types.command_types.FundPullPreApprovalCommandObject], _ObjectType: str = 'CommandRequestObject')</p></div>
+<div class="desc"><p>CommandRequestObject(cid: str, command_type: str, command: dict, _ObjectType: str = 'CommandRequestObject')</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -193,10 +187,8 @@ class CommandRequestObject:
     # A unique identifier for the Command.
     cid: str = datafield(metadata={&#34;valid-values&#34;: UUID_REGEX})
     # A string representing the type of Command contained in the request.
-    command_type: str = datafield(
-        metadata={&#34;valid-values&#34;: [CommandType.PaymentCommand, CommandType.FundPullPreApprovalCommand]}
-    )
-    command: typing.Union[PaymentCommandObject, FundPullPreApprovalCommandObject]
+    command_type: str
+    command: dict  # pyre-ignore
     _ObjectType: str = datafield(default=&#34;CommandRequestObject&#34;, metadata={&#34;valid-values&#34;: [&#34;CommandRequestObject&#34;]})</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -205,7 +197,7 @@ class CommandRequestObject:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.offchain.types.command_types.CommandRequestObject.command"><code class="name">var <span class="ident">command</span> : Union[<a title="diem.offchain.types.payment_types.PaymentCommandObject" href="payment_types.html#diem.offchain.types.payment_types.PaymentCommandObject">PaymentCommandObject</a>, <a title="diem.offchain.types.command_types.FundPullPreApprovalCommandObject" href="#diem.offchain.types.command_types.FundPullPreApprovalCommandObject">FundPullPreApprovalCommandObject</a>]</code></dt>
+<dt id="diem.offchain.types.command_types.CommandRequestObject.command"><code class="name">var <span class="ident">command</span> : dict</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

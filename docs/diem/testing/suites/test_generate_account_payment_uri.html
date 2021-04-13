@@ -31,7 +31,7 @@
 
 
 from diem.testing.miniwallet import RestClient, AccountResource
-from diem import identifier, utils
+from diem import identifier
 from typing import Union
 import pytest, requests
 
@@ -49,7 +49,6 @@ def test_generate_account_payment_uri_without_currency_and_amount(account: Accou
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code is None
     assert intent.amount is None
 
@@ -61,7 +60,6 @@ def test_generate_account_payment_uri_with_currency(account: AccountResource, cu
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code == currency
     assert intent.amount is None
 
@@ -74,7 +72,6 @@ def test_generate_account_payment_uri_with_amount(account: AccountResource, hrp:
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code is None
     assert intent.amount == amount
 
@@ -89,7 +86,6 @@ def test_generate_account_payment_uri_with_currency_and_amount(
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code == currency
     assert intent.amount == amount
 
@@ -109,15 +105,7 @@ def test_generate_account_payment_uri_with_invalid_amount(account: AccountResour
 def test_generate_account_payment_uri_with_integer_overflow_amount(account: AccountResource) -&gt; None:
     amount = 324234324342234234234234242234234324323423432432423423243242342342342342342342342334234
     with pytest.raises(requests.HTTPError, match=&#34;400 Client Error&#34;):
-        account.generate_payment_uri(amount=amount)
-
-
-def test_generate_account_payment_URI_should_include_unique_subaddress(account: AccountResource, hrp: str) -&gt; None:
-    def subaddress(uri: str) -&gt; str:
-        return utils.hex(identifier.decode_intent(uri, hrp).subaddress)
-
-    subaddresses = [subaddress(account.generate_payment_uri().payment_uri) for _ in range(10)]
-    assert sorted(subaddresses) == sorted(list(set(subaddresses)))</code></pre>
+        account.generate_payment_uri(amount=amount)</code></pre>
 </details>
 </section>
 <section>
@@ -141,23 +129,6 @@ def account(target_client: RestClient) -&gt; AccountResource:
     return target_client.create_account()</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_URI_should_include_unique_subaddress"><code class="name flex">
-<span>def <span class="ident">test_generate_account_payment_URI_should_include_unique_subaddress</span></span>(<span>account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, hrp: str) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_generate_account_payment_URI_should_include_unique_subaddress(account: AccountResource, hrp: str) -&gt; None:
-    def subaddress(uri: str) -&gt; str:
-        return utils.hex(identifier.decode_intent(uri, hrp).subaddress)
-
-    subaddresses = [subaddress(account.generate_payment_uri().payment_uri) for _ in range(10)]
-    assert sorted(subaddresses) == sorted(list(set(subaddresses)))</code></pre>
-</details>
-</dd>
 <dt id="diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_amount"><code class="name flex">
 <span>def <span class="ident">test_generate_account_payment_uri_with_amount</span></span>(<span>account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, hrp: str) ‑> NoneType</span>
 </code></dt>
@@ -175,7 +146,6 @@ def account(target_client: RestClient) -&gt; AccountResource:
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code is None
     assert intent.amount == amount</code></pre>
 </details>
@@ -196,7 +166,6 @@ def account(target_client: RestClient) -&gt; AccountResource:
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code == currency
     assert intent.amount is None</code></pre>
 </details>
@@ -220,7 +189,6 @@ def account(target_client: RestClient) -&gt; AccountResource:
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code == currency
     assert intent.amount == amount</code></pre>
 </details>
@@ -287,7 +255,6 @@ def test_generate_account_payment_uri_with_invalid_currency(account: AccountReso
 
     intent = identifier.decode_intent(uri.payment_uri, hrp)
     assert intent.account_address
-    assert intent.subaddress
     assert intent.currency_code is None
     assert intent.amount is None</code></pre>
 </details>
@@ -311,7 +278,6 @@ def test_generate_account_payment_uri_with_invalid_currency(account: AccountReso
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="diem.testing.suites.test_generate_account_payment_uri.account" href="#diem.testing.suites.test_generate_account_payment_uri.account">account</a></code></li>
-<li><code><a title="diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_URI_should_include_unique_subaddress" href="#diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_URI_should_include_unique_subaddress">test_generate_account_payment_URI_should_include_unique_subaddress</a></code></li>
 <li><code><a title="diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_amount" href="#diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_amount">test_generate_account_payment_uri_with_amount</a></code></li>
 <li><code><a title="diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_currency" href="#diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_currency">test_generate_account_payment_uri_with_currency</a></code></li>
 <li><code><a title="diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_currency_and_amount" href="#diem.testing.suites.test_generate_account_payment_uri.test_generate_account_payment_uri_with_currency_and_amount">test_generate_account_payment_uri_with_currency_and_amount</a></code></li>

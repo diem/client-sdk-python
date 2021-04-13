@@ -96,10 +96,16 @@ class Transaction(Base):
         canceled = "canceled"
         pending = "pending"
 
+    class Type(str, Enum):
+        sent_payment = "sent_payment"
+        received_payment = "received_payment"
+        deposit = "deposit"
+
     account_id: str
     currency: str
     amount: int
     status: Status
+    type: Type
     cancel_reason: Optional[str] = field(default=None)
     payee: Optional[str] = field(default=None)
     subaddress_hex: Optional[str] = field(default=None)

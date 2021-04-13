@@ -40,7 +40,14 @@ def test_payment_uri_intent_identifier():
 
 
 def test_transaction_balance_amount():
-    txn = Transaction(id="1", account_id="2", currency="XUS", amount=1000, status=Transaction.Status.pending)
+    txn = Transaction(
+        id="1",
+        account_id="2",
+        currency="XUS",
+        amount=1000,
+        status=Transaction.Status.pending,
+        type=Transaction.Type.deposit,
+    )
     assert txn.balance_amount() == 1000
 
     txn.payee = "dm1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4us2vfufk"
@@ -48,7 +55,14 @@ def test_transaction_balance_amount():
 
 
 def test_transaction_subaddress():
-    txn = Transaction(id="1", account_id="2", currency="XUS", amount=1000, status=Transaction.Status.pending)
+    txn = Transaction(
+        id="1",
+        account_id="2",
+        currency="XUS",
+        amount=1000,
+        status=Transaction.Status.pending,
+        type=Transaction.Type.deposit,
+    )
     txn.subaddress_hex = "cf64428bdeb62af2"
     assert txn.subaddress().hex() == "cf64428bdeb62af2"
 

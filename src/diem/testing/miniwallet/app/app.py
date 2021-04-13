@@ -170,6 +170,7 @@ class BackgroundTasks(OffChainAPI):
             currency=txn.currency,
             amount=txn.amount,
             status=Transaction.Status.completed,
+            type=Transaction.Type.sent_payment,
         )
         self.store.update(txn, status=Transaction.Status.completed)
 
@@ -294,14 +295,19 @@ class App(BackgroundTasks):
         if balances:
             for c, a in balances.items():
                 self._create_transaction(
-                    account.id, Transaction.Status.completed, JsonInput({"currency": c, "amount": a})
+                    account.id,
+                    Transaction.Status.completed,
+                    JsonInput({"currency": c, "amount": a}),
+                    type=Transaction.Type.deposit,
                 )
         return {"id": account.id}
 
     def create_account_payment(self, account_id: str, data: JsonInput) -> Payment:
         self.store.find(Account, id=account_id)
         payee = data.get("payee", str, self._validate_account_identifier)
-        txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
+        txn = self._create_transaction(
+            account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+        )
         return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)
 
     def create_account_payment_uri(self, account_id: str, data: JsonInput) -> PaymentUri:
@@ -321,7 +327,12 @@ class App(BackgroundTasks):
         return self.store.find_all(Event, account_id=account_id)
 
     def _create_transaction(
-        self, account_id: str, status: str, data: JsonInput, payee: Optional[str] = None
+        self,
+        account_id: str,
+        status: str,
+        data: JsonInput,
+        type: Transaction.Type,
+        payee: Optional[str] = None,
     ) -> Transaction:
         return self.store.create(
             Transaction,
@@ -330,5 +341,6 @@ class App(BackgroundTasks):
             amount=data.get("amount", int, self._validate_amount),
             payee=payee,
             status=status,
+            type=type,
             before_create=self._validate_account_balance,
         )

@@ -95,6 +95,7 @@ class EventPuller:
             Transaction,
             account_id=PENDING_INBOUND_ACCOUNT_ID,
             status=Transaction.Status.pending,
+            type=Transaction.Type.sent_payment,
             currency=event.data.amount.currency,
             amount=event.data.amount.amount,
             payee=payee,
@@ -111,5 +112,6 @@ class EventPuller:
             amount=event.data.amount.amount,
             diem_transaction_version=event.transaction_version,
             status=Transaction.Status.completed,
+            type=Transaction.Type.received_payment,
             **kwargs,
         )

@@ -108,6 +108,20 @@ class Client:
     def __post_init__(self) -> None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
+    def ping(
+        self,
+        counterparty_account_identifier: str,
+        sign: typing.Callable[[bytes], bytes],
+        cid: typing.Optional[str] = None,
+    ) -> CommandResponseObject:
+        request = CommandRequestObject(
+            cid=cid or str(uuid.uuid4()),
+            command_type=CommandType.PingCommand,
+            command={"_ObjectType": CommandType.PingCommand},
+        )
+        jws_msg = jws.serialize(request, sign)
+        return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
+
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
         return self.send_request(
             request_sender_address=command.my_address(),

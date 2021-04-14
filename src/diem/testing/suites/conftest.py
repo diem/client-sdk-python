@@ -33,19 +33,19 @@ def diem_client() -> jsonrpc.Client:
 
 
 @pytest.fixture(scope="package")
-def stub_config() -> AppConfig:
+def stub_config(diem_client: jsonrpc.Client) -> AppConfig:
     conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()))
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print("loads stub account config: %s" % account_conf)
         conf.account_config = json.loads(account_conf)
+    print("Start stub app with config %s" % conf)
+    conf.start(diem_client)
     return conf
 
 
 @pytest.fixture(scope="package")
-def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -> RestClient:
-    print("Start stub app with config %s" % stub_config)
-    stub_config.start(diem_client)
+def stub_client(stub_config: AppConfig) -> RestClient:
     return stub_config.create_client()
 
 

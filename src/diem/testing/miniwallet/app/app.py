@@ -114,6 +114,11 @@ class OffChainAPI(Base):
     def jws_serialize(self, resp: CommandResponseObject) -> bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
 
+    def _handle_offchain_ping_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -> None:
+        pass
+
     def _handle_offchain_payment_command(
         self, request_sender_address: str, request: offchain.CommandRequestObject
     ) -> None:

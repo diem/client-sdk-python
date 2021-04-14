@@ -14,6 +14,7 @@ UUID_REGEX: typing.Pattern[str] = re.compile(
 class CommandType:
     PaymentCommand = "PaymentCommand"
     FundPullPreApprovalCommand = "FundPullPreApprovalCommand"
+    PingCommand = "PingCommand"
 
 
 class CommandResponseStatus:

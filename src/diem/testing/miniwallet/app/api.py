@@ -74,20 +74,9 @@ class Endpoints:
         resp.set_header(offchain.X_REQUEST_ID, request_id)
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
-        try:
-            if not request_id:
-                raise offchain.protocol_error(
-                    offchain.ErrorCode.missing_http_header, "missing %s" % offchain.X_REQUEST_ID
-                )
-            if not offchain.UUID_REGEX.match(request_id):
-                raise offchain.protocol_error(
-                    offchain.ErrorCode.invalid_http_header, "invalid %s" % offchain.X_REQUEST_ID
-                )
-            resp_obj = self.app.offchain_api(request_sender_address, input_data)
-        except offchain.Error as e:
-            self.app.logger.info(input_data)
-            self.app.logger.exception(e)
-            resp_obj = offchain.reply_request(cid=None, err=e.obj)
+
+        resp_obj = self.app.offchain_api(request_id, request_sender_address, input_data)
+        if resp_obj.error is not None:
             resp.status = falcon.HTTP_400
         resp.body = self.app.jws_serialize(resp_obj)
 

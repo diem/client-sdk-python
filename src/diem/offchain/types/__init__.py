@@ -135,7 +135,7 @@ def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path
     if valid_values:
         if isinstance(valid_values, list) and val not in valid_values:
             raise FieldError(ErrorCode.invalid_field_value, full_name, f"expect one of {valid_values}, but got: {val}")
-        if isinstance(valid_values, re.Pattern) and not valid_values.match(val):
+        if isinstance(val, str) and isinstance(valid_values, re.Pattern) and not valid_values.match(val):
             raise FieldError(
                 ErrorCode.invalid_field_value, full_name, f"{val} does not match pattern {valid_values.pattern}"
             )

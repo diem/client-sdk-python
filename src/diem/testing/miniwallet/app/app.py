@@ -83,10 +83,33 @@ class Base:
 
 
 class OffChainAPI(Base):
-    def offchain_api(self, request_sender_address: str, request_bytes: bytes) -> CommandResponseObject:
-        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-        getattr(self, "_handle_offchain_%s" % utils.to_snake(request.command_type))(request_sender_address, request)
-        return offchain.reply_request(cid=request.cid)
+    def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -> CommandResponseObject:
+        cid = None
+        try:
+            if not request_id:
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.missing_http_header, "missing %s" % offchain.X_REQUEST_ID
+                )
+            if not offchain.UUID_REGEX.match(request_id):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.invalid_http_header, "invalid %s" % offchain.X_REQUEST_ID
+                )
+
+            request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+            cid = request.cid
+            handler = "_handle_offchain_%s" % utils.to_snake(request.command_type)
+            if not hasattr(self, handler):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.unknown_command_type,
+                    "unknown command_type: %s" % request.command_type,
+                    field="command_type",
+                )
+            getattr(self, handler)(request_sender_address, request)
+            return offchain.reply_request(cid=cid)
+        except offchain.Error as e:
+            self.logger.info(request_bytes)
+            self.logger.exception(e)
+            return offchain.reply_request(cid=cid, err=e.obj)
 
     def jws_serialize(self, resp: CommandResponseObject) -> bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)

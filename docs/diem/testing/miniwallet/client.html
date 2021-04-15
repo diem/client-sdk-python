@@ -33,10 +33,19 @@ from dataclasses import dataclass, field, replace, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
-from .app import PaymentUri, KycSample, Event, Payment
+from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
-import requests, logging, random, string, json, time
+import requests, logging, random, string, json, time, os
+
+
+@dataclass
+class Payment:
+    id: str
+    account_id: str
+    currency: str
+    amount: int
+    payee: str
 
 
 @dataclass
@@ -85,11 +94,16 @@ class RestClient:
     def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
         url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
         self.logger.debug(&#34;%s %s: %s&#34;, method, path, data)
+        headers = {
+            &#34;Content-Type&#34;: &#34;application/json&#34;,
+            &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER,
+            &#34;X-Test-Case&#34;: os.getenv(&#34;PYTEST_CURRENT_TEST&#34;),
+        }
         resp = self.session.request(
             method=method,
             url=url.lower(),
             data=data,
-            headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
+            headers={k: v for k, v in headers.items() if v},
         )
         log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
         self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
@@ -132,23 +146,16 @@ class AccountResource:
         &#34;&#34;&#34;
 
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
-        return Payment(**p)
+        return Payment(id=p[&#34;id&#34;], account_id=self.id, payee=payee, currency=currency, amount=amount)
 
-    def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
-        &#34;&#34;&#34;Generate payment URI
-
-        Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
-        &#34;&#34;&#34;
-
-        return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))
-
-    def generate_account_identifier(self, hrp: str) -&gt; str:
+    def generate_account_identifier(self) -&gt; str:
         &#34;&#34;&#34;Generate an account identifier
 
-        Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+        Calls `POST /accounts/{account_id}/account_identifiers` to generate account identifier.
         &#34;&#34;&#34;
 
-        return self.generate_payment_uri().intent(hrp).account_id
+        ret = self.client.create(self._resources(&#34;account_identifier&#34;))
+        return ret[&#34;account_identifier&#34;]
 
     def events(self, start: int = 0) -&gt; List[Event]:
         &#34;&#34;&#34;Get account events
@@ -335,23 +342,16 @@ class AccountResource:
         &#34;&#34;&#34;
 
         p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
-        return Payment(**p)
+        return Payment(id=p[&#34;id&#34;], account_id=self.id, payee=payee, currency=currency, amount=amount)
 
-    def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
-        &#34;&#34;&#34;Generate payment URI
-
-        Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
-        &#34;&#34;&#34;
-
-        return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))
-
-    def generate_account_identifier(self, hrp: str) -&gt; str:
+    def generate_account_identifier(self) -&gt; str:
         &#34;&#34;&#34;Generate an account identifier
 
-        Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+        Calls `POST /accounts/{account_id}/account_identifiers` to generate account identifier.
         &#34;&#34;&#34;
 
-        return self.generate_payment_uri().intent(hrp).account_id
+        ret = self.client.create(self._resources(&#34;account_identifier&#34;))
+        return ret[&#34;account_identifier&#34;]
 
     def events(self, start: int = 0) -&gt; List[Event]:
         &#34;&#34;&#34;Get account events
@@ -627,41 +627,23 @@ returns the event if the <code>**kwargs</code> is subset of the dictionary decod
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.generate_account_identifier"><code class="name flex">
-<span>def <span class="ident">generate_account_identifier</span></span>(<span>self, hrp: str) ‑> str</span>
+<span>def <span class="ident">generate_account_identifier</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate an account identifier</p>
-<p>Calls <code>generate_payment_uri</code> to generate payment URI and then decode account identifier from it.</p></div>
+<p>Calls <code>POST /accounts/{account_id}/account_identifiers</code> to generate account identifier.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def generate_account_identifier(self, hrp: str) -&gt; str:
+<pre><code class="python">def generate_account_identifier(self) -&gt; str:
     &#34;&#34;&#34;Generate an account identifier
 
-    Calls `generate_payment_uri` to generate payment URI and then decode account identifier from it.
+    Calls `POST /accounts/{account_id}/account_identifiers` to generate account identifier.
     &#34;&#34;&#34;
 
-    return self.generate_payment_uri().intent(hrp).account_id</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.generate_payment_uri"><code class="name flex">
-<span>def <span class="ident">generate_payment_uri</span></span>(<span>self, currency: Optional[str] = None, amount: Optional[int] = None) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="app/models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>Generate payment URI</p>
-<p>Calls <code>POST /accounts/{account_id}/payment_uris</code> endpoint and returns payment URI string and <code>id</code>.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def generate_payment_uri(self, currency: Optional[str] = None, amount: Optional[int] = None) -&gt; PaymentUri:
-    &#34;&#34;&#34;Generate payment URI
-
-    Calls `POST /accounts/{account_id}/payment_uris` endpoint and returns payment URI string and `id`.
-    &#34;&#34;&#34;
-
-    return PaymentUri(**self.client.create(self._resources(&#34;payment_uri&#34;), currency=currency, amount=amount))</code></pre>
+    ret = self.client.create(self._resources(&#34;account_identifier&#34;))
+    return ret[&#34;account_identifier&#34;]</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.info"><code class="name flex">
@@ -701,7 +683,7 @@ returns the event if the <code>**kwargs</code> is subset of the dictionary decod
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.send_payment"><code class="name flex">
-<span>def <span class="ident">send_payment</span></span>(<span>self, currency: str, amount: int, payee: str) ‑> <a title="diem.testing.miniwallet.app.models.Payment" href="app/models.html#diem.testing.miniwallet.app.models.Payment">Payment</a></span>
+<span>def <span class="ident">send_payment</span></span>(<span>self, currency: str, amount: int, payee: str) ‑> <a title="diem.testing.miniwallet.client.Payment" href="#diem.testing.miniwallet.client.Payment">Payment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Send amount of currency to payee</p>
@@ -717,7 +699,7 @@ returns the event if the <code>**kwargs</code> is subset of the dictionary decod
     &#34;&#34;&#34;
 
     p = self.client.create(self._resources(&#34;payment&#34;), payee=payee, currency=currency, amount=amount)
-    return Payment(**p)</code></pre>
+    return Payment(id=p[&#34;id&#34;], account_id=self.id, payee=payee, currency=currency, amount=amount)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.AccountResource.wait_for"><code class="name flex">
@@ -804,6 +786,48 @@ See <code>find_event</code> for arguments document.</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="diem.testing.miniwallet.client.Payment"><code class="flex name class">
+<span>class <span class="ident">Payment</span></span>
+<span>(</span><span>id: str, account_id: str, currency: str, amount: int, payee: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Payment(id: str, account_id: str, currency: str, amount: int, payee: str)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class Payment:
+    id: str
+    account_id: str
+    currency: str
+    amount: int
+    payee: str</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.testing.miniwallet.client.Payment.account_id"><code class="name">var <span class="ident">account_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.client.Payment.amount"><code class="name">var <span class="ident">amount</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.client.Payment.currency"><code class="name">var <span class="ident">currency</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.client.Payment.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.client.Payment.payee"><code class="name">var <span class="ident">payee</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 <dt id="diem.testing.miniwallet.client.RestClient"><code class="flex name class">
 <span>class <span class="ident">RestClient</span></span>
 <span>(</span><span>name: str, server_url: str, session: requests.sessions.Session = &lt;factory&gt;)</span>
@@ -860,11 +884,16 @@ class RestClient:
     def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
         url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
         self.logger.debug(&#34;%s %s: %s&#34;, method, path, data)
+        headers = {
+            &#34;Content-Type&#34;: &#34;application/json&#34;,
+            &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER,
+            &#34;X-Test-Case&#34;: os.getenv(&#34;PYTEST_CURRENT_TEST&#34;),
+        }
         resp = self.session.request(
             method=method,
             url=url.lower(),
             data=data,
-            headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
+            headers={k: v for k, v in headers.items() if v},
         )
         log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
         self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
@@ -984,11 +1013,16 @@ class RestClient:
 <pre><code class="python">def send(self, method: str, path: str, data: Optional[str] = None) -&gt; requests.Response:
     url = &#34;%s/%s&#34; % (self.server_url.rstrip(&#34;/&#34;), path.lstrip(&#34;/&#34;))
     self.logger.debug(&#34;%s %s: %s&#34;, method, path, data)
+    headers = {
+        &#34;Content-Type&#34;: &#34;application/json&#34;,
+        &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER,
+        &#34;X-Test-Case&#34;: os.getenv(&#34;PYTEST_CURRENT_TEST&#34;),
+    }
     resp = self.session.request(
         method=method,
         url=url.lower(),
         data=data,
-        headers={&#34;Content-Type&#34;: &#34;application/json&#34;, &#34;User-Agent&#34;: jsonrpc.client.USER_AGENT_HTTP_HEADER},
+        headers={k: v for k, v in headers.items() if v},
     )
     log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
     self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
@@ -1045,7 +1079,6 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.events" href="#diem.testing.miniwallet.client.AccountResource.events">events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.find_event" href="#diem.testing.miniwallet.client.AccountResource.find_event">find_event</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.generate_account_identifier" href="#diem.testing.miniwallet.client.AccountResource.generate_account_identifier">generate_account_identifier</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.AccountResource.generate_payment_uri" href="#diem.testing.miniwallet.client.AccountResource.generate_payment_uri">generate_payment_uri</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.id" href="#diem.testing.miniwallet.client.AccountResource.id">id</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.info" href="#diem.testing.miniwallet.client.AccountResource.info">info</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.kyc_data" href="#diem.testing.miniwallet.client.AccountResource.kyc_data">kyc_data</a></code></li>
@@ -1054,6 +1087,16 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for" href="#diem.testing.miniwallet.client.AccountResource.wait_for">wait_for</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for_balance" href="#diem.testing.miniwallet.client.AccountResource.wait_for_balance">wait_for_balance</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for_event" href="#diem.testing.miniwallet.client.AccountResource.wait_for_event">wait_for_event</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.testing.miniwallet.client.Payment" href="#diem.testing.miniwallet.client.Payment">Payment</a></code></h4>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.client.Payment.account_id" href="#diem.testing.miniwallet.client.Payment.account_id">account_id</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.Payment.amount" href="#diem.testing.miniwallet.client.Payment.amount">amount</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.Payment.currency" href="#diem.testing.miniwallet.client.Payment.currency">currency</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.Payment.id" href="#diem.testing.miniwallet.client.Payment.id">id</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.Payment.payee" href="#diem.testing.miniwallet.client.Payment.payee">payee</a></code></li>
 </ul>
 </li>
 <li>

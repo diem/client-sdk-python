@@ -48,7 +48,9 @@ class LoggerMiddleware:
         self.logger.debug(&#34;%s %s&#34;, req.method, req.relative_uri)
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        self.logger.info(&#34;%s %s - %s&#34;, req.method, req.relative_uri, resp.status)
+        tc = req.get_header(&#34;X-Test-Case&#34;)
+        test_case = &#34;[%s] &#34; % tc if tc else &#34;&#34;
+        self.logger.info(&#34;%s%s %s - %s&#34;, test_case, req.method, req.relative_uri, resp.status)
 
 
 def rest_handler(fn: Any):  # pyre-ignore
@@ -79,11 +81,11 @@ class Endpoints:
 
     @rest_handler
     def on_post_payments(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_202, asdict(self.app.create_account_payment(account_id, input)))
+        return (falcon.HTTP_202, self.app.create_account_payment(account_id, input))
 
     @rest_handler
-    def on_post_payment_uris(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_200, asdict(self.app.create_account_payment_uri(account_id, input)))
+    def on_post_account_identifiers(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
+        return (falcon.HTTP_200, self.app.create_account_identifier(account_id, input))
 
     @rest_handler
     def on_get_balances(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, int]]:
@@ -102,20 +104,9 @@ class Endpoints:
         resp.set_header(offchain.X_REQUEST_ID, request_id)
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
-        try:
-            if not request_id:
-                raise offchain.protocol_error(
-                    offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
-                )
-            if not offchain.UUID_REGEX.match(request_id):
-                raise offchain.protocol_error(
-                    offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
-                )
-            resp_obj = self.app.offchain_api(request_sender_address, input_data)
-        except offchain.Error as e:
-            self.app.logger.info(input_data)
-            self.app.logger.exception(e)
-            resp_obj = offchain.reply_request(cid=None, err=e.obj)
+
+        resp_obj = self.app.offchain_api(request_id, request_sender_address, input_data)
+        if resp_obj.error is not None:
             resp.status = falcon.HTTP_400
         resp.body = self.app.jws_serialize(resp_obj)
 
@@ -129,7 +120,7 @@ def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
     api.add_static_route(&#34;/&#34;, base_path)
     api.add_route(&#34;/&#34;, endpoints, suffix=&#34;index&#34;)
     api.add_route(&#34;/accounts&#34;, endpoints, suffix=&#34;accounts&#34;)
-    for res in [&#34;balances&#34;, &#34;payments&#34;, &#34;payment_uris&#34;, &#34;events&#34;]:
+    for res in [&#34;balances&#34;, &#34;payments&#34;, &#34;account_identifiers&#34;, &#34;events&#34;]:
         if res == &#34;events&#34; and disable_events_api:
             continue
         api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
@@ -161,7 +152,7 @@ def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
     api.add_static_route(&#34;/&#34;, base_path)
     api.add_route(&#34;/&#34;, endpoints, suffix=&#34;index&#34;)
     api.add_route(&#34;/accounts&#34;, endpoints, suffix=&#34;accounts&#34;)
-    for res in [&#34;balances&#34;, &#34;payments&#34;, &#34;payment_uris&#34;, &#34;events&#34;]:
+    for res in [&#34;balances&#34;, &#34;payments&#34;, &#34;account_identifiers&#34;, &#34;events&#34;]:
         if res == &#34;events&#34; and disable_events_api:
             continue
         api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
@@ -223,11 +214,11 @@ class Endpoints:
 
     @rest_handler
     def on_post_payments(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_202, asdict(self.app.create_account_payment(account_id, input)))
+        return (falcon.HTTP_202, self.app.create_account_payment(account_id, input))
 
     @rest_handler
-    def on_post_payment_uris(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_200, asdict(self.app.create_account_payment_uri(account_id, input)))
+    def on_post_account_identifiers(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, Any]]:
+        return (falcon.HTTP_200, self.app.create_account_identifier(account_id, input))
 
     @rest_handler
     def on_get_balances(self, account_id: str, input: JsonInput) -&gt; Tuple[str, Dict[str, int]]:
@@ -246,20 +237,9 @@ class Endpoints:
         resp.set_header(offchain.X_REQUEST_ID, request_id)
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
-        try:
-            if not request_id:
-                raise offchain.protocol_error(
-                    offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
-                )
-            if not offchain.UUID_REGEX.match(request_id):
-                raise offchain.protocol_error(
-                    offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
-                )
-            resp_obj = self.app.offchain_api(request_sender_address, input_data)
-        except offchain.Error as e:
-            self.app.logger.info(input_data)
-            self.app.logger.exception(e)
-            resp_obj = offchain.reply_request(cid=None, err=e.obj)
+
+        resp_obj = self.app.offchain_api(request_id, request_sender_address, input_data)
+        if resp_obj.error is not None:
             resp.status = falcon.HTTP_400
         resp.body = self.app.jws_serialize(resp_obj)
 
@@ -360,6 +340,30 @@ class Endpoints:
         resp.body = json.dumps({&#34;error&#34;: str(e), &#34;stacktrace&#34;: traceback.format_exc()})</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.miniwallet.app.api.Endpoints.on_post_account_identifiers"><code class="name flex">
+<span>def <span class="ident">on_post_account_identifiers</span></span>(<span>self, req, resp, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
+    try:
+        try:
+            data = json.load(req.stream)
+            self.app.logger.debug(&#34;request body: %s&#34;, data)
+        except Exception:
+            data = {}
+        status, body = fn(self, input=JsonInput(data), **kwargs)
+        resp.status = status
+        resp.body = json.dumps(body)
+    except ValueError as e:
+        resp.status = falcon.HTTP_400
+        resp.body = json.dumps({&#34;error&#34;: str(e), &#34;stacktrace&#34;: traceback.format_exc()})</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.miniwallet.app.api.Endpoints.on_post_accounts"><code class="name flex">
 <span>def <span class="ident">on_post_accounts</span></span>(<span>self, req, resp, **kwargs)</span>
 </code></dt>
@@ -398,46 +402,11 @@ class Endpoints:
     resp.set_header(offchain.X_REQUEST_ID, request_id)
     request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
     input_data = req.stream.read()
-    try:
-        if not request_id:
-            raise offchain.protocol_error(
-                offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
-            )
-        if not offchain.UUID_REGEX.match(request_id):
-            raise offchain.protocol_error(
-                offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
-            )
-        resp_obj = self.app.offchain_api(request_sender_address, input_data)
-    except offchain.Error as e:
-        self.app.logger.info(input_data)
-        self.app.logger.exception(e)
-        resp_obj = offchain.reply_request(cid=None, err=e.obj)
+
+    resp_obj = self.app.offchain_api(request_id, request_sender_address, input_data)
+    if resp_obj.error is not None:
         resp.status = falcon.HTTP_400
     resp.body = self.app.jws_serialize(resp_obj)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.app.api.Endpoints.on_post_payment_uris"><code class="name flex">
-<span>def <span class="ident">on_post_payment_uris</span></span>(<span>self, req, resp, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
-    try:
-        try:
-            data = json.load(req.stream)
-            self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
-            data = {}
-        status, body = fn(self, input=JsonInput(data), **kwargs)
-        resp.status = status
-        resp.body = json.dumps(body)
-    except ValueError as e:
-        resp.status = falcon.HTTP_400
-        resp.body = json.dumps({&#34;error&#34;: str(e), &#34;stacktrace&#34;: traceback.format_exc()})</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.api.Endpoints.on_post_payments"><code class="name flex">
@@ -484,7 +453,9 @@ class LoggerMiddleware:
         self.logger.debug(&#34;%s %s&#34;, req.method, req.relative_uri)
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        self.logger.info(&#34;%s %s - %s&#34;, req.method, req.relative_uri, resp.status)</code></pre>
+        tc = req.get_header(&#34;X-Test-Case&#34;)
+        test_case = &#34;[%s] &#34; % tc if tc else &#34;&#34;
+        self.logger.info(&#34;%s%s %s - %s&#34;, test_case, req.method, req.relative_uri, resp.status)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -518,7 +489,9 @@ class LoggerMiddleware:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-    self.logger.info(&#34;%s %s - %s&#34;, req.method, req.relative_uri, resp.status)</code></pre>
+    tc = req.get_header(&#34;X-Test-Case&#34;)
+    test_case = &#34;[%s] &#34; % tc if tc else &#34;&#34;
+    self.logger.info(&#34;%s%s %s - %s&#34;, test_case, req.method, req.relative_uri, resp.status)</code></pre>
 </details>
 </dd>
 </dl>
@@ -553,9 +526,9 @@ class LoggerMiddleware:
 <li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_get_events" href="#diem.testing.miniwallet.app.api.Endpoints.on_get_events">on_get_events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_get_index" href="#diem.testing.miniwallet.app.api.Endpoints.on_get_index">on_get_index</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_get_kyc_sample" href="#diem.testing.miniwallet.app.api.Endpoints.on_get_kyc_sample">on_get_kyc_sample</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_post_account_identifiers" href="#diem.testing.miniwallet.app.api.Endpoints.on_post_account_identifiers">on_post_account_identifiers</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_post_accounts" href="#diem.testing.miniwallet.app.api.Endpoints.on_post_accounts">on_post_accounts</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_post_offchain" href="#diem.testing.miniwallet.app.api.Endpoints.on_post_offchain">on_post_offchain</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_post_payment_uris" href="#diem.testing.miniwallet.app.api.Endpoints.on_post_payment_uris">on_post_payment_uris</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.api.Endpoints.on_post_payments" href="#diem.testing.miniwallet.app.api.Endpoints.on_post_payments">on_post_payments</a></code></li>
 </ul>
 </li>

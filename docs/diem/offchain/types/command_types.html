@@ -42,6 +42,7 @@ UUID_REGEX: typing.Pattern[str] = re.compile(
 class CommandType:
     PaymentCommand = &#34;PaymentCommand&#34;
     FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;
+    PingCommand = &#34;PingCommand&#34;
 
 
 class CommandResponseStatus:
@@ -280,7 +281,8 @@ class CommandResponseObject:
 </summary>
 <pre><code class="python">class CommandType:
     PaymentCommand = &#34;PaymentCommand&#34;
-    FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;</code></pre>
+    FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;
+    PingCommand = &#34;PingCommand&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -289,6 +291,10 @@ class CommandResponseObject:
 <div class="desc"></div>
 </dd>
 <dt id="diem.offchain.types.command_types.CommandType.PaymentCommand"><code class="name">var <span class="ident">PaymentCommand</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandType.PingCommand"><code class="name">var <span class="ident">PingCommand</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -579,6 +585,7 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <ul class="">
 <li><code><a title="diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand" href="#diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand">FundPullPreApprovalCommand</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.CommandType.PaymentCommand" href="#diem.offchain.types.command_types.CommandType.PaymentCommand">PaymentCommand</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandType.PingCommand" href="#diem.offchain.types.command_types.CommandType.PingCommand">PingCommand</a></code></li>
 </ul>
 </li>
 <li>

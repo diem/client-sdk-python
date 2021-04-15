@@ -61,19 +61,19 @@ def diem_client() -&gt; jsonrpc.Client:
 
 
 @pytest.fixture(scope=&#34;package&#34;)
-def stub_config() -&gt; AppConfig:
+def stub_config(diem_client: jsonrpc.Client) -&gt; AppConfig:
     conf = AppConfig(name=&#34;stub-wallet&#34;, server_conf=ServerConfig(**dmw_stub_server()))
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print(&#34;loads stub account config: %s&#34; % account_conf)
         conf.account_config = json.loads(account_conf)
+    print(&#34;Start stub app with config %s&#34; % conf)
+    conf.start(diem_client)
     return conf
 
 
 @pytest.fixture(scope=&#34;package&#34;)
-def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestClient:
-    print(&#34;Start stub app with config %s&#34; % stub_config)
-    stub_config.start(diem_client)
+def stub_client(stub_config: AppConfig) -&gt; RestClient:
     return stub_config.create_client()
 
 
@@ -164,7 +164,7 @@ def pending_income_account(stub_client: RestClient) -&gt; AccountResource:
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.stub_client"><code class="name flex">
-<span>def <span class="ident">stub_client</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a></span>
+<span>def <span class="ident">stub_client</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>) ‑> <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -173,14 +173,12 @@ def pending_income_account(stub_client: RestClient) -&gt; AccountResource:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
-def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestClient:
-    print(&#34;Start stub app with config %s&#34; % stub_config)
-    stub_config.start(diem_client)
+def stub_client(stub_config: AppConfig) -&gt; RestClient:
     return stub_config.create_client()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.stub_config"><code class="name flex">
-<span>def <span class="ident">stub_config</span></span>(<span>) ‑> <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a></span>
+<span>def <span class="ident">stub_config</span></span>(<span>diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -189,12 +187,14 @@ def stub_client(stub_config: AppConfig, diem_client: jsonrpc.Client) -&gt; RestC
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture(scope=&#34;package&#34;)
-def stub_config() -&gt; AppConfig:
+def stub_config(diem_client: jsonrpc.Client) -&gt; AppConfig:
     conf = AppConfig(name=&#34;stub-wallet&#34;, server_conf=ServerConfig(**dmw_stub_server()))
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print(&#34;loads stub account config: %s&#34; % account_conf)
         conf.account_config = json.loads(account_conf)
+    print(&#34;Start stub app with config %s&#34; % conf)
+    conf.start(diem_client)
     return conf</code></pre>
 </details>
 </dd>

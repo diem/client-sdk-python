@@ -17,7 +17,7 @@ info:
 
         * [Create account endpoint](#post-/accounts): required for isolating test data.
         * [Get account balances endpoint](#get-/accounts/-account_id-/balances): required for verifying test results.
-        * [Generate payment URI endpoint](#post-/accounts/-account_id-/payment_uris): required for test receiving payment.
+        * [Generate account identifier endpoint](#post-/accounts/-account_id-/account_identifiers): required for test receiving payment.
         * [Send payment endpoint](#post-/accounts/-account_id-/payments): required for test sending payment.
         * [Get KYC sample endpoint](#get-/kyc_sample): required for test sending payment equal / above travel rule threshold limit.
 
@@ -79,7 +79,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Account'
+                $ref: '#/components/schemas/ResourceID'
         400:
           $ref: '#/components/responses/ClientError'
   /accounts/{account_id}/balances:
@@ -142,13 +142,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Payment'
+                $ref: '#/components/schemas/ResourceID'
         400:
           $ref: '#/components/responses/ClientError'
-  /accounts/{account_id}/payment_uris:
+  /accounts/{account_id}/account_identifiers:
     post:
-      summary: Generate payment URI
-      operationId: gen-payment-uri
+      summary: Generate account identifier
+      operationId: gen-account-identifier
       tags:
         - Minimum
       parameters:
@@ -158,19 +158,13 @@ paths:
         required: true
         schema:
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PaymentURI'
-        required: true
       responses:
         201:
-          description: A new payment URI is generated.
+          description: A new account identifier is generated.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaymentURI'
+                $ref: '#/components/schemas/AccountIdentifier'
         400:
           $ref: '#/components/responses/ClientError'
   /kyc_sample:
@@ -262,7 +256,7 @@ components:
           example: 1000000000
         XDX:
           type: integer
-    Account:
+    ResourceID:
       required:
       - id
       type: object
@@ -270,6 +264,7 @@ components:
         id:
           type: string
           readOnly: true
+          description: ID of the resource created.
     CreateAccountRequest:
       type: object
       properties:
@@ -277,36 +272,17 @@ components:
           $ref: '#/components/schemas/KycDataObject'
         balances:
           $ref: '#/components/schemas/Balances'
-    PaymentURI:
+    AccountIdentifier:
       required:
-      - id
-      - account_id
-      - payment_uri
+      - account_identifier
       type: object
       properties:
-        id:
+        account_identifier:
           type: string
           readOnly: true
-        account_id:
-          type: string
-          readOnly: true
-        currency:
-          type: string
-          enum: ["XUS", "XDX"]
-          writeOnly: true
-        amount:
-          type: integer
-          writeOnly: true
-        payment_uri:
-          type: string
           description: >
-              Diem intent identifier defined in DIP-5.
-
-              Server should create a new subaddress for the account, and then encode it with
-              an onchain account address as a new payment URI.
-              The currency and amount in the request body should also be encoded into this
-              URI if they are provided.
-          readOnly: true
+              Diem account identifier defined in DIP-5 for receiving payment.
+          example: tdm1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4ustv0tyx
     Payment:
       required:
       - id

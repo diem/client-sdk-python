@@ -32,7 +32,7 @@
 from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from .... import identifier, offchain, diem_types
+from .... import offchain, diem_types
 import json
 
 
@@ -51,26 +51,9 @@ class Account(Base):
 
 
 @dataclass
-class PaymentUri(Base):
-    account_id: str
-    payment_uri: str
-
-    def intent(self, hrp: str) -&gt; identifier.Intent:
-        return identifier.decode_intent(self.payment_uri, hrp)
-
-
-@dataclass
 class Subaddress(Base):
     account_id: str
     subaddress_hex: str
-
-
-@dataclass
-class Payment(Base):
-    account_id: str
-    currency: str
-    amount: int
-    payee: str
 
 
 @dataclass
@@ -124,10 +107,16 @@ class Transaction(Base):
         canceled = &#34;canceled&#34;
         pending = &#34;pending&#34;
 
+    class Type(str, Enum):
+        sent_payment = &#34;sent_payment&#34;
+        received_payment = &#34;received_payment&#34;
+        deposit = &#34;deposit&#34;
+
     account_id: str
     currency: str
     amount: int
     status: Status
+    type: Type
     cancel_reason: Optional[str] = field(default=None)
     payee: Optional[str] = field(default=None)
     subaddress_hex: Optional[str] = field(default=None)
@@ -246,9 +235,7 @@ class Base:
 <ul class="hlist">
 <li><a title="diem.testing.miniwallet.app.models.Account" href="#diem.testing.miniwallet.app.models.Account">Account</a></li>
 <li><a title="diem.testing.miniwallet.app.models.Event" href="#diem.testing.miniwallet.app.models.Event">Event</a></li>
-<li><a title="diem.testing.miniwallet.app.models.Payment" href="#diem.testing.miniwallet.app.models.Payment">Payment</a></li>
 <li><a title="diem.testing.miniwallet.app.models.PaymentCommand" href="#diem.testing.miniwallet.app.models.PaymentCommand">PaymentCommand</a></li>
-<li><a title="diem.testing.miniwallet.app.models.PaymentUri" href="#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></li>
 <li><a title="diem.testing.miniwallet.app.models.Subaddress" href="#diem.testing.miniwallet.app.models.Subaddress">Subaddress</a></li>
 <li><a title="diem.testing.miniwallet.app.models.Transaction" href="#diem.testing.miniwallet.app.models.Transaction">Transaction</a></li>
 </ul>
@@ -402,47 +389,6 @@ def gen(surname: str) -&gt; &#34;KycSample&#34;:
 </dd>
 </dl>
 </dd>
-<dt id="diem.testing.miniwallet.app.models.Payment"><code class="flex name class">
-<span>class <span class="ident">Payment</span></span>
-<span>(</span><span>id: str, account_id: str, currency: str, amount: int, payee: str)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Payment(id: str, account_id: str, currency: str, amount: int, payee: str)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@dataclass
-class Payment(Base):
-    account_id: str
-    currency: str
-    amount: int
-    payee: str</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="diem.testing.miniwallet.app.models.Base" href="#diem.testing.miniwallet.app.models.Base">Base</a></li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="diem.testing.miniwallet.app.models.Payment.account_id"><code class="name">var <span class="ident">account_id</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.Payment.amount"><code class="name">var <span class="ident">amount</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.Payment.currency"><code class="name">var <span class="ident">currency</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.Payment.payee"><code class="name">var <span class="ident">payee</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="diem.testing.miniwallet.app.models.PaymentCommand"><code class="flex name class">
 <span>class <span class="ident">PaymentCommand</span></span>
 <span>(</span><span>id: str, account_id: str, reference_id: str, cid: str, is_sender: bool, payment_object: Dict[str, Any], is_inbound: bool = False, is_abort: bool = False, is_ready: bool = False, process_error: Optional[str] = None)</span>
@@ -536,56 +482,6 @@ class PaymentCommand(Base):
         inbound=self.is_inbound,
         cid=self.cid,
     )</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.PaymentUri"><code class="flex name class">
-<span>class <span class="ident">PaymentUri</span></span>
-<span>(</span><span>id: str, account_id: str, payment_uri: str)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>PaymentUri(id: str, account_id: str, payment_uri: str)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@dataclass
-class PaymentUri(Base):
-    account_id: str
-    payment_uri: str
-
-    def intent(self, hrp: str) -&gt; identifier.Intent:
-        return identifier.decode_intent(self.payment_uri, hrp)</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="diem.testing.miniwallet.app.models.Base" href="#diem.testing.miniwallet.app.models.Base">Base</a></li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="diem.testing.miniwallet.app.models.PaymentUri.account_id"><code class="name">var <span class="ident">account_id</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.models.PaymentUri.payment_uri"><code class="name">var <span class="ident">payment_uri</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="diem.testing.miniwallet.app.models.PaymentUri.intent"><code class="name flex">
-<span>def <span class="ident">intent</span></span>(<span>self, hrp: str) ‑> <a title="diem.identifier.Intent" href="../../../identifier/index.html#diem.identifier.Intent">Intent</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def intent(self, hrp: str) -&gt; identifier.Intent:
-    return identifier.decode_intent(self.payment_uri, hrp)</code></pre>
 </details>
 </dd>
 </dl>
@@ -698,10 +594,10 @@ class Subaddress(Base):
 </dd>
 <dt id="diem.testing.miniwallet.app.models.Transaction"><code class="flex name class">
 <span>class <span class="ident">Transaction</span></span>
-<span>(</span><span>id: str, account_id: str, currency: str, amount: int, status: <a title="diem.testing.miniwallet.app.models.Transaction.Status" href="#diem.testing.miniwallet.app.models.Transaction.Status">Transaction.Status</a>, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None, refund_diem_txn_version: Optional[int] = None, refund_reason: Optional[<a title="diem.testing.miniwallet.app.models.RefundReason" href="#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a>] = None)</span>
+<span>(</span><span>id: str, account_id: str, currency: str, amount: int, status: <a title="diem.testing.miniwallet.app.models.Transaction.Status" href="#diem.testing.miniwallet.app.models.Transaction.Status">Transaction.Status</a>, type: <a title="diem.testing.miniwallet.app.models.Transaction.Type" href="#diem.testing.miniwallet.app.models.Transaction.Type">Transaction.Type</a>, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None, refund_diem_txn_version: Optional[int] = None, refund_reason: Optional[<a title="diem.testing.miniwallet.app.models.RefundReason" href="#diem.testing.miniwallet.app.models.RefundReason">RefundReason</a>] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Transaction(id: str, account_id: str, currency: str, amount: int, status: diem.testing.miniwallet.app.models.Transaction.Status, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None, refund_diem_txn_version: Optional[int] = None, refund_reason: Optional[diem.testing.miniwallet.app.models.RefundReason] = None)</p></div>
+<div class="desc"><p>Transaction(id: str, account_id: str, currency: str, amount: int, status: diem.testing.miniwallet.app.models.Transaction.Status, type: diem.testing.miniwallet.app.models.Transaction.Type, cancel_reason: Optional[str] = None, payee: Optional[str] = None, subaddress_hex: Optional[str] = None, reference_id: Optional[str] = None, signed_transaction: Optional[str] = None, diem_transaction_version: Optional[int] = None, refund_diem_txn_version: Optional[int] = None, refund_reason: Optional[diem.testing.miniwallet.app.models.RefundReason] = None)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -713,10 +609,16 @@ class Transaction(Base):
         canceled = &#34;canceled&#34;
         pending = &#34;pending&#34;
 
+    class Type(str, Enum):
+        sent_payment = &#34;sent_payment&#34;
+        received_payment = &#34;received_payment&#34;
+        deposit = &#34;deposit&#34;
+
     account_id: str
     currency: str
     amount: int
     status: Status
+    type: Type
     cancel_reason: Optional[str] = field(default=None)
     payee: Optional[str] = field(default=None)
     subaddress_hex: Optional[str] = field(default=None)
@@ -742,6 +644,10 @@ class Transaction(Base):
 <h3>Class variables</h3>
 <dl>
 <dt id="diem.testing.miniwallet.app.models.Transaction.Status"><code class="name">var <span class="ident">Status</span></code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.models.Transaction.Type"><code class="name">var <span class="ident">Type</span></code></dt>
 <dd>
 <div class="desc"><p>An enumeration.</p></div>
 </dd>
@@ -790,6 +696,10 @@ class Transaction(Base):
 <div class="desc"></div>
 </dd>
 <dt id="diem.testing.miniwallet.app.models.Transaction.subaddress_hex"><code class="name">var <span class="ident">subaddress_hex</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.app.models.Transaction.type"><code class="name">var <span class="ident">type</span> : <a title="diem.testing.miniwallet.app.models.Transaction.Type" href="#diem.testing.miniwallet.app.models.Transaction.Type">Transaction.Type</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -876,15 +786,6 @@ class Transaction(Base):
 </ul>
 </li>
 <li>
-<h4><code><a title="diem.testing.miniwallet.app.models.Payment" href="#diem.testing.miniwallet.app.models.Payment">Payment</a></code></h4>
-<ul class="">
-<li><code><a title="diem.testing.miniwallet.app.models.Payment.account_id" href="#diem.testing.miniwallet.app.models.Payment.account_id">account_id</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.Payment.amount" href="#diem.testing.miniwallet.app.models.Payment.amount">amount</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.Payment.currency" href="#diem.testing.miniwallet.app.models.Payment.currency">currency</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.Payment.payee" href="#diem.testing.miniwallet.app.models.Payment.payee">payee</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="diem.testing.miniwallet.app.models.PaymentCommand" href="#diem.testing.miniwallet.app.models.PaymentCommand">PaymentCommand</a></code></h4>
 <ul class="two-column">
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentCommand.account_id" href="#diem.testing.miniwallet.app.models.PaymentCommand.account_id">account_id</a></code></li>
@@ -897,14 +798,6 @@ class Transaction(Base):
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentCommand.process_error" href="#diem.testing.miniwallet.app.models.PaymentCommand.process_error">process_error</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentCommand.reference_id" href="#diem.testing.miniwallet.app.models.PaymentCommand.reference_id">reference_id</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.PaymentCommand.to_offchain_command" href="#diem.testing.miniwallet.app.models.PaymentCommand.to_offchain_command">to_offchain_command</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="diem.testing.miniwallet.app.models.PaymentUri" href="#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></code></h4>
-<ul class="">
-<li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.account_id" href="#diem.testing.miniwallet.app.models.PaymentUri.account_id">account_id</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.intent" href="#diem.testing.miniwallet.app.models.PaymentUri.intent">intent</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.models.PaymentUri.payment_uri" href="#diem.testing.miniwallet.app.models.PaymentUri.payment_uri">payment_uri</a></code></li>
 </ul>
 </li>
 <li>
@@ -927,6 +820,7 @@ class Transaction(Base):
 <h4><code><a title="diem.testing.miniwallet.app.models.Transaction" href="#diem.testing.miniwallet.app.models.Transaction">Transaction</a></code></h4>
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.Status" href="#diem.testing.miniwallet.app.models.Transaction.Status">Status</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.Transaction.Type" href="#diem.testing.miniwallet.app.models.Transaction.Type">Type</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.account_id" href="#diem.testing.miniwallet.app.models.Transaction.account_id">account_id</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.amount" href="#diem.testing.miniwallet.app.models.Transaction.amount">amount</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.balance_amount" href="#diem.testing.miniwallet.app.models.Transaction.balance_amount">balance_amount</a></code></li>
@@ -941,6 +835,7 @@ class Transaction(Base):
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.status" href="#diem.testing.miniwallet.app.models.Transaction.status">status</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.subaddress" href="#diem.testing.miniwallet.app.models.Transaction.subaddress">subaddress</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.models.Transaction.subaddress_hex" href="#diem.testing.miniwallet.app.models.Transaction.subaddress_hex">subaddress_hex</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.models.Transaction.type" href="#diem.testing.miniwallet.app.models.Transaction.type">type</a></code></li>
 </ul>
 </li>
 </ul>

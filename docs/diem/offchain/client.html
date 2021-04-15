@@ -136,6 +136,20 @@ class Client:
     def __post_init__(self) -&gt; None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
+    def ping(
+        self,
+        counterparty_account_identifier: str,
+        sign: typing.Callable[[bytes], bytes],
+        cid: typing.Optional[str] = None,
+    ) -&gt; CommandResponseObject:
+        request = CommandRequestObject(
+            cid=cid or str(uuid.uuid4()),
+            command_type=CommandType.PingCommand,
+            command={&#34;_ObjectType&#34;: CommandType.PingCommand},
+        )
+        jws_msg = jws.serialize(request, sign)
+        return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
+
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
         return self.send_request(
             request_sender_address=command.my_address(),
@@ -497,6 +511,20 @@ class Client:
 
     def __post_init__(self) -&gt; None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
+
+    def ping(
+        self,
+        counterparty_account_identifier: str,
+        sign: typing.Callable[[bytes], bytes],
+        cid: typing.Optional[str] = None,
+    ) -&gt; CommandResponseObject:
+        request = CommandRequestObject(
+            cid=cid or str(uuid.uuid4()),
+            command_type=CommandType.PingCommand,
+            command={&#34;_ObjectType&#34;: CommandType.PingCommand},
+        )
+        jws_msg = jws.serialize(request, sign)
+        return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
 
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -&gt; CommandResponseObject:
         return self.send_request(
@@ -876,6 +904,30 @@ class Client:
                 )</code></pre>
 </details>
 </dd>
+<dt id="diem.offchain.client.Client.ping"><code class="name flex">
+<span>def <span class="ident">ping</span></span>(<span>self, counterparty_account_identifier: str, sign: Callable[[bytes], bytes], cid: Optional[str] = None) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ping(
+    self,
+    counterparty_account_identifier: str,
+    sign: typing.Callable[[bytes], bytes],
+    cid: typing.Optional[str] = None,
+) -&gt; CommandResponseObject:
+    request = CommandRequestObject(
+        cid=cid or str(uuid.uuid4()),
+        command_type=CommandType.PingCommand,
+        command={&#34;_ObjectType&#34;: CommandType.PingCommand},
+    )
+    jws_msg = jws.serialize(request, sign)
+    return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)</code></pre>
+</details>
+</dd>
 <dt id="diem.offchain.client.Client.process_inbound_payment_command_request"><code class="name flex">
 <span>def <span class="ident">process_inbound_payment_command_request</span></span>(<span>self, request_sender_address: str, request: <a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a>) ‑> <a title="diem.offchain.payment_command.PaymentCommand" href="payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></span>
 </code></dt>
@@ -1210,6 +1262,7 @@ for handling command processing properly in the future when new commands are add
 <li><code><a title="diem.offchain.client.Client.jsonrpc_client" href="#diem.offchain.client.Client.jsonrpc_client">jsonrpc_client</a></code></li>
 <li><code><a title="diem.offchain.client.Client.my_compliance_key_account_address" href="#diem.offchain.client.Client.my_compliance_key_account_address">my_compliance_key_account_address</a></code></li>
 <li><code><a title="diem.offchain.client.Client.my_compliance_key_account_id" href="#diem.offchain.client.Client.my_compliance_key_account_id">my_compliance_key_account_id</a></code></li>
+<li><code><a title="diem.offchain.client.Client.ping" href="#diem.offchain.client.Client.ping">ping</a></code></li>
 <li><code><a title="diem.offchain.client.Client.process_inbound_payment_command_request" href="#diem.offchain.client.Client.process_inbound_payment_command_request">process_inbound_payment_command_request</a></code></li>
 <li><code><a title="diem.offchain.client.Client.process_inbound_request" href="#diem.offchain.client.Client.process_inbound_request">process_inbound_request</a></code></li>
 <li><code><a title="diem.offchain.client.Client.send_command" href="#diem.offchain.client.Client.send_command">send_command</a></code></li>

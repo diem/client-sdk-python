@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem.testing.miniwallet import RestClient, AccountResource, Transaction, AppConfig, RefundReason
-from diem import offchain, jsonrpc, stdlib, utils, txnmetadata, diem_types
+from diem import offchain, jsonrpc, stdlib, utils, txnmetadata, diem_types, identifier
 from typing import Generator, Optional, List
 import pytest, json
 
@@ -86,15 +86,15 @@ def test_receive_payment_with_invalid_metadata(
 
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Submit a p2p transaction with invalid metadata, and wait for it is executed.
-    3. Send a valid payment to the payment URI.
+    3. Send a valid payment to the valid account identifier.
     4. Assert receiver account received the valid payment.
 
     &#34;&#34;&#34;
 
-    uri = receiver_account.generate_payment_uri()
-    receiver_account_address = uri.intent(hrp).account_address
+    account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(account_identifier, hrp)
     stub_config.account.submit_and_wait_for_txn(
         diem_client,
         stdlib.encode_peer_to_peer_with_metadata_script(
@@ -107,7 +107,7 @@ def test_receive_payment_with_invalid_metadata(
     )
     assert receiver_account.balance(currency) == 0
 
-    pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
+    pay = sender_account.send_payment(currency=currency, amount=amount, payee=account_identifier)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)
 
@@ -117,21 +117,20 @@ def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresse
     sender_account: AccountResource,
     receiver_account: AccountResource,
     currency: str,
-    hrp: str,
     amount: int,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
-    2. Send a payment to the payee from the valid payment URI.
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Send a payment to the account identifier.
     3. Wait for the transaction executed successfully.
     4. Assert receiver account received the fund.
 
     &#34;&#34;&#34;
 
-    uri = receiver_account.generate_payment_uri()
-    pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
+    payee = receiver_account.generate_account_identifier()
+    pay = sender_account.send_payment(currency=currency, amount=amount, payee=payee)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)
 
@@ -153,7 +152,7 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 
     Test Plan:
 
-    1. Generate a valid payment URI from the receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Create a general metadata with valid from subaddress and invalid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
@@ -162,11 +161,13 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address: diem_types.AccountAddress = identifier.decode_account_address(
+        receiver_account_identifier, hrp
+    )
 
-    sender_uri = sender_account.generate_payment_uri()
-    valid_from_subaddress = sender_uri.intent(hrp).subaddress
+    sender_account_identifier = sender_account.generate_account_identifier()
+    valid_from_subaddress = identifier.decode_account_subaddress(sender_account_identifier, hrp)
     invalid_metadata = txnmetadata.general_metadata(valid_from_subaddress, invalid_to_subaddress)
     original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
         diem_client,
@@ -205,7 +206,7 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
 
     Test Plan:
 
-    1. Generate a valid payment URI from the receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Create a general metadata with invalid from subaddress and valid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
@@ -213,10 +214,10 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    valid_to_subaddress = receiver_uri.intent(hrp).subaddress
+    valid_to_subaddress = identifier.decode_account_subaddress(receiver_account_identifier, hrp)
     invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, valid_to_subaddress)
     stub_config.account.submit_and_wait_for_txn(
         diem_client,
@@ -253,7 +254,7 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
 
     Test Plan:
 
-    1. Generate a valid payment URI from the receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Create a general metadata with invalid from subaddress and invalid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
@@ -262,8 +263,8 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
     invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, invalid_to_subaddress)
     original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
@@ -290,21 +291,20 @@ def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
     sender_account: AccountResource,
     receiver_account: AccountResource,
     currency: str,
-    hrp: str,
     travel_rule_threshold: int,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
-    2. Send a payment meeting travel rule threshold to the payee from the valid payment URI.
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Send a payment meeting travel rule threshold to the account identifier.
     3. Wait for the transaction executed successfully.
     4. Assert receiver account received the fund.
 
     &#34;&#34;&#34;
 
-    uri = receiver_account.generate_payment_uri()
-    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=uri.intent(hrp).account_id)
+    account_identifier = receiver_account.generate_account_identifier()
+    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=account_identifier)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, travel_rule_threshold)
 
@@ -335,7 +335,7 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
 
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Submit payment under travel rule threshold transaction from sender to receiver on-chain account.
     3. Wait for the transaction executed successfully.
     4. Assert the payment is refund eventually.
@@ -345,11 +345,11 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    sender_uri = sender_account.generate_payment_uri()
-    sender_address = sender_uri.intent(hrp).account_address
+    sender_account_identifier = sender_account.generate_account_identifier()
+    sender_address = identifier.decode_account_address(sender_account_identifier, hrp)
     metadata, _ = txnmetadata.travel_rule(invalid_ref_id, sender_address, amount)  # pyre-ignore
     original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
         diem_client,
@@ -388,16 +388,16 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
 
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Submit payment transaction with refund metadata and invalid txn version.
     3. Wait for the transaction executed successfully.
-    4. Send a valid payment to the payment URI.
+    4. Send a valid payment to the account identifier.
     5. Assert receiver account received the valid payment.
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
     reason = diem_types.RefundReason__OtherReason()
     metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
@@ -413,7 +413,7 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
     )
     assert receiver_account.balance(currency) == 0
 
-    pay = sender_account.send_payment(currency, amount, payee=receiver_uri.intent(hrp).account_id)
+    pay = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)
 
@@ -429,7 +429,6 @@ def test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_a
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -450,7 +449,6 @@ def test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_a
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -480,7 +478,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -489,7 +486,6 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_reject
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -510,7 +506,6 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_reject
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -519,7 +514,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -540,7 +534,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -549,7 +542,6 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_m
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -570,7 +562,6 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_m
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -579,7 +570,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -600,7 +590,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -609,7 +598,6 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_m
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -630,7 +618,6 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_m
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -639,7 +626,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -662,7 +648,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -671,7 +656,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_dat
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -692,7 +676,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_dat
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -701,7 +684,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -722,7 +704,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -731,7 +712,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -752,7 +732,6 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )
 
 
@@ -762,17 +741,13 @@ def receive_payment_meets_travel_rule_threshold(
     payment_command_states: List[str],
     currency: str,
     amount: int,
-    hrp: str,
     sender_reject_additional_kyc_data_request: bool = False,
 ) -&gt; None:
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payee = receiver.generate_account_identifier(hrp)
-    send_payment = sender.send_payment(currency, amount, payee)
-    assert send_payment.currency == currency
-    assert send_payment.amount == amount
-    assert send_payment.payee == payee
+    payee = receiver.generate_account_identifier()
+    sender.send_payment(currency, amount, payee)
 
     def match_exchange_states() -&gt; None:
         states = []
@@ -801,7 +776,7 @@ def receive_payment_meets_travel_rule_threshold(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="diem.testing.suites.test_receive_payment.receive_payment_meets_travel_rule_threshold"><code class="name flex">
-<span>def <span class="ident">receive_payment_meets_travel_rule_threshold</span></span>(<span>sender: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, payment_command_states: List[str], currency: str, amount: int, hrp: str, sender_reject_additional_kyc_data_request: bool = False) ‑> NoneType</span>
+<span>def <span class="ident">receive_payment_meets_travel_rule_threshold</span></span>(<span>sender: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, payment_command_states: List[str], currency: str, amount: int, sender_reject_additional_kyc_data_request: bool = False) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -815,17 +790,13 @@ def receive_payment_meets_travel_rule_threshold(
     payment_command_states: List[str],
     currency: str,
     amount: int,
-    hrp: str,
     sender_reject_additional_kyc_data_request: bool = False,
 ) -&gt; None:
     sender_initial = sender.balance(currency)
     receiver_initial = receiver.balance(currency)
 
-    payee = receiver.generate_account_identifier(hrp)
-    send_payment = sender.send_payment(currency, amount, payee)
-    assert send_payment.currency == currency
-    assert send_payment.amount == amount
-    assert send_payment.payee == payee
+    payee = receiver.generate_account_identifier()
+    sender.send_payment(currency, amount, payee)
 
     def match_exchange_states() -&gt; None:
         states = []
@@ -886,7 +857,7 @@ def sender_account(
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -906,7 +877,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -927,12 +897,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_by_the_sender"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_by_the_sender</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_by_the_sender</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -952,7 +921,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -973,12 +941,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -998,7 +965,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1019,12 +985,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1044,7 +1009,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1065,12 +1029,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_are_soft_match_then_accepted_after_reviewing_additional_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_are_soft_match_then_accepted_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_are_soft_match_then_accepted_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1090,7 +1053,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1111,7 +1073,6 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
@@ -1157,12 +1118,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_rejected"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_rejected</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_rejected</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1182,7 +1142,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1203,12 +1162,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_soft_match_and_rejected"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_soft_match_and_rejected</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_soft_match_and_rejected</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1228,7 +1186,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1249,12 +1206,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;S_SOFT&#34;, &#34;R_SOFT_SEND&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1274,7 +1230,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1295,12 +1250,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_SEND&#34;, &#34;READY&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_receiver_aborts_for_sending_additional_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_receiver_aborts_for_sending_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_receiver_aborts_for_sending_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1321,7 +1275,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1344,12 +1297,11 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, hrp: str) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data</span></span>(<span>currency: str, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1369,7 +1321,6 @@ def sender_account(
     travel_rule_threshold: int,
     target_client: RestClient,
     stub_client: RestClient,
-    hrp: str,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
@@ -1390,7 +1341,6 @@ def sender_account(
         payment_command_states=[&#34;S_INIT&#34;, &#34;R_SOFT&#34;, &#34;S_SOFT_SEND&#34;, &#34;R_ABORT&#34;],
         currency=currency,
         amount=travel_rule_threshold,
-        hrp=hrp,
     )</code></pre>
 </details>
 </dd>
@@ -1402,7 +1352,7 @@ def sender_account(
 receiver is not required to take any action on it as long as to subaddress is valid.</p>
 <p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from the receiver account.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
 <li>Create a general metadata with invalid from subaddress and valid to subaddress.</li>
 <li>Send payment transaction from sender to receiver on-chain account.</li>
 <li>Wait for the transaction executed successfully.</li>
@@ -1429,7 +1379,7 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
 
     Test Plan:
 
-    1. Generate a valid payment URI from the receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Create a general metadata with invalid from subaddress and valid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
@@ -1437,10 +1387,10 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    valid_to_subaddress = receiver_uri.intent(hrp).subaddress
+    valid_to_subaddress = identifier.decode_account_subaddress(receiver_account_identifier, hrp)
     invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, valid_to_subaddress)
     stub_config.account.submit_and_wait_for_txn(
         diem_client,
@@ -1463,7 +1413,7 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
 same with the case received invalid to subaddress, and receiver should refund the payment.</p>
 <p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from the receiver account.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
 <li>Create a general metadata with invalid from subaddress and invalid to subaddress.</li>
 <li>Send payment transaction from sender to receiver on-chain account.</li>
 <li>Wait for the transaction executed successfully.</li>
@@ -1496,7 +1446,7 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
 
     Test Plan:
 
-    1. Generate a valid payment URI from the receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Create a general metadata with invalid from subaddress and invalid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
@@ -1505,8 +1455,8 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
     invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, invalid_to_subaddress)
     original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
@@ -1537,7 +1487,7 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
 receiver should refund the payment by using RefundMetadata with reason <code>invalid subaddress</code>.</p>
 <p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from the receiver account.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
 <li>Create a general metadata with valid from subaddress and invalid to subaddress.</li>
 <li>Send payment transaction from sender to receiver on-chain account.</li>
 <li>Wait for the transaction executed successfully.</li>
@@ -1565,7 +1515,7 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 
     Test Plan:
 
-    1. Generate a valid payment URI from the receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Create a general metadata with valid from subaddress and invalid to subaddress.
     3. Send payment transaction from sender to receiver on-chain account.
     4. Wait for the transaction executed successfully.
@@ -1574,11 +1524,13 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address: diem_types.AccountAddress = identifier.decode_account_address(
+        receiver_account_identifier, hrp
+    )
 
-    sender_uri = sender_account.generate_payment_uri()
-    valid_from_subaddress = sender_uri.intent(hrp).subaddress
+    sender_account_identifier = sender_account.generate_account_identifier()
+    valid_from_subaddress = identifier.decode_account_subaddress(sender_account_identifier, hrp)
     invalid_metadata = txnmetadata.general_metadata(valid_from_subaddress, invalid_to_subaddress)
     original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
         diem_client,
@@ -1601,13 +1553,13 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, amount: int) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, amount: int) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from receiver account.</li>
-<li>Send a payment to the payee from the valid payment URI.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
+<li>Send a payment to the account identifier.</li>
 <li>Wait for the transaction executed successfully.</li>
 <li>Assert receiver account received the fund.</li>
 </ol></div>
@@ -1620,21 +1572,20 @@ def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresse
     sender_account: AccountResource,
     receiver_account: AccountResource,
     currency: str,
-    hrp: str,
     amount: int,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
-    2. Send a payment to the payee from the valid payment URI.
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Send a payment to the account identifier.
     3. Wait for the transaction executed successfully.
     4. Assert receiver account received the fund.
 
     &#34;&#34;&#34;
 
-    uri = receiver_account.generate_payment_uri()
-    pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
+    payee = receiver_account.generate_account_identifier()
+    pay = sender_account.send_payment(currency=currency, amount=amount, payee=payee)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)</code></pre>
 </details>
@@ -1648,9 +1599,9 @@ This test makes sure target wallet application should continue to process valid 
 received such an on-chain transaction.</p>
 <p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from receiver account.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
 <li>Submit a p2p transaction with invalid metadata, and wait for it is executed.</li>
-<li>Send a valid payment to the payment URI.</li>
+<li>Send a valid payment to the valid account identifier.</li>
 <li>Assert receiver account received the valid payment.</li>
 </ol></div>
 <details class="source">
@@ -1684,15 +1635,15 @@ def test_receive_payment_with_invalid_metadata(
 
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Submit a p2p transaction with invalid metadata, and wait for it is executed.
-    3. Send a valid payment to the payment URI.
+    3. Send a valid payment to the valid account identifier.
     4. Assert receiver account received the valid payment.
 
     &#34;&#34;&#34;
 
-    uri = receiver_account.generate_payment_uri()
-    receiver_account_address = uri.intent(hrp).account_address
+    account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(account_identifier, hrp)
     stub_config.account.submit_and_wait_for_txn(
         diem_client,
         stdlib.encode_peer_to_peer_with_metadata_script(
@@ -1705,7 +1656,7 @@ def test_receive_payment_with_invalid_metadata(
     )
     assert receiver_account.balance(currency) == 0
 
-    pay = sender_account.send_payment(currency=currency, amount=amount, payee=uri.intent(hrp).account_id)
+    pay = sender_account.send_payment(currency=currency, amount=amount, payee=account_identifier)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)</code></pre>
 </details>
@@ -1719,10 +1670,10 @@ application to decide how to handle, this test makes sure the wallet application
 should be able to continue to receive following up valid payment transactions.</p>
 <p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from receiver account.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
 <li>Submit payment transaction with refund metadata and invalid txn version.</li>
 <li>Wait for the transaction executed successfully.</li>
-<li>Send a valid payment to the payment URI.</li>
+<li>Send a valid payment to the account identifier.</li>
 <li>Assert receiver account received the valid payment.</li>
 </ol></div>
 <details class="source">
@@ -1747,16 +1698,16 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
 
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Submit payment transaction with refund metadata and invalid txn version.
     3. Wait for the transaction executed successfully.
-    4. Send a valid payment to the payment URI.
+    4. Send a valid payment to the account identifier.
     5. Assert receiver account received the valid payment.
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
     reason = diem_types.RefundReason__OtherReason()
     metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
@@ -1772,7 +1723,7 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
     )
     assert receiver_account.balance(currency) == 0
 
-    pay = sender_account.send_payment(currency, amount, payee=receiver_uri.intent(hrp).account_id)
+    pay = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, amount)</code></pre>
 </details>
@@ -1791,7 +1742,7 @@ signature case.</p>
 travel rule threshold without metadata signature, and receiver should handle it properly and refund.</p>
 <p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from receiver account.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
 <li>Submit payment under travel rule threshold transaction from sender to receiver on-chain account.</li>
 <li>Wait for the transaction executed successfully.</li>
 <li>Assert the payment is refund eventually.</li>
@@ -1828,7 +1779,7 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
 
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
+    1. Generate a valid account identifier from receiver account as payee.
     2. Submit payment under travel rule threshold transaction from sender to receiver on-chain account.
     3. Wait for the transaction executed successfully.
     4. Assert the payment is refund eventually.
@@ -1838,11 +1789,11 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
 
     &#34;&#34;&#34;
 
-    receiver_uri = receiver_account.generate_payment_uri()
-    receiver_account_address: diem_types.AccountAddress = receiver_uri.intent(hrp).account_address
+    receiver_account_identifier = receiver_account.generate_account_identifier()
+    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    sender_uri = sender_account.generate_payment_uri()
-    sender_address = sender_uri.intent(hrp).account_address
+    sender_account_identifier = sender_account.generate_account_identifier()
+    sender_address = identifier.decode_account_address(sender_account_identifier, hrp)
     metadata, _ = txnmetadata.travel_rule(invalid_ref_id, sender_address, amount)  # pyre-ignore
     original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
         diem_client,
@@ -1864,13 +1815,13 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.test_receive_payment_with_travel_rule_metadata_and_valid_reference_id"><code class="name flex">
-<span>def <span class="ident">test_receive_payment_with_travel_rule_metadata_and_valid_reference_id</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, hrp: str, travel_rule_threshold: int) ‑> NoneType</span>
+<span>def <span class="ident">test_receive_payment_with_travel_rule_metadata_and_valid_reference_id</span></span>(<span>sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, travel_rule_threshold: int) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
 <ol>
-<li>Generate a valid payment URI from receiver account.</li>
-<li>Send a payment meeting travel rule threshold to the payee from the valid payment URI.</li>
+<li>Generate a valid account identifier from receiver account as payee.</li>
+<li>Send a payment meeting travel rule threshold to the account identifier.</li>
 <li>Wait for the transaction executed successfully.</li>
 <li>Assert receiver account received the fund.</li>
 </ol></div>
@@ -1882,21 +1833,20 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
     sender_account: AccountResource,
     receiver_account: AccountResource,
     currency: str,
-    hrp: str,
     travel_rule_threshold: int,
 ) -&gt; None:
     &#34;&#34;&#34;
     Test Plan:
 
-    1. Generate a valid payment URI from receiver account.
-    2. Send a payment meeting travel rule threshold to the payee from the valid payment URI.
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Send a payment meeting travel rule threshold to the account identifier.
     3. Wait for the transaction executed successfully.
     4. Assert receiver account received the fund.
 
     &#34;&#34;&#34;
 
-    uri = receiver_account.generate_payment_uri()
-    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=uri.intent(hrp).account_id)
+    account_identifier = receiver_account.generate_account_identifier()
+    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=account_identifier)
     wait_for_payment_transaction_complete(sender_account, pay.id)
     receiver_account.wait_for_balance(currency, travel_rule_threshold)</code></pre>
 </details>

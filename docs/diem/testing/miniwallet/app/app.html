@@ -34,11 +34,11 @@ from typing import List, Tuple, Dict, Optional, Any
 from json.decoder import JSONDecodeError
 from .store import InMemoryStore, NotFoundError
 from .diem_account import DiemAccount
-from .models import PaymentUri, Subaddress, Account, Transaction, Event, KycSample, Payment, PaymentCommand
+from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentCommand
 from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
-from .... import jsonrpc, offchain, utils, identifier
+from .... import jsonrpc, offchain, utils
 from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
 import threading, logging, numpy
 
@@ -111,13 +111,41 @@ class Base:
 
 
 class OffChainAPI(Base):
-    def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type))(request_sender_address, request)
-        return offchain.reply_request(cid=request.cid)
+    def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
+        cid = None
+        try:
+            if not request_id:
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
+                )
+            if not offchain.UUID_REGEX.match(request_id):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
+                )
+
+            request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+            cid = request.cid
+            handler = &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type)
+            if not hasattr(self, handler):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.unknown_command_type,
+                    &#34;unknown command_type: %s&#34; % request.command_type,
+                    field=&#34;command_type&#34;,
+                )
+            getattr(self, handler)(request_sender_address, request)
+            return offchain.reply_request(cid=cid)
+        except offchain.Error as e:
+            self.logger.info(request_bytes)
+            self.logger.exception(e)
+            return offchain.reply_request(cid=cid, err=e.obj)
 
     def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
+
+    def _handle_offchain_ping_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -&gt; None:
+        pass
 
     def _handle_offchain_payment_command(
         self, request_sender_address: str, request: offchain.CommandRequestObject
@@ -198,6 +226,7 @@ class BackgroundTasks(OffChainAPI):
             currency=txn.currency,
             amount=txn.amount,
             status=Transaction.Status.completed,
+            type=Transaction.Type.sent_payment,
         )
         self.store.update(txn, status=Transaction.Status.completed)
 
@@ -322,24 +351,26 @@ class App(BackgroundTasks):
         if balances:
             for c, a in balances.items():
                 self._create_transaction(
-                    account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
+                    account.id,
+                    Transaction.Status.completed,
+                    JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a}),
+                    type=Transaction.Type.deposit,
                 )
         return {&#34;id&#34;: account.id}
 
-    def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
+    def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Dict[str, Any]:
         self.store.find(Account, id=account_id)
         payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
-        txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
-        return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)
+        txn = self._create_transaction(
+            account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+        )
+        return {&#34;id&#34;: txn.id}
 
-    def create_account_payment_uri(self, account_id: str, data: JsonInput) -&gt; PaymentUri:
-        currency = data.get_nullable(&#34;currency&#34;, str, self._validate_currency_code)
-        amount = data.get_nullable(&#34;amount&#34;, int, self._validate_amount)
+    def create_account_identifier(self, account_id: str, data: JsonInput) -&gt; Dict[str, str]:
         self.store.find(Account, id=account_id)
         sub = self._gen_subaddress(account_id)
         diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
-        uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)
+        return {&#34;account_identifier&#34;: diem_acc_id}
 
     def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
         self.store.find(Account, id=account_id)
@@ -349,7 +380,12 @@ class App(BackgroundTasks):
         return self.store.find_all(Event, account_id=account_id)
 
     def _create_transaction(
-        self, account_id: str, status: str, data: JsonInput, payee: Optional[str] = None
+        self,
+        account_id: str,
+        status: str,
+        data: JsonInput,
+        type: Transaction.Type,
+        payee: Optional[str] = None,
     ) -&gt; Transaction:
         return self.store.create(
             Transaction,
@@ -358,6 +394,7 @@ class App(BackgroundTasks):
             amount=data.get(&#34;amount&#34;, int, self._validate_amount),
             payee=payee,
             status=status,
+            type=type,
             before_create=self._validate_account_balance,
         )</code></pre>
 </details>
@@ -394,24 +431,26 @@ class App(BackgroundTasks):
         if balances:
             for c, a in balances.items():
                 self._create_transaction(
-                    account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
+                    account.id,
+                    Transaction.Status.completed,
+                    JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a}),
+                    type=Transaction.Type.deposit,
                 )
         return {&#34;id&#34;: account.id}
 
-    def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
+    def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Dict[str, Any]:
         self.store.find(Account, id=account_id)
         payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
-        txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
-        return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)
+        txn = self._create_transaction(
+            account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+        )
+        return {&#34;id&#34;: txn.id}
 
-    def create_account_payment_uri(self, account_id: str, data: JsonInput) -&gt; PaymentUri:
-        currency = data.get_nullable(&#34;currency&#34;, str, self._validate_currency_code)
-        amount = data.get_nullable(&#34;amount&#34;, int, self._validate_amount)
+    def create_account_identifier(self, account_id: str, data: JsonInput) -&gt; Dict[str, str]:
         self.store.find(Account, id=account_id)
         sub = self._gen_subaddress(account_id)
         diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
-        uri = identifier.encode_intent(diem_acc_id, currency, amount)
-        return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)
+        return {&#34;account_identifier&#34;: diem_acc_id}
 
     def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
         self.store.find(Account, id=account_id)
@@ -421,7 +460,12 @@ class App(BackgroundTasks):
         return self.store.find_all(Event, account_id=account_id)
 
     def _create_transaction(
-        self, account_id: str, status: str, data: JsonInput, payee: Optional[str] = None
+        self,
+        account_id: str,
+        status: str,
+        data: JsonInput,
+        type: Transaction.Type,
+        payee: Optional[str] = None,
     ) -&gt; Transaction:
         return self.store.create(
             Transaction,
@@ -430,6 +474,7 @@ class App(BackgroundTasks):
             amount=data.get(&#34;amount&#34;, int, self._validate_amount),
             payee=payee,
             status=status,
+            type=type,
             before_create=self._validate_account_balance,
         )</code></pre>
 </details>
@@ -462,13 +507,16 @@ class App(BackgroundTasks):
     if balances:
         for c, a in balances.items():
             self._create_transaction(
-                account.id, Transaction.Status.completed, JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a})
+                account.id,
+                Transaction.Status.completed,
+                JsonInput({&#34;currency&#34;: c, &#34;amount&#34;: a}),
+                type=Transaction.Type.deposit,
             )
     return {&#34;id&#34;: account.id}</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.miniwallet.app.app.App.create_account_payment"><code class="name flex">
-<span>def <span class="ident">create_account_payment</span></span>(<span>self, account_id: str, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> <a title="diem.testing.miniwallet.app.models.Payment" href="models.html#diem.testing.miniwallet.app.models.Payment">Payment</a></span>
+<dt id="diem.testing.miniwallet.app.app.App.create_account_identifier"><code class="name flex">
+<span>def <span class="ident">create_account_identifier</span></span>(<span>self, account_id: str, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -476,30 +524,29 @@ class App(BackgroundTasks):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Payment:
-    self.store.find(Account, id=account_id)
-    payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
-    txn = self._create_transaction(account_id, Transaction.Status.pending, data, payee=payee)
-    return Payment(id=txn.id, account_id=account_id, payee=payee, currency=txn.currency, amount=txn.amount)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.app.app.App.create_account_payment_uri"><code class="name flex">
-<span>def <span class="ident">create_account_payment_uri</span></span>(<span>self, account_id: str, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> <a title="diem.testing.miniwallet.app.models.PaymentUri" href="models.html#diem.testing.miniwallet.app.models.PaymentUri">PaymentUri</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def create_account_payment_uri(self, account_id: str, data: JsonInput) -&gt; PaymentUri:
-    currency = data.get_nullable(&#34;currency&#34;, str, self._validate_currency_code)
-    amount = data.get_nullable(&#34;amount&#34;, int, self._validate_amount)
+<pre><code class="python">def create_account_identifier(self, account_id: str, data: JsonInput) -&gt; Dict[str, str]:
     self.store.find(Account, id=account_id)
     sub = self._gen_subaddress(account_id)
     diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
-    uri = identifier.encode_intent(diem_acc_id, currency, amount)
-    return PaymentUri(id=sub.id, account_id=account_id, payment_uri=uri)</code></pre>
+    return {&#34;account_identifier&#34;: diem_acc_id}</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.App.create_account_payment"><code class="name flex">
+<span>def <span class="ident">create_account_payment</span></span>(<span>self, account_id: str, data: <a title="diem.testing.miniwallet.app.json_input.JsonInput" href="json_input.html#diem.testing.miniwallet.app.json_input.JsonInput">JsonInput</a>) ‑> Dict[str, Any]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Dict[str, Any]:
+    self.store.find(Account, id=account_id)
+    payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+    txn = self._create_transaction(
+        account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+    )
+    return {&#34;id&#34;: txn.id}</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.app.App.get_account_balances"><code class="name flex">
@@ -581,6 +628,7 @@ class App(BackgroundTasks):
             currency=txn.currency,
             amount=txn.amount,
             status=Transaction.Status.completed,
+            type=Transaction.Type.sent_payment,
         )
         self.store.update(txn, status=Transaction.Status.completed)
 
@@ -820,13 +868,41 @@ class App(BackgroundTasks):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class OffChainAPI(Base):
-    def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-        getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type))(request_sender_address, request)
-        return offchain.reply_request(cid=request.cid)
+    def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
+        cid = None
+        try:
+            if not request_id:
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
+                )
+            if not offchain.UUID_REGEX.match(request_id):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
+                )
+
+            request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+            cid = request.cid
+            handler = &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type)
+            if not hasattr(self, handler):
+                raise offchain.protocol_error(
+                    offchain.ErrorCode.unknown_command_type,
+                    &#34;unknown command_type: %s&#34; % request.command_type,
+                    field=&#34;command_type&#34;,
+                )
+            getattr(self, handler)(request_sender_address, request)
+            return offchain.reply_request(cid=cid)
+        except offchain.Error as e:
+            self.logger.info(request_bytes)
+            self.logger.exception(e)
+            return offchain.reply_request(cid=cid, err=e.obj)
 
     def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
         return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
+
+    def _handle_offchain_ping_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -&gt; None:
+        pass
 
     def _handle_offchain_payment_command(
         self, request_sender_address: str, request: offchain.CommandRequestObject
@@ -890,7 +966,7 @@ class App(BackgroundTasks):
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.app.OffChainAPI.offchain_api"><code class="name flex">
-<span>def <span class="ident">offchain_api</span></span>(<span>self, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+<span>def <span class="ident">offchain_api</span></span>(<span>self, request_id: str, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -898,10 +974,33 @@ class App(BackgroundTasks):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def offchain_api(self, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-    request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-    getattr(self, &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type))(request_sender_address, request)
-    return offchain.reply_request(cid=request.cid)</code></pre>
+<pre><code class="python">def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
+    cid = None
+    try:
+        if not request_id:
+            raise offchain.protocol_error(
+                offchain.ErrorCode.missing_http_header, &#34;missing %s&#34; % offchain.X_REQUEST_ID
+            )
+        if not offchain.UUID_REGEX.match(request_id):
+            raise offchain.protocol_error(
+                offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
+            )
+
+        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
+        cid = request.cid
+        handler = &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type)
+        if not hasattr(self, handler):
+            raise offchain.protocol_error(
+                offchain.ErrorCode.unknown_command_type,
+                &#34;unknown command_type: %s&#34; % request.command_type,
+                field=&#34;command_type&#34;,
+            )
+        getattr(self, handler)(request_sender_address, request)
+        return offchain.reply_request(cid=cid)
+    except offchain.Error as e:
+        self.logger.info(request_bytes)
+        self.logger.exception(e)
+        return offchain.reply_request(cid=cid, err=e.obj)</code></pre>
 </details>
 </dd>
 </dl>
@@ -926,8 +1025,8 @@ class App(BackgroundTasks):
 <h4><code><a title="diem.testing.miniwallet.app.app.App" href="#diem.testing.miniwallet.app.app.App">App</a></code></h4>
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.app.app.App.create_account" href="#diem.testing.miniwallet.app.app.App.create_account">create_account</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.App.create_account_identifier" href="#diem.testing.miniwallet.app.app.App.create_account_identifier">create_account_identifier</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.app.App.create_account_payment" href="#diem.testing.miniwallet.app.app.App.create_account_payment">create_account_payment</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.app.App.create_account_payment_uri" href="#diem.testing.miniwallet.app.app.App.create_account_payment_uri">create_account_payment_uri</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.app.App.get_account_balances" href="#diem.testing.miniwallet.app.app.App.get_account_balances">get_account_balances</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.app.App.get_account_events" href="#diem.testing.miniwallet.app.app.App.get_account_events">get_account_events</a></code></li>
 </ul>

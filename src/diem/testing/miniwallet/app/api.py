@@ -20,7 +20,9 @@ class LoggerMiddleware:
         self.logger.debug("%s %s", req.method, req.relative_uri)
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        self.logger.info("%s %s - %s", req.method, req.relative_uri, resp.status)
+        tc = req.get_header("X-Test-Case")
+        test_case = "[%s] " % tc if tc else ""
+        self.logger.info("%s%s %s - %s", test_case, req.method, req.relative_uri, resp.status)
 
 
 def rest_handler(fn: Any):  # pyre-ignore

@@ -8,7 +8,7 @@ from typing import List, Optional, Any, Dict, Callable
 from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
-import requests, logging, random, string, json, time
+import requests, logging, random, string, json, time, os
 
 
 @dataclass
@@ -66,11 +66,16 @@ class RestClient:
     def send(self, method: str, path: str, data: Optional[str] = None) -> requests.Response:
         url = "%s/%s" % (self.server_url.rstrip("/"), path.lstrip("/"))
         self.logger.debug("%s %s: %s", method, path, data)
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": jsonrpc.client.USER_AGENT_HTTP_HEADER,
+            "X-Test-Case": os.getenv("PYTEST_CURRENT_TEST"),
+        }
         resp = self.session.request(
             method=method,
             url=url.lower(),
             data=data,
-            headers={"Content-Type": "application/json", "User-Agent": jsonrpc.client.USER_AGENT_HTTP_HEADER},
+            headers={k: v for k, v in headers.items() if v},
         )
         log_level = logging.DEBUG if resp.status_code < 300 else logging.ERROR
         self.logger.log(log_level, "%s %s: %s - %s", method, path, data, resp.status_code)

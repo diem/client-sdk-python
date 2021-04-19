@@ -11,7 +11,7 @@ The `serialize` and `deserialize` functions handle JWS message with the followin
 
 """
 
-import base64, typing
+import base64, json, typing
 
 from . import CommandRequestObject, CommandResponseObject, to_json, from_json
 
@@ -25,8 +25,9 @@ T = typing.TypeVar("T")
 def serialize(
     obj: typing.Union[CommandRequestObject, CommandResponseObject],
     sign: typing.Callable[[bytes], bytes],
+    headers: typing.Optional[typing.Dict[str, typing.Any]] = None,
 ) -> bytes:
-    return serialize_string(to_json(obj), sign)
+    return serialize_string(to_json(obj), sign, headers=headers)
 
 
 def deserialize(
@@ -35,37 +36,49 @@ def deserialize(
     verify: typing.Callable[[bytes, bytes], None],
 ) -> T:
     decoded_body, sig, signing_msg = deserialize_string(msg)
-
     verify(sig, signing_msg)
     return from_json(decoded_body, klass)
 
 
-def serialize_string(json: str, sign: typing.Callable[[bytes], bytes]) -> bytes:
+def serialize_string(
+    json: str, sign: typing.Callable[[bytes], bytes], headers: typing.Optional[typing.Dict[str, typing.Any]] = None
+) -> bytes:
+    header = PROTECTED_HEADER if headers is None else encode_headers(headers)
     payload = base64.urlsafe_b64encode(json.encode(ENCODING))
-    msg = signing_message(payload)
-    return b".".join([msg, base64.urlsafe_b64encode(sign(msg))])
+    sig = sign(signing_message(payload, header=header))
+    return b".".join([header, payload, base64.urlsafe_b64encode(sig)])
 
 
 def deserialize_string(msg: bytes) -> typing.Tuple[str, bytes, bytes]:
-    text = msg.decode(ENCODING)
-    parts = text.split(".")
+    parts = msg.split(b".")
     if len(parts) != 3:
-        raise ValueError("invalid JWS compact message: %s, expect 3 parts: <header>.<payload>.<signature>" % text)
+        raise ValueError(
+            "invalid JWS compact message: %s, expect 3 parts: <header>.<payload>.<signature>" % msg.decode(ENCODING)
+        )
 
     header, body, sig = parts
-    if header.encode(ENCODING) != PROTECTED_HEADER:
-        raise ValueError(f"invalid JWS message header: {header}, expect {PROTECTED_HEADER}")
+    header_text = decode(header).decode(ENCODING)
+    try:
+        protected_headers = json.loads(header_text)
+    except json.decoder.JSONDecodeError as e:
+        raise ValueError(f"invalid JWS message header: {header_text}") from e
 
-    body_bytes = body.encode(ENCODING)
+    if not isinstance(protected_headers, dict) or protected_headers.get("alg") != "EdDSA":
+        raise ValueError(f"invalid JWS message header: {header}, expect alg is EdDSA")
+
     return (
-        decode(body_bytes).decode(ENCODING),
-        decode(sig.encode(ENCODING)),
-        signing_message(body_bytes),
+        decode(body).decode(ENCODING),
+        decode(sig),
+        signing_message(body, header=header),
     )
 
 
-def signing_message(payload: bytes) -> bytes:
-    return b".".join([PROTECTED_HEADER, payload])
+def signing_message(payload: bytes, header: bytes) -> bytes:
+    return b".".join([header, payload])
+
+
+def encode_headers(headers: typing.Dict[str, typing.Any]) -> bytes:
+    return base64.urlsafe_b64encode(json.dumps(headers).encode(ENCODING))
 
 
 def decode(msg: bytes) -> bytes:

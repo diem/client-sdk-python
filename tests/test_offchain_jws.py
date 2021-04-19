@@ -4,7 +4,7 @@
 from diem import offchain
 from diem.testing import LocalAccount
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-import cryptography, pytest
+import cryptography, pytest, base64
 
 
 def test_serialize_deserialize():
@@ -34,10 +34,28 @@ def test_deserialize_error_if_not_3_parts():
         )
 
 
-def test_deserialize_error_for_mismatched_protected_header():
+def test_deserialize_error_for_mismatched_protected_header_alg():
     with pytest.raises(ValueError):
         offchain.jws.deserialize(
-            b".".join([b"header", b"payload", b"sig"]),
+            b".".join(map(lambda t: base64.urlsafe_b64encode(t), [b'{"alg": "none"}', b"payload", b"sig"])),
+            offchain.CommandResponseObject,
+            lambda: None,
+        )
+
+
+def test_deserialize_error_for_header_is_not_json():
+    with pytest.raises(ValueError):
+        offchain.jws.deserialize(
+            b".".join(map(lambda t: base64.urlsafe_b64encode(t), [b"header", b"payload", b"sig"])),
+            offchain.CommandResponseObject,
+            lambda: None,
+        )
+
+
+def test_deserialize_error_for_header_is_not_urlsafe_base64_encoded():
+    with pytest.raises(ValueError):
+        offchain.jws.deserialize(
+            b".".join([b'{"alg": "EdDSA"}'] + list(map(base64.urlsafe_b64encode, [b"payload", b"sig"]))),
             offchain.CommandResponseObject,
             lambda: None,
         )
@@ -68,3 +86,19 @@ def test_deserialize_example_jws():
 
     key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(public_key))
     key.verify(sig, msg)
+
+
+def test_serialize_and_deserialize_with_additional_protocted_headers():
+    account = LocalAccount.generate()
+    response = offchain.CommandResponseObject(
+        status=offchain.CommandResponseStatus.success,
+        cid="3185027f05746f5526683a38fdb5de98",
+    )
+    ret = offchain.jws.serialize(response, account.private_key.sign, headers={"keyId": "hello", "alg": "EdDSA"})
+
+    resp = offchain.jws.deserialize(
+        ret,
+        offchain.CommandResponseObject,
+        account.private_key.public_key().verify,
+    )
+    assert resp == response

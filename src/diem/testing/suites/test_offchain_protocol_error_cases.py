@@ -1,12 +1,11 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from dataclasses import asdict
-from diem import identifier, jsonrpc, offchain, testnet
+from diem import jsonrpc, testnet
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import RestClient, AppConfig
-from typing import Dict, Any, Tuple, Optional
-import json, time, requests, uuid, pytest, warnings
+from .conftest import assert_response_error, payment_command_request_sample, send_request_json
+import json, pytest
 
 
 def test_invalid_x_request_id(
@@ -528,84 +527,3 @@ def test_decoded_command_request_object_field_value_type_is_invalid(
     assert status_code == 400
     assert resp.status == "failure"
     assert_response_error(resp, "invalid_field_value", "protocol_error", field=field_name)
-
-
-def send_request_json(
-    diem_client: jsonrpc.Client,
-    sender_account: LocalAccount,
-    sender_address: Optional[str],
-    receiver_address: str,
-    request_json: str,
-    hrp: str,
-    x_request_id: Optional[str] = str(uuid.uuid4()),
-    request_body: Optional[bytes] = None,
-) -> Tuple[int, offchain.CommandResponseObject]:
-    headers = {}
-    if x_request_id:
-        headers[offchain.http_header.X_REQUEST_ID] = x_request_id
-    if sender_address:
-        headers[offchain.http_header.X_REQUEST_SENDER_ADDRESS] = sender_address
-
-    account_address, _ = identifier.decode_account(receiver_address, hrp)
-    base_url, public_key = diem_client.get_base_url_and_compliance_key(account_address)
-    if request_body is None:
-        request_body = offchain.jws.serialize_string(request_json, sender_account.compliance_key.sign)
-    resp = requests.Session().post(
-        f"{base_url.rstrip('/')}/v2/command",
-        data=request_body,
-        headers=headers,
-    )
-
-    cmd_resp_obj = offchain.jws.deserialize(resp.content, offchain.CommandResponseObject, public_key.verify)
-
-    return (resp.status_code, cmd_resp_obj)
-
-
-def payment_command_request_sample(
-    sender_address: str, sender_kyc_data: offchain.KycDataObject, receiver_address: str, currency: str, amount: int
-) -> Dict[str, Any]:
-    """Creates a `PaymentCommand` initial state request JSON object (dictionary).
-
-    Sender address is from the stub wallet application.
-
-    Receiver address is from the target wallet application.
-    """
-
-    return {
-        "_ObjectType": "CommandRequestObject",
-        "cid": str(uuid.uuid4()),
-        "command_type": "PaymentCommand",
-        "command": {
-            "_ObjectType": "PaymentCommand",
-            "payment": {
-                "reference_id": str(uuid.uuid4()),
-                "sender": {
-                    "address": sender_address,
-                    "status": {"status": "needs_kyc_data"},
-                    "kyc_data": asdict(sender_kyc_data),
-                },
-                "receiver": {
-                    "address": receiver_address,
-                    "status": {"status": "none"},
-                },
-                "action": {
-                    "amount": amount,
-                    "currency": currency,
-                    "action": "charge",
-                    "timestamp": int(time.time()),
-                },
-            },
-        },
-    }
-
-
-def assert_response_error(
-    resp: offchain.CommandResponseObject, code: str, err_type: str, field: Optional[str] = None
-) -> None:
-    assert resp.error, resp
-    try:
-        assert resp.error.type == err_type
-        assert resp.error.code == code
-        assert resp.error.field == field
-    except AssertionError as e:
-        warnings.warn(str(e), Warning)

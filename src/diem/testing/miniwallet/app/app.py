@@ -16,15 +16,24 @@ import threading, logging, numpy
 
 
 class Base:
-    def __init__(self, account: LocalAccount, client: jsonrpc.Client, name: str, logger: logging.Logger) -> None:
+    def __init__(
+        self,
+        account: LocalAccount,
+        child_accounts: List[LocalAccount],
+        client: jsonrpc.Client,
+        name: str,
+        logger: logging.Logger,
+    ) -> None:
         self.logger = logger
-        self.diem_account = DiemAccount(account, client)
+        self.diem_account = DiemAccount(account, child_accounts, client)
         self.store = InMemoryStore()
         self.diem_client = client
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
         self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp, logger=logger)
         self.event_puller.add(account.account_address)
+        for child_account in child_accounts:
+            self.event_puller.add(child_account.account_address)
         self.event_puller.head()
 
     def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
@@ -235,7 +244,11 @@ class BackgroundTasks(OffChainAPI):
                         status = Transaction.Status.canceled
                         self.store.update(txn, status=status, cancel_reason="exchange kyc data abort")
                     elif cmd.is_ready:
-                        signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
+                        signed_txn = self.diem_account.submit_p2p(
+                            txn,
+                            self._txn_metadata(txn),
+                            by_address=cmd.to_offchain_command().sender_account_address(self.diem_account.hrp),
+                        )
                         self.store.update(txn, signed_transaction=signed_txn)
             else:
                 account = self.store.find(Account, id=txn.account_id)

@@ -20,6 +20,7 @@ class Base:
         self.logger = logger
         self.diem_account = DiemAccount(account, client)
         self.store = InMemoryStore()
+        self.diem_client = client
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
         self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp, logger=logger)
@@ -40,8 +41,8 @@ class Base:
 
     def _validate_account_identifier(self, name: str, val: str) -> None:
         try:
-            account_address, _ = self.diem_account.account.decode_account_identifier(val)
-            self.diem_account.client.must_get_account(account_address)
+            account_address, _ = self.diem_account.decode_account_identifier(val)
+            self.diem_client.must_get_account(account_address)
         except ValueError as e:
             raise ValueError("%r is invalid account identifier: %s" % (name, e))
 
@@ -112,7 +113,7 @@ class OffChainAPI(Base):
             return offchain.reply_request(cid=cid, err=e.obj)
 
     def jws_serialize(self, resp: CommandResponseObject) -> bytes:
-        return offchain.jws.serialize(resp, self.diem_account.account.compliance_key.sign)
+        return offchain.jws.serialize(resp, self.diem_account.sign_by_compliance_key)
 
     def _handle_offchain_ping_command(
         self, request_sender_address: str, request: offchain.CommandRequestObject
@@ -128,7 +129,7 @@ class OffChainAPI(Base):
             if new_offchain_cmd != cmd.to_offchain_command():
                 self._update_payment_command(cmd, new_offchain_cmd)
         except NotFoundError:
-            subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.account.hrp))
+            subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.hrp))
             account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
             self._create_payment_command(account_id, new_offchain_cmd, validate=True)
 
@@ -190,7 +191,7 @@ class BackgroundTasks(OffChainAPI):
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
 
     def _send_internal_payment_txn(self, txn: Transaction) -> None:
-        _, payee_subaddress = self.diem_account.account.decode_account_identifier(str(txn.payee))
+        _, payee_subaddress = self.diem_account.decode_account_identifier(str(txn.payee))
         subaddress = self.store.find(Subaddress, subaddress_hex=utils.hex(payee_subaddress))
         self.store.create(
             Transaction,
@@ -205,7 +206,7 @@ class BackgroundTasks(OffChainAPI):
     def _send_external_payment_txn(self, txn: Transaction) -> None:
         if txn.signed_transaction:
             try:
-                diem_txn = self.diem_account.client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
+                diem_txn = self.diem_client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
                 self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
             except jsonrpc.WaitForTransactionTimeout as e:
                 self.logger.debug("wait for txn(%s) timeout: %s", txn, e)
@@ -239,7 +240,7 @@ class BackgroundTasks(OffChainAPI):
             else:
                 account = self.store.find(Account, id=txn.account_id)
                 command = offchain.PaymentCommand.init(
-                    sender_account_id=self.diem_account.account.account_identifier(txn.subaddress()),
+                    sender_account_id=self.diem_account.account_identifier(txn.subaddress()),
                     sender_kyc_data=account.kyc_data_object(),
                     currency=txn.currency,
                     amount=txn.amount,
@@ -275,7 +276,7 @@ class BackgroundTasks(OffChainAPI):
         """
 
         retry = jsonrpc.Retry(5, 0.2, Exception)
-        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.account.compliance_key.sign))
+        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.sign_by_compliance_key))
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data
@@ -304,8 +305,8 @@ class BackgroundTasks(OffChainAPI):
         if cmd.is_sender():
             return cmd.new_command(status=Status.ready_for_settlement)
 
-        sig_msg = cmd.travel_rule_metadata_signature_message(self.diem_account.account.hrp)
-        sig = self.diem_account.account.compliance_key.sign(sig_msg).hex()
+        sig_msg = cmd.travel_rule_metadata_signature_message(self.diem_account.hrp)
+        sig = self.diem_account.sign_by_compliance_key(sig_msg).hex()
         kyc_data = self.store.find(Account, id=account_id).kyc_data_object()
         return cmd.new_command(recipient_signature=sig, kyc_data=kyc_data, status=Status.ready_for_settlement)
 
@@ -341,7 +342,7 @@ class App(BackgroundTasks):
     def create_account_identifier(self, account_id: str, data: JsonInput) -> Dict[str, str]:
         self.store.find(Account, id=account_id)
         sub = self._gen_subaddress(account_id)
-        diem_acc_id = self.diem_account.account.account_identifier(sub.subaddress_hex)
+        diem_acc_id = self.diem_account.account_identifier(sub.subaddress_hex)
         return {"account_identifier": diem_acc_id}
 
     def get_account_balances(self, account_id: str) -> Dict[str, int]:

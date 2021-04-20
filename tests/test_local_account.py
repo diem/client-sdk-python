@@ -1,7 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import identifier, utils
+from diem import identifier, utils, testnet
 from diem.testing import LocalAccount
 
 
@@ -68,3 +68,27 @@ def test_decode_account_identifier():
     address, subaddress = account.decode_account_identifier(id2)
     assert address == account.account_address
     assert subaddress == subaddress
+
+
+def test_gen_child_vasp():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+    account = LocalAccount(
+        hrp=identifier.DM,
+        txn_gas_currency_code="XUS",
+        txn_max_gas_amount=1_000_001,
+        txn_gas_unit_price=1,
+        txn_expire_duration_secs=60,
+    )
+    faucet.mint(account.auth_key.hex(), 10_000_000, "XUS")
+
+    child_account = account.gen_child_vasp(client, 1, "XUS")
+    assert child_account.hrp == account.hrp
+    assert child_account.txn_gas_currency_code == account.txn_gas_currency_code
+    assert child_account.txn_max_gas_amount == account.txn_max_gas_amount
+    assert child_account.txn_gas_unit_price == account.txn_gas_unit_price
+    assert child_account.txn_expire_duration_secs == account.txn_expire_duration_secs
+    assert child_account.compliance_key == account.compliance_key
+    assert child_account.private_key != account.private_key
+    child_diem_account = client.must_get_account(child_account.account_address)
+    assert child_diem_account.role.type == "child_vasp"

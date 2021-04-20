@@ -13,7 +13,7 @@ from ..serde_types import uint64
 from ..auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from typing import Dict, Optional, Tuple, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from copy import copy
 import time, json
 
@@ -145,6 +145,25 @@ class LocalAccount:
             client,
             stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode("utf-8"), new_key=compliance_key),
         )
+
+    def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -> "LocalAccount":
+        """Generates a new ChildVASP account if `self` is a ParentVASP account.
+
+        Raisees error with transaction execution failure if `self` is not a ParentVASP account.
+        """
+
+        child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
+        self.submit_and_wait_for_txn(
+            client,
+            stdlib.encode_create_child_vasp_account_script(
+                coin_type=utils.currency_code(currency),
+                child_address=child_vasp.account_address,
+                auth_key_prefix=child_vasp.auth_key.prefix(),
+                add_all_currencies=False,
+                child_initial_balance=initial_balance,
+            ),
+        )
+        return child_vasp
 
     def to_dict(self) -> Dict[str, str]:
         """export to a string only dictionary for saving and importing as config

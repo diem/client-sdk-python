@@ -24,7 +24,7 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, stdlib, identifier
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, identifier
 from .testing import LocalAccount
 
 
@@ -64,18 +64,7 @@ def gen_child_vasp(
     initial_balance: int = 10_000_000_000,
     currency: str = TEST_CURRENCY_CODE,
 ) -> LocalAccount:
-    child_vasp = LocalAccount.generate()
-    parent_vasp.submit_and_wait_for_txn(
-        client,
-        stdlib.encode_create_child_vasp_account_script(
-            coin_type=utils.currency_code(currency),
-            child_address=child_vasp.account_address,
-            auth_key_prefix=child_vasp.auth_key.prefix(),
-            add_all_currencies=False,
-            child_initial_balance=initial_balance,
-        ),
-    )
-    return child_vasp
+    return parent_vasp.gen_child_vasp(client, initial_balance, currency)
 
 
 class Faucet:

@@ -31,6 +31,13 @@ def test_create_an_account_with_invalid_kyc_data(target_client: RestClient, kyc_
     assert "'kyc_data' must be JSON-encoded KycDataObject" in einfo.value.response.text
 
 
+def test_create_an_account_with_invalid_json_body(target_client: RestClient) -> None:
+    with pytest.raises(requests.exceptions.HTTPError, match="400 Client Error") as einfo:
+        target_client.send("POST", "/accounts", data="invalid json")
+
+    assert "invalid JSON" in einfo.value.response.text
+
+
 @pytest.mark.parametrize(
     "balances, err_msg",
     [

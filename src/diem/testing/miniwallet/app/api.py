@@ -28,10 +28,13 @@ class LoggerMiddleware:
 def rest_handler(fn: Any):  # pyre-ignore
     def wrapper(self, req, resp, **kwargs):  # pyre-ignore
         try:
-            try:
-                data = json.load(req.stream)
+            if req.content_length:
+                try:
+                    data = json.load(req.stream)
+                except json.decoder.JSONDecodeError:
+                    raise ValueError("request body is invalid JSON")
                 self.app.logger.debug("request body: %s", data)
-            except Exception:
+            else:
                 data = {}
             status, body = fn(self, input=JsonInput(data), **kwargs)
             resp.status = status

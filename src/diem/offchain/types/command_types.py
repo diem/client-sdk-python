@@ -15,6 +15,7 @@ class CommandType:
     PaymentCommand = "PaymentCommand"
     FundPullPreApprovalCommand = "FundPullPreApprovalCommand"
     PingCommand = "PingCommand"
+    ReferenceIDCommand = "ReferenceIDCommand"
 
 
 class CommandResponseStatus:
@@ -137,7 +138,7 @@ class OffChainErrorObject:
 
 
 @dataclass(frozen=True)
-class OffChainResultObject:
+class ReferenceIDCommandResultObject:
     _ObjectType: str = datafield(
         metadata={
             "valid-values": [
@@ -146,7 +147,7 @@ class OffChainResultObject:
         }
     )
     # ReferenceIDCommandResponse: Receiver's onchain account identifier
-    receiver_address: typing.Optional[str] = datafield(default=None)
+    receiver_address: str
 
 
 @dataclass(frozen=True)
@@ -160,4 +161,17 @@ class CommandResponseObject:
     # The Command identifier to which this is a response.
     cid: typing.Optional[str] = datafield(default=None)
     # An result JSON object that may be defined when status == "success"
-    result: typing.Optional[OffChainResultObject] = datafield(default=None)
+    result: typing.Optional[dict] = datafield(default=None) # pyre-ignore
+
+
+@dataclass(frozen=True)
+class ReferenceIDCommandObject:
+    _ObjectType: str = datafield(metadata={"valid-values": [CommandType.ReferenceIDCommand]})
+    # Sender's full DiemID
+    sender: str
+    # Sender's onchain account identifier with subaddress set to `None` or the zero subaddress
+    sender_address: str
+    # Receiver's full DiemID
+    receiver: str
+    # Reference ID of this transaction
+    reference_id: str

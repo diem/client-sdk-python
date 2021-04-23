@@ -119,15 +119,9 @@ class LocalAccount:
         """submit transaction with the given script
 
         This function creates transaction with current account sequence number (by json-rpc `get_account`
-        method), and retries on JsonRpcError in case there is another process is submitting transaction
-        at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+        method).
         """
-        retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
-        return retry.execute(lambda: self._submit_txn_without_retry(client, script))
 
-    def _submit_txn_without_retry(
-        self, client: jsonrpc.Client, script: diem_types.Script
-    ) -> diem_types.SignedTransaction:
         txn = self.create_txn(client, script)
         client.submit(txn)
         return txn

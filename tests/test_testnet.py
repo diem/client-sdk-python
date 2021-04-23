@@ -274,6 +274,20 @@ def test_submit_failed():
         client.submit("invalid txn")
 
 
+def test_submit_ignores_stale_resposne_error():
+    client = testnet.create_client()
+    account = testnet.gen_account(client)
+    script = stdlib.encode_rotate_dual_attestation_info_script(
+        new_url="http://localhost".encode("utf-8"), new_key=account.compliance_public_key_bytes
+    )
+    txn = account.create_txn(client, script)
+    state = client.get_last_known_state()
+    client._last_known_server_state.version = state.version + 1_000_000_000
+    client.submit(txn)
+    client._last_known_server_state = state
+    assert client.wait_for_transaction(txn)
+
+
 def test_wait_for_transaction_hash_mismatched_and_execution_failed():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)

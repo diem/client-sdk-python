@@ -420,12 +420,36 @@ class Client:
         """submit signed transaction
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+
+        This method ignores StaleResponseError and does not retry on any submit errors, because re-submit any transaction
+        may get JsonRpcError `SEQUENCE_NUMBER_TOO_OLD` in multi-threads environment, for example:
+
+        1. thread-1: submit transaction.
+        2. server: receive submit transaction. latest ledger version is X.
+        3. server: receive a new state sync, latest ledger version becomes X+1.
+        4. thread-2: get_events (can be any get API).
+        5. server: receive get_events. latest ledger version is X+1.
+        6. server: respond to get_events with latest ledger version == X+1.
+        7. thread-2: receive get_events response.
+        8. thread-2: update latest known ledger version X+1.
+        9. server: respond to submit transaction with latest ledger version == X.
+        10. thread-1: receive submit transaction response. Found response ledger version X < known version X+1.
+        11. thread-1: triggers StaleResponseError.
+        12. if we retry on StaleResponseError, the submitted transaction may end with JsonRpcError `SEQUENCE_NUMBER_TOO_OLD`
+            if the following events happened.
+        13. server: execute transaction, and the transaction sender account sequence number +1.
+        15. thread-1: submit the transaction again.
+        16. server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
+            However, the transaction was executed successfully, thus raising SEQUENCE_NUMBER_TOO_OLD error may cause
+            a re-submit with new account sequence number if client handled it improperly (without checking whether
+            the transaction is executed).
+
         """
 
         if isinstance(txn, diem_types.SignedTransaction):
             return self.submit(txn.bcs_serialize().hex())
 
-        self.execute("submit", [txn], result_parser=None)
+        self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=True)
 
     def wait_for_transaction(
         self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None

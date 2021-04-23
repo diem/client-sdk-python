@@ -30,30 +30,50 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass
-from typing import Tuple
+from random import randrange
+from typing import Tuple, Optional, Union, List
 from .models import Transaction, RefundReason
 from ... import LocalAccount
-from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata
+from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, diem_types
 
 
 @dataclass
 class DiemAccount:
-    account: LocalAccount
-    client: jsonrpc.Client
+    _account: LocalAccount
+    _child_accounts: List[LocalAccount]
+    _client: jsonrpc.Client
+
+    @property
+    def hrp(self) -&gt; str:
+        return self._account.hrp
+
+    def sign_by_compliance_key(self, msg: bytes) -&gt; bytes:
+        return self._account.compliance_key.sign(msg)
+
+    def account_identifier(self, subaddress: Union[str, bytes, None] = None) -&gt; str:
+        return self._get_payment_account().account_identifier(subaddress)
+
+    def decode_account_identifier(self, encoded_id: str) -&gt; Tuple[diem_types.AccountAddress, Optional[bytes]]:
+        return identifier.decode_account(encoded_id, self.hrp)
 
     def refund_metadata(self, version: int, reason: RefundReason) -&gt; Tuple[bytes, bytes]:
         return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b&#34;&#34;)
 
     def general_metadata(self, from_subaddress: bytes, payee: str) -&gt; Tuple[bytes, bytes]:
-        to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
+        to_account, to_subaddress = identifier.decode_account(payee, self.hrp)
         return (txnmetadata.general_metadata(from_subaddress, to_subaddress), b&#34;&#34;)
 
     def travel_metadata(self, cmd: offchain.PaymentCommand) -&gt; Tuple[bytes, bytes]:
-        metadata = cmd.travel_rule_metadata(self.account.hrp)
+        metadata = cmd.travel_rule_metadata(self.hrp)
         return (metadata, bytes.fromhex(str(cmd.payment.recipient_signature)))
 
-    def submit_p2p(self, txn: Transaction, metadata: Tuple[bytes, bytes]) -&gt; str:
-        to_account, to_subaddress = identifier.decode_account(str(txn.payee), self.account.hrp)
+    def submit_p2p(
+        self,
+        txn: Transaction,
+        metadata: Tuple[bytes, bytes],
+        by_address: Optional[diem_types.AccountAddress] = None,
+    ) -&gt; str:
+        to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
         script = stdlib.encode_peer_to_peer_with_metadata_script(
             currency=utils.currency_code(txn.currency),
             amount=txn.amount,
@@ -61,7 +81,20 @@ class DiemAccount:
             metadata=metadata[0],
             metadata_signature=metadata[1],
         )
-        return self.account.submit_txn(self.client, script).bcs_serialize().hex()</code></pre>
+        return self._get_payment_account(by_address).submit_txn(self._client, script).bcs_serialize().hex()
+
+    def _get_payment_account(self, address: Optional[diem_types.AccountAddress] = None) -&gt; LocalAccount:
+        if address is None:
+            if self._child_accounts:
+                return self._child_accounts[randrange(len(self._child_accounts))]
+            return self._account
+        for account in self._child_accounts:
+            if account.account_address == address:
+                return account
+        raise ValueError(
+            &#34;could not find account by address: %s in child accounts: %s&#34;
+            % (address.to_hex(), list(map(lambda a: a.to_dict(), self._child_accounts)))
+        )</code></pre>
 </details>
 </section>
 <section>
@@ -75,32 +108,51 @@ class DiemAccount:
 <dl>
 <dt id="diem.testing.miniwallet.app.diem_account.DiemAccount"><code class="flex name class">
 <span>class <span class="ident">DiemAccount</span></span>
-<span>(</span><span>account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>)</span>
+<span>(</span><span>_account: <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, _child_accounts: List[<a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>], _client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>DiemAccount(account: diem.testing.local_account.LocalAccount, client: diem.jsonrpc.client.Client)</p></div>
+<div class="desc"><p>DiemAccount(_account: diem.testing.local_account.LocalAccount, _child_accounts: List[diem.testing.local_account.LocalAccount], _client: diem.jsonrpc.client.Client)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@dataclass
 class DiemAccount:
-    account: LocalAccount
-    client: jsonrpc.Client
+    _account: LocalAccount
+    _child_accounts: List[LocalAccount]
+    _client: jsonrpc.Client
+
+    @property
+    def hrp(self) -&gt; str:
+        return self._account.hrp
+
+    def sign_by_compliance_key(self, msg: bytes) -&gt; bytes:
+        return self._account.compliance_key.sign(msg)
+
+    def account_identifier(self, subaddress: Union[str, bytes, None] = None) -&gt; str:
+        return self._get_payment_account().account_identifier(subaddress)
+
+    def decode_account_identifier(self, encoded_id: str) -&gt; Tuple[diem_types.AccountAddress, Optional[bytes]]:
+        return identifier.decode_account(encoded_id, self.hrp)
 
     def refund_metadata(self, version: int, reason: RefundReason) -&gt; Tuple[bytes, bytes]:
         return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b&#34;&#34;)
 
     def general_metadata(self, from_subaddress: bytes, payee: str) -&gt; Tuple[bytes, bytes]:
-        to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
+        to_account, to_subaddress = identifier.decode_account(payee, self.hrp)
         return (txnmetadata.general_metadata(from_subaddress, to_subaddress), b&#34;&#34;)
 
     def travel_metadata(self, cmd: offchain.PaymentCommand) -&gt; Tuple[bytes, bytes]:
-        metadata = cmd.travel_rule_metadata(self.account.hrp)
+        metadata = cmd.travel_rule_metadata(self.hrp)
         return (metadata, bytes.fromhex(str(cmd.payment.recipient_signature)))
 
-    def submit_p2p(self, txn: Transaction, metadata: Tuple[bytes, bytes]) -&gt; str:
-        to_account, to_subaddress = identifier.decode_account(str(txn.payee), self.account.hrp)
+    def submit_p2p(
+        self,
+        txn: Transaction,
+        metadata: Tuple[bytes, bytes],
+        by_address: Optional[diem_types.AccountAddress] = None,
+    ) -&gt; str:
+        to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
         script = stdlib.encode_peer_to_peer_with_metadata_script(
             currency=utils.currency_code(txn.currency),
             amount=txn.amount,
@@ -108,21 +160,64 @@ class DiemAccount:
             metadata=metadata[0],
             metadata_signature=metadata[1],
         )
-        return self.account.submit_txn(self.client, script).bcs_serialize().hex()</code></pre>
+        return self._get_payment_account(by_address).submit_txn(self._client, script).bcs_serialize().hex()
+
+    def _get_payment_account(self, address: Optional[diem_types.AccountAddress] = None) -&gt; LocalAccount:
+        if address is None:
+            if self._child_accounts:
+                return self._child_accounts[randrange(len(self._child_accounts))]
+            return self._account
+        for account in self._child_accounts:
+            if account.account_address == address:
+                return account
+        raise ValueError(
+            &#34;could not find account by address: %s in child accounts: %s&#34;
+            % (address.to_hex(), list(map(lambda a: a.to_dict(), self._child_accounts)))
+        )</code></pre>
 </details>
-<h3>Class variables</h3>
+<h3>Instance variables</h3>
 <dl>
-<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.account"><code class="name">var <span class="ident">account</span> : <a title="diem.testing.local_account.LocalAccount" href="../../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a></code></dt>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.hrp"><code class="name">var <span class="ident">hrp</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.client"><code class="name">var <span class="ident">client</span> : <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a></code></dt>
-<dd>
-<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def hrp(self) -&gt; str:
+    return self._account.hrp</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.account_identifier"><code class="name flex">
+<span>def <span class="ident">account_identifier</span></span>(<span>self, subaddress: Union[str, bytes, NoneType] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def account_identifier(self, subaddress: Union[str, bytes, None] = None) -&gt; str:
+    return self._get_payment_account().account_identifier(subaddress)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.decode_account_identifier"><code class="name flex">
+<span>def <span class="ident">decode_account_identifier</span></span>(<span>self, encoded_id: str) ‑> Tuple[<a title="diem.diem_types.AccountAddress" href="../../../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>, Optional[bytes]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def decode_account_identifier(self, encoded_id: str) -&gt; Tuple[diem_types.AccountAddress, Optional[bytes]]:
+    return identifier.decode_account(encoded_id, self.hrp)</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.general_metadata"><code class="name flex">
 <span>def <span class="ident">general_metadata</span></span>(<span>self, from_subaddress: bytes, payee: str) ‑> Tuple[bytes, bytes]</span>
 </code></dt>
@@ -133,7 +228,7 @@ class DiemAccount:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def general_metadata(self, from_subaddress: bytes, payee: str) -&gt; Tuple[bytes, bytes]:
-    to_account, to_subaddress = identifier.decode_account(payee, self.account.hrp)
+    to_account, to_subaddress = identifier.decode_account(payee, self.hrp)
     return (txnmetadata.general_metadata(from_subaddress, to_subaddress), b&#34;&#34;)</code></pre>
 </details>
 </dd>
@@ -150,8 +245,8 @@ class DiemAccount:
     return (txnmetadata.refund_metadata(version, reason.to_diem_type()), b&#34;&#34;)</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p"><code class="name flex">
-<span>def <span class="ident">submit_p2p</span></span>(<span>self, txn: <a title="diem.testing.miniwallet.app.models.Transaction" href="models.html#diem.testing.miniwallet.app.models.Transaction">Transaction</a>, metadata: Tuple[bytes, bytes]) ‑> str</span>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.sign_by_compliance_key"><code class="name flex">
+<span>def <span class="ident">sign_by_compliance_key</span></span>(<span>self, msg: bytes) ‑> bytes</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -159,8 +254,26 @@ class DiemAccount:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def submit_p2p(self, txn: Transaction, metadata: Tuple[bytes, bytes]) -&gt; str:
-    to_account, to_subaddress = identifier.decode_account(str(txn.payee), self.account.hrp)
+<pre><code class="python">def sign_by_compliance_key(self, msg: bytes) -&gt; bytes:
+    return self._account.compliance_key.sign(msg)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p"><code class="name flex">
+<span>def <span class="ident">submit_p2p</span></span>(<span>self, txn: <a title="diem.testing.miniwallet.app.models.Transaction" href="models.html#diem.testing.miniwallet.app.models.Transaction">Transaction</a>, metadata: Tuple[bytes, bytes], by_address: Optional[<a title="diem.diem_types.AccountAddress" href="../../../diem_types/index.html#diem.diem_types.AccountAddress">AccountAddress</a>] = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def submit_p2p(
+    self,
+    txn: Transaction,
+    metadata: Tuple[bytes, bytes],
+    by_address: Optional[diem_types.AccountAddress] = None,
+) -&gt; str:
+    to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
     script = stdlib.encode_peer_to_peer_with_metadata_script(
         currency=utils.currency_code(txn.currency),
         amount=txn.amount,
@@ -168,7 +281,7 @@ class DiemAccount:
         metadata=metadata[0],
         metadata_signature=metadata[1],
     )
-    return self.account.submit_txn(self.client, script).bcs_serialize().hex()</code></pre>
+    return self._get_payment_account(by_address).submit_txn(self._client, script).bcs_serialize().hex()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.diem_account.DiemAccount.travel_metadata"><code class="name flex">
@@ -181,7 +294,7 @@ class DiemAccount:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def travel_metadata(self, cmd: offchain.PaymentCommand) -&gt; Tuple[bytes, bytes]:
-    metadata = cmd.travel_rule_metadata(self.account.hrp)
+    metadata = cmd.travel_rule_metadata(self.hrp)
     return (metadata, bytes.fromhex(str(cmd.payment.recipient_signature)))</code></pre>
 </details>
 </dd>
@@ -205,11 +318,13 @@ class DiemAccount:
 <ul>
 <li>
 <h4><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount" href="#diem.testing.miniwallet.app.diem_account.DiemAccount">DiemAccount</a></code></h4>
-<ul class="two-column">
-<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.account" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.account">account</a></code></li>
-<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.client" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.client">client</a></code></li>
+<ul class="">
+<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.account_identifier" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.account_identifier">account_identifier</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.decode_account_identifier" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.decode_account_identifier">decode_account_identifier</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.general_metadata" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.general_metadata">general_metadata</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.hrp" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.hrp">hrp</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.refund_metadata" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.refund_metadata">refund_metadata</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.sign_by_compliance_key" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.sign_by_compliance_key">sign_by_compliance_key</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.submit_p2p">submit_p2p</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.diem_account.DiemAccount.travel_metadata" href="#diem.testing.miniwallet.app.diem_account.DiemAccount.travel_metadata">travel_metadata</a></code></li>
 </ul>

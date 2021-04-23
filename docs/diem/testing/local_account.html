@@ -44,7 +44,7 @@ from ..serde_types import uint64
 from ..auth_key import AuthKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey, Ed25519PublicKey
 from typing import Dict, Optional, Tuple, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from copy import copy
 import time, json
 
@@ -150,15 +150,9 @@ class LocalAccount:
         &#34;&#34;&#34;submit transaction with the given script
 
         This function creates transaction with current account sequence number (by json-rpc `get_account`
-        method), and retries on JsonRpcError in case there is another process is submitting transaction
-        at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+        method).
         &#34;&#34;&#34;
-        retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
-        return retry.execute(lambda: self._submit_txn_without_retry(client, script))
 
-    def _submit_txn_without_retry(
-        self, client: jsonrpc.Client, script: diem_types.Script
-    ) -&gt; diem_types.SignedTransaction:
         txn = self.create_txn(client, script)
         client.submit(txn)
         return txn
@@ -176,6 +170,25 @@ class LocalAccount:
             client,
             stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode(&#34;utf-8&#34;), new_key=compliance_key),
         )
+
+    def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -&gt; &#34;LocalAccount&#34;:
+        &#34;&#34;&#34;Generates a new ChildVASP account if `self` is a ParentVASP account.
+
+        Raisees error with transaction execution failure if `self` is not a ParentVASP account.
+        &#34;&#34;&#34;
+
+        child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
+        self.submit_and_wait_for_txn(
+            client,
+            stdlib.encode_create_child_vasp_account_script(
+                coin_type=utils.currency_code(currency),
+                child_address=child_vasp.account_address,
+                auth_key_prefix=child_vasp.auth_key.prefix(),
+                add_all_currencies=False,
+                child_initial_balance=initial_balance,
+            ),
+        )
+        return child_vasp
 
     def to_dict(self) -&gt; Dict[str, str]:
         &#34;&#34;&#34;export to a string only dictionary for saving and importing as config
@@ -323,15 +336,9 @@ class LocalAccount:
         &#34;&#34;&#34;submit transaction with the given script
 
         This function creates transaction with current account sequence number (by json-rpc `get_account`
-        method), and retries on JsonRpcError in case there is another process is submitting transaction
-        at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+        method).
         &#34;&#34;&#34;
-        retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
-        return retry.execute(lambda: self._submit_txn_without_retry(client, script))
 
-    def _submit_txn_without_retry(
-        self, client: jsonrpc.Client, script: diem_types.Script
-    ) -&gt; diem_types.SignedTransaction:
         txn = self.create_txn(client, script)
         client.submit(txn)
         return txn
@@ -349,6 +356,25 @@ class LocalAccount:
             client,
             stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode(&#34;utf-8&#34;), new_key=compliance_key),
         )
+
+    def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -&gt; &#34;LocalAccount&#34;:
+        &#34;&#34;&#34;Generates a new ChildVASP account if `self` is a ParentVASP account.
+
+        Raisees error with transaction execution failure if `self` is not a ParentVASP account.
+        &#34;&#34;&#34;
+
+        child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
+        self.submit_and_wait_for_txn(
+            client,
+            stdlib.encode_create_child_vasp_account_script(
+                coin_type=utils.currency_code(currency),
+                child_address=child_vasp.account_address,
+                auth_key_prefix=child_vasp.auth_key.prefix(),
+                add_all_currencies=False,
+                child_initial_balance=initial_balance,
+            ),
+        )
+        return child_vasp
 
     def to_dict(self) -&gt; Dict[str, str]:
         &#34;&#34;&#34;export to a string only dictionary for saving and importing as config
@@ -577,6 +603,36 @@ def public_key_bytes(self) -&gt; bytes:
     return identifier.decode_account(encoded_id, self.hrp)</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.local_account.LocalAccount.gen_child_vasp"><code class="name flex">
+<span>def <span class="ident">gen_child_vasp</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, initial_balance: int, currency: str) ‑> <a title="diem.testing.local_account.LocalAccount" href="#diem.testing.local_account.LocalAccount">LocalAccount</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates a new ChildVASP account if <code>self</code> is a ParentVASP account.</p>
+<p>Raisees error with transaction execution failure if <code>self</code> is not a ParentVASP account.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -&gt; &#34;LocalAccount&#34;:
+    &#34;&#34;&#34;Generates a new ChildVASP account if `self` is a ParentVASP account.
+
+    Raisees error with transaction execution failure if `self` is not a ParentVASP account.
+    &#34;&#34;&#34;
+
+    child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
+    self.submit_and_wait_for_txn(
+        client,
+        stdlib.encode_create_child_vasp_account_script(
+            coin_type=utils.currency_code(currency),
+            child_address=child_vasp.account_address,
+            auth_key_prefix=child_vasp.auth_key.prefix(),
+            add_all_currencies=False,
+            child_initial_balance=initial_balance,
+        ),
+    )
+    return child_vasp</code></pre>
+</details>
+</dd>
 <dt id="diem.testing.local_account.LocalAccount.rotate_dual_attestation_info"><code class="name flex">
 <span>def <span class="ident">rotate_dual_attestation_info</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, base_url: str, compliance_key: Optional[bytes] = None) ‑> jsonrpc_pb2.Transaction</span>
 </code></dt>
@@ -633,8 +689,7 @@ def public_key_bytes(self) -&gt; bytes:
 <dd>
 <div class="desc"><p>submit transaction with the given script</p>
 <p>This function creates transaction with current account sequence number (by json-rpc <code>get_account</code>
-method), and retries on JsonRpcError in case there is another process is submitting transaction
-at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.</p></div>
+method).</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -643,11 +698,12 @@ at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.</p></div>
     &#34;&#34;&#34;submit transaction with the given script
 
     This function creates transaction with current account sequence number (by json-rpc `get_account`
-    method), and retries on JsonRpcError in case there is another process is submitting transaction
-    at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.
+    method).
     &#34;&#34;&#34;
-    retry = jsonrpc.Retry(10, 0.1, jsonrpc.JsonRpcError)
-    return retry.execute(lambda: self._submit_txn_without_retry(client, script))</code></pre>
+
+    txn = self.create_txn(client, script)
+    client.submit(txn)
+    return txn</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.local_account.LocalAccount.to_dict"><code class="name flex">
@@ -729,6 +785,7 @@ at same time, which may cause SEQUENCE_NUMBER_TOO_OLD JsonRpcError.</p></div>
 <li><code><a title="diem.testing.local_account.LocalAccount.decode_account_identifier" href="#diem.testing.local_account.LocalAccount.decode_account_identifier">decode_account_identifier</a></code></li>
 <li><code><a title="diem.testing.local_account.LocalAccount.from_dict" href="#diem.testing.local_account.LocalAccount.from_dict">from_dict</a></code></li>
 <li><code><a title="diem.testing.local_account.LocalAccount.from_private_key_hex" href="#diem.testing.local_account.LocalAccount.from_private_key_hex">from_private_key_hex</a></code></li>
+<li><code><a title="diem.testing.local_account.LocalAccount.gen_child_vasp" href="#diem.testing.local_account.LocalAccount.gen_child_vasp">gen_child_vasp</a></code></li>
 <li><code><a title="diem.testing.local_account.LocalAccount.generate" href="#diem.testing.local_account.LocalAccount.generate">generate</a></code></li>
 <li><code><a title="diem.testing.local_account.LocalAccount.hrp" href="#diem.testing.local_account.LocalAccount.hrp">hrp</a></code></li>
 <li><code><a title="diem.testing.local_account.LocalAccount.private_key" href="#diem.testing.local_account.LocalAccount.private_key">private_key</a></code></li>

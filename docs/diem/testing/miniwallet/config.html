@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any
+from typing import Dict, Any, List
 from .client import RestClient
 from .app import App, falcon_api
 from .. import LocalAccount
@@ -54,9 +54,11 @@ class AppConfig:
     name: str = field(default=&#34;mini-wallet&#34;)
     disable_events_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
+    child_account_configs: List[Dict[str, Any]] = field(default_factory=list)
     server_conf: ServerConfig = field(default_factory=ServerConfig)
-    initial_amount: int = field(default=1_000_000_000_000)
+    initial_amount: int = field(default=3_000_000_000_000)
     initial_currency: str = field(default=testnet.TEST_CURRENCY_CODE)
+    child_account_size: int = field(default=2)
 
     @property
     def logger(self) -&gt; logging.Logger:
@@ -67,6 +69,10 @@ class AppConfig:
         return LocalAccount.from_dict(self.account_config)
 
     @property
+    def child_accounts(self) -&gt; List[LocalAccount]:
+        return list(map(LocalAccount.from_dict, self.child_account_configs))
+
+    @property
     def server_url(self) -&gt; str:
         return self.server_conf.base_url
 
@@ -75,33 +81,26 @@ class AppConfig:
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
-        acc = client.get_account(self.account.account_address)
-        if not acc or self.need_funds(acc):
-            self.logger.info(&#34;faucet mint %s&#34;, self.account.account_address.to_hex())
+        if not client.get_account(self.account.account_address):
+            self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
             faucet = testnet.Faucet(client)
             faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
-        if not acc or self.need_rotate(acc):
+
             self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
             self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
             self.account.rotate_dual_attestation_info(client, self.server_url)
 
-    def need_funds(self, account: jsonrpc.Account) -&gt; bool:
-        for balance in account.balances:
-            if balance.currency == self.initial_currency and balance.amount &gt; self.initial_amount / 2:
-                return False
-        return True
-
-    def need_rotate(self, account: jsonrpc.Account) -&gt; bool:
-        if account.role.base_url != self.server_url:
-            return True
-        if not account.role.compliance_key:
-            return True
-        if bytes.fromhex(account.role.compliance_key) != self.account.compliance_public_key_bytes:
-            return True
-        return False
+            self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
+            child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+            for i in range(self.child_account_size):
+                child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+                self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
+                self.child_account_configs.append(child.to_dict())
 
     def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
+        api: falcon.API = falcon_api(
+            App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
+        )
 
         def serve() -&gt; None:
             self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -138,10 +137,10 @@ class AppConfig:
 <dl>
 <dt id="diem.testing.miniwallet.config.AppConfig"><code class="flex name class">
 <span>class <span class="ident">AppConfig</span></span>
-<span>(</span><span>name: str = 'mini-wallet', disable_events_api: bool = False, account_config: Dict[str, Any] = &lt;factory&gt;, server_conf: <a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a> = &lt;factory&gt;, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</span>
+<span>(</span><span>name: str = 'mini-wallet', disable_events_api: bool = False, account_config: Dict[str, Any] = &lt;factory&gt;, child_account_configs: List[Dict[str, Any]] = &lt;factory&gt;, server_conf: <a title="diem.testing.miniwallet.config.ServerConfig" href="#diem.testing.miniwallet.config.ServerConfig">ServerConfig</a> = &lt;factory&gt;, initial_amount: int = 3000000000000, initial_currency: str = 'XUS', child_account_size: int = 2)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>AppConfig(name: str = 'mini-wallet', disable_events_api: bool = False, account_config: Dict[str, Any] = <factory>, server_conf: diem.testing.miniwallet.config.ServerConfig = <factory>, initial_amount: int = 1000000000000, initial_currency: str = 'XUS')</p></div>
+<div class="desc"><p>AppConfig(name: str = 'mini-wallet', disable_events_api: bool = False, account_config: Dict[str, Any] = <factory>, child_account_configs: List[Dict[str, Any]] = <factory>, server_conf: diem.testing.miniwallet.config.ServerConfig = <factory>, initial_amount: int = 3000000000000, initial_currency: str = 'XUS', child_account_size: int = 2)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -151,9 +150,11 @@ class AppConfig:
     name: str = field(default=&#34;mini-wallet&#34;)
     disable_events_api: bool = field(default=False)
     account_config: Dict[str, Any] = field(default_factory=lambda: LocalAccount().to_dict())
+    child_account_configs: List[Dict[str, Any]] = field(default_factory=list)
     server_conf: ServerConfig = field(default_factory=ServerConfig)
-    initial_amount: int = field(default=1_000_000_000_000)
+    initial_amount: int = field(default=3_000_000_000_000)
     initial_currency: str = field(default=testnet.TEST_CURRENCY_CODE)
+    child_account_size: int = field(default=2)
 
     @property
     def logger(self) -&gt; logging.Logger:
@@ -164,6 +165,10 @@ class AppConfig:
         return LocalAccount.from_dict(self.account_config)
 
     @property
+    def child_accounts(self) -&gt; List[LocalAccount]:
+        return list(map(LocalAccount.from_dict, self.child_account_configs))
+
+    @property
     def server_url(self) -&gt; str:
         return self.server_conf.base_url
 
@@ -172,33 +177,26 @@ class AppConfig:
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
-        acc = client.get_account(self.account.account_address)
-        if not acc or self.need_funds(acc):
-            self.logger.info(&#34;faucet mint %s&#34;, self.account.account_address.to_hex())
+        if not client.get_account(self.account.account_address):
+            self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
             faucet = testnet.Faucet(client)
             faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
-        if not acc or self.need_rotate(acc):
+
             self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
             self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
             self.account.rotate_dual_attestation_info(client, self.server_url)
 
-    def need_funds(self, account: jsonrpc.Account) -&gt; bool:
-        for balance in account.balances:
-            if balance.currency == self.initial_currency and balance.amount &gt; self.initial_amount / 2:
-                return False
-        return True
-
-    def need_rotate(self, account: jsonrpc.Account) -&gt; bool:
-        if account.role.base_url != self.server_url:
-            return True
-        if not account.role.compliance_key:
-            return True
-        if bytes.fromhex(account.role.compliance_key) != self.account.compliance_public_key_bytes:
-            return True
-        return False
+            self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
+            child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+            for i in range(self.child_account_size):
+                child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+                self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
+                self.child_account_configs.append(child.to_dict())
 
     def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-        api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
+        api: falcon.API = falcon_api(
+            App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
+        )
 
         def serve() -&gt; None:
             self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -226,6 +224,14 @@ class AppConfig:
 <h3>Class variables</h3>
 <dl>
 <dt id="diem.testing.miniwallet.config.AppConfig.account_config"><code class="name">var <span class="ident">account_config</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.config.AppConfig.child_account_configs"><code class="name">var <span class="ident">child_account_configs</span> : List[Dict[str, Any]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.testing.miniwallet.config.AppConfig.child_account_size"><code class="name">var <span class="ident">child_account_size</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -262,6 +268,18 @@ class AppConfig:
 <pre><code class="python">@property
 def account(self) -&gt; LocalAccount:
     return LocalAccount.from_dict(self.account_config)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.config.AppConfig.child_accounts"><code class="name">var <span class="ident">child_accounts</span> : List[<a title="diem.testing.local_account.LocalAccount" href="../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def child_accounts(self) -&gt; List[LocalAccount]:
+    return list(map(LocalAccount.from_dict, self.child_account_configs))</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.logger"><code class="name">var <span class="ident">logger</span> : logging.Logger</code></dt>
@@ -305,41 +323,6 @@ def server_url(self) -&gt; str:
     return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.miniwallet.config.AppConfig.need_funds"><code class="name flex">
-<span>def <span class="ident">need_funds</span></span>(<span>self, account: jsonrpc_pb2.Account) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def need_funds(self, account: jsonrpc.Account) -&gt; bool:
-    for balance in account.balances:
-        if balance.currency == self.initial_currency and balance.amount &gt; self.initial_amount / 2:
-            return False
-    return True</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.config.AppConfig.need_rotate"><code class="name flex">
-<span>def <span class="ident">need_rotate</span></span>(<span>self, account: jsonrpc_pb2.Account) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def need_rotate(self, account: jsonrpc.Account) -&gt; bool:
-    if account.role.base_url != self.server_url:
-        return True
-    if not account.role.compliance_key:
-        return True
-    if bytes.fromhex(account.role.compliance_key) != self.account.compliance_public_key_bytes:
-        return True
-    return False</code></pre>
-</details>
-</dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.serve"><code class="name flex">
 <span>def <span class="ident">serve</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> threading.Thread</span>
 </code></dt>
@@ -350,7 +333,9 @@ def server_url(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-    api: falcon.API = falcon_api(App(self.account, client, self.name, self.logger), self.disable_events_api)
+    api: falcon.API = falcon_api(
+        App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
+    )
 
     def serve() -&gt; None:
         self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -377,15 +362,21 @@ def server_url(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def setup_account(self, client: jsonrpc.Client) -&gt; None:
-    acc = client.get_account(self.account.account_address)
-    if not acc or self.need_funds(acc):
-        self.logger.info(&#34;faucet mint %s&#34;, self.account.account_address.to_hex())
+    if not client.get_account(self.account.account_address):
+        self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
         faucet = testnet.Faucet(client)
         faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
-    if not acc or self.need_rotate(acc):
+
         self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
         self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
-        self.account.rotate_dual_attestation_info(client, self.server_url)</code></pre>
+        self.account.rotate_dual_attestation_info(client, self.server_url)
+
+        self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
+        child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+        for i in range(self.child_account_size):
+            child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+            self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
+            self.child_account_configs.append(child.to_dict())</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.start"><code class="name flex">
@@ -460,17 +451,18 @@ class ServerConfig:
 <ul>
 <li>
 <h4><code><a title="diem.testing.miniwallet.config.AppConfig" href="#diem.testing.miniwallet.config.AppConfig">AppConfig</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.account" href="#diem.testing.miniwallet.config.AppConfig.account">account</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.account_config" href="#diem.testing.miniwallet.config.AppConfig.account_config">account_config</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.AppConfig.child_account_configs" href="#diem.testing.miniwallet.config.AppConfig.child_account_configs">child_account_configs</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.AppConfig.child_account_size" href="#diem.testing.miniwallet.config.AppConfig.child_account_size">child_account_size</a></code></li>
+<li><code><a title="diem.testing.miniwallet.config.AppConfig.child_accounts" href="#diem.testing.miniwallet.config.AppConfig.child_accounts">child_accounts</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.create_client" href="#diem.testing.miniwallet.config.AppConfig.create_client">create_client</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.disable_events_api" href="#diem.testing.miniwallet.config.AppConfig.disable_events_api">disable_events_api</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.initial_amount" href="#diem.testing.miniwallet.config.AppConfig.initial_amount">initial_amount</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.initial_currency" href="#diem.testing.miniwallet.config.AppConfig.initial_currency">initial_currency</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.logger" href="#diem.testing.miniwallet.config.AppConfig.logger">logger</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.name" href="#diem.testing.miniwallet.config.AppConfig.name">name</a></code></li>
-<li><code><a title="diem.testing.miniwallet.config.AppConfig.need_funds" href="#diem.testing.miniwallet.config.AppConfig.need_funds">need_funds</a></code></li>
-<li><code><a title="diem.testing.miniwallet.config.AppConfig.need_rotate" href="#diem.testing.miniwallet.config.AppConfig.need_rotate">need_rotate</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.serve" href="#diem.testing.miniwallet.config.AppConfig.serve">serve</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.server_conf" href="#diem.testing.miniwallet.config.AppConfig.server_conf">server_conf</a></code></li>
 <li><code><a title="diem.testing.miniwallet.config.AppConfig.server_url" href="#diem.testing.miniwallet.config.AppConfig.server_url">server_url</a></code></li>

@@ -56,10 +56,13 @@ class LoggerMiddleware:
 def rest_handler(fn: Any):  # pyre-ignore
     def wrapper(self, req, resp, **kwargs):  # pyre-ignore
         try:
-            try:
-                data = json.load(req.stream)
+            if req.content_length:
+                try:
+                    data = json.load(req.stream)
+                except json.decoder.JSONDecodeError:
+                    raise ValueError(&#34;request body is invalid JSON&#34;)
                 self.app.logger.debug(&#34;request body: %s&#34;, data)
-            except Exception:
+            else:
                 data = {}
             status, body = fn(self, input=JsonInput(data), **kwargs)
             resp.status = status
@@ -174,10 +177,13 @@ def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
 <pre><code class="python">def rest_handler(fn: Any):  # pyre-ignore
     def wrapper(self, req, resp, **kwargs):  # pyre-ignore
         try:
-            try:
-                data = json.load(req.stream)
+            if req.content_length:
+                try:
+                    data = json.load(req.stream)
+                except json.decoder.JSONDecodeError:
+                    raise ValueError(&#34;request body is invalid JSON&#34;)
                 self.app.logger.debug(&#34;request body: %s&#34;, data)
-            except Exception:
+            else:
                 data = {}
             status, body = fn(self, input=JsonInput(data), **kwargs)
             resp.status = status
@@ -266,10 +272,13 @@ class Endpoints:
 </summary>
 <pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
     try:
-        try:
-            data = json.load(req.stream)
+        if req.content_length:
+            try:
+                data = json.load(req.stream)
+            except json.decoder.JSONDecodeError:
+                raise ValueError(&#34;request body is invalid JSON&#34;)
             self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
+        else:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
         resp.status = status
@@ -290,10 +299,13 @@ class Endpoints:
 </summary>
 <pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
     try:
-        try:
-            data = json.load(req.stream)
+        if req.content_length:
+            try:
+                data = json.load(req.stream)
+            except json.decoder.JSONDecodeError:
+                raise ValueError(&#34;request body is invalid JSON&#34;)
             self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
+        else:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
         resp.status = status
@@ -327,10 +339,13 @@ class Endpoints:
 </summary>
 <pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
     try:
-        try:
-            data = json.load(req.stream)
+        if req.content_length:
+            try:
+                data = json.load(req.stream)
+            except json.decoder.JSONDecodeError:
+                raise ValueError(&#34;request body is invalid JSON&#34;)
             self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
+        else:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
         resp.status = status
@@ -351,10 +366,13 @@ class Endpoints:
 </summary>
 <pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
     try:
-        try:
-            data = json.load(req.stream)
+        if req.content_length:
+            try:
+                data = json.load(req.stream)
+            except json.decoder.JSONDecodeError:
+                raise ValueError(&#34;request body is invalid JSON&#34;)
             self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
+        else:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
         resp.status = status
@@ -375,10 +393,13 @@ class Endpoints:
 </summary>
 <pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
     try:
-        try:
-            data = json.load(req.stream)
+        if req.content_length:
+            try:
+                data = json.load(req.stream)
+            except json.decoder.JSONDecodeError:
+                raise ValueError(&#34;request body is invalid JSON&#34;)
             self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
+        else:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
         resp.status = status
@@ -420,10 +441,13 @@ class Endpoints:
 </summary>
 <pre><code class="python">def wrapper(self, req, resp, **kwargs):  # pyre-ignore
     try:
-        try:
-            data = json.load(req.stream)
+        if req.content_length:
+            try:
+                data = json.load(req.stream)
+            except json.decoder.JSONDecodeError:
+                raise ValueError(&#34;request body is invalid JSON&#34;)
             self.app.logger.debug(&#34;request body: %s&#34;, data)
-        except Exception:
+        else:
             data = {}
         status, body = fn(self, input=JsonInput(data), **kwargs)
         resp.status = status

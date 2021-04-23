@@ -42,6 +42,7 @@ import random
 from diem.__VERSION__ import VERSION
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from logging import Logger, getLogger
 
 from .. import diem_types, utils
 from . import jsonrpc_pb2 as rpc
@@ -216,6 +217,7 @@ class Client:
         timeout: typing.Optional[typing.Tuple[float, float]] = None,
         retry: typing.Optional[Retry] = None,
         rs: typing.Optional[RequestStrategy] = None,
+        logger: typing.Optional[Logger] = None,
     ) -&gt; None:
         self._url: str = server_url
         self._session: requests.Session = session or requests.Session()
@@ -225,6 +227,7 @@ class Client:
         self._lock = threading.Lock()
         self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
+        self._logger: Logger = logger or getLogger(__name__)
 
     # high level functions
 
@@ -445,12 +448,36 @@ class Client:
         &#34;&#34;&#34;submit signed transaction
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+
+        This method ignores StaleResponseError and does not retry on any submit errors, because re-submit any transaction
+        may get JsonRpcError `SEQUENCE_NUMBER_TOO_OLD` in multi-threads environment, for example:
+
+        1. thread-1: submit transaction.
+        2. server: receive submit transaction. The latest ledger version is X.
+        3. server: receive a new state sync. The latest ledger version becomes X+1.
+        4. thread-2: get_events (can be any get API).
+        5. server: receive get_events. The latest ledger version is X+1.
+        6. server: respond to get_events with latest ledger version == X+1.
+        7. thread-2: receive get_events response.
+        8. thread-2: update latest known ledger version X+1.
+        9. server: respond to submit transaction with latest ledger version == X.
+        10. thread-1: receive submit transaction response. Found response ledger version X &lt; known version X+1.
+        11. thread-1: triggers StaleResponseError.
+        12. if we retry on StaleResponseError, the submitted transaction may end with JsonRpcError `SEQUENCE_NUMBER_TOO_OLD`
+            if the following events happened.
+        13. server: execute transaction, and the transaction sender account sequence number +1.
+        14. thread-1: submit the transaction again.
+        15. server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
+            However, the transaction was executed successfully, thus raising SEQUENCE_NUMBER_TOO_OLD error may cause
+            a re-submit with new account sequence number if client handled it improperly (without checking whether
+            the transaction is executed).
+
         &#34;&#34;&#34;
 
         if isinstance(txn, diem_types.SignedTransaction):
             return self.submit(txn.bcs_serialize().hex())
 
-        self.execute(&#34;submit&#34;, [txn], result_parser=None)
+        self.execute_without_retry(&#34;submit&#34;, [txn], result_parser=None, ignore_stale_response=True)
 
     def wait_for_transaction(
         self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
@@ -595,7 +622,9 @@ class Client:
         request: typing.Dict[str, typing.Any],
         ignore_stale_response: bool,
     ) -&gt; typing.Dict[str, typing.Any]:
+        self._logger.debug(&#34;http request body: %s&#34;, request)
         response = self._session.post(url, json=request, timeout=self._timeout)
+        self._logger.debug(&#34;http response body: %s&#34;, response.text)
         response.raise_for_status()
         try:
             json = response.json()
@@ -656,7 +685,7 @@ def _parse_list(factory):  # pyre-ignore
 </dd>
 <dt id="diem.jsonrpc.client.Client"><code class="flex name class">
 <span>class <span class="ident">Client</span></span>
-<span>(</span><span>server_url: str, session: Optional[requests.sessions.Session] = None, timeout: Optional[Tuple[float, float]] = None, retry: Optional[<a title="diem.jsonrpc.client.Retry" href="#diem.jsonrpc.client.Retry">Retry</a>] = None, rs: Optional[<a title="diem.jsonrpc.client.RequestStrategy" href="#diem.jsonrpc.client.RequestStrategy">RequestStrategy</a>] = None)</span>
+<span>(</span><span>server_url: str, session: Optional[requests.sessions.Session] = None, timeout: Optional[Tuple[float, float]] = None, retry: Optional[<a title="diem.jsonrpc.client.Retry" href="#diem.jsonrpc.client.Retry">Retry</a>] = None, rs: Optional[<a title="diem.jsonrpc.client.RequestStrategy" href="#diem.jsonrpc.client.RequestStrategy">RequestStrategy</a>] = None, logger: Optional[logging.Logger] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Diem JSON-RPC API client</p>
@@ -678,6 +707,7 @@ def _parse_list(factory):  # pyre-ignore
         timeout: typing.Optional[typing.Tuple[float, float]] = None,
         retry: typing.Optional[Retry] = None,
         rs: typing.Optional[RequestStrategy] = None,
+        logger: typing.Optional[Logger] = None,
     ) -&gt; None:
         self._url: str = server_url
         self._session: requests.Session = session or requests.Session()
@@ -687,6 +717,7 @@ def _parse_list(factory):  # pyre-ignore
         self._lock = threading.Lock()
         self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
+        self._logger: Logger = logger or getLogger(__name__)
 
     # high level functions
 
@@ -907,12 +938,36 @@ def _parse_list(factory):  # pyre-ignore
         &#34;&#34;&#34;submit signed transaction
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+
+        This method ignores StaleResponseError and does not retry on any submit errors, because re-submit any transaction
+        may get JsonRpcError `SEQUENCE_NUMBER_TOO_OLD` in multi-threads environment, for example:
+
+        1. thread-1: submit transaction.
+        2. server: receive submit transaction. The latest ledger version is X.
+        3. server: receive a new state sync. The latest ledger version becomes X+1.
+        4. thread-2: get_events (can be any get API).
+        5. server: receive get_events. The latest ledger version is X+1.
+        6. server: respond to get_events with latest ledger version == X+1.
+        7. thread-2: receive get_events response.
+        8. thread-2: update latest known ledger version X+1.
+        9. server: respond to submit transaction with latest ledger version == X.
+        10. thread-1: receive submit transaction response. Found response ledger version X &lt; known version X+1.
+        11. thread-1: triggers StaleResponseError.
+        12. if we retry on StaleResponseError, the submitted transaction may end with JsonRpcError `SEQUENCE_NUMBER_TOO_OLD`
+            if the following events happened.
+        13. server: execute transaction, and the transaction sender account sequence number +1.
+        14. thread-1: submit the transaction again.
+        15. server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
+            However, the transaction was executed successfully, thus raising SEQUENCE_NUMBER_TOO_OLD error may cause
+            a re-submit with new account sequence number if client handled it improperly (without checking whether
+            the transaction is executed).
+
         &#34;&#34;&#34;
 
         if isinstance(txn, diem_types.SignedTransaction):
             return self.submit(txn.bcs_serialize().hex())
 
-        self.execute(&#34;submit&#34;, [txn], result_parser=None)
+        self.execute_without_retry(&#34;submit&#34;, [txn], result_parser=None, ignore_stale_response=True)
 
     def wait_for_transaction(
         self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
@@ -1057,7 +1112,9 @@ def _parse_list(factory):  # pyre-ignore
         request: typing.Dict[str, typing.Any],
         ignore_stale_response: bool,
     ) -&gt; typing.Dict[str, typing.Any]:
+        self._logger.debug(&#34;http request body: %s&#34;, request)
         response = self._session.post(url, json=request, timeout=self._timeout)
+        self._logger.debug(&#34;http response body: %s&#34;, response.text)
         response.raise_for_status()
         try:
             json = response.json()
@@ -1522,7 +1579,30 @@ could not find the account by the parent_vasp_address found in ChildVASP account
 </code></dt>
 <dd>
 <div class="desc"><p>submit signed transaction</p>
-<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md">JSON-RPC API Doc</a></p></div>
+<p>See <a href="https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md">JSON-RPC API Doc</a></p>
+<p>This method ignores StaleResponseError and does not retry on any submit errors, because re-submit any transaction
+may get JsonRpcError <code>SEQUENCE_NUMBER_TOO_OLD</code> in multi-threads environment, for example:</p>
+<ol>
+<li>thread-1: submit transaction.</li>
+<li>server: receive submit transaction. The latest ledger version is X.</li>
+<li>server: receive a new state sync. The latest ledger version becomes X+1.</li>
+<li>thread-2: get_events (can be any get API).</li>
+<li>server: receive get_events. The latest ledger version is X+1.</li>
+<li>server: respond to get_events with latest ledger version == X+1.</li>
+<li>thread-2: receive get_events response.</li>
+<li>thread-2: update latest known ledger version X+1.</li>
+<li>server: respond to submit transaction with latest ledger version == X.</li>
+<li>thread-1: receive submit transaction response. Found response ledger version X &lt; known version X+1.</li>
+<li>thread-1: triggers StaleResponseError.</li>
+<li>if we retry on StaleResponseError, the submitted transaction may end with JsonRpcError <code>SEQUENCE_NUMBER_TOO_OLD</code>
+if the following events happened.</li>
+<li>server: execute transaction, and the transaction sender account sequence number +1.</li>
+<li>thread-1: submit the transaction again.</li>
+<li>server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
+However, the transaction was executed successfully, thus raising SEQUENCE_NUMBER_TOO_OLD error may cause
+a re-submit with new account sequence number if client handled it improperly (without checking whether
+the transaction is executed).</li>
+</ol></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1534,12 +1614,36 @@ could not find the account by the parent_vasp_address found in ChildVASP account
     &#34;&#34;&#34;submit signed transaction
 
     See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
+
+    This method ignores StaleResponseError and does not retry on any submit errors, because re-submit any transaction
+    may get JsonRpcError `SEQUENCE_NUMBER_TOO_OLD` in multi-threads environment, for example:
+
+    1. thread-1: submit transaction.
+    2. server: receive submit transaction. The latest ledger version is X.
+    3. server: receive a new state sync. The latest ledger version becomes X+1.
+    4. thread-2: get_events (can be any get API).
+    5. server: receive get_events. The latest ledger version is X+1.
+    6. server: respond to get_events with latest ledger version == X+1.
+    7. thread-2: receive get_events response.
+    8. thread-2: update latest known ledger version X+1.
+    9. server: respond to submit transaction with latest ledger version == X.
+    10. thread-1: receive submit transaction response. Found response ledger version X &lt; known version X+1.
+    11. thread-1: triggers StaleResponseError.
+    12. if we retry on StaleResponseError, the submitted transaction may end with JsonRpcError `SEQUENCE_NUMBER_TOO_OLD`
+        if the following events happened.
+    13. server: execute transaction, and the transaction sender account sequence number +1.
+    14. thread-1: submit the transaction again.
+    15. server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
+        However, the transaction was executed successfully, thus raising SEQUENCE_NUMBER_TOO_OLD error may cause
+        a re-submit with new account sequence number if client handled it improperly (without checking whether
+        the transaction is executed).
+
     &#34;&#34;&#34;
 
     if isinstance(txn, diem_types.SignedTransaction):
         return self.submit(txn.bcs_serialize().hex())
 
-    self.execute(&#34;submit&#34;, [txn], result_parser=None)</code></pre>
+    self.execute_without_retry(&#34;submit&#34;, [txn], result_parser=None, ignore_stale_response=True)</code></pre>
 </details>
 </dd>
 <dt id="diem.jsonrpc.client.Client.update_last_known_state"><code class="name flex">

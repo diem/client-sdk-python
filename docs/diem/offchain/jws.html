@@ -46,7 +46,7 @@ The `serialize` and `deserialize` functions handle JWS message with the followin
 
 &#34;&#34;&#34;
 
-import base64, typing
+import base64, json, typing
 
 from . import CommandRequestObject, CommandResponseObject, to_json, from_json
 
@@ -60,8 +60,9 @@ T = typing.TypeVar(&#34;T&#34;)
 def serialize(
     obj: typing.Union[CommandRequestObject, CommandResponseObject],
     sign: typing.Callable[[bytes], bytes],
+    headers: typing.Optional[typing.Dict[str, typing.Any]] = None,
 ) -&gt; bytes:
-    return serialize_string(to_json(obj), sign)
+    return serialize_string(to_json(obj), sign, headers=headers)
 
 
 def deserialize(
@@ -70,37 +71,49 @@ def deserialize(
     verify: typing.Callable[[bytes, bytes], None],
 ) -&gt; T:
     decoded_body, sig, signing_msg = deserialize_string(msg)
-
     verify(sig, signing_msg)
     return from_json(decoded_body, klass)
 
 
-def serialize_string(json: str, sign: typing.Callable[[bytes], bytes]) -&gt; bytes:
+def serialize_string(
+    json: str, sign: typing.Callable[[bytes], bytes], headers: typing.Optional[typing.Dict[str, typing.Any]] = None
+) -&gt; bytes:
+    header = PROTECTED_HEADER if headers is None else encode_headers(headers)
     payload = base64.urlsafe_b64encode(json.encode(ENCODING))
-    msg = signing_message(payload)
-    return b&#34;.&#34;.join([msg, base64.urlsafe_b64encode(sign(msg))])
+    sig = sign(signing_message(payload, header=header))
+    return b&#34;.&#34;.join([header, payload, base64.urlsafe_b64encode(sig)])
 
 
 def deserialize_string(msg: bytes) -&gt; typing.Tuple[str, bytes, bytes]:
-    text = msg.decode(ENCODING)
-    parts = text.split(&#34;.&#34;)
+    parts = msg.split(b&#34;.&#34;)
     if len(parts) != 3:
-        raise ValueError(&#34;invalid JWS compact message: %s, expect 3 parts: &lt;header&gt;.&lt;payload&gt;.&lt;signature&gt;&#34; % text)
+        raise ValueError(
+            &#34;invalid JWS compact message: %s, expect 3 parts: &lt;header&gt;.&lt;payload&gt;.&lt;signature&gt;&#34; % msg.decode(ENCODING)
+        )
 
     header, body, sig = parts
-    if header.encode(ENCODING) != PROTECTED_HEADER:
-        raise ValueError(f&#34;invalid JWS message header: {header}, expect {PROTECTED_HEADER}&#34;)
+    header_text = decode(header).decode(ENCODING)
+    try:
+        protected_headers = json.loads(header_text)
+    except json.decoder.JSONDecodeError as e:
+        raise ValueError(f&#34;invalid JWS message header: {header_text}&#34;) from e
 
-    body_bytes = body.encode(ENCODING)
+    if not isinstance(protected_headers, dict) or protected_headers.get(&#34;alg&#34;) != &#34;EdDSA&#34;:
+        raise ValueError(f&#34;invalid JWS message header: {header}, expect alg is EdDSA&#34;)
+
     return (
-        decode(body_bytes).decode(ENCODING),
-        decode(sig.encode(ENCODING)),
-        signing_message(body_bytes),
+        decode(body).decode(ENCODING),
+        decode(sig),
+        signing_message(body, header=header),
     )
 
 
-def signing_message(payload: bytes) -&gt; bytes:
-    return b&#34;.&#34;.join([PROTECTED_HEADER, payload])
+def signing_message(payload: bytes, header: bytes) -&gt; bytes:
+    return b&#34;.&#34;.join([header, payload])
+
+
+def encode_headers(headers: typing.Dict[str, typing.Any]) -&gt; bytes:
+    return base64.urlsafe_b64encode(json.dumps(headers).encode(ENCODING))
 
 
 def decode(msg: bytes) -&gt; bytes:
@@ -146,7 +159,6 @@ def fix_padding(input: bytes) -&gt; bytes:
     verify: typing.Callable[[bytes, bytes], None],
 ) -&gt; T:
     decoded_body, sig, signing_msg = deserialize_string(msg)
-
     verify(sig, signing_msg)
     return from_json(decoded_body, klass)</code></pre>
 </details>
@@ -161,21 +173,40 @@ def fix_padding(input: bytes) -&gt; bytes:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def deserialize_string(msg: bytes) -&gt; typing.Tuple[str, bytes, bytes]:
-    text = msg.decode(ENCODING)
-    parts = text.split(&#34;.&#34;)
+    parts = msg.split(b&#34;.&#34;)
     if len(parts) != 3:
-        raise ValueError(&#34;invalid JWS compact message: %s, expect 3 parts: &lt;header&gt;.&lt;payload&gt;.&lt;signature&gt;&#34; % text)
+        raise ValueError(
+            &#34;invalid JWS compact message: %s, expect 3 parts: &lt;header&gt;.&lt;payload&gt;.&lt;signature&gt;&#34; % msg.decode(ENCODING)
+        )
 
     header, body, sig = parts
-    if header.encode(ENCODING) != PROTECTED_HEADER:
-        raise ValueError(f&#34;invalid JWS message header: {header}, expect {PROTECTED_HEADER}&#34;)
+    header_text = decode(header).decode(ENCODING)
+    try:
+        protected_headers = json.loads(header_text)
+    except json.decoder.JSONDecodeError as e:
+        raise ValueError(f&#34;invalid JWS message header: {header_text}&#34;) from e
 
-    body_bytes = body.encode(ENCODING)
+    if not isinstance(protected_headers, dict) or protected_headers.get(&#34;alg&#34;) != &#34;EdDSA&#34;:
+        raise ValueError(f&#34;invalid JWS message header: {header}, expect alg is EdDSA&#34;)
+
     return (
-        decode(body_bytes).decode(ENCODING),
-        decode(sig.encode(ENCODING)),
-        signing_message(body_bytes),
+        decode(body).decode(ENCODING),
+        decode(sig),
+        signing_message(body, header=header),
     )</code></pre>
+</details>
+</dd>
+<dt id="diem.offchain.jws.encode_headers"><code class="name flex">
+<span>def <span class="ident">encode_headers</span></span>(<span>headers: Dict[str, Any]) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def encode_headers(headers: typing.Dict[str, typing.Any]) -&gt; bytes:
+    return base64.urlsafe_b64encode(json.dumps(headers).encode(ENCODING))</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.jws.fix_padding"><code class="name flex">
@@ -192,7 +223,7 @@ def fix_padding(input: bytes) -&gt; bytes:
 </details>
 </dd>
 <dt id="diem.offchain.jws.serialize"><code class="name flex">
-<span>def <span class="ident">serialize</span></span>(<span>obj: Union[<a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a>, <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a>], sign: Callable[[bytes], bytes]) ‑> bytes</span>
+<span>def <span class="ident">serialize</span></span>(<span>obj: Union[<a title="diem.offchain.types.command_types.CommandRequestObject" href="types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a>, <a title="diem.offchain.types.command_types.CommandResponseObject" href="types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a>], sign: Callable[[bytes], bytes], headers: Optional[Dict[str, Any]] = None) ‑> bytes</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -203,12 +234,13 @@ def fix_padding(input: bytes) -&gt; bytes:
 <pre><code class="python">def serialize(
     obj: typing.Union[CommandRequestObject, CommandResponseObject],
     sign: typing.Callable[[bytes], bytes],
+    headers: typing.Optional[typing.Dict[str, typing.Any]] = None,
 ) -&gt; bytes:
-    return serialize_string(to_json(obj), sign)</code></pre>
+    return serialize_string(to_json(obj), sign, headers=headers)</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.jws.serialize_string"><code class="name flex">
-<span>def <span class="ident">serialize_string</span></span>(<span>json: str, sign: Callable[[bytes], bytes]) ‑> bytes</span>
+<span>def <span class="ident">serialize_string</span></span>(<span>json: str, sign: Callable[[bytes], bytes], headers: Optional[Dict[str, Any]] = None) ‑> bytes</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -216,14 +248,17 @@ def fix_padding(input: bytes) -&gt; bytes:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def serialize_string(json: str, sign: typing.Callable[[bytes], bytes]) -&gt; bytes:
+<pre><code class="python">def serialize_string(
+    json: str, sign: typing.Callable[[bytes], bytes], headers: typing.Optional[typing.Dict[str, typing.Any]] = None
+) -&gt; bytes:
+    header = PROTECTED_HEADER if headers is None else encode_headers(headers)
     payload = base64.urlsafe_b64encode(json.encode(ENCODING))
-    msg = signing_message(payload)
-    return b&#34;.&#34;.join([msg, base64.urlsafe_b64encode(sign(msg))])</code></pre>
+    sig = sign(signing_message(payload, header=header))
+    return b&#34;.&#34;.join([header, payload, base64.urlsafe_b64encode(sig)])</code></pre>
 </details>
 </dd>
 <dt id="diem.offchain.jws.signing_message"><code class="name flex">
-<span>def <span class="ident">signing_message</span></span>(<span>payload: bytes) ‑> bytes</span>
+<span>def <span class="ident">signing_message</span></span>(<span>payload: bytes, header: bytes) ‑> bytes</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -231,8 +266,8 @@ def fix_padding(input: bytes) -&gt; bytes:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def signing_message(payload: bytes) -&gt; bytes:
-    return b&#34;.&#34;.join([PROTECTED_HEADER, payload])</code></pre>
+<pre><code class="python">def signing_message(payload: bytes, header: bytes) -&gt; bytes:
+    return b&#34;.&#34;.join([header, payload])</code></pre>
 </details>
 </dd>
 </dl>
@@ -256,6 +291,7 @@ def fix_padding(input: bytes) -&gt; bytes:
 <li><code><a title="diem.offchain.jws.decode" href="#diem.offchain.jws.decode">decode</a></code></li>
 <li><code><a title="diem.offchain.jws.deserialize" href="#diem.offchain.jws.deserialize">deserialize</a></code></li>
 <li><code><a title="diem.offchain.jws.deserialize_string" href="#diem.offchain.jws.deserialize_string">deserialize_string</a></code></li>
+<li><code><a title="diem.offchain.jws.encode_headers" href="#diem.offchain.jws.encode_headers">encode_headers</a></code></li>
 <li><code><a title="diem.offchain.jws.fix_padding" href="#diem.offchain.jws.fix_padding">fix_padding</a></code></li>
 <li><code><a title="diem.offchain.jws.serialize" href="#diem.offchain.jws.serialize">serialize</a></code></li>
 <li><code><a title="diem.offchain.jws.serialize_string" href="#diem.offchain.jws.serialize_string">serialize_string</a></code></li>

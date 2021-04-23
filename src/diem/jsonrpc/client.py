@@ -14,6 +14,7 @@ import random
 from diem.__VERSION__ import VERSION
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from logging import Logger, getLogger
 
 from .. import diem_types, utils
 from . import jsonrpc_pb2 as rpc
@@ -188,6 +189,7 @@ class Client:
         timeout: typing.Optional[typing.Tuple[float, float]] = None,
         retry: typing.Optional[Retry] = None,
         rs: typing.Optional[RequestStrategy] = None,
+        logger: typing.Optional[Logger] = None,
     ) -> None:
         self._url: str = server_url
         self._session: requests.Session = session or requests.Session()
@@ -197,6 +199,7 @@ class Client:
         self._lock = threading.Lock()
         self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
+        self._logger: Logger = logger or getLogger(__name__)
 
     # high level functions
 
@@ -567,7 +570,9 @@ class Client:
         request: typing.Dict[str, typing.Any],
         ignore_stale_response: bool,
     ) -> typing.Dict[str, typing.Any]:
+        self._logger.debug("http request body: %s", request)
         response = self._session.post(url, json=request, timeout=self._timeout)
+        self._logger.debug("http response body: %s", response.text)
         response.raise_for_status()
         try:
             json = response.json()

@@ -425,10 +425,10 @@ class Client:
         may get JsonRpcError `SEQUENCE_NUMBER_TOO_OLD` in multi-threads environment, for example:
 
         1. thread-1: submit transaction.
-        2. server: receive submit transaction. latest ledger version is X.
-        3. server: receive a new state sync, latest ledger version becomes X+1.
+        2. server: receive submit transaction. The latest ledger version is X.
+        3. server: receive a new state sync. The latest ledger version becomes X+1.
         4. thread-2: get_events (can be any get API).
-        5. server: receive get_events. latest ledger version is X+1.
+        5. server: receive get_events. The latest ledger version is X+1.
         6. server: respond to get_events with latest ledger version == X+1.
         7. thread-2: receive get_events response.
         8. thread-2: update latest known ledger version X+1.
@@ -438,8 +438,8 @@ class Client:
         12. if we retry on StaleResponseError, the submitted transaction may end with JsonRpcError `SEQUENCE_NUMBER_TOO_OLD`
             if the following events happened.
         13. server: execute transaction, and the transaction sender account sequence number +1.
-        15. thread-1: submit the transaction again.
-        16. server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
+        14. thread-1: submit the transaction again.
+        15. server: validate transaction sender account sequence number, and response SEQUENCE_NUMBER_TOO_OLD error.
             However, the transaction was executed successfully, thus raising SEQUENCE_NUMBER_TOO_OLD error may cause
             a re-submit with new account sequence number if client handled it improperly (without checking whether
             the transaction is executed).

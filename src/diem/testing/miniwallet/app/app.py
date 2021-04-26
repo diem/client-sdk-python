@@ -35,6 +35,7 @@ class Base:
         for child_account in child_accounts:
             self.event_puller.add(child_account.account_address)
         self.event_puller.head()
+        self.disable_background_tasks = False
 
     def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
         try:
@@ -170,10 +171,12 @@ class OffChainAPI(Base):
 
 class BackgroundTasks(OffChainAPI):
     def start_sync(self, delay: float = 0.1) -> None:
+        if self.disable_background_tasks:
+            self.logger.info("disabled background tasks")
+            return
         try:
-            self._process_offchain_commands()
-            self._send_pending_payments()
-            self.event_puller.fetch(self.event_puller.save_payment_txn)
+            self.run_bg_tasks()
+            delay = 0.1
         except Exception as e:
             self.logger.exception(e)
             # Exponential backoff for the delay to slow down the background tasks execution
@@ -182,6 +185,11 @@ class BackgroundTasks(OffChainAPI):
 
         if threading.main_thread().is_alive():
             threading.Timer(delay, self.start_sync, args=[delay]).start()
+
+    def run_bg_tasks(self) -> None:
+        self._process_offchain_commands()
+        self._send_pending_payments()
+        self.event_puller.fetch(self.event_puller.save_payment_txn)
 
     def _send_pending_payments(self) -> None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):

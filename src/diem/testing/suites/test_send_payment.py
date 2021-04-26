@@ -39,7 +39,9 @@ def sender_account(
 
 
 @pytest.fixture
-def receiver_account(stub_client: RestClient) -> Generator[AccountResource, None, None]:
+def receiver_account(
+    stub_client: RestClient, pending_income_account: AccountResource
+) -> Generator[AccountResource, None, None]:
     """receiver account for the sending payment test cases
 
     The account is created from stub wallet application.
@@ -49,6 +51,11 @@ def receiver_account(stub_client: RestClient) -> Generator[AccountResource, None
     account = stub_client.create_account()
     yield account
     account.log_events()
+    # MiniWallet stub saves the payment without account information (subaddress / reference id)
+    # into a pending income account before process it.
+    # Here we log events of the account for showing more context related to the test
+    # when test failed.
+    pending_income_account.log_events()
 
 
 @pytest.mark.parametrize("invalid_currency", ["XU", "USD", "xus", "", '"XUS"', "X"])

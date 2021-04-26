@@ -4,7 +4,7 @@
 
 from ... import testnet, jsonrpc, identifier, offchain
 from .. import LocalAccount
-from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig
+from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App
 from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
 from .envs import (
     target_url,
@@ -12,8 +12,9 @@ from .envs import (
     dmw_stub_server,
     dmw_stub_diem_account_config,
 )
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, Generator
 from dataclasses import asdict
+from contextlib import contextmanager
 import pytest, json, uuid, requests, time, warnings
 
 
@@ -36,15 +37,39 @@ def diem_client() -> jsonrpc.Client:
 
 
 @pytest.fixture(scope="package")
-def stub_config(diem_client: jsonrpc.Client) -> AppConfig:
+def stub_config(start_stub_wallet: Tuple[AppConfig, App]) -> AppConfig:
+    return start_stub_wallet[0]
+
+
+@pytest.fixture(scope="package")
+def stub_wallet_app(start_stub_wallet: Tuple[AppConfig, App]) -> App:
+    return start_stub_wallet[1]
+
+
+@pytest.fixture(scope="package")
+def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
     conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()))
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print("loads stub account config: %s" % account_conf)
         conf.account_config = json.loads(account_conf)
     print("Start stub app with config %s" % conf)
-    conf.start(diem_client)
-    return conf
+    app, _ = conf.start(diem_client)
+    return (conf, app)
+
+
+@pytest.fixture(autouse=True)
+def log_stub_account_info(stub_config: AppConfig, diem_client: jsonrpc.Client) -> Generator[None, None, None]:
+    yield
+    stub_config.logger.info("=== stub wallet ParentVASP account info ===")
+    data = diem_client.get_account(stub_config.account.account_address)
+    stub_config.logger.info(data)
+
+    stub_config.logger.info("=== stub wallet ChildVASP accounts info ===")
+    for i, child in enumerate(stub_config.child_accounts):
+        data = diem_client.get_account(child.account_address)
+        stub_config.logger.info("--- ChildVASP account %s ---", i + 1)
+        stub_config.logger.info(data)
 
 
 @pytest.fixture(scope="package")
@@ -71,6 +96,16 @@ def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
 @pytest.fixture
 def pending_income_account(stub_client: RestClient) -> AccountResource:
     return AccountResource(id=PENDING_INBOUND_ACCOUNT_ID, client=stub_client)
+
+
+@contextmanager
+def disable_stub_bg_tasks(app: App) -> Generator[None, None, None]:
+    app.disable_background_tasks = True
+    try:
+        yield
+    finally:
+        app.disable_background_tasks = False
+        app.start_sync()
 
 
 def send_request_json(

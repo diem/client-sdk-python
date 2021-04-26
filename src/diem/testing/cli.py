@@ -68,7 +68,7 @@ def start_server(
     client = testnet.create_client()
     print("Diem chain id: %s" % client.get_metadata().chain_id)
 
-    conf.start(client).join()
+    conf.start(client)[1].join()
 
 
 @click.command()

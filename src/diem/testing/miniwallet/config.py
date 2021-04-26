@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from .client import RestClient
 from .app import App, falcon_api
 from .. import LocalAccount
@@ -69,10 +69,8 @@ class AppConfig:
                 self.logger.info("generate child VASP account(%s): %s", i, child.to_dict())
                 self.child_account_configs.append(child.to_dict())
 
-    def serve(self, client: jsonrpc.Client) -> threading.Thread:
-        api: falcon.API = falcon_api(
-            App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
-        )
+    def serve(self, client: jsonrpc.Client, app: App) -> threading.Thread:
+        api: falcon.API = falcon_api(app, self.disable_events_api)
 
         def serve() -> None:
             self.logger.info("serving on %s:%s at %s", self.server_conf.host, self.server_conf.port, self.server_url)
@@ -88,11 +86,12 @@ class AppConfig:
         t.start()
         return t
 
-    def start(self, client: jsonrpc.Client) -> threading.Thread:
+    def start(self, client: jsonrpc.Client) -> Tuple[App, threading.Thread]:
         self.setup_account(client)
-        t = self.serve(client)
+        app = App(self.account, self.child_accounts, client, self.name, self.logger)
+        t = self.serve(client, app)
         utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
-        return t
+        return (app, t)
 
     def __str__(self) -> str:
         return json.dumps(asdict(self), indent=2)

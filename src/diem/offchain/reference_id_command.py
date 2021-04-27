@@ -3,7 +3,7 @@
 
 """This module defines `ReferenceIDCommand` class provides utils for processing `ReferenceIDCommand` properly."""
 
-import typing, dataclasses, uuid
+import dataclasses, uuid
 from .types import (
     ReferenceIDCommandObject,
 )

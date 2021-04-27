@@ -421,6 +421,31 @@ def test_missing_required_field():
     )
 
 
+def test_reference_id_command_result_object():
+    # Test can encode and decode correct response format
+    ref_id_command_result = offchain.ReferenceIDCommandResultObject(
+        receiver_address="dm1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
+    )
+    response = offchain.CommandResponseObject(
+        status=offchain.CommandResponseStatus.success,
+        cid="3185027f-0574-6f55-2668-3a38fdb5de98",
+        result=offchain.to_dict(ref_id_command_result),
+    )
+    assert offchain.from_json(offchain.to_json(response), offchain.CommandResponseObject) == response
+    assert offchain.from_json(offchain.to_json(response)) == response
+    assert json.loads(offchain.to_json(response)) == json.loads(
+        """{
+          "status": "success",
+          "_ObjectType": "CommandResponseObject",
+          "cid": "3185027f-0574-6f55-2668-3a38fdb5de98",
+          "result": {
+            "_ObjectType": "ReferenceIDCommandResponse",
+            "receiver_address": "dm1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv"
+          }
+        }"""
+    )
+
+
 def assert_cid(cid: str):
     assert isinstance(cid, str)
     assert uuid.UUID(cid)

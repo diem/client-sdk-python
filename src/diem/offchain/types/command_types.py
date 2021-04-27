@@ -139,15 +139,16 @@ class OffChainErrorObject:
 
 @dataclass(frozen=True)
 class ReferenceIDCommandResultObject:
+    # ReferenceIDCommandResponse: Receiver's onchain account identifier
+    receiver_address: str
     _ObjectType: str = datafield(
+        default=OffChainCommandResponseResultType.ReferenceIDCommandResponse,
         metadata={
             "valid-values": [
                 OffChainCommandResponseResultType.ReferenceIDCommandResponse,
             ]
-        }
+        },
     )
-    # ReferenceIDCommandResponse: Receiver's onchain account identifier
-    receiver_address: str
 
 
 @dataclass(frozen=True)
@@ -161,12 +162,11 @@ class CommandResponseObject:
     # The Command identifier to which this is a response.
     cid: typing.Optional[str] = datafield(default=None)
     # An result JSON object that may be defined when status == "success"
-    result: typing.Optional[dict] = datafield(default=None) # pyre-ignore
+    result: typing.Optional[dict] = datafield(default=None)  # pyre-ignore
 
 
 @dataclass(frozen=True)
 class ReferenceIDCommandObject:
-    _ObjectType: str = datafield(metadata={"valid-values": [CommandType.ReferenceIDCommand]})
     # Sender's full DiemID
     sender: str
     # Sender's onchain account identifier with subaddress set to `None` or the zero subaddress
@@ -175,3 +175,6 @@ class ReferenceIDCommandObject:
     receiver: str
     # Reference ID of this transaction
     reference_id: str
+    _ObjectType: str = datafield(
+        default=CommandType.ReferenceIDCommand, metadata={"valid-values": [CommandType.ReferenceIDCommand]}
+    )

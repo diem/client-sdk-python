@@ -14,6 +14,8 @@ from .command_types import (
     OffChainErrorObject,
     CommandRequestObject,
     CommandResponseStatus,
+    ReferenceIDCommandObject,
+    ReferenceIDCommandResultObject,
     FundPullPreApprovalCommandObject,
     UUID_REGEX,
 )

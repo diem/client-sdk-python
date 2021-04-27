@@ -20,6 +20,8 @@ from .types import (
     PaymentObject,
     PaymentActorObject,
     PaymentActionObject,
+    ReferenceIDCommandResultObject,
+    ReferenceIDCommandObject,
     Status,
     StatusObject,
     KycDataObjectType,

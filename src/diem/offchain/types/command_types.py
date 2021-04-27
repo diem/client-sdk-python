@@ -15,6 +15,7 @@ class CommandType:
     PaymentCommand = "PaymentCommand"
     FundPullPreApprovalCommand = "FundPullPreApprovalCommand"
     PingCommand = "PingCommand"
+    ReferenceIDCommand = "ReferenceIDCommand"
 
 
 class CommandResponseStatus:
@@ -79,6 +80,12 @@ class ErrorCode:
     # Field payment.action.currency value is a valid Diem currency code, but it is not supported / acceptable by the receiver VASP.
     unsupported_currency = "unsupported_currency"
 
+    # Duplicate Reference ID was rejected by the receiving end
+    duplicate_reference_id = "duplicate_reference_id"
+
+    # Receiving end could not find the user with the given user_identifier
+    invalid_receiver = "invalid_receiver"
+
 
 class OffChainErrorType:
     """command_error occurs in response to a Command failing to be applied -
@@ -88,6 +95,12 @@ class OffChainErrorType:
 
     command_error = "command_error"
     protocol_error = "protocol_error"
+
+
+class OffChainCommandResponseResultType:
+    """ Type of result in a CommandResponseObject"""
+
+    ReferenceIDCommandResponse = "ReferenceIDCommandResponse"
 
 
 @dataclass(frozen=True)
@@ -125,6 +138,20 @@ class OffChainErrorObject:
 
 
 @dataclass(frozen=True)
+class ReferenceIDCommandResultObject:
+    # ReferenceIDCommandResponse: Receiver's onchain account identifier
+    receiver_address: str
+    _ObjectType: str = datafield(
+        default=OffChainCommandResponseResultType.ReferenceIDCommandResponse,
+        metadata={
+            "valid-values": [
+                OffChainCommandResponseResultType.ReferenceIDCommandResponse,
+            ]
+        },
+    )
+
+
+@dataclass(frozen=True)
 class CommandResponseObject:
     # Either success or failure.
     status: str = datafield(metadata={"valid-values": [CommandResponseStatus.success, CommandResponseStatus.failure]})
@@ -134,3 +161,20 @@ class CommandResponseObject:
     error: typing.Optional[OffChainErrorObject] = datafield(default=None)
     # The Command identifier to which this is a response.
     cid: typing.Optional[str] = datafield(default=None)
+    # An result JSON object that may be defined when status == "success"
+    result: typing.Optional[dict] = datafield(default=None)  # pyre-ignore
+
+
+@dataclass(frozen=True)
+class ReferenceIDCommandObject:
+    # Sender's full DiemID
+    sender: str
+    # Sender's onchain account identifier with subaddress set to `None` or the zero subaddress
+    sender_address: str
+    # Receiver's full DiemID
+    receiver: str
+    # Reference ID of this transaction
+    reference_id: str
+    _ObjectType: str = datafield(
+        default=CommandType.ReferenceIDCommand, metadata={"valid-values": [CommandType.ReferenceIDCommand]}
+    )

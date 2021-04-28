@@ -288,6 +288,7 @@ def test_invalid_jws_message_signature(
     """
 
     new_stub_account = testnet.gen_account(diem_client)
+    new_stub_account.hrp = hrp
     new_compliance_key = LocalAccount().compliance_public_key_bytes
     new_stub_account.rotate_dual_attestation_info(diem_client, stub_config.server_url, new_compliance_key)
 

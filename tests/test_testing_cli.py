@@ -66,7 +66,7 @@ def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -
             "--faucet",
             testnet.FAUCET_URL,
             "--pytest-args",
-            "-k test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses",
+            "-k 'test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses or test_invalid_jws_message_signature'",
             "--stub-bind-host",
             "0.0.0.0",
             "--stub-bind-port",

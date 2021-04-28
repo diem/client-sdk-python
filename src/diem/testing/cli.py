@@ -9,7 +9,7 @@ from diem.testing import LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO
-import logging, click, functools, pytest, os, sys, re, json
+import logging, click, functools, pytest, os, sys, json, shlex
 
 log_format: str = "%(name)s [%(asctime)s] %(levelname)s: %(message)s"
 click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
@@ -139,7 +139,7 @@ def test(
     if stub_bind_host is not None and stub_bind_host != "localhost" and not stub_diem_account_base_url:
         raise click.ClickException("--stub-diem-account-base-url is required when passing in a custom --stub-bind-host")
 
-    args = [arg for arg in re.compile("\\s+").split(pytest_args) if arg]
+    args = shlex.split(pytest_args)
     args = ["--pyargs", "diem.testing.suites"] + args
     if verbose:
         args.append("--log-level=INFO")

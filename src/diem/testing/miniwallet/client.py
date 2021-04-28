@@ -1,14 +1,14 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from dataclasses import dataclass, field, replace, asdict
+from dataclasses import dataclass, field, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
 from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
-import requests, logging, random, string, json, time, os
+import requests, logging, json, time, os
 
 
 @dataclass
@@ -47,12 +47,6 @@ class RestClient:
         }
         account = self.create("/accounts", **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account["id"], kyc_data=kyc_data)
-
-    def new_kyc_data(self, name: Optional[str] = None, sample: str = "minimum") -> offchain.KycDataObject:
-        obj = getattr(self.get_kyc_sample(), sample)
-        if not name:
-            name = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        return replace(obj, legal_entity_name=name)
 
     def get_kyc_sample(self) -> KycSample:
         return offchain.from_dict(self.send("GET", "/kyc_sample").json(), KycSample)

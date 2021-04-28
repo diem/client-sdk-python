@@ -32,7 +32,7 @@ def test_invalid_x_request_id(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -74,7 +74,7 @@ def test_missing_x_request_id(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -125,7 +125,7 @@ def test_invalid_x_request_sender_address(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -166,7 +166,7 @@ def test_missing_x_request_sender_address(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -207,7 +207,7 @@ def test_x_request_sender_is_valid_but_no_compliance_key(
     sender_address = new_stub_account.account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -249,7 +249,7 @@ def test_invalid_jws_message_body_that_misses_parts(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -296,7 +296,7 @@ def test_invalid_jws_message_signature(
     sender_address = new_stub_account.account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -373,7 +373,7 @@ def test_decoded_command_request_object_missing_required_field(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -419,7 +419,7 @@ def test_decoded_command_request_object_field_value_is_invalid(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -463,7 +463,7 @@ def test_decoded_command_request_object_command_type_is_unknown(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -510,7 +510,7 @@ def test_decoded_command_request_object_field_value_type_is_invalid(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,

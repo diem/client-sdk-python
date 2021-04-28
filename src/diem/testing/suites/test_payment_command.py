@@ -52,7 +52,7 @@ def test_payment_command_contains_missing_required_field(
     1. Create a valid offchain PaymentCommand request object.
     2. Set a required field value to None by name defined by the test.
     3. Send the request to the target wallet application offchain API endpoint.
-    4. Expect response status code is 400
+    4. Expect http response status code is 400
     5. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `missing_field` error code.
     """
@@ -100,7 +100,7 @@ def test_payment_command_contains_unknown_field(
     1. Create a valid offchain PaymentCommand request object.
     2. Add an unknown field by name defined by the test.
     3. Send the request to the target wallet application offchain API endpoint.
-    4. Expect response status code is 400
+    4. Expect http response status code is 400
     5. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `unknown_field` error code.
     """
@@ -148,7 +148,7 @@ def test_payment_command_contains_invalid_field_value(
     1. Create a valid offchain PaymentCommand request object.
     2. Set a required field value to "invalid" by name defined by the test.
     3. Send the request to the target wallet application offchain API endpoint.
-    4. Expect response status code is 400
+    4. Expect http response status code is 400
     5. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `invalid_field_value` error code.
     """
@@ -205,7 +205,7 @@ def test_payment_command_contains_invalid_field_value_type(
     1. Create a valid offchain PaymentCommand request object.
     2. Set a non-integer type field value to an integer number by name defined by the test.
     3. Send the request to the target wallet application offchain API endpoint.
-    4. Expect response status code is 400
+    4. Expect http response status code is 400
     5. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `invalid_field_value` error code.
     """
@@ -239,7 +239,7 @@ def test_payment_command_contains_invalid_actor_metadata_item_type(
     1. Create a valid offchain PaymentCommand request object.
     2. Set sender actor metadata to a list of integer numbers.
     3. Send the request to the target wallet application offchain API endpoint.
-    4. Expect response status code is 400
+    4. Expect http response status code is 400
     5. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `invalid_field_value` error code.
     """
@@ -270,7 +270,7 @@ def test_replay_the_same_payment_command(
 
     1. Generate a valid account identifier from receiver account as payee.
     2. Disable stub wallet application background tasks.
-    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    3. Send a payment that requires off-chain PaymentCommand to the receiver account identifier.
     4. Send initial payment command to receiver wallet offchain API endpoint.
     5. Re-send the offchain PaymentCommand.
     6. Expect no error raised.
@@ -308,12 +308,13 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
 
     1. Generate a valid account identifier from receiver account as payee.
     2. Disable stub wallet application background tasks.
-    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    3. Send a payment that requires off-chain PaymentCommand to the receiver account identifier.
     4. Send initial payment command to receiver wallet offchain API endpoint.
-    5. Wait for receiver's wallet application sends payment command back with receiver ready for settlement.
-    6. Send payment command to receiver with sender ready for settlement and new KYC data.
-    7. Expect response status code is 400
-    8. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+    5. Wait for receiver's wallet application to send payment command back with receiver ready for settlement.
+    6. Update payment command sender KYC data.
+    7. Send the updated payment command to receiver with sender ready for settlement.
+    8. Expect http response status code is 400
+    9. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `invalid_overwrite` error code.
     """
 
@@ -367,12 +368,13 @@ def test_payment_command_sender_address_can_only_be_written_once(
 
     1. Generate a valid account identifier from receiver account as payee.
     2. Disable stub wallet application background tasks.
-    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    3. Send a payment that requires off-chain PaymentCommand to the receiver account identifier.
     4. Send initial payment command to receiver wallet offchain API endpoint.
-    5. Wait for receiver's wallet application sends payment command back with receiver ready for settlement.
-    6. Send payment command to receiver with sender ready for settlement and new sender address.
-    7. Expect response status code is 400
-    8. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+    5. Wait for receiver's wallet application to send payment command back with receiver ready for settlement.
+    6. Update payment command sender address.
+    7. Send the updated payment command to receiver with sender ready for settlement.
+    8. Expect http response status code is 400
+    9. Expect response `CommandResponseObject` with failure status, `command_error` error type,
        and `invalid_overwrite` error code.
     """
 
@@ -409,6 +411,79 @@ def test_payment_command_sender_address_can_only_be_written_once(
                 stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
             assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.sender.address")
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "currency",
+        "amount",
+        "timestamp",
+    ],
+)
+def test_payment_command_action_can_only_be_written_once(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    hrp: str,
+    stub_client: RestClient,
+    target_client: RestClient,
+    field_name: str,
+) -> None:
+    """
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment that requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Wait for receiver's wallet application to send payment command back with receiver ready for settlement.
+    6. Update payment command action.
+    7. Send the updated payment command to receiver with sender ready for settlement.
+    8. Expect http response status code is 400
+    9. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+       and `invalid_overwrite` error code.
+    """
+
+    sender_account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+    )
+    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    try:
+        payee = receiver_account.generate_account_identifier()
+
+        with disable_background_tasks(stub_wallet_app):
+            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+            # send initial payment command
+            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+
+            # wait for receiver to update payment command
+            sender_account.wait_for_event("updated_payment_command")
+            # find updated payment command
+            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+            offchain_cmd = updated_cmd.to_offchain_command()
+
+            # update action field value
+            if field_name == "currency":
+                field_value = "XDX" if offchain_cmd.payment.action.currency == "XUS" else "XUS"
+            elif field_name == "amount":
+                field_value = offchain_cmd.payment.action.amount + 10_000
+            elif field_name == "timestamp":
+                field_value = offchain_cmd.payment.action.timestamp - 1
+            new_action = replace(offchain_cmd.payment.action, **{field_name: field_value})
+            new_payment = replace(offchain_cmd.payment, action=new_action)
+            new_offchain_cmd = replace(offchain_cmd, payment=new_payment)
+
+            new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+
+            with pytest.raises(offchain.CommandResponseError) as err:
+                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+
+            assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.action")
     finally:
         receiver_account.log_events()
         sender_account.log_events()

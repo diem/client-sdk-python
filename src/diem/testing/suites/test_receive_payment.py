@@ -3,38 +3,8 @@
 
 from diem.testing.miniwallet import RestClient, AccountResource, Transaction, AppConfig, RefundReason
 from diem import offchain, jsonrpc, stdlib, utils, txnmetadata, diem_types, identifier
-from typing import Generator, Optional, List
+from typing import Optional, List
 import pytest, json
-
-
-amount: int = 12345
-
-
-@pytest.fixture
-def sender_account(
-    stub_client: RestClient,
-    currency: str,
-    pending_income_account: AccountResource,
-    travel_rule_threshold: int,
-    target_client: RestClient,
-) -> Generator[AccountResource, None, None]:
-    account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample="minimum")
-    )
-    yield account
-    account.log_events()
-    # MiniWallet stub saves the payment without account information (subaddress / reference id)
-    # into a pending income account before process it.
-    # Here we log events of the account for showing more context related to the test
-    # when test failed.
-    pending_income_account.log_events()
-
-
-@pytest.fixture
-def receiver_account(target_client: RestClient, stub_client: RestClient) -> Generator[AccountResource, None, None]:
-    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum"))
-    yield account
-    account.log_events()
 
 
 @pytest.mark.parametrize(
@@ -50,8 +20,8 @@ def receiver_account(target_client: RestClient, stub_client: RestClient) -> Gene
     ],
 )
 def test_receive_payment_with_invalid_metadata(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     hrp: str,
     stub_config: AppConfig,
@@ -71,29 +41,36 @@ def test_receive_payment_with_invalid_metadata(
 
     """
 
-    account_identifier = receiver_account.generate_account_identifier()
-    receiver_account_address = identifier.decode_account_address(account_identifier, hrp)
-    stub_config.account.submit_and_wait_for_txn(
-        diem_client,
-        stdlib.encode_peer_to_peer_with_metadata_script(
-            currency=utils.currency_code(currency),
-            amount=amount * 2,
-            payee=receiver_account_address,
-            metadata=invalid_metadata,
-            metadata_signature=b"",
-        ),
-    )
-    assert receiver_account.balance(currency) == 0
+    amount = 1_000_000
+    sender_account = stub_client.create_account(balances={currency: amount})
+    receiver_account = target_client.create_account()
+    try:
+        account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_address = identifier.decode_account_address(account_identifier, hrp)
+        stub_config.account.submit_and_wait_for_txn(
+            diem_client,
+            stdlib.encode_peer_to_peer_with_metadata_script(
+                currency=utils.currency_code(currency),
+                amount=amount * 2,
+                payee=receiver_account_address,
+                metadata=invalid_metadata,
+                metadata_signature=b"",
+            ),
+        )
+        assert receiver_account.balance(currency) == 0
 
-    pay = sender_account.send_payment(currency=currency, amount=amount, payee=account_identifier)
-    wait_for_payment_transaction_complete(sender_account, pay.id)
-    receiver_account.wait_for_balance(currency, amount)
+        pay = sender_account.send_payment(currency=currency, amount=amount, payee=account_identifier)
+        wait_for_payment_transaction_complete(sender_account, pay.id)
+        receiver_account.wait_for_balance(currency, amount)
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
-@pytest.mark.parametrize("amount", [1, 123456, 125555])
+@pytest.mark.parametrize("amount", [10_000, 1200_000, 125550_000])
 def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     amount: int,
 ) -> None:
@@ -107,18 +84,24 @@ def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresse
 
     """
 
-    payee = receiver_account.generate_account_identifier()
-    pay = sender_account.send_payment(currency=currency, amount=amount, payee=payee)
-    wait_for_payment_transaction_complete(sender_account, pay.id)
-    receiver_account.wait_for_balance(currency, amount)
+    sender_account = stub_client.create_account(balances={currency: amount})
+    receiver_account = target_client.create_account()
+    try:
+        payee = receiver_account.generate_account_identifier()
+        pay = sender_account.send_payment(currency=currency, amount=amount, payee=payee)
+        wait_for_payment_transaction_complete(sender_account, pay.id)
+        receiver_account.wait_for_balance(currency, amount)
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 @pytest.mark.parametrize(  # pyre-ignore
     "invalid_to_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
 def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     hrp: str,
     stub_config: AppConfig,
@@ -139,40 +122,47 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
 
     """
 
-    receiver_account_identifier = receiver_account.generate_account_identifier()
-    receiver_account_address: diem_types.AccountAddress = identifier.decode_account_address(
-        receiver_account_identifier, hrp
-    )
+    amount = 1_000_000
+    sender_account = stub_client.create_account(balances={currency: amount})
+    receiver_account = target_client.create_account()
+    try:
+        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_address: diem_types.AccountAddress = identifier.decode_account_address(
+            receiver_account_identifier, hrp
+        )
 
-    sender_account_identifier = sender_account.generate_account_identifier()
-    valid_from_subaddress = identifier.decode_account_subaddress(sender_account_identifier, hrp)
-    invalid_metadata = txnmetadata.general_metadata(valid_from_subaddress, invalid_to_subaddress)
-    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
-        diem_client,
-        stdlib.encode_peer_to_peer_with_metadata_script(
-            currency=utils.currency_code(currency),
-            amount=amount,
-            payee=receiver_account_address,
-            metadata=invalid_metadata,
-            metadata_signature=b"",
-        ),
-    )
+        sender_account_identifier = sender_account.generate_account_identifier()
+        valid_from_subaddress = identifier.decode_account_subaddress(sender_account_identifier, hrp)
+        invalid_metadata = txnmetadata.general_metadata(valid_from_subaddress, invalid_to_subaddress)
+        original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+            diem_client,
+            stdlib.encode_peer_to_peer_with_metadata_script(
+                currency=utils.currency_code(currency),
+                amount=amount,
+                payee=receiver_account_address,
+                metadata=invalid_metadata,
+                metadata_signature=b"",
+            ),
+        )
 
-    sender_account.wait_for_event(
-        "created_transaction",
-        status=Transaction.Status.completed,
-        refund_diem_txn_version=original_payment_txn.version,
-        refund_reason=RefundReason.invalid_subaddress,
-    )
-    assert receiver_account.balance(currency) == 0
+        sender_account.wait_for_event(
+            "created_transaction",
+            status=Transaction.Status.completed,
+            refund_diem_txn_version=original_payment_txn.version,
+            refund_reason=RefundReason.invalid_subaddress,
+        )
+        assert receiver_account.balance(currency) == 0
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 @pytest.mark.parametrize(  # pyre-ignore
     "invalid_from_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
 def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     hrp: str,
     stub_config: AppConfig,
@@ -192,22 +182,29 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
 
     """
 
-    receiver_account_identifier = receiver_account.generate_account_identifier()
-    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
+    amount = 1_000_000
+    sender_account = stub_client.create_account(balances={currency: amount})
+    receiver_account = target_client.create_account()
+    try:
+        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    valid_to_subaddress = identifier.decode_account_subaddress(receiver_account_identifier, hrp)
-    invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, valid_to_subaddress)
-    stub_config.account.submit_and_wait_for_txn(
-        diem_client,
-        stdlib.encode_peer_to_peer_with_metadata_script(
-            currency=utils.currency_code(currency),
-            amount=amount,
-            payee=receiver_account_address,
-            metadata=invalid_metadata,
-            metadata_signature=b"",
-        ),
-    )
-    receiver_account.wait_for_balance(currency, amount)
+        valid_to_subaddress = identifier.decode_account_subaddress(receiver_account_identifier, hrp)
+        invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, valid_to_subaddress)
+        stub_config.account.submit_and_wait_for_txn(
+            diem_client,
+            stdlib.encode_peer_to_peer_with_metadata_script(
+                currency=utils.currency_code(currency),
+                amount=amount,
+                payee=receiver_account_address,
+                metadata=invalid_metadata,
+                metadata_signature=b"",
+            ),
+        )
+        receiver_account.wait_for_balance(currency, amount)
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 @pytest.mark.parametrize(
@@ -217,15 +214,15 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
     "invalid_to_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
 def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     hrp: str,
     stub_config: AppConfig,
     diem_client: jsonrpc.Client,
     invalid_to_subaddress: Optional[bytes],
     invalid_from_subaddress: Optional[bytes],
-    pending_income_account: AccountResource,
+    stub_wallet_pending_income_account: AccountResource,
 ) -> None:
     """When received a payment with general metadata and invalid subaddresses, it is considered
     same with the case received invalid to subaddress, and receiver should refund the payment.
@@ -241,33 +238,40 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
 
     """
 
-    receiver_account_identifier = receiver_account.generate_account_identifier()
-    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
+    amount = 1_000_000
+    sender_account = stub_client.create_account(balances={currency: amount})
+    receiver_account = target_client.create_account()
+    try:
+        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, invalid_to_subaddress)
-    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
-        diem_client,
-        stdlib.encode_peer_to_peer_with_metadata_script(
-            currency=utils.currency_code(currency),
-            amount=amount,
-            payee=receiver_account_address,
-            metadata=invalid_metadata,
-            metadata_signature=b"",
-        ),
-    )
+        invalid_metadata = txnmetadata.general_metadata(invalid_from_subaddress, invalid_to_subaddress)
+        original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+            diem_client,
+            stdlib.encode_peer_to_peer_with_metadata_script(
+                currency=utils.currency_code(currency),
+                amount=amount,
+                payee=receiver_account_address,
+                metadata=invalid_metadata,
+                metadata_signature=b"",
+            ),
+        )
 
-    pending_income_account.wait_for_event(
-        "created_transaction",
-        status=Transaction.Status.completed,
-        refund_diem_txn_version=original_payment_txn.version,
-        refund_reason=RefundReason.invalid_subaddress,
-    )
-    assert receiver_account.balance(currency) == 0
+        stub_wallet_pending_income_account.wait_for_event(
+            "created_transaction",
+            status=Transaction.Status.completed,
+            refund_diem_txn_version=original_payment_txn.version,
+            refund_reason=RefundReason.invalid_subaddress,
+        )
+        assert receiver_account.balance(currency) == 0
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     travel_rule_threshold: int,
 ) -> None:
@@ -280,25 +284,34 @@ def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
     4. Assert receiver account received the fund.
 
     """
-
-    account_identifier = receiver_account.generate_account_identifier()
-    pay = sender_account.send_payment(currency, travel_rule_threshold, payee=account_identifier)
-    wait_for_payment_transaction_complete(sender_account, pay.id)
-    receiver_account.wait_for_balance(currency, travel_rule_threshold)
+    amount = travel_rule_threshold
+    sender_account = stub_client.create_account(
+        balances={currency: amount}, kyc_data=target_client.get_kyc_sample().minimum
+    )
+    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    try:
+        account_identifier = receiver_account.generate_account_identifier()
+        pay = sender_account.send_payment(currency, travel_rule_threshold, payee=account_identifier)
+        wait_for_payment_transaction_complete(sender_account, pay.id)
+        receiver_account.wait_for_balance(currency, travel_rule_threshold)
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 @pytest.mark.parametrize(  # pyre-ignore
     "invalid_ref_id", [None, "", "ref_id_is_not_uuid", "6cd81d79-f041-4f28-867f-e4d54950833e"]
 )
 def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     hrp: str,
     stub_config: AppConfig,
     diem_client: jsonrpc.Client,
-    pending_income_account: AccountResource,
+    stub_wallet_pending_income_account: AccountResource,
     invalid_ref_id: Optional[str],
+    travel_rule_threshold: int,
 ) -> None:
     """
     There is no way to create travel rule metadata with invalid reference id when the payment
@@ -323,40 +336,48 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
 
     """
 
-    receiver_account_identifier = receiver_account.generate_account_identifier()
-    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
-
-    sender_account_identifier = sender_account.generate_account_identifier()
-    sender_address = identifier.decode_account_address(sender_account_identifier, hrp)
-    metadata, _ = txnmetadata.travel_rule(invalid_ref_id, sender_address, amount)  # pyre-ignore
-    original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
-        diem_client,
-        stdlib.encode_peer_to_peer_with_metadata_script(
-            currency=utils.currency_code(currency),
-            amount=amount,
-            payee=receiver_account_address,
-            metadata=metadata,
-            metadata_signature=b"",
-        ),
+    amount = travel_rule_threshold
+    sender_account = stub_client.create_account(
+        balances={currency: amount}, kyc_data=target_client.get_kyc_sample().minimum
     )
+    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    try:
+        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    pending_income_account.wait_for_event(
-        "created_transaction",
-        status=Transaction.Status.completed,
-        refund_diem_txn_version=original_payment_txn.version,
-    )
-    assert receiver_account.balance(currency) == 0
+        sender_account_identifier = sender_account.generate_account_identifier()
+        sender_address = identifier.decode_account_address(sender_account_identifier, hrp)
+        metadata, _ = txnmetadata.travel_rule(invalid_ref_id, sender_address, amount)  # pyre-ignore
+        original_payment_txn: jsonrpc.Transaction = stub_config.account.submit_and_wait_for_txn(
+            diem_client,
+            stdlib.encode_peer_to_peer_with_metadata_script(
+                currency=utils.currency_code(currency),
+                amount=amount / 1000,
+                payee=receiver_account_address,
+                metadata=metadata,
+                metadata_signature=b"",
+            ),
+        )
+
+        stub_wallet_pending_income_account.wait_for_event(
+            "created_transaction",
+            status=Transaction.Status.completed,
+            refund_diem_txn_version=original_payment_txn.version,
+        )
+        assert receiver_account.balance(currency) == 0
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 @pytest.mark.parametrize("invalid_refund_txn_version", [0, 1, 18446744073709551615])
 def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
-    sender_account: AccountResource,
-    receiver_account: AccountResource,
+    stub_client: RestClient,
+    target_client: RestClient,
     currency: str,
     hrp: str,
     stub_config: AppConfig,
     diem_client: jsonrpc.Client,
-    pending_income_account: AccountResource,
     invalid_refund_txn_version: int,
 ) -> None:
     """
@@ -374,26 +395,33 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
 
     """
 
-    receiver_account_identifier = receiver_account.generate_account_identifier()
-    receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
+    amount = 120_000
+    sender_account = stub_client.create_account(balances={currency: amount})
+    receiver_account = target_client.create_account()
+    try:
+        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_address = identifier.decode_account_address(receiver_account_identifier, hrp)
 
-    reason = diem_types.RefundReason__OtherReason()
-    metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
-    stub_config.account.submit_and_wait_for_txn(
-        diem_client,
-        stdlib.encode_peer_to_peer_with_metadata_script(
-            currency=utils.currency_code(currency),
-            amount=amount * 2,
-            payee=receiver_account_address,
-            metadata=metadata,
-            metadata_signature=b"",
-        ),
-    )
-    assert receiver_account.balance(currency) == 0
+        reason = diem_types.RefundReason__OtherReason()
+        metadata = txnmetadata.refund_metadata(invalid_refund_txn_version, reason)
+        stub_config.account.submit_and_wait_for_txn(
+            diem_client,
+            stdlib.encode_peer_to_peer_with_metadata_script(
+                currency=utils.currency_code(currency),
+                amount=amount * 2,
+                payee=receiver_account_address,
+                metadata=metadata,
+                metadata_signature=b"",
+            ),
+        )
+        assert receiver_account.balance(currency) == 0
 
-    pay = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
-    wait_for_payment_transaction_complete(sender_account, pay.id)
-    receiver_account.wait_for_balance(currency, amount)
+        pay = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
+        wait_for_payment_transaction_complete(sender_account, pay.id)
+        receiver_account.wait_for_balance(currency, amount)
+    finally:
+        receiver_account.log_events()
+        sender_account.log_events()
 
 
 def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -> None:

@@ -94,8 +94,20 @@ def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
 
 
 @pytest.fixture
-def pending_income_account(stub_client: RestClient) -> AccountResource:
+def stub_wallet_pending_income_account(stub_client: RestClient) -> AccountResource:
+    """MiniWallet stub saves the payment without account information (subaddress / reference id)
+    into a pending income account before processing it.
+    """
+
     return AccountResource(id=PENDING_INBOUND_ACCOUNT_ID, client=stub_client)
+
+
+@pytest.fixture(autouse=True)
+def log_stub_wallet_pending_income_account(
+    stub_wallet_pending_income_account: AccountResource,
+) -> Generator[None, None, None]:
+    yield
+    stub_wallet_pending_income_account.log_events()
 
 
 @contextmanager

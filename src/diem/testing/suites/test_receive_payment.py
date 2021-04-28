@@ -12,9 +12,15 @@ amount: int = 12345
 
 @pytest.fixture
 def sender_account(
-    stub_client: RestClient, currency: str, pending_income_account: AccountResource, travel_rule_threshold: int
+    stub_client: RestClient,
+    currency: str,
+    pending_income_account: AccountResource,
+    travel_rule_threshold: int,
+    target_client: RestClient,
 ) -> Generator[AccountResource, None, None]:
-    account = stub_client.create_account(balances={currency: travel_rule_threshold})
+    account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample="minimum")
+    )
     yield account
     account.log_events()
     # MiniWallet stub saves the payment without account information (subaddress / reference id)
@@ -25,8 +31,8 @@ def sender_account(
 
 
 @pytest.fixture
-def receiver_account(target_client: RestClient) -> Generator[AccountResource, None, None]:
-    account = target_client.create_account()
+def receiver_account(target_client: RestClient, stub_client: RestClient) -> Generator[AccountResource, None, None]:
+    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum"))
     yield account
     account.log_events()
 

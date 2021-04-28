@@ -146,7 +146,7 @@ class OffChainAPI(Base):
         try:
             cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():
-                self._update_payment_command(cmd, new_offchain_cmd)
+                self._update_payment_command(cmd, new_offchain_cmd, validate=True)
         except NotFoundError:
             subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.hrp))
             account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
@@ -167,9 +167,10 @@ class OffChainAPI(Base):
     def _update_payment_command(
         self, cmd: PaymentCommand, offchain_cmd: offchain.PaymentCommand, validate: bool = False
     ) -> None:
+        prior = cmd.to_offchain_command()
         self.store.update(
             cmd,
-            before_update=lambda _: offchain_cmd.validate(cmd.to_offchain_command()) if validate else None,
+            before_update=lambda _: offchain_cmd.validate(prior) if validate else None,
             cid=offchain_cmd.id(),
             is_inbound=offchain_cmd.is_inbound(),
             is_abort=offchain_cmd.is_abort(),

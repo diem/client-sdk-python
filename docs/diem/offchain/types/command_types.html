@@ -43,6 +43,7 @@ class CommandType:
     PaymentCommand = &#34;PaymentCommand&#34;
     FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;
     PingCommand = &#34;PingCommand&#34;
+    ReferenceIDCommand = &#34;ReferenceIDCommand&#34;
 
 
 class CommandResponseStatus:
@@ -107,6 +108,12 @@ class ErrorCode:
     # Field payment.action.currency value is a valid Diem currency code, but it is not supported / acceptable by the receiver VASP.
     unsupported_currency = &#34;unsupported_currency&#34;
 
+    # Duplicate Reference ID was rejected by the receiving end
+    duplicate_reference_id = &#34;duplicate_reference_id&#34;
+
+    # Receiving end could not find the user with the given user_identifier
+    invalid_receiver = &#34;invalid_receiver&#34;
+
 
 class OffChainErrorType:
     &#34;&#34;&#34;command_error occurs in response to a Command failing to be applied -
@@ -116,6 +123,12 @@ class OffChainErrorType:
 
     command_error = &#34;command_error&#34;
     protocol_error = &#34;protocol_error&#34;
+
+
+class OffChainCommandResponseResultType:
+    &#34;&#34;&#34; Type of result in a CommandResponseObject&#34;&#34;&#34;
+
+    ReferenceIDCommandResponse = &#34;ReferenceIDCommandResponse&#34;
 
 
 @dataclass(frozen=True)
@@ -153,6 +166,20 @@ class OffChainErrorObject:
 
 
 @dataclass(frozen=True)
+class ReferenceIDCommandResultObject:
+    # ReferenceIDCommandResponse: Receiver&#39;s onchain account identifier
+    receiver_address: str
+    _ObjectType: str = datafield(
+        default=OffChainCommandResponseResultType.ReferenceIDCommandResponse,
+        metadata={
+            &#34;valid-values&#34;: [
+                OffChainCommandResponseResultType.ReferenceIDCommandResponse,
+            ]
+        },
+    )
+
+
+@dataclass(frozen=True)
 class CommandResponseObject:
     # Either success or failure.
     status: str = datafield(metadata={&#34;valid-values&#34;: [CommandResponseStatus.success, CommandResponseStatus.failure]})
@@ -161,7 +188,24 @@ class CommandResponseObject:
     # Details on errors when status == &#34;failure&#34;
     error: typing.Optional[OffChainErrorObject] = datafield(default=None)
     # The Command identifier to which this is a response.
-    cid: typing.Optional[str] = datafield(default=None)</code></pre>
+    cid: typing.Optional[str] = datafield(default=None)
+    # An result JSON object that may be defined when status == &#34;success&#34;
+    result: typing.Optional[dict] = datafield(default=None)  # pyre-ignore
+
+
+@dataclass(frozen=True)
+class ReferenceIDCommandObject:
+    # Sender&#39;s full DiemID
+    sender: str
+    # Sender&#39;s onchain account identifier with subaddress set to `None` or the zero subaddress
+    sender_address: str
+    # Receiver&#39;s full DiemID
+    receiver: str
+    # Reference ID of this transaction
+    reference_id: str
+    _ObjectType: str = datafield(
+        default=CommandType.ReferenceIDCommand, metadata={&#34;valid-values&#34;: [CommandType.ReferenceIDCommand]}
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -210,10 +254,10 @@ class CommandRequestObject:
 </dd>
 <dt id="diem.offchain.types.command_types.CommandResponseObject"><code class="flex name class">
 <span>class <span class="ident">CommandResponseObject</span></span>
-<span>(</span><span>status: str, error: Optional[<a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>] = None, cid: Optional[str] = None)</span>
+<span>(</span><span>status: str, error: Optional[<a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>] = None, cid: Optional[str] = None, result: Optional[dict] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>CommandResponseObject(status: str, _ObjectType: str = 'CommandResponseObject', error: Optional[diem.offchain.types.command_types.OffChainErrorObject] = None, cid: Optional[str] = None)</p></div>
+<div class="desc"><p>CommandResponseObject(status: str, _ObjectType: str = 'CommandResponseObject', error: Optional[diem.offchain.types.command_types.OffChainErrorObject] = None, cid: Optional[str] = None, result: Optional[dict] = None)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -227,7 +271,9 @@ class CommandResponseObject:
     # Details on errors when status == &#34;failure&#34;
     error: typing.Optional[OffChainErrorObject] = datafield(default=None)
     # The Command identifier to which this is a response.
-    cid: typing.Optional[str] = datafield(default=None)</code></pre>
+    cid: typing.Optional[str] = datafield(default=None)
+    # An result JSON object that may be defined when status == &#34;success&#34;
+    result: typing.Optional[dict] = datafield(default=None)  # pyre-ignore</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -236,6 +282,10 @@ class CommandResponseObject:
 <div class="desc"></div>
 </dd>
 <dt id="diem.offchain.types.command_types.CommandResponseObject.error"><code class="name">var <span class="ident">error</span> : Optional[<a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandResponseObject.result"><code class="name">var <span class="ident">result</span> : Optional[dict]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -282,7 +332,8 @@ class CommandResponseObject:
 <pre><code class="python">class CommandType:
     PaymentCommand = &#34;PaymentCommand&#34;
     FundPullPreApprovalCommand = &#34;FundPullPreApprovalCommand&#34;
-    PingCommand = &#34;PingCommand&#34;</code></pre>
+    PingCommand = &#34;PingCommand&#34;
+    ReferenceIDCommand = &#34;ReferenceIDCommand&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -295,6 +346,10 @@ class CommandResponseObject:
 <div class="desc"></div>
 </dd>
 <dt id="diem.offchain.types.command_types.CommandType.PingCommand"><code class="name">var <span class="ident">PingCommand</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.CommandType.ReferenceIDCommand"><code class="name">var <span class="ident">ReferenceIDCommand</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -364,11 +419,21 @@ class CommandResponseObject:
     invalid_recipient_signature = &#34;invalid_recipient_signature&#34;
 
     # Field payment.action.currency value is a valid Diem currency code, but it is not supported / acceptable by the receiver VASP.
-    unsupported_currency = &#34;unsupported_currency&#34;</code></pre>
+    unsupported_currency = &#34;unsupported_currency&#34;
+
+    # Duplicate Reference ID was rejected by the receiving end
+    duplicate_reference_id = &#34;duplicate_reference_id&#34;
+
+    # Receiving end could not find the user with the given user_identifier
+    invalid_receiver = &#34;invalid_receiver&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
 <dt id="diem.offchain.types.command_types.ErrorCode.conflict"><code class="name">var <span class="ident">conflict</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.duplicate_reference_id"><code class="name">var <span class="ident">duplicate_reference_id</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -405,6 +470,10 @@ class CommandResponseObject:
 <div class="desc"></div>
 </dd>
 <dt id="diem.offchain.types.command_types.ErrorCode.invalid_overwrite"><code class="name">var <span class="ident">invalid_overwrite</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ErrorCode.invalid_receiver"><code class="name">var <span class="ident">invalid_receiver</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -460,6 +529,28 @@ class CommandResponseObject:
 class FundPullPreApprovalCommandObject:
     _ObjectType: str = datafield(metadata={&#34;valid-values&#34;: [CommandType.FundPullPreApprovalCommand]})</code></pre>
 </details>
+</dd>
+<dt id="diem.offchain.types.command_types.OffChainCommandResponseResultType"><code class="flex name class">
+<span>class <span class="ident">OffChainCommandResponseResultType</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Type of result in a CommandResponseObject</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OffChainCommandResponseResultType:
+    &#34;&#34;&#34; Type of result in a CommandResponseObject&#34;&#34;&#34;
+
+    ReferenceIDCommandResponse = &#34;ReferenceIDCommandResponse&#34;</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.OffChainCommandResponseResultType.ReferenceIDCommandResponse"><code class="name">var <span class="ident">ReferenceIDCommandResponse</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </dd>
 <dt id="diem.offchain.types.command_types.OffChainErrorObject"><code class="flex name class">
 <span>class <span class="ident">OffChainErrorObject</span></span>
@@ -541,6 +632,81 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 </dd>
 </dl>
 </dd>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandObject"><code class="flex name class">
+<span>class <span class="ident">ReferenceIDCommandObject</span></span>
+<span>(</span><span>sender: str, sender_address: str, receiver: str, reference_id: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ReferenceIDCommandObject(sender: str, sender_address: str, receiver: str, reference_id: str, _ObjectType: str = 'ReferenceIDCommand')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class ReferenceIDCommandObject:
+    # Sender&#39;s full DiemID
+    sender: str
+    # Sender&#39;s onchain account identifier with subaddress set to `None` or the zero subaddress
+    sender_address: str
+    # Receiver&#39;s full DiemID
+    receiver: str
+    # Reference ID of this transaction
+    reference_id: str
+    _ObjectType: str = datafield(
+        default=CommandType.ReferenceIDCommand, metadata={&#34;valid-values&#34;: [CommandType.ReferenceIDCommand]}
+    )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandObject.receiver"><code class="name">var <span class="ident">receiver</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandObject.reference_id"><code class="name">var <span class="ident">reference_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandObject.sender"><code class="name">var <span class="ident">sender</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandObject.sender_address"><code class="name">var <span class="ident">sender_address</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandResultObject"><code class="flex name class">
+<span>class <span class="ident">ReferenceIDCommandResultObject</span></span>
+<span>(</span><span>receiver_address: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ReferenceIDCommandResultObject(receiver_address: str, _ObjectType: str = 'ReferenceIDCommandResponse')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class ReferenceIDCommandResultObject:
+    # ReferenceIDCommandResponse: Receiver&#39;s onchain account identifier
+    receiver_address: str
+    _ObjectType: str = datafield(
+        default=OffChainCommandResponseResultType.ReferenceIDCommandResponse,
+        metadata={
+            &#34;valid-values&#34;: [
+                OffChainCommandResponseResultType.ReferenceIDCommandResponse,
+            ]
+        },
+    )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.offchain.types.command_types.ReferenceIDCommandResultObject.receiver_address"><code class="name">var <span class="ident">receiver_address</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -570,6 +736,7 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <ul class="">
 <li><code><a title="diem.offchain.types.command_types.CommandResponseObject.cid" href="#diem.offchain.types.command_types.CommandResponseObject.cid">cid</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.CommandResponseObject.error" href="#diem.offchain.types.command_types.CommandResponseObject.error">error</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandResponseObject.result" href="#diem.offchain.types.command_types.CommandResponseObject.result">result</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.CommandResponseObject.status" href="#diem.offchain.types.command_types.CommandResponseObject.status">status</a></code></li>
 </ul>
 </li>
@@ -586,12 +753,14 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <li><code><a title="diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand" href="#diem.offchain.types.command_types.CommandType.FundPullPreApprovalCommand">FundPullPreApprovalCommand</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.CommandType.PaymentCommand" href="#diem.offchain.types.command_types.CommandType.PaymentCommand">PaymentCommand</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.CommandType.PingCommand" href="#diem.offchain.types.command_types.CommandType.PingCommand">PingCommand</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.CommandType.ReferenceIDCommand" href="#diem.offchain.types.command_types.CommandType.ReferenceIDCommand">ReferenceIDCommand</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="diem.offchain.types.command_types.ErrorCode" href="#diem.offchain.types.command_types.ErrorCode">ErrorCode</a></code></h4>
 <ul class="">
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.conflict" href="#diem.offchain.types.command_types.ErrorCode.conflict">conflict</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.duplicate_reference_id" href="#diem.offchain.types.command_types.ErrorCode.duplicate_reference_id">duplicate_reference_id</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_command_producer" href="#diem.offchain.types.command_types.ErrorCode.invalid_command_producer">invalid_command_producer</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_field_value" href="#diem.offchain.types.command_types.ErrorCode.invalid_field_value">invalid_field_value</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_http_header" href="#diem.offchain.types.command_types.ErrorCode.invalid_http_header">invalid_http_header</a></code></li>
@@ -601,6 +770,7 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_jws_signature" href="#diem.offchain.types.command_types.ErrorCode.invalid_jws_signature">invalid_jws_signature</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_object" href="#diem.offchain.types.command_types.ErrorCode.invalid_object">invalid_object</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_overwrite" href="#diem.offchain.types.command_types.ErrorCode.invalid_overwrite">invalid_overwrite</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_receiver" href="#diem.offchain.types.command_types.ErrorCode.invalid_receiver">invalid_receiver</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_recipient_signature" href="#diem.offchain.types.command_types.ErrorCode.invalid_recipient_signature">invalid_recipient_signature</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.invalid_transition" href="#diem.offchain.types.command_types.ErrorCode.invalid_transition">invalid_transition</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.ErrorCode.missing_field" href="#diem.offchain.types.command_types.ErrorCode.missing_field">missing_field</a></code></li>
@@ -616,6 +786,12 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <h4><code><a title="diem.offchain.types.command_types.FundPullPreApprovalCommandObject" href="#diem.offchain.types.command_types.FundPullPreApprovalCommandObject">FundPullPreApprovalCommandObject</a></code></h4>
 </li>
 <li>
+<h4><code><a title="diem.offchain.types.command_types.OffChainCommandResponseResultType" href="#diem.offchain.types.command_types.OffChainCommandResponseResultType">OffChainCommandResponseResultType</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.OffChainCommandResponseResultType.ReferenceIDCommandResponse" href="#diem.offchain.types.command_types.OffChainCommandResponseResultType.ReferenceIDCommandResponse">ReferenceIDCommandResponse</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="diem.offchain.types.command_types.OffChainErrorObject" href="#diem.offchain.types.command_types.OffChainErrorObject">OffChainErrorObject</a></code></h4>
 <ul class="">
 <li><code><a title="diem.offchain.types.command_types.OffChainErrorObject.code" href="#diem.offchain.types.command_types.OffChainErrorObject.code">code</a></code></li>
@@ -629,6 +805,21 @@ protocol_error occurs in response to a failure related to the lower-level protoc
 <ul class="">
 <li><code><a title="diem.offchain.types.command_types.OffChainErrorType.command_error" href="#diem.offchain.types.command_types.OffChainErrorType.command_error">command_error</a></code></li>
 <li><code><a title="diem.offchain.types.command_types.OffChainErrorType.protocol_error" href="#diem.offchain.types.command_types.OffChainErrorType.protocol_error">protocol_error</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.ReferenceIDCommandObject" href="#diem.offchain.types.command_types.ReferenceIDCommandObject">ReferenceIDCommandObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.ReferenceIDCommandObject.receiver" href="#diem.offchain.types.command_types.ReferenceIDCommandObject.receiver">receiver</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ReferenceIDCommandObject.reference_id" href="#diem.offchain.types.command_types.ReferenceIDCommandObject.reference_id">reference_id</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ReferenceIDCommandObject.sender" href="#diem.offchain.types.command_types.ReferenceIDCommandObject.sender">sender</a></code></li>
+<li><code><a title="diem.offchain.types.command_types.ReferenceIDCommandObject.sender_address" href="#diem.offchain.types.command_types.ReferenceIDCommandObject.sender_address">sender_address</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.offchain.types.command_types.ReferenceIDCommandResultObject" href="#diem.offchain.types.command_types.ReferenceIDCommandResultObject">ReferenceIDCommandResultObject</a></code></h4>
+<ul class="">
+<li><code><a title="diem.offchain.types.command_types.ReferenceIDCommandResultObject.receiver_address" href="#diem.offchain.types.command_types.ReferenceIDCommandResultObject.receiver_address">receiver_address</a></code></li>
 </ul>
 </li>
 </ul>

@@ -129,7 +129,7 @@ def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
         api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
     api.add_route(&#34;/kyc_sample&#34;, endpoints, suffix=&#34;kyc_sample&#34;)
     api.add_route(&#34;/v2/command&#34;, endpoints, suffix=&#34;offchain&#34;)
-    app.start_sync()
+    app.start_bg_worker_thread()
     return api</code></pre>
 </details>
 </section>
@@ -161,7 +161,7 @@ def falcon_api(app: App, disable_events_api: bool = False) -&gt; falcon.API:
         api.add_route(&#34;/accounts/{account_id}/%s&#34; % res, endpoints, suffix=res)
     api.add_route(&#34;/kyc_sample&#34;, endpoints, suffix=&#34;kyc_sample&#34;)
     api.add_route(&#34;/v2/command&#34;, endpoints, suffix=&#34;offchain&#34;)
-    app.start_sync()
+    app.start_bg_worker_thread()
     return api</code></pre>
 </details>
 </dd>

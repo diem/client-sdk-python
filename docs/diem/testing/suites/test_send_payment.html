@@ -71,7 +71,9 @@ def sender_account(
 
 
 @pytest.fixture
-def receiver_account(stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+def receiver_account(
+    stub_client: RestClient, pending_income_account: AccountResource
+) -&gt; Generator[AccountResource, None, None]:
     &#34;&#34;&#34;receiver account for the sending payment test cases
 
     The account is created from stub wallet application.
@@ -81,6 +83,11 @@ def receiver_account(stub_client: RestClient) -&gt; Generator[AccountResource, N
     account = stub_client.create_account()
     yield account
     account.log_events()
+    # MiniWallet stub saves the payment without account information (subaddress / reference id)
+    # into a pending income account before process it.
+    # Here we log events of the account for showing more context related to the test
+    # when test failed.
+    pending_income_account.log_events()
 
 
 @pytest.mark.parametrize(&#34;invalid_currency&#34;, [&#34;XU&#34;, &#34;USD&#34;, &#34;xus&#34;, &#34;&#34;, &#39;&#34;XUS&#34;&#39;, &#34;X&#34;])
@@ -623,7 +630,7 @@ def send_payment_meets_travel_rule_threshold(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="diem.testing.suites.test_send_payment.receiver_account"><code class="name flex">
-<span>def <span class="ident">receiver_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+<span>def <span class="ident">receiver_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>receiver account for the sending payment test cases</p>
@@ -634,7 +641,9 @@ In teardown, <code>GET /events</code> API will be called, and response result wi
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture
-def receiver_account(stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+def receiver_account(
+    stub_client: RestClient, pending_income_account: AccountResource
+) -&gt; Generator[AccountResource, None, None]:
     &#34;&#34;&#34;receiver account for the sending payment test cases
 
     The account is created from stub wallet application.
@@ -643,7 +652,12 @@ def receiver_account(stub_client: RestClient) -&gt; Generator[AccountResource, N
 
     account = stub_client.create_account()
     yield account
-    account.log_events()</code></pre>
+    account.log_events()
+    # MiniWallet stub saves the payment without account information (subaddress / reference id)
+    # into a pending income account before process it.
+    # Here we log events of the account for showing more context related to the test
+    # when test failed.
+    pending_income_account.log_events()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_send_payment.send_payment_meets_travel_rule_threshold"><code class="name flex">

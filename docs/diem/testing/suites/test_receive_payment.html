@@ -40,9 +40,15 @@ amount: int = 12345
 
 @pytest.fixture
 def sender_account(
-    stub_client: RestClient, currency: str, pending_income_account: AccountResource, travel_rule_threshold: int
+    stub_client: RestClient,
+    currency: str,
+    pending_income_account: AccountResource,
+    travel_rule_threshold: int,
+    target_client: RestClient,
 ) -&gt; Generator[AccountResource, None, None]:
-    account = stub_client.create_account(balances={currency: travel_rule_threshold})
+    account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample=&#34;minimum&#34;)
+    )
     yield account
     account.log_events()
     # MiniWallet stub saves the payment without account information (subaddress / reference id)
@@ -53,8 +59,8 @@ def sender_account(
 
 
 @pytest.fixture
-def receiver_account(target_client: RestClient) -&gt; Generator[AccountResource, None, None]:
-    account = target_client.create_account()
+def receiver_account(target_client: RestClient, stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample=&#34;minimum&#34;))
     yield account
     account.log_events()
 
@@ -818,7 +824,7 @@ def receive_payment_meets_travel_rule_threshold(
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.receiver_account"><code class="name flex">
-<span>def <span class="ident">receiver_account</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+<span>def <span class="ident">receiver_account</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -827,14 +833,14 @@ def receive_payment_meets_travel_rule_threshold(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@pytest.fixture
-def receiver_account(target_client: RestClient) -&gt; Generator[AccountResource, None, None]:
-    account = target_client.create_account()
+def receiver_account(target_client: RestClient, stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample=&#34;minimum&#34;))
     yield account
     account.log_events()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_receive_payment.sender_account"><code class="name flex">
-<span>def <span class="ident">sender_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, travel_rule_threshold: int) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+<span>def <span class="ident">sender_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -844,9 +850,15 @@ def receiver_account(target_client: RestClient) -&gt; Generator[AccountResource,
 </summary>
 <pre><code class="python">@pytest.fixture
 def sender_account(
-    stub_client: RestClient, currency: str, pending_income_account: AccountResource, travel_rule_threshold: int
+    stub_client: RestClient,
+    currency: str,
+    pending_income_account: AccountResource,
+    travel_rule_threshold: int,
+    target_client: RestClient,
 ) -&gt; Generator[AccountResource, None, None]:
-    account = stub_client.create_account(balances={currency: travel_rule_threshold})
+    account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample=&#34;minimum&#34;)
+    )
     yield account
     account.log_events()
     # MiniWallet stub saves the payment without account information (subaddress / reference id)

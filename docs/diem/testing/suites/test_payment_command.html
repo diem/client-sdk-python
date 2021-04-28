@@ -29,11 +29,45 @@
 <pre><code class="python"># Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import jsonrpc
-from diem.testing.miniwallet import RestClient, AppConfig
-from typing import Union, List
-from .conftest import set_field, assert_response_error, payment_command_request_sample, send_request_json
+from dataclasses import replace
+from diem import jsonrpc, offchain, identifier
+from diem.testing.miniwallet import RestClient, AppConfig, App, AccountResource, Transaction, PaymentCommand
+from typing import Union, List, Generator
+from .conftest import (
+    set_field,
+    assert_response_error,
+    payment_command_request_sample,
+    send_request_json,
+    disable_background_tasks,
+)
 import json, pytest
+
+
+@pytest.fixture
+def sender_account(
+    stub_client: RestClient,
+    currency: str,
+    pending_income_account: AccountResource,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+) -&gt; Generator[AccountResource, None, None]:
+    account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample=&#34;minimum&#34;)
+    )
+    yield account
+    account.log_events()
+    # MiniWallet stub saves the payment without account information (subaddress / reference id)
+    # into a pending income account before process it.
+    # Here we log events of the account for showing more context related to the test
+    # when test failed.
+    pending_income_account.log_events()
+
+
+@pytest.fixture
+def receiver_account(target_client: RestClient, stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample=&#34;minimum&#34;))
+    yield account
+    account.log_events()
 
 
 @pytest.mark.parametrize(
@@ -279,6 +313,138 @@ def test_payment_command_contains_invalid_actor_metadata_item_type(
     )
 
 
+def test_replay_the_same_payment_command(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Re-send the offchain PaymentCommand.
+    6. Expect no error raised.
+    7. Enable stub wallet application background tasks.
+    &#34;&#34;&#34;
+
+    payee = receiver_account.generate_account_identifier()
+
+    with disable_background_tasks(stub_wallet_app):
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        cmd = stub_wallet_app.send_initial_payment_command(txn)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
+
+
+def test_payment_command_sender_kyc_data_can_only_be_written_once(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Wait for receiver&#39;s wallet application sends payment command back with receiver ready for settlement.
+    6. Send payment command to receiver with sender ready for settlement and new KYC data.
+    7. Expect response status code is 400
+    8. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+       and `invalid_overwrite` error code.
+    &#34;&#34;&#34;
+
+    payee = receiver_account.generate_account_identifier()
+
+    with disable_background_tasks(stub_wallet_app):
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
+
+        # update sender KYC data
+        assert offchain_cmd.payment.sender.kyc_data
+        if offchain_cmd.payment.sender.kyc_data.dob == &#34;01/01/1979&#34;:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/01/1979&#34;)
+        else:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/02/1979&#34;)
+        # create new payment command with correct status and changed kyc data
+        new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
+
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.kyc_data&#34;)
+
+
+def test_payment_command_sender_address_can_only_be_written_once(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    hrp: str,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Wait for receiver&#39;s wallet application sends payment command back with receiver ready for settlement.
+    6. Send payment command to receiver with sender ready for settlement and new sender address.
+    7. Expect response status code is 400
+    8. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+       and `invalid_overwrite` error code.
+    &#34;&#34;&#34;
+
+    payee = receiver_account.generate_account_identifier()
+
+    with disable_background_tasks(stub_wallet_app):
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
+
+        # update sender address
+        sender_account_address = offchain_cmd.sender_account_address(hrp)
+        new_subaddress = stub_wallet_app._gen_subaddress(sender_account.id)
+        new_sender_address = identifier.encode_account(sender_account_address, new_subaddress, hrp)
+        new_sender = replace(offchain_cmd.payment.sender, address=new_sender_address)
+        new_payment = replace(offchain_cmd.payment, sender=new_sender)
+        new_offchain_cmd = replace(offchain_cmd, payment=new_payment, my_actor_address=new_sender_address)
+
+        new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.address&#34;)
+
+
 def assert_payment_command_field_error(
     stub_config: AppConfig,
     stub_client: RestClient,
@@ -367,6 +533,51 @@ def assert_payment_command_field_error(
     assert status_code == 400
     assert resp.status == &#34;failure&#34;
     assert_response_error(resp, error_code, &#34;command_error&#34;, field=full_field_name)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_payment_command.receiver_account"><code class="name flex">
+<span>def <span class="ident">receiver_account</span></span>(<span>target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture
+def receiver_account(target_client: RestClient, stub_client: RestClient) -&gt; Generator[AccountResource, None, None]:
+    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample=&#34;minimum&#34;))
+    yield account
+    account.log_events()</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_payment_command.sender_account"><code class="name flex">
+<span>def <span class="ident">sender_account</span></span>(<span>stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, currency: str, pending_income_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, travel_rule_threshold: int, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> Generator[<a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, NoneType, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture
+def sender_account(
+    stub_client: RestClient,
+    currency: str,
+    pending_income_account: AccountResource,
+    travel_rule_threshold: int,
+    target_client: RestClient,
+) -&gt; Generator[AccountResource, None, None]:
+    account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample=&#34;minimum&#34;)
+    )
+    yield account
+    account.log_events()
+    # MiniWallet stub saves the payment without account information (subaddress / reference id)
+    # into a pending income account before process it.
+    # Here we log events of the account for showing more context related to the test
+    # when test failed.
+    pending_income_account.log_events()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type"><code class="name flex">
@@ -697,6 +908,196 @@ def test_payment_command_contains_unknown_field(
     )</code></pre>
 </details>
 </dd>
+<dt id="diem.testing.suites.test_payment_command.test_payment_command_sender_address_can_only_be_written_once"><code class="name flex">
+<span>def <span class="ident">test_payment_command_sender_address_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, hrp: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate a valid account identifier from receiver account as payee.</li>
+<li>Disable stub wallet application background tasks.</li>
+<li>Send a payment requires off-chain PaymentCommand to the receiver account identifier.</li>
+<li>Send initial payment command to receiver wallet offchain API endpoint.</li>
+<li>Wait for receiver's wallet application sends payment command back with receiver ready for settlement.</li>
+<li>Send payment command to receiver with sender ready for settlement and new sender address.</li>
+<li>Expect response status code is 400</li>
+<li>Expect response <code>CommandResponseObject</code> with failure status, <code>command_error</code> error type,
+and <code>invalid_overwrite</code> error code.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_payment_command_sender_address_can_only_be_written_once(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+    hrp: str,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Wait for receiver&#39;s wallet application sends payment command back with receiver ready for settlement.
+    6. Send payment command to receiver with sender ready for settlement and new sender address.
+    7. Expect response status code is 400
+    8. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+       and `invalid_overwrite` error code.
+    &#34;&#34;&#34;
+
+    payee = receiver_account.generate_account_identifier()
+
+    with disable_background_tasks(stub_wallet_app):
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
+
+        # update sender address
+        sender_account_address = offchain_cmd.sender_account_address(hrp)
+        new_subaddress = stub_wallet_app._gen_subaddress(sender_account.id)
+        new_sender_address = identifier.encode_account(sender_account_address, new_subaddress, hrp)
+        new_sender = replace(offchain_cmd.payment.sender, address=new_sender_address)
+        new_payment = replace(offchain_cmd.payment, sender=new_sender)
+        new_offchain_cmd = replace(offchain_cmd, payment=new_payment, my_actor_address=new_sender_address)
+
+        new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.address&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once"><code class="name flex">
+<span>def <span class="ident">test_payment_command_sender_kyc_data_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate a valid account identifier from receiver account as payee.</li>
+<li>Disable stub wallet application background tasks.</li>
+<li>Send a payment requires off-chain PaymentCommand to the receiver account identifier.</li>
+<li>Send initial payment command to receiver wallet offchain API endpoint.</li>
+<li>Wait for receiver's wallet application sends payment command back with receiver ready for settlement.</li>
+<li>Send payment command to receiver with sender ready for settlement and new KYC data.</li>
+<li>Expect response status code is 400</li>
+<li>Expect response <code>CommandResponseObject</code> with failure status, <code>command_error</code> error type,
+and <code>invalid_overwrite</code> error code.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_payment_command_sender_kyc_data_can_only_be_written_once(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Wait for receiver&#39;s wallet application sends payment command back with receiver ready for settlement.
+    6. Send payment command to receiver with sender ready for settlement and new KYC data.
+    7. Expect response status code is 400
+    8. Expect response `CommandResponseObject` with failure status, `command_error` error type,
+       and `invalid_overwrite` error code.
+    &#34;&#34;&#34;
+
+    payee = receiver_account.generate_account_identifier()
+
+    with disable_background_tasks(stub_wallet_app):
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
+
+        # update sender KYC data
+        assert offchain_cmd.payment.sender.kyc_data
+        if offchain_cmd.payment.sender.kyc_data.dob == &#34;01/01/1979&#34;:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/01/1979&#34;)
+        else:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/02/1979&#34;)
+        # create new payment command with correct status and changed kyc data
+        new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
+
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.kyc_data&#34;)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.test_payment_command.test_replay_the_same_payment_command"><code class="name flex">
+<span>def <span class="ident">test_replay_the_same_payment_command</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, sender_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, receiver_account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Test Plan:</p>
+<ol>
+<li>Generate a valid account identifier from receiver account as payee.</li>
+<li>Disable stub wallet application background tasks.</li>
+<li>Send a payment requires off-chain PaymentCommand to the receiver account identifier.</li>
+<li>Send initial payment command to receiver wallet offchain API endpoint.</li>
+<li>Re-send the offchain PaymentCommand.</li>
+<li>Expect no error raised.</li>
+<li>Enable stub wallet application background tasks.</li>
+</ol></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_replay_the_same_payment_command(
+    currency: str,
+    travel_rule_threshold: int,
+    stub_wallet_app: App,
+    sender_account: AccountResource,
+    receiver_account: AccountResource,
+) -&gt; None:
+    &#34;&#34;&#34;
+    Test Plan:
+
+    1. Generate a valid account identifier from receiver account as payee.
+    2. Disable stub wallet application background tasks.
+    3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Re-send the offchain PaymentCommand.
+    6. Expect no error raised.
+    7. Enable stub wallet application background tasks.
+    &#34;&#34;&#34;
+
+    payee = receiver_account.generate_account_identifier()
+
+    with disable_background_tasks(stub_wallet_app):
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        cmd = stub_wallet_app.send_initial_payment_command(txn)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -716,11 +1117,16 @@ def test_payment_command_contains_unknown_field(
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="diem.testing.suites.test_payment_command.assert_payment_command_field_error" href="#diem.testing.suites.test_payment_command.assert_payment_command_field_error">assert_payment_command_field_error</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment_command.receiver_account" href="#diem.testing.suites.test_payment_command.receiver_account">receiver_account</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment_command.sender_account" href="#diem.testing.suites.test_payment_command.sender_account">sender_account</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type">test_payment_command_contains_invalid_actor_metadata_item_type</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value">test_payment_command_contains_invalid_field_value</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value_type" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value_type">test_payment_command_contains_invalid_field_value_type</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_missing_required_field" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_missing_required_field">test_payment_command_contains_missing_required_field</a></code></li>
 <li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_unknown_field" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_unknown_field">test_payment_command_contains_unknown_field</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_sender_address_can_only_be_written_once" href="#diem.testing.suites.test_payment_command.test_payment_command_sender_address_can_only_be_written_once">test_payment_command_sender_address_can_only_be_written_once</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once" href="#diem.testing.suites.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once">test_payment_command_sender_kyc_data_can_only_be_written_once</a></code></li>
+<li><code><a title="diem.testing.suites.test_payment_command.test_replay_the_same_payment_command" href="#diem.testing.suites.test_payment_command.test_replay_the_same_payment_command">test_replay_the_same_payment_command</a></code></li>
 </ul>
 </li>
 </ul>

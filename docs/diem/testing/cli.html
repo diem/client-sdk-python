@@ -38,7 +38,7 @@ from diem.testing import LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO
-import logging, click, functools, pytest, os, sys, re, json
+import logging, click, functools, pytest, os, sys, json, shlex
 
 log_format: str = &#34;%(name)s [%(asctime)s] %(levelname)s: %(message)s&#34;
 click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
@@ -97,7 +97,7 @@ def start_server(
     client = testnet.create_client()
     print(&#34;Diem chain id: %s&#34; % client.get_metadata().chain_id)
 
-    conf.start(client).join()
+    conf.start(client)[1].join()
 
 
 @click.command()
@@ -168,7 +168,7 @@ def test(
     if stub_bind_host is not None and stub_bind_host != &#34;localhost&#34; and not stub_diem_account_base_url:
         raise click.ClickException(&#34;--stub-diem-account-base-url is required when passing in a custom --stub-bind-host&#34;)
 
-    args = [arg for arg in re.compile(&#34;\\s+&#34;).split(pytest_args) if arg]
+    args = shlex.split(pytest_args)
     args = [&#34;--pyargs&#34;, &#34;diem.testing.suites&#34;] + args
     if verbose:
         args.append(&#34;--log-level=INFO&#34;)

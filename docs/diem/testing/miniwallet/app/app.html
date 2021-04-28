@@ -39,8 +39,8 @@ from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
 from .... import jsonrpc, offchain, utils
-from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject
-import threading, logging, numpy
+from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject, CommandRequestObject
+import threading, logging, numpy, time
 
 
 class Base:
@@ -63,6 +63,8 @@ class Base:
         for child_account in child_accounts:
             self.event_puller.add(child_account.account_address)
         self.event_puller.head()
+        self.cache: Dict[str, CommandResponseObject] = {}
+        self.bg_worker: str = &#34;disabled&#34;
 
     def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -&gt; None:
         try:
@@ -104,9 +106,10 @@ class Base:
                 ret[txn.currency] = ret.get(txn.currency, 0) + txn.balance_amount()
         return ret
 
-    def _gen_subaddress(self, account_id: str) -&gt; Subaddress:
+    def _gen_subaddress(self, account_id: str) -&gt; bytes:
         sub = self.store.next_id().to_bytes(8, byteorder=&#34;big&#34;)
-        return self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        return sub
 
     def _txn_metadata(self, txn: Transaction) -&gt; Tuple[bytes, bytes]:
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
@@ -121,8 +124,7 @@ class Base:
 
 
 class OffChainAPI(Base):
-    def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-        cid = None
+    def offchain_api(self, request_id: str, sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
         try:
             if not request_id:
                 raise offchain.protocol_error(
@@ -132,9 +134,21 @@ class OffChainAPI(Base):
                 raise offchain.protocol_error(
                     offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
                 )
+            request = self.offchain.deserialize_inbound_request(sender_address, request_bytes)
+        except offchain.Error as e:
+            err_msg = &#34;process offchain request id or bytes is invalid, request id: %s, bytes: %s&#34;
+            self.logger.exception(err_msg, request_id, request_bytes)
+            return offchain.reply_request(cid=None, err=e.obj)
 
-            request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-            cid = request.cid
+        cached = self.cache.get(request.cid)
+        if cached:
+            return cached
+        response = self.process_offchain_request(sender_address, request)
+        self.cache[request.cid] = response
+        return response
+
+    def process_offchain_request(self, sender_address: str, request: CommandRequestObject) -&gt; CommandResponseObject:
+        try:
             handler = &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type)
             if not hasattr(self, handler):
                 raise offchain.protocol_error(
@@ -142,29 +156,25 @@ class OffChainAPI(Base):
                     &#34;unknown command_type: %s&#34; % request.command_type,
                     field=&#34;command_type&#34;,
                 )
-            getattr(self, handler)(request_sender_address, request)
-            return offchain.reply_request(cid=cid)
+            getattr(self, handler)(sender_address, request)
+            return offchain.reply_request(cid=request.cid)
         except offchain.Error as e:
-            self.logger.info(request_bytes)
-            self.logger.exception(e)
-            return offchain.reply_request(cid=cid, err=e.obj)
+            err_msg = &#34;process offchain request failed, sender_address: %s, request: %s&#34;
+            self.logger.exception(err_msg, sender_address, request)
+            return offchain.reply_request(cid=request.cid, err=e.obj)
 
     def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
         return offchain.jws.serialize(resp, self.diem_account.sign_by_compliance_key)
 
-    def _handle_offchain_ping_command(
-        self, request_sender_address: str, request: offchain.CommandRequestObject
-    ) -&gt; None:
+    def _handle_offchain_ping_command(self, sender_address: str, request: CommandRequestObject) -&gt; None:
         pass
 
-    def _handle_offchain_payment_command(
-        self, request_sender_address: str, request: offchain.CommandRequestObject
-    ) -&gt; None:
-        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(request_sender_address, request)
+    def _handle_offchain_payment_command(self, sender_address: str, request: CommandRequestObject) -&gt; None:
+        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(sender_address, request)
         try:
             cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():
-                self._update_payment_command(cmd, new_offchain_cmd)
+                self._update_payment_command(cmd, new_offchain_cmd, validate=True)
         except NotFoundError:
             subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.hrp))
             account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
@@ -185,9 +195,10 @@ class OffChainAPI(Base):
     def _update_payment_command(
         self, cmd: PaymentCommand, offchain_cmd: offchain.PaymentCommand, validate: bool = False
     ) -&gt; None:
+        prior = cmd.to_offchain_command()
         self.store.update(
             cmd,
-            before_update=lambda _: offchain_cmd.validate(cmd.to_offchain_command()) if validate else None,
+            before_update=lambda _: offchain_cmd.validate(prior) if validate else None,
             cid=offchain_cmd.id(),
             is_inbound=offchain_cmd.is_inbound(),
             is_abort=offchain_cmd.is_abort(),
@@ -197,19 +208,32 @@ class OffChainAPI(Base):
 
 
 class BackgroundTasks(OffChainAPI):
-    def start_sync(self, delay: float = 0.1) -&gt; None:
-        try:
-            self._process_offchain_commands()
-            self._send_pending_payments()
-            self.event_puller.fetch(self.event_puller.save_payment_txn)
-        except Exception as e:
-            self.logger.exception(e)
-            # Exponential backoff for the delay to slow down the background tasks execution
-            # cycle and reduce the duplicated error logs.
-            delay = delay * 2
+    def start_bg_worker_thread(self, delay: float = 0.1) -&gt; None:
+        self.bg_worker = &#34;running&#34;
 
-        if threading.main_thread().is_alive():
-            threading.Timer(delay, self.start_sync, args=[delay]).start()
+        def worker() -&gt; None:
+            while True:
+                if self.bg_worker == &#34;disable&#34;:
+                    self.bg_worker = &#34;disabled&#34;
+                    self.logger.info(&#34;background tasks worker is disabled&#34;)
+                elif self.bg_worker == &#34;running&#34;:
+                    try:
+                        self.run_bg_tasks()
+                        delay = 0.1
+                    except Exception as e:
+                        self.logger.exception(e)
+                        # Exponential backoff for the delay to slow down the background
+                        # tasks execution cycle and reduce the duplicated error logs.
+                        delay = delay * 2
+                time.sleep(delay)
+
+        t = threading.Thread(target=worker, daemon=True)
+        t.start()
+
+    def run_bg_tasks(self) -&gt; None:
+        self._process_offchain_commands()
+        self._send_pending_payments()
+        self.event_puller.fetch(self.event_puller.save_payment_txn)
 
     def _send_pending_payments(self) -&gt; None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
@@ -258,8 +282,6 @@ class BackgroundTasks(OffChainAPI):
             self._start_external_payment_txn(txn)
 
     def _start_external_payment_txn(self, txn: Transaction) -&gt; None:
-        if not txn.subaddress_hex:
-            self.store.update(txn, subaddress_hex=self._gen_subaddress(txn.account_id).subaddress_hex)
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
@@ -279,17 +301,21 @@ class BackgroundTasks(OffChainAPI):
                         )
                         self.store.update(txn, signed_transaction=signed_txn)
             else:
-                account = self.store.find(Account, id=txn.account_id)
-                command = offchain.PaymentCommand.init(
-                    sender_account_id=self.diem_account.account_identifier(txn.subaddress()),
-                    sender_kyc_data=account.kyc_data_object(),
-                    currency=txn.currency,
-                    amount=txn.amount,
-                    receiver_account_id=str(txn.payee),
-                )
-                self._create_payment_command(txn.account_id, command)
-                self.store.update(txn, reference_id=command.reference_id())
-                self._send_offchain_command(command)
+                self.send_initial_payment_command(txn)
+
+    def send_initial_payment_command(self, txn: Transaction) -&gt; offchain.PaymentCommand:
+        account = self.store.find(Account, id=txn.account_id)
+        command = offchain.PaymentCommand.init(
+            sender_account_id=self.diem_account.account_identifier(txn.subaddress()),
+            sender_kyc_data=account.kyc_data_object(),
+            currency=txn.currency,
+            amount=txn.amount,
+            receiver_account_id=str(txn.payee),
+        )
+        self._create_payment_command(txn.account_id, command)
+        self.store.update(txn, reference_id=command.reference_id())
+        self._send_offchain_command(command)
+        return command
 
     def _process_offchain_commands(self) -&gt; None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
@@ -306,7 +332,7 @@ class BackgroundTasks(OffChainAPI):
                 self.logger.exception(e)
                 self.store.update(cmd, process_error=str(e))
 
-    def _send_offchain_command(self, command: offchain.Command) -&gt; None:
+    def _send_offchain_command(self, command: offchain.Command) -&gt; CommandResponseObject:
         &#34;&#34;&#34;send offchain command with retries
 
         We only do limited in process retries, as we are expecting counterparty service
@@ -317,7 +343,10 @@ class BackgroundTasks(OffChainAPI):
         &#34;&#34;&#34;
 
         retry = jsonrpc.Retry(5, 0.2, Exception)
-        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.sign_by_compliance_key))
+        return retry.execute(lambda: self.send_offchain_command_without_retries(command))
+
+    def send_offchain_command_without_retries(self, command: offchain.Command) -&gt; CommandResponseObject:
+        return self.offchain.send_command(command, self.diem_account.sign_by_compliance_key)
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data
@@ -325,7 +354,10 @@ class BackgroundTasks(OffChainAPI):
             return self._new_reject_kyc_data(cmd, &#34;KYC data is rejected&#34;)
         elif self.kyc_sample.match_any_kyc_data([&#34;soft_match&#34;, &#34;soft_reject&#34;], op_kyc_data):
             return cmd.new_command(status=Status.soft_match)
-        return self._ready_for_settlement(account_id, cmd)
+        elif self.kyc_sample.match_kyc_data(&#34;minimum&#34;, op_kyc_data):
+            return self._ready_for_settlement(account_id, cmd)
+        else:
+            return self._new_reject_kyc_data(cmd, &#34;KYC data is not from samples&#34;)
 
     def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
         account = self.store.find(Account, id=account_id)
@@ -375,15 +407,20 @@ class App(BackgroundTasks):
     def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Dict[str, Any]:
         self.store.find(Account, id=account_id)
         payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+        subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
         txn = self._create_transaction(
-            account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+            account_id,
+            Transaction.Status.pending,
+            data,
+            type=Transaction.Type.sent_payment,
+            payee=payee,
+            subaddress_hex=subaddress_hex,
         )
         return {&#34;id&#34;: txn.id}
 
     def create_account_identifier(self, account_id: str, data: JsonInput) -&gt; Dict[str, str]:
         self.store.find(Account, id=account_id)
-        sub = self._gen_subaddress(account_id)
-        diem_acc_id = self.diem_account.account_identifier(sub.subaddress_hex)
+        diem_acc_id = self.diem_account.account_identifier(self._gen_subaddress(account_id))
         return {&#34;account_identifier&#34;: diem_acc_id}
 
     def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
@@ -400,6 +437,7 @@ class App(BackgroundTasks):
         data: JsonInput,
         type: Transaction.Type,
         payee: Optional[str] = None,
+        subaddress_hex: Optional[str] = None,
     ) -&gt; Transaction:
         return self.store.create(
             Transaction,
@@ -409,6 +447,7 @@ class App(BackgroundTasks):
             payee=payee,
             status=status,
             type=type,
+            subaddress_hex=subaddress_hex,
             before_create=self._validate_account_balance,
         )</code></pre>
 </details>
@@ -455,15 +494,20 @@ class App(BackgroundTasks):
     def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Dict[str, Any]:
         self.store.find(Account, id=account_id)
         payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+        subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
         txn = self._create_transaction(
-            account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+            account_id,
+            Transaction.Status.pending,
+            data,
+            type=Transaction.Type.sent_payment,
+            payee=payee,
+            subaddress_hex=subaddress_hex,
         )
         return {&#34;id&#34;: txn.id}
 
     def create_account_identifier(self, account_id: str, data: JsonInput) -&gt; Dict[str, str]:
         self.store.find(Account, id=account_id)
-        sub = self._gen_subaddress(account_id)
-        diem_acc_id = self.diem_account.account_identifier(sub.subaddress_hex)
+        diem_acc_id = self.diem_account.account_identifier(self._gen_subaddress(account_id))
         return {&#34;account_identifier&#34;: diem_acc_id}
 
     def get_account_balances(self, account_id: str) -&gt; Dict[str, int]:
@@ -480,6 +524,7 @@ class App(BackgroundTasks):
         data: JsonInput,
         type: Transaction.Type,
         payee: Optional[str] = None,
+        subaddress_hex: Optional[str] = None,
     ) -&gt; Transaction:
         return self.store.create(
             Transaction,
@@ -489,6 +534,7 @@ class App(BackgroundTasks):
             payee=payee,
             status=status,
             type=type,
+            subaddress_hex=subaddress_hex,
             before_create=self._validate_account_balance,
         )</code></pre>
 </details>
@@ -540,8 +586,7 @@ class App(BackgroundTasks):
 </summary>
 <pre><code class="python">def create_account_identifier(self, account_id: str, data: JsonInput) -&gt; Dict[str, str]:
     self.store.find(Account, id=account_id)
-    sub = self._gen_subaddress(account_id)
-    diem_acc_id = self.diem_account.account_identifier(sub.subaddress_hex)
+    diem_acc_id = self.diem_account.account_identifier(self._gen_subaddress(account_id))
     return {&#34;account_identifier&#34;: diem_acc_id}</code></pre>
 </details>
 </dd>
@@ -557,8 +602,14 @@ class App(BackgroundTasks):
 <pre><code class="python">def create_account_payment(self, account_id: str, data: JsonInput) -&gt; Dict[str, Any]:
     self.store.find(Account, id=account_id)
     payee = data.get(&#34;payee&#34;, str, self._validate_account_identifier)
+    subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
     txn = self._create_transaction(
-        account_id, Transaction.Status.pending, data, type=Transaction.Type.sent_payment, payee=payee
+        account_id,
+        Transaction.Status.pending,
+        data,
+        type=Transaction.Type.sent_payment,
+        payee=payee,
+        subaddress_hex=subaddress_hex,
     )
     return {&#34;id&#34;: txn.id}</code></pre>
 </details>
@@ -603,19 +654,32 @@ class App(BackgroundTasks):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class BackgroundTasks(OffChainAPI):
-    def start_sync(self, delay: float = 0.1) -&gt; None:
-        try:
-            self._process_offchain_commands()
-            self._send_pending_payments()
-            self.event_puller.fetch(self.event_puller.save_payment_txn)
-        except Exception as e:
-            self.logger.exception(e)
-            # Exponential backoff for the delay to slow down the background tasks execution
-            # cycle and reduce the duplicated error logs.
-            delay = delay * 2
+    def start_bg_worker_thread(self, delay: float = 0.1) -&gt; None:
+        self.bg_worker = &#34;running&#34;
 
-        if threading.main_thread().is_alive():
-            threading.Timer(delay, self.start_sync, args=[delay]).start()
+        def worker() -&gt; None:
+            while True:
+                if self.bg_worker == &#34;disable&#34;:
+                    self.bg_worker = &#34;disabled&#34;
+                    self.logger.info(&#34;background tasks worker is disabled&#34;)
+                elif self.bg_worker == &#34;running&#34;:
+                    try:
+                        self.run_bg_tasks()
+                        delay = 0.1
+                    except Exception as e:
+                        self.logger.exception(e)
+                        # Exponential backoff for the delay to slow down the background
+                        # tasks execution cycle and reduce the duplicated error logs.
+                        delay = delay * 2
+                time.sleep(delay)
+
+        t = threading.Thread(target=worker, daemon=True)
+        t.start()
+
+    def run_bg_tasks(self) -&gt; None:
+        self._process_offchain_commands()
+        self._send_pending_payments()
+        self.event_puller.fetch(self.event_puller.save_payment_txn)
 
     def _send_pending_payments(self) -&gt; None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
@@ -664,8 +728,6 @@ class App(BackgroundTasks):
             self._start_external_payment_txn(txn)
 
     def _start_external_payment_txn(self, txn: Transaction) -&gt; None:
-        if not txn.subaddress_hex:
-            self.store.update(txn, subaddress_hex=self._gen_subaddress(txn.account_id).subaddress_hex)
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
@@ -685,17 +747,21 @@ class App(BackgroundTasks):
                         )
                         self.store.update(txn, signed_transaction=signed_txn)
             else:
-                account = self.store.find(Account, id=txn.account_id)
-                command = offchain.PaymentCommand.init(
-                    sender_account_id=self.diem_account.account_identifier(txn.subaddress()),
-                    sender_kyc_data=account.kyc_data_object(),
-                    currency=txn.currency,
-                    amount=txn.amount,
-                    receiver_account_id=str(txn.payee),
-                )
-                self._create_payment_command(txn.account_id, command)
-                self.store.update(txn, reference_id=command.reference_id())
-                self._send_offchain_command(command)
+                self.send_initial_payment_command(txn)
+
+    def send_initial_payment_command(self, txn: Transaction) -&gt; offchain.PaymentCommand:
+        account = self.store.find(Account, id=txn.account_id)
+        command = offchain.PaymentCommand.init(
+            sender_account_id=self.diem_account.account_identifier(txn.subaddress()),
+            sender_kyc_data=account.kyc_data_object(),
+            currency=txn.currency,
+            amount=txn.amount,
+            receiver_account_id=str(txn.payee),
+        )
+        self._create_payment_command(txn.account_id, command)
+        self.store.update(txn, reference_id=command.reference_id())
+        self._send_offchain_command(command)
+        return command
 
     def _process_offchain_commands(self) -&gt; None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
@@ -712,7 +778,7 @@ class App(BackgroundTasks):
                 self.logger.exception(e)
                 self.store.update(cmd, process_error=str(e))
 
-    def _send_offchain_command(self, command: offchain.Command) -&gt; None:
+    def _send_offchain_command(self, command: offchain.Command) -&gt; CommandResponseObject:
         &#34;&#34;&#34;send offchain command with retries
 
         We only do limited in process retries, as we are expecting counterparty service
@@ -723,7 +789,10 @@ class App(BackgroundTasks):
         &#34;&#34;&#34;
 
         retry = jsonrpc.Retry(5, 0.2, Exception)
-        retry.execute(lambda: self.offchain.send_command(command, self.diem_account.sign_by_compliance_key))
+        return retry.execute(lambda: self.send_offchain_command_without_retries(command))
+
+    def send_offchain_command_without_retries(self, command: offchain.Command) -&gt; CommandResponseObject:
+        return self.offchain.send_command(command, self.diem_account.sign_by_compliance_key)
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data
@@ -731,7 +800,10 @@ class App(BackgroundTasks):
             return self._new_reject_kyc_data(cmd, &#34;KYC data is rejected&#34;)
         elif self.kyc_sample.match_any_kyc_data([&#34;soft_match&#34;, &#34;soft_reject&#34;], op_kyc_data):
             return cmd.new_command(status=Status.soft_match)
-        return self._ready_for_settlement(account_id, cmd)
+        elif self.kyc_sample.match_kyc_data(&#34;minimum&#34;, op_kyc_data):
+            return self._ready_for_settlement(account_id, cmd)
+        else:
+            return self._new_reject_kyc_data(cmd, &#34;KYC data is not from samples&#34;)
 
     def _offchain_action_clear_soft_match(self, account_id: str, cmd: offchain.PaymentCommand) -&gt; offchain.Command:
         account = self.store.find(Account, id=account_id)
@@ -768,8 +840,8 @@ class App(BackgroundTasks):
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="diem.testing.miniwallet.app.app.BackgroundTasks.start_sync"><code class="name flex">
-<span>def <span class="ident">start_sync</span></span>(<span>self, delay: float = 0.1) ‑> NoneType</span>
+<dt id="diem.testing.miniwallet.app.app.BackgroundTasks.run_bg_tasks"><code class="name flex">
+<span>def <span class="ident">run_bg_tasks</span></span>(<span>self) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -777,19 +849,79 @@ class App(BackgroundTasks):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def start_sync(self, delay: float = 0.1) -&gt; None:
-    try:
-        self._process_offchain_commands()
-        self._send_pending_payments()
-        self.event_puller.fetch(self.event_puller.save_payment_txn)
-    except Exception as e:
-        self.logger.exception(e)
-        # Exponential backoff for the delay to slow down the background tasks execution
-        # cycle and reduce the duplicated error logs.
-        delay = delay * 2
+<pre><code class="python">def run_bg_tasks(self) -&gt; None:
+    self._process_offchain_commands()
+    self._send_pending_payments()
+    self.event_puller.fetch(self.event_puller.save_payment_txn)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.BackgroundTasks.send_initial_payment_command"><code class="name flex">
+<span>def <span class="ident">send_initial_payment_command</span></span>(<span>self, txn: <a title="diem.testing.miniwallet.app.models.Transaction" href="models.html#diem.testing.miniwallet.app.models.Transaction">Transaction</a>) ‑> <a title="diem.offchain.payment_command.PaymentCommand" href="../../../offchain/payment_command.html#diem.offchain.payment_command.PaymentCommand">PaymentCommand</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_initial_payment_command(self, txn: Transaction) -&gt; offchain.PaymentCommand:
+    account = self.store.find(Account, id=txn.account_id)
+    command = offchain.PaymentCommand.init(
+        sender_account_id=self.diem_account.account_identifier(txn.subaddress()),
+        sender_kyc_data=account.kyc_data_object(),
+        currency=txn.currency,
+        amount=txn.amount,
+        receiver_account_id=str(txn.payee),
+    )
+    self._create_payment_command(txn.account_id, command)
+    self.store.update(txn, reference_id=command.reference_id())
+    self._send_offchain_command(command)
+    return command</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.BackgroundTasks.send_offchain_command_without_retries"><code class="name flex">
+<span>def <span class="ident">send_offchain_command_without_retries</span></span>(<span>self, command: <a title="diem.offchain.command.Command" href="../../../offchain/command.html#diem.offchain.command.Command">Command</a>) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def send_offchain_command_without_retries(self, command: offchain.Command) -&gt; CommandResponseObject:
+    return self.offchain.send_command(command, self.diem_account.sign_by_compliance_key)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.BackgroundTasks.start_bg_worker_thread"><code class="name flex">
+<span>def <span class="ident">start_bg_worker_thread</span></span>(<span>self, delay: float = 0.1) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_bg_worker_thread(self, delay: float = 0.1) -&gt; None:
+    self.bg_worker = &#34;running&#34;
 
-    if threading.main_thread().is_alive():
-        threading.Timer(delay, self.start_sync, args=[delay]).start()</code></pre>
+    def worker() -&gt; None:
+        while True:
+            if self.bg_worker == &#34;disable&#34;:
+                self.bg_worker = &#34;disabled&#34;
+                self.logger.info(&#34;background tasks worker is disabled&#34;)
+            elif self.bg_worker == &#34;running&#34;:
+                try:
+                    self.run_bg_tasks()
+                    delay = 0.1
+                except Exception as e:
+                    self.logger.exception(e)
+                    # Exponential backoff for the delay to slow down the background
+                    # tasks execution cycle and reduce the duplicated error logs.
+                    delay = delay * 2
+            time.sleep(delay)
+
+    t = threading.Thread(target=worker, daemon=True)
+    t.start()</code></pre>
 </details>
 </dd>
 </dl>
@@ -824,6 +956,8 @@ class App(BackgroundTasks):
         for child_account in child_accounts:
             self.event_puller.add(child_account.account_address)
         self.event_puller.head()
+        self.cache: Dict[str, CommandResponseObject] = {}
+        self.bg_worker: str = &#34;disabled&#34;
 
     def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -&gt; None:
         try:
@@ -865,9 +999,10 @@ class App(BackgroundTasks):
                 ret[txn.currency] = ret.get(txn.currency, 0) + txn.balance_amount()
         return ret
 
-    def _gen_subaddress(self, account_id: str) -&gt; Subaddress:
+    def _gen_subaddress(self, account_id: str) -&gt; bytes:
         sub = self.store.next_id().to_bytes(8, byteorder=&#34;big&#34;)
-        return self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        self.store.create(Subaddress, account_id=account_id, subaddress_hex=sub.hex())
+        return sub
 
     def _txn_metadata(self, txn: Transaction) -&gt; Tuple[bytes, bytes]:
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
@@ -896,8 +1031,7 @@ class App(BackgroundTasks):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class OffChainAPI(Base):
-    def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-        cid = None
+    def offchain_api(self, request_id: str, sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
         try:
             if not request_id:
                 raise offchain.protocol_error(
@@ -907,9 +1041,21 @@ class App(BackgroundTasks):
                 raise offchain.protocol_error(
                     offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
                 )
+            request = self.offchain.deserialize_inbound_request(sender_address, request_bytes)
+        except offchain.Error as e:
+            err_msg = &#34;process offchain request id or bytes is invalid, request id: %s, bytes: %s&#34;
+            self.logger.exception(err_msg, request_id, request_bytes)
+            return offchain.reply_request(cid=None, err=e.obj)
 
-            request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-            cid = request.cid
+        cached = self.cache.get(request.cid)
+        if cached:
+            return cached
+        response = self.process_offchain_request(sender_address, request)
+        self.cache[request.cid] = response
+        return response
+
+    def process_offchain_request(self, sender_address: str, request: CommandRequestObject) -&gt; CommandResponseObject:
+        try:
             handler = &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type)
             if not hasattr(self, handler):
                 raise offchain.protocol_error(
@@ -917,29 +1063,25 @@ class App(BackgroundTasks):
                     &#34;unknown command_type: %s&#34; % request.command_type,
                     field=&#34;command_type&#34;,
                 )
-            getattr(self, handler)(request_sender_address, request)
-            return offchain.reply_request(cid=cid)
+            getattr(self, handler)(sender_address, request)
+            return offchain.reply_request(cid=request.cid)
         except offchain.Error as e:
-            self.logger.info(request_bytes)
-            self.logger.exception(e)
-            return offchain.reply_request(cid=cid, err=e.obj)
+            err_msg = &#34;process offchain request failed, sender_address: %s, request: %s&#34;
+            self.logger.exception(err_msg, sender_address, request)
+            return offchain.reply_request(cid=request.cid, err=e.obj)
 
     def jws_serialize(self, resp: CommandResponseObject) -&gt; bytes:
         return offchain.jws.serialize(resp, self.diem_account.sign_by_compliance_key)
 
-    def _handle_offchain_ping_command(
-        self, request_sender_address: str, request: offchain.CommandRequestObject
-    ) -&gt; None:
+    def _handle_offchain_ping_command(self, sender_address: str, request: CommandRequestObject) -&gt; None:
         pass
 
-    def _handle_offchain_payment_command(
-        self, request_sender_address: str, request: offchain.CommandRequestObject
-    ) -&gt; None:
-        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(request_sender_address, request)
+    def _handle_offchain_payment_command(self, sender_address: str, request: CommandRequestObject) -&gt; None:
+        new_offchain_cmd = self.offchain.process_inbound_payment_command_request(sender_address, request)
         try:
             cmd = self.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():
-                self._update_payment_command(cmd, new_offchain_cmd)
+                self._update_payment_command(cmd, new_offchain_cmd, validate=True)
         except NotFoundError:
             subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.diem_account.hrp))
             account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
@@ -960,9 +1102,10 @@ class App(BackgroundTasks):
     def _update_payment_command(
         self, cmd: PaymentCommand, offchain_cmd: offchain.PaymentCommand, validate: bool = False
     ) -&gt; None:
+        prior = cmd.to_offchain_command()
         self.store.update(
             cmd,
-            before_update=lambda _: offchain_cmd.validate(cmd.to_offchain_command()) if validate else None,
+            before_update=lambda _: offchain_cmd.validate(prior) if validate else None,
             cid=offchain_cmd.id(),
             is_inbound=offchain_cmd.is_inbound(),
             is_abort=offchain_cmd.is_abort(),
@@ -994,7 +1137,7 @@ class App(BackgroundTasks):
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.app.OffChainAPI.offchain_api"><code class="name flex">
-<span>def <span class="ident">offchain_api</span></span>(<span>self, request_id: str, request_sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+<span>def <span class="ident">offchain_api</span></span>(<span>self, request_id: str, sender_address: str, request_bytes: bytes) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1002,8 +1145,7 @@ class App(BackgroundTasks):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def offchain_api(self, request_id: str, request_sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
-    cid = None
+<pre><code class="python">def offchain_api(self, request_id: str, sender_address: str, request_bytes: bytes) -&gt; CommandResponseObject:
     try:
         if not request_id:
             raise offchain.protocol_error(
@@ -1013,9 +1155,31 @@ class App(BackgroundTasks):
             raise offchain.protocol_error(
                 offchain.ErrorCode.invalid_http_header, &#34;invalid %s&#34; % offchain.X_REQUEST_ID
             )
+        request = self.offchain.deserialize_inbound_request(sender_address, request_bytes)
+    except offchain.Error as e:
+        err_msg = &#34;process offchain request id or bytes is invalid, request id: %s, bytes: %s&#34;
+        self.logger.exception(err_msg, request_id, request_bytes)
+        return offchain.reply_request(cid=None, err=e.obj)
 
-        request = self.offchain.deserialize_inbound_request(request_sender_address, request_bytes)
-        cid = request.cid
+    cached = self.cache.get(request.cid)
+    if cached:
+        return cached
+    response = self.process_offchain_request(sender_address, request)
+    self.cache[request.cid] = response
+    return response</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.miniwallet.app.app.OffChainAPI.process_offchain_request"><code class="name flex">
+<span>def <span class="ident">process_offchain_request</span></span>(<span>self, sender_address: str, request: <a title="diem.offchain.types.command_types.CommandRequestObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandRequestObject">CommandRequestObject</a>) ‑> <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def process_offchain_request(self, sender_address: str, request: CommandRequestObject) -&gt; CommandResponseObject:
+    try:
         handler = &#34;_handle_offchain_%s&#34; % utils.to_snake(request.command_type)
         if not hasattr(self, handler):
             raise offchain.protocol_error(
@@ -1023,12 +1187,12 @@ class App(BackgroundTasks):
                 &#34;unknown command_type: %s&#34; % request.command_type,
                 field=&#34;command_type&#34;,
             )
-        getattr(self, handler)(request_sender_address, request)
-        return offchain.reply_request(cid=cid)
+        getattr(self, handler)(sender_address, request)
+        return offchain.reply_request(cid=request.cid)
     except offchain.Error as e:
-        self.logger.info(request_bytes)
-        self.logger.exception(e)
-        return offchain.reply_request(cid=cid, err=e.obj)</code></pre>
+        err_msg = &#34;process offchain request failed, sender_address: %s, request: %s&#34;
+        self.logger.exception(err_msg, sender_address, request)
+        return offchain.reply_request(cid=request.cid, err=e.obj)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1062,7 +1226,10 @@ class App(BackgroundTasks):
 <li>
 <h4><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks" href="#diem.testing.miniwallet.app.app.BackgroundTasks">BackgroundTasks</a></code></h4>
 <ul class="">
-<li><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks.start_sync" href="#diem.testing.miniwallet.app.app.BackgroundTasks.start_sync">start_sync</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks.run_bg_tasks" href="#diem.testing.miniwallet.app.app.BackgroundTasks.run_bg_tasks">run_bg_tasks</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks.send_initial_payment_command" href="#diem.testing.miniwallet.app.app.BackgroundTasks.send_initial_payment_command">send_initial_payment_command</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks.send_offchain_command_without_retries" href="#diem.testing.miniwallet.app.app.BackgroundTasks.send_offchain_command_without_retries">send_offchain_command_without_retries</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.BackgroundTasks.start_bg_worker_thread" href="#diem.testing.miniwallet.app.app.BackgroundTasks.start_bg_worker_thread">start_bg_worker_thread</a></code></li>
 </ul>
 </li>
 <li>
@@ -1073,6 +1240,7 @@ class App(BackgroundTasks):
 <ul class="">
 <li><code><a title="diem.testing.miniwallet.app.app.OffChainAPI.jws_serialize" href="#diem.testing.miniwallet.app.app.OffChainAPI.jws_serialize">jws_serialize</a></code></li>
 <li><code><a title="diem.testing.miniwallet.app.app.OffChainAPI.offchain_api" href="#diem.testing.miniwallet.app.app.OffChainAPI.offchain_api">offchain_api</a></code></li>
+<li><code><a title="diem.testing.miniwallet.app.app.OffChainAPI.process_offchain_request" href="#diem.testing.miniwallet.app.app.OffChainAPI.process_offchain_request">process_offchain_request</a></code></li>
 </ul>
 </li>
 </ul>

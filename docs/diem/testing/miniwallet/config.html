@@ -30,7 +30,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Tuple
 from .client import RestClient
 from .app import App, falcon_api
 from .. import LocalAccount
@@ -97,10 +97,8 @@ class AppConfig:
                 self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
                 self.child_account_configs.append(child.to_dict())
 
-    def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-        api: falcon.API = falcon_api(
-            App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
-        )
+    def serve(self, client: jsonrpc.Client, app: App) -&gt; threading.Thread:
+        api: falcon.API = falcon_api(app, self.disable_events_api)
 
         def serve() -&gt; None:
             self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -116,11 +114,12 @@ class AppConfig:
         t.start()
         return t
 
-    def start(self, client: jsonrpc.Client) -&gt; threading.Thread:
+    def start(self, client: jsonrpc.Client) -&gt; Tuple[App, threading.Thread]:
         self.setup_account(client)
-        t = self.serve(client)
+        app = App(self.account, self.child_accounts, client, self.name, self.logger)
+        t = self.serve(client, app)
         utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
-        return t
+        return (app, t)
 
     def __str__(self) -&gt; str:
         return json.dumps(asdict(self), indent=2)</code></pre>
@@ -193,10 +192,8 @@ class AppConfig:
                 self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
                 self.child_account_configs.append(child.to_dict())
 
-    def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-        api: falcon.API = falcon_api(
-            App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
-        )
+    def serve(self, client: jsonrpc.Client, app: App) -&gt; threading.Thread:
+        api: falcon.API = falcon_api(app, self.disable_events_api)
 
         def serve() -&gt; None:
             self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -212,11 +209,12 @@ class AppConfig:
         t.start()
         return t
 
-    def start(self, client: jsonrpc.Client) -&gt; threading.Thread:
+    def start(self, client: jsonrpc.Client) -&gt; Tuple[App, threading.Thread]:
         self.setup_account(client)
-        t = self.serve(client)
+        app = App(self.account, self.child_accounts, client, self.name, self.logger)
+        t = self.serve(client, app)
         utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
-        return t
+        return (app, t)
 
     def __str__(self) -&gt; str:
         return json.dumps(asdict(self), indent=2)</code></pre>
@@ -324,7 +322,7 @@ def server_url(self) -&gt; str:
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.serve"><code class="name flex">
-<span>def <span class="ident">serve</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> threading.Thread</span>
+<span>def <span class="ident">serve</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, app: <a title="diem.testing.miniwallet.app.app.App" href="app/app.html#diem.testing.miniwallet.app.app.App">App</a>) ‑> threading.Thread</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -332,10 +330,8 @@ def server_url(self) -&gt; str:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def serve(self, client: jsonrpc.Client) -&gt; threading.Thread:
-    api: falcon.API = falcon_api(
-        App(self.account, self.child_accounts, client, self.name, self.logger), self.disable_events_api
-    )
+<pre><code class="python">def serve(self, client: jsonrpc.Client, app: App) -&gt; threading.Thread:
+    api: falcon.API = falcon_api(app, self.disable_events_api)
 
     def serve() -&gt; None:
         self.logger.info(&#34;serving on %s:%s at %s&#34;, self.server_conf.host, self.server_conf.port, self.server_url)
@@ -380,7 +376,7 @@ def server_url(self) -&gt; str:
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.start"><code class="name flex">
-<span>def <span class="ident">start</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> threading.Thread</span>
+<span>def <span class="ident">start</span></span>(<span>self, client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>) ‑> Tuple[<a title="diem.testing.miniwallet.app.app.App" href="app/app.html#diem.testing.miniwallet.app.app.App">App</a>, threading.Thread]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -388,11 +384,12 @@ def server_url(self) -&gt; str:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def start(self, client: jsonrpc.Client) -&gt; threading.Thread:
+<pre><code class="python">def start(self, client: jsonrpc.Client) -&gt; Tuple[App, threading.Thread]:
     self.setup_account(client)
-    t = self.serve(client)
+    app = App(self.account, self.child_accounts, client, self.name, self.logger)
+    t = self.serve(client, app)
     utils.wait_for_port(self.server_conf.port, host=self.server_conf.host)
-    return t</code></pre>
+    return (app, t)</code></pre>
 </details>
 </dd>
 </dl>

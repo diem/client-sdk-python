@@ -99,13 +99,15 @@ def pending_income_account(stub_client: RestClient) -> AccountResource:
 
 
 @contextmanager
-def disable_stub_bg_tasks(app: App) -> Generator[None, None, None]:
-    app.disable_background_tasks = True
+def disable_background_tasks(app: App) -> Generator[None, None, None]:
+    app.bg_worker = "disable"
+    # wait for status changed from disable to disabled
+    while app.bg_worker == "disable":
+        time.sleep(0.01)
     try:
         yield
     finally:
-        app.disable_background_tasks = False
-        app.start_sync()
+        app.bg_worker = "running"
 
 
 def send_request_json(

@@ -2,23 +2,29 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from diem import jsonrpc
-from diem.testing.miniwallet import RestClient, AppConfig, App, AccountResource, Transaction, PaymentCommand
+from diem.testing.miniwallet import RestClient, AppConfig, App, AccountResource, Transaction
 from typing import Union, List, Generator
 from .conftest import (
     set_field,
     assert_response_error,
     payment_command_request_sample,
     send_request_json,
-    disable_stub_bg_tasks,
+    disable_background_tasks,
 )
 import json, pytest
 
 
 @pytest.fixture
 def sender_account(
-    stub_client: RestClient, currency: str, pending_income_account: AccountResource, travel_rule_threshold: int
+    stub_client: RestClient,
+    currency: str,
+    pending_income_account: AccountResource,
+    travel_rule_threshold: int,
+    target_client: RestClient,
 ) -> Generator[AccountResource, None, None]:
-    account = stub_client.create_account(balances={currency: travel_rule_threshold})
+    account = stub_client.create_account(
+        balances={currency: travel_rule_threshold}, kyc_data=target_client.new_kyc_data(sample="minimum")
+    )
     yield account
     account.log_events()
     # MiniWallet stub saves the payment without account information (subaddress / reference id)
@@ -29,8 +35,8 @@ def sender_account(
 
 
 @pytest.fixture
-def receiver_account(target_client: RestClient) -> Generator[AccountResource, None, None]:
-    account = target_client.create_account()
+def receiver_account(target_client: RestClient, stub_client: RestClient) -> Generator[AccountResource, None, None]:
+    account = target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum"))
     yield account
     account.log_events()
 
@@ -291,26 +297,21 @@ def test_replay_the_same_payment_command(
     1. Generate a valid account identifier from receiver account as payee.
     2. Disable stub wallet application background tasks.
     3. Send a payment requires off-chain PaymentCommand to the receiver account identifier.
-    4. Manual trigger stub wallet application background tasks once.
-    5. Find send payment Transaction and PaymentCommand instances from the stub wallet app.
-    6. Re-send the offchain PaymentCommand.
-    7. Expect no error raised.
-    8. Enable stub wallet application background tasks.
+    4. Send initial payment command to receiver wallet offchain API endpoint.
+    5. Re-send the offchain PaymentCommand.
+    6. Expect no error raised.
+    7. Enable stub wallet application background tasks.
     """
 
     payee = receiver_account.generate_account_identifier()
 
-    with disable_stub_bg_tasks(stub_wallet_app):
+    with disable_background_tasks(stub_wallet_app):
         payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-        stub_wallet_app.run_bg_tasks()
-
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-        assert txn.reference_id
-
-        cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=txn.reference_id)
-        offchain_cmd = cmd.to_offchain_command()
-        stub_wallet_app._send_offchain_command(offchain_cmd)
-        stub_wallet_app._send_offchain_command(offchain_cmd)
+        # send initial payment command
+        cmd = stub_wallet_app.send_initial_payment_command(txn)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
 
 
 def assert_payment_command_field_error(

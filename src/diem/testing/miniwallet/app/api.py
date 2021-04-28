@@ -101,5 +101,5 @@ def falcon_api(app: App, disable_events_api: bool = False) -> falcon.API:
         api.add_route("/accounts/{account_id}/%s" % res, endpoints, suffix=res)
     api.add_route("/kyc_sample", endpoints, suffix="kyc_sample")
     api.add_route("/v2/command", endpoints, suffix="offchain")
-    app.start_sync()
+    app.start_bg_worker_thread()
     return api

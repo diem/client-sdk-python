@@ -49,12 +49,12 @@ class RestClient:
         return AccountResource(client=self, id=account["id"], kyc_data=kyc_data)
 
     def new_kyc_data(self, name: Optional[str] = None, sample: str = "minimum") -> offchain.KycDataObject:
-        obj = getattr(self.kyc_sample(), sample)
+        obj = getattr(self.get_kyc_sample(), sample)
         if not name:
             name = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
         return replace(obj, legal_entity_name=name)
 
-    def kyc_sample(self) -> KycSample:
+    def get_kyc_sample(self) -> KycSample:
         return offchain.from_dict(self.send("GET", "/kyc_sample").json(), KycSample)
 
     def create(self, path: str, **kwargs: Any) -> Dict[str, Any]:

@@ -430,7 +430,7 @@ def assert_payment_command_field_error(
     sender_address = stub_client.create_account().generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.new_kyc_data(sample="minimum"),
+        sender_kyc_data=target_client.get_kyc_sample().minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,

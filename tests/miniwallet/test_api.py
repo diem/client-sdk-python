@@ -8,7 +8,7 @@ import pytest, requests, json, time
 
 
 def test_create_account_with_balances_and_kyc_data(target_client: RestClient, currency: str) -> None:
-    kyc_data = target_client.new_kyc_data(sample="minimum")
+    kyc_data = target_client.get_kyc_sample().minimum
     balances = {currency: 123}
     account = target_client.create_account(balances, kyc_data=kyc_data)
     assert account.kyc_data == kyc_data
@@ -87,7 +87,7 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
     amount = travel_rule_threshold
     receiver = target_client.create_account()
     payee = receiver.generate_account_identifier()
-    sender = stub_client.create_account({currency: amount}, kyc_data=target_client.new_kyc_data(sample="reject"))
+    sender = stub_client.create_account({currency: amount}, kyc_data=target_client.get_kyc_sample().reject)
     # payment should be rejected during offchain kyc data exchange
     payment = sender.send_payment(currency, amount, payee=payee)
 

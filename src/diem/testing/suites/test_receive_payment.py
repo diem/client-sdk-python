@@ -449,9 +449,9 @@ def test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_a
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="minimum"),
+            kyc_data=target_client.get_kyc_sample().minimum,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum),
         payment_command_states=["S_INIT", "R_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -478,9 +478,9 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="reject"),
+            kyc_data=target_client.get_kyc_sample().reject,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum),
         payment_command_states=["S_INIT", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -506,9 +506,9 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_reject
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="minimum"),
+            kyc_data=target_client.get_kyc_sample().minimum,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="reject")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().reject),
         payment_command_states=["S_INIT", "R_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -534,9 +534,9 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+            kyc_data=target_client.get_kyc_sample().soft_match,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -562,9 +562,9 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_m
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="minimum"),
+            kyc_data=target_client.get_kyc_sample().minimum,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_match")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().soft_match),
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -590,9 +590,9 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="soft_reject"),
+            kyc_data=target_client.get_kyc_sample().soft_reject,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -618,9 +618,9 @@ def test_receive_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_m
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="minimum"),
+            kyc_data=target_client.get_kyc_sample().minimum,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_reject")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().soft_reject),
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -647,10 +647,10 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+            kyc_data=target_client.get_kyc_sample().soft_match,
             reject_additional_kyc_data_request=True,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="minimum")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum),
         payment_command_states=["S_INIT", "R_SOFT", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -676,9 +676,9 @@ def test_receive_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_dat
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+            kyc_data=target_client.get_kyc_sample().soft_match,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_match")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().soft_match),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -704,9 +704,9 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+            kyc_data=target_client.get_kyc_sample().soft_match,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="reject")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().reject),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
@@ -732,9 +732,9 @@ def test_receive_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_mat
     receive_payment_meets_travel_rule_threshold(
         sender=stub_client.create_account(
             balances={currency: travel_rule_threshold},
-            kyc_data=target_client.new_kyc_data(sample="soft_match"),
+            kyc_data=target_client.get_kyc_sample().soft_match,
         ),
-        receiver=target_client.create_account(kyc_data=stub_client.new_kyc_data(sample="soft_reject")),
+        receiver=target_client.create_account(kyc_data=stub_client.get_kyc_sample().soft_reject),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,

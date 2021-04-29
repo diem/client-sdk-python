@@ -24,10 +24,9 @@ class ReferenceIDCommand:
         sender: str,
         sender_address: str,
         receiver: str,
-        reference_id: str,
+        reference_id: str = dataclasses.field(default_factory=lambda: str(uuid.uuid4())),
     ) -> "ReferenceIDCommand":
         """init functon initializes a new `ReferenceIDCommand` for starting the DiemID to address resolution"""
-
         return ReferenceIDCommand(
             reference_id_command_object=ReferenceIDCommandObject(
                 sender=sender, sender_address=sender_address, receiver=receiver, reference_id=reference_id

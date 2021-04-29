@@ -153,6 +153,11 @@ class OffChainAPI(Base):
             account_id = self.store.find(Subaddress, subaddress_hex=subaddress).account_id
             self._create_payment_command(account_id, new_offchain_cmd, validate=True)
 
+    def _handle_offchain_reference_i_d_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -> None:
+        result = self.offchain.process_inbound_reference_id_command_request(request_sender_address, request)
+
     def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -> None:
         self.store.create(
             PaymentCommand,

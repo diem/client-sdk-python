@@ -10,6 +10,7 @@ from json.decoder import JSONDecodeError
 
 from .command import Command
 from .payment_command import PaymentCommand
+from .reference_id_command import ReferenceIDCommand
 
 from .types import (
     CommandType,
@@ -23,6 +24,8 @@ from .types import (
     ErrorCode,
     FieldError,
     from_dict,
+    to_dict,
+    ReferenceIDCommandResultObject,
 )
 from .error import command_error, protocol_error
 
@@ -122,6 +125,25 @@ class Client:
         jws_msg = jws.serialize(request, sign)
         return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
 
+    def ref_id_exchange_request(
+        self,
+        sender: str,
+        sender_address: str,
+        receiver: str,
+        counterparty_account_identifier: str,
+        sign: typing.Callable[[bytes], bytes],
+        reference_id: typing.Optional[str] = None,
+        cid: typing.Optional[str] = None,
+    ):
+        reference_id_command = ReferenceIDCommand.init(sender, sender_address, receiver, reference_id)
+        request = CommandRequestObject(
+            cid=cid or str(uuid.uuid4()),
+            command_type=CommandType.ReferenceIDCommand,
+            command=to_dict(reference_id_command),
+        )
+        jws_msg = jws.serialize(request, sign)
+        return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
+
     def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
         return self.send_request(
             request_sender_address=command.my_address(),
@@ -197,7 +219,6 @@ class Client:
         - When receiver actor statis is `ready_for_settlement`, the `recipient_signature` is not set or is invalid (verifying transaction metadata failed).
 
         """
-
         if request.command_type != CommandType.PaymentCommand:
             raise protocol_error(
                 ErrorCode.unknown_command_type,
@@ -214,6 +235,27 @@ class Client:
             public_key = self.get_inbound_request_sender_public_key(request_sender_address)
             self.validate_recipient_signature(cmd, public_key)
         return cmd
+
+    def process_inbound_reference_id_command_request(
+        self, request: CommandRequestObject
+    ) -> CommandResponseObject:
+        if request.command_type != CommandType.ReferenceIDCommand:
+            ## should we raise another command since technically it could be valid command type but not the right use case?
+            raise protocol_error(
+                ErrorCode.unknown_command_type,
+                f"unknown command_type: {request.command_type}",
+                field="command_type",
+            )
+
+        ref_id_command_result = ReferenceIDCommandResultObject(
+            receiver_address="dm1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
+        )
+        return CommandResponseObject(
+            status=CommandResponseStatus.success,
+            cid="3185027f-0574-6f55-2668-3a38fdb5de98",
+            result=to_dict(ref_id_command_result),
+        )
+
 
     def get_inbound_request_sender_public_key(self, request_sender_address: str) -> Ed25519PublicKey:
         """find the public key of the request sender address, raises protocol error if not found or public key is invalid"""

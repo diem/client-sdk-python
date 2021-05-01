@@ -8,7 +8,7 @@ from diem.testing.miniwallet import ServerConfig
 from diem.testing import LocalAccount
 from diem import identifier, testnet, utils
 from typing import List
-import json, threading, pytest
+import json, threading, pytest, pkg_resources
 
 
 @pytest.fixture(autouse=True)
@@ -19,6 +19,22 @@ def disable_self_check(monkeypatch) -> None:
 @pytest.fixture()
 def runner() -> CliRunner:
     return CliRunner()
+
+
+def test_version(runner: CliRunner) -> None:
+    version = pkg_resources.require("diem")[0].version
+
+    for version_opt in ["-v", "--version"]:
+        result = runner.invoke(cli.main, [version_opt])
+        assert result.exit_code == 0
+        assert ("version %s" % version) in result.output
+
+
+def test_help_shortcut(runner: CliRunner) -> None:
+    for fn in [cli.main, cli.start_server, cli.test, cli.gen_diem_account_config]:
+        result = runner.invoke(fn, ["-h"])
+        assert result.exit_code == 0
+        assert ("-h, --help") in result.output
 
 
 def test_gen_diem_account_config(runner: CliRunner) -> None:

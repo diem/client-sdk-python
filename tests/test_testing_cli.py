@@ -35,9 +35,29 @@ def test_gen_diem_account_config(runner: CliRunner) -> None:
     assert default == account
 
 
-def test_start_server_and_run_one_test(runner: CliRunner) -> None:
+def test_start_server_and_run_test_with_matching_keywords(runner: CliRunner) -> None:
     conf = start_target_server(runner)
-    result = start_test(runner, conf)
+    result = start_test(
+        runner,
+        conf,
+        [
+            "-k",
+            "test_invalid_jws_message_signature or test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+
+def test_run_test_with_pytest_args(runner: CliRunner) -> None:
+    conf = start_target_server(runner)
+    result = start_test(
+        runner,
+        conf,
+        [
+            "--pytest-args",
+            "-k 'test_invalid_jws_message_signature or test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses'",
+        ],
+    )
     assert result.exit_code == 0, result.output
 
 
@@ -49,7 +69,16 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
         LocalAccount(hrp=identifier.DM).write_to_file(stub_config_file)
 
         conf = start_target_server(runner, ["-i", app_config_file])
-        result = start_test(runner, conf, ["-i", stub_config_file])
+        result = start_test(
+            runner,
+            conf,
+            [
+                "-i",
+                stub_config_file,
+                "-k",
+                "test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses",
+            ],
+        )
 
         assert result.exit_code == 0, result.output
 
@@ -65,8 +94,6 @@ def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -
             testnet.JSON_RPC_URL,
             "--faucet",
             testnet.FAUCET_URL,
-            "--pytest-args",
-            "-k 'test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses or test_invalid_jws_message_signature'",
             "--stub-bind-host",
             "0.0.0.0",
             "--stub-bind-port",

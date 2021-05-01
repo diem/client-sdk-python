@@ -102,6 +102,12 @@ def start_server(
     help="The address that will be used for offchain callbacks. Defaults to http://localhost:{random_port}",
 )
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
+@click.option(
+    "--match-keywords",
+    "-k",
+    default=None,
+    help="Only run tests which match the given substring expression. Same with pytest `-k` option. Example: -k 'test_method or test_other' matches all test functions and classes whose name contains 'test_method' or 'test_other', while -k 'not test_method' matches those that don't contain 'test_method' in their names",
+)
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option(
     "--pytest-args",
@@ -127,6 +133,7 @@ def test(
     stub_bind_port: Optional[int],
     stub_diem_account_base_url: Optional[str],
     jsonrpc: str,
+    match_keywords: str,
     faucet: str,
     pytest_args: str,
     logfile: Optional[str],
@@ -141,6 +148,9 @@ def test(
 
     args = shlex.split(pytest_args)
     args = ["--pyargs", "diem.testing.suites"] + args
+    if match_keywords:
+        args.append("-k")
+        args.append(match_keywords)
     if verbose:
         args.append("--log-level=INFO")
         args.append("-s")

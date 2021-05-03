@@ -99,14 +99,21 @@ class LocalAccount:
         signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
         return utils.create_signed_transaction(txn, self.public_key_bytes, signature)
 
-    def create_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> diem_types.SignedTransaction:
+    def create_txn(
+        self,
+        client: jsonrpc.Client,
+        script: Optional[diem_types.Script] = None,
+        payload: Optional[diem_types.TransactionPayload] = None,
+    ) -> diem_types.SignedTransaction:
         sequence_number = client.get_account_sequence(self.account_address)
         chain_id = client.get_last_known_state().chain_id
+        if script:
+            payload = diem_types.TransactionPayload__Script(value=script)
         return self.sign(
             diem_types.RawTransaction(  # pyre-ignore
                 sender=self.account_address,
                 sequence_number=uint64(sequence_number),
-                payload=diem_types.TransactionPayload__Script(value=script),
+                payload=payload,
                 max_gas_amount=uint64(self.txn_max_gas_amount),
                 gas_unit_price=uint64(self.txn_gas_unit_price),
                 gas_currency_code=self.txn_gas_currency_code,

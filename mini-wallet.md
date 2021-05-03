@@ -68,14 +68,12 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	> dmw test
 	Diem JSON-RPC URL: http://testnet.diem.com/v1
 	Diem Testnet Faucet URL: http://testnet.diem.com/mint
-	======================================== test session starts 						===============================================
+	======================================== test session starts===============================================
 	…...
 	collected 61 items
-	
-	src/diem/testing/suites/test_miniwallet_api.py 										......................ss.                              [ 40%]
+	src/diem/testing/suites/test_miniwallet_api.py ......................ss.                              [ 40%]
 	src/diem/testing/suites/test_payment.py ....................................                          [100%]
-	
-	============================== 59 passed, 2 skipped, 198 deselected in 	18.26s ===============================
+	============================== 59 passed, 2 skipped, 198 deselected in 	18.26===============================
 	```
 
 
@@ -122,20 +120,17 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	```
 
 
-
 ### How it works
 
 The `diem.testing.suites` package contains the Diem MiniWallet Test Suite and includes the pytest file `conftest.py`.
 
-Launch a pytest runner to run tests using:
+Use `dmv test` to launch a pytest runner to run tests.
 
-`dmv test`
-
-The `conftest.py` starts a stub MiniWallet as a counterparty service for testing payment with the target server specified by the --target option here.
+The `conftest.py` starts a stub MiniWallet as a counterparty service for testing payment with the target server specified by the `--target` option here.
 
 
 
-### Work with your local test network
+### Work with a local testnet
 
 The Diem MiniWallet server connects to the Diem testnet by default. However, you can use the MiniWallet to test your wallet application in your own local test network as well.
 

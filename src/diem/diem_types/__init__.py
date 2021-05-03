@@ -425,6 +425,22 @@ class Module:
 
 
 @dataclass(frozen=True)
+class ModuleId:
+    address: "AccountAddress"
+    name: "Identifier"
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, ModuleId)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "ModuleId":
+        v, buffer = bcs.deserialize(input, ModuleId)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
 class MultiEd25519PublicKey:
     value: bytes
 
@@ -575,6 +591,24 @@ class Script:
     @staticmethod
     def bcs_deserialize(input: bytes) -> "Script":
         v, buffer = bcs.deserialize(input, Script)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
+class ScriptFunction:
+    module: "ModuleId"
+    function: "Identifier"
+    ty_args: typing.Sequence["TypeTag"]
+    args: typing.Sequence[bytes]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, ScriptFunction)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "ScriptFunction":
+        v, buffer = bcs.deserialize(input, ScriptFunction)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -789,10 +823,17 @@ class TransactionPayload__Module(TransactionPayload):
     value: "Module"
 
 
+@dataclass(frozen=True)
+class TransactionPayload__ScriptFunction(TransactionPayload):
+    INDEX = 3  # type: int
+    value: "ScriptFunction"
+
+
 TransactionPayload.VARIANTS = [
     TransactionPayload__WriteSet,
     TransactionPayload__Script,
     TransactionPayload__Module,
+    TransactionPayload__ScriptFunction,
 ]
 
 

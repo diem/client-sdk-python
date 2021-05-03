@@ -59,6 +59,7 @@ class Account(google___protobuf___message___Message):
     delegated_key_rotation_capability: builtin___bool = ...
     delegated_withdrawal_capability: builtin___bool = ...
     is_frozen: builtin___bool = ...
+    version: builtin___int = ...
     @property
     def balances(
         self,
@@ -78,6 +79,7 @@ class Account(google___protobuf___message___Message):
         delegated_withdrawal_capability: typing___Optional[builtin___bool] = None,
         is_frozen: typing___Optional[builtin___bool] = None,
         role: typing___Optional[type___AccountRole] = None,
+        version: typing___Optional[builtin___int] = None,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions___Literal["role", b"role"]) -> builtin___bool: ...
     def ClearField(
@@ -103,6 +105,8 @@ class Account(google___protobuf___message___Message):
             b"sent_events_key",
             "sequence_number",
             b"sequence_number",
+            "version",
+            b"version",
         ],
     ) -> None: ...
 
@@ -124,6 +128,10 @@ class AccountRole(google___protobuf___message___Message):
     def preburn_balances(
         self,
     ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[type___Amount]: ...
+    @property
+    def preburn_queues(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[type___PreburnQueue]: ...
     def __init__(
         self,
         *,
@@ -138,6 +146,7 @@ class AccountRole(google___protobuf___message___Message):
         num_children: typing___Optional[builtin___int] = None,
         received_mint_events_key: typing___Optional[typing___Text] = None,
         preburn_balances: typing___Optional[typing___Iterable[type___Amount]] = None,
+        preburn_queues: typing___Optional[typing___Iterable[type___PreburnQueue]] = None,
     ) -> None: ...
     def ClearField(
         self,
@@ -160,6 +169,8 @@ class AccountRole(google___protobuf___message___Message):
             b"parent_vasp_address",
             "preburn_balances",
             b"preburn_balances",
+            "preburn_queues",
+            b"preburn_queues",
             "received_mint_events_key",
             b"received_mint_events_key",
             "type",
@@ -168,6 +179,43 @@ class AccountRole(google___protobuf___message___Message):
     ) -> None: ...
 
 type___AccountRole = AccountRole
+
+class PreburnQueue(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    currency: typing___Text = ...
+    @property
+    def preburns(
+        self,
+    ) -> google___protobuf___internal___containers___RepeatedCompositeFieldContainer[type___PreburnWithMetadata]: ...
+    def __init__(
+        self,
+        *,
+        currency: typing___Optional[typing___Text] = None,
+        preburns: typing___Optional[typing___Iterable[type___PreburnWithMetadata]] = None,
+    ) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions___Literal["currency", b"currency", "preburns", b"preburns"]
+    ) -> None: ...
+
+type___PreburnQueue = PreburnQueue
+
+class PreburnWithMetadata(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    metadata: typing___Text = ...
+    @property
+    def preburn(self) -> type___Amount: ...
+    def __init__(
+        self,
+        *,
+        preburn: typing___Optional[type___Amount] = None,
+        metadata: typing___Optional[typing___Text] = None,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions___Literal["preburn", b"preburn"]) -> builtin___bool: ...
+    def ClearField(
+        self, field_name: typing_extensions___Literal["metadata", b"metadata", "preburn", b"preburn"]
+    ) -> None: ...
+
+type___PreburnWithMetadata = PreburnWithMetadata
 
 class Event(google___protobuf___message___Message):
     DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
@@ -221,6 +269,7 @@ class EventData(google___protobuf___message___Message):
     created_address: typing___Text = ...
     role_id: builtin___int = ...
     committed_timestamp_secs: builtin___int = ...
+    bytes: typing___Text = ...
     @property
     def amount(self) -> type___Amount: ...
     def __init__(
@@ -245,6 +294,7 @@ class EventData(google___protobuf___message___Message):
         created_address: typing___Optional[typing___Text] = None,
         role_id: typing___Optional[builtin___int] = None,
         committed_timestamp_secs: typing___Optional[builtin___int] = None,
+        bytes: typing___Optional[typing___Text] = None,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions___Literal["amount", b"amount"]) -> builtin___bool: ...
     def ClearField(
@@ -252,6 +302,8 @@ class EventData(google___protobuf___message___Message):
         field_name: typing_extensions___Literal[
             "amount",
             b"amount",
+            "bytes",
+            b"bytes",
             "committed_timestamp_secs",
             b"committed_timestamp_secs",
             "created_address",
@@ -546,6 +598,10 @@ class Script(google___protobuf___message___Message):
     currency: typing___Text = ...
     metadata: typing___Text = ...
     metadata_signature: typing___Text = ...
+    module_address: typing___Text = ...
+    module_name: typing___Text = ...
+    function_name: typing___Text = ...
+    arguments_bcs: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
     def __init__(
         self,
         *,
@@ -558,6 +614,10 @@ class Script(google___protobuf___message___Message):
         currency: typing___Optional[typing___Text] = None,
         metadata: typing___Optional[typing___Text] = None,
         metadata_signature: typing___Optional[typing___Text] = None,
+        module_address: typing___Optional[typing___Text] = None,
+        module_name: typing___Optional[typing___Text] = None,
+        function_name: typing___Optional[typing___Text] = None,
+        arguments_bcs: typing___Optional[typing___Iterable[typing___Text]] = None,
     ) -> None: ...
     def ClearField(
         self,
@@ -566,14 +626,22 @@ class Script(google___protobuf___message___Message):
             b"amount",
             "arguments",
             b"arguments",
+            "arguments_bcs",
+            b"arguments_bcs",
             "code",
             b"code",
             "currency",
             b"currency",
+            "function_name",
+            b"function_name",
             "metadata",
             b"metadata",
             "metadata_signature",
             b"metadata_signature",
+            "module_address",
+            b"module_address",
+            "module_name",
+            b"module_name",
             "receiver",
             b"receiver",
             "type",

@@ -33,20 +33,7 @@ Note: `make test` runs all examples too, see the Makefile for details.
 
 ### Off-chain service example
 
-[Wallet Example](examples/vasp/wallet.py): this is a highly simplified example of a wallet backend server implementation (no UI, no database, no un-related APIs) for demonstrating building off-chain API services through the Python SDK off-chain module.
-
-To start the example as a local http server:
-
-```
-make init
-source venv/bin/activate
-make server
-```
-
-Example curl to hit the server (should get an error response):
-```
-curl -X POST -H "X-REQUEST-ID: 3185027f-0574-6f55-2668-3a38fdb5de98" -H "X-REQUEST-SENDER-ADDRESS: tdm1pacrzjajt6vuamzkswyd50e28pg77m6wylnc3spg3xj7r6" -d "invalid-jws-body" http://localhost:8080/v2/command
-```
+Checkout [MiniWallet](./src/diem/testing/miniwallet/app) implementation for off-chain service implementation example.
 
 ## MiniWallet and MiniWallet Test Suite
 
@@ -66,7 +53,7 @@ run specific test:
 make test t=<test file / test name match pattern>
 ```
 
-run with local docker testnet:
+run with local docker testnet (requires initializing diem submodule):
 
 ```
 make test t=<test file / test name match pattern> dt=1

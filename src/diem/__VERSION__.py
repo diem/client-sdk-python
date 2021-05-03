@@ -1,4 +1,4 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-VERSION = "1.5.2"
+VERSION = "1.6.0"

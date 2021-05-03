@@ -6,7 +6,7 @@ from diem.testing.miniwallet import RestClient, AppConfig
 import uuid
 
 
-def test_send_ref_id_command(
+def test_send_reference_id_command(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,

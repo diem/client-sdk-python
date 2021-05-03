@@ -18,6 +18,7 @@ class Account(Base):
     kyc_data: Optional[offchain.KycDataObject] = field(default=None)
     reject_additional_kyc_data_request: Optional[bool] = field(default=False)
     disable_background_tasks: Optional[bool] = field(default=False)
+    diem_id: Optional[str] = field(default=None)
 
     def kyc_data_object(self) -> offchain.KycDataObject:
         return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore

@@ -134,7 +134,7 @@ class Client:
         sign: typing.Callable[[bytes], bytes],
         reference_id: typing.Optional[str] = None,
         cid: typing.Optional[str] = None,
-    ):
+    ) -> CommandResponseObject:
         reference_id_command = ReferenceIDCommand.init(sender, sender_address, receiver, reference_id)
         request = CommandRequestObject(
             cid=cid or str(uuid.uuid4()),
@@ -236,25 +236,25 @@ class Client:
             self.validate_recipient_signature(cmd, public_key)
         return cmd
 
-    def process_inbound_reference_id_command_request(
-        self, request: CommandRequestObject
-    ) -> CommandResponseObject:
-        if request.command_type != CommandType.ReferenceIDCommand:
-            ## should we raise another command since technically it could be valid command type but not the right use case?
-            raise protocol_error(
-                ErrorCode.unknown_command_type,
-                f"unknown command_type: {request.command_type}",
-                field="command_type",
-            )
-
-        ref_id_command_result = ReferenceIDCommandResultObject(
-            receiver_address="dm1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
-        )
-        return CommandResponseObject(
-            status=CommandResponseStatus.success,
-            cid="3185027f-0574-6f55-2668-3a38fdb5de98",
-            result=to_dict(ref_id_command_result),
-        )
+    # def process_inbound_reference_id_command_request(
+    #     self, request: CommandRequestObject
+    # ) -> CommandResponseObject:
+    #     if request.command_type != CommandType.ReferenceIDCommand:
+    #         ## should we raise another command since technically it could be valid command type but not the right use case?
+    #         raise protocol_error(
+    #             ErrorCode.unknown_command_type,
+    #             f"unknown command_type: {request.command_type}",
+    #             field="command_type",
+    #         )
+    #
+    #     ref_id_command_result = ReferenceIDCommandResultObject(
+    #         receiver_address="dm1p7ujcndcl7nudzwt8fglhx6wxnvqqqqqqqqqqqqelu3xv",
+    #     )
+    #     return CommandResponseObject(
+    #         status=CommandResponseStatus.success,
+    #         cid="3185027f-0574-6f55-2668-3a38fdb5de98",
+    #         result=to_dict(ref_id_command_result),
+    #     )
 
 
     def get_inbound_request_sender_public_key(self, request_sender_address: str) -> Ed25519PublicKey:

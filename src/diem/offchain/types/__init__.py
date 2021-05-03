@@ -242,11 +242,14 @@ def new_payment_request(
 def reply_request(
     cid: typing.Optional[str],
     err: typing.Optional[OffChainErrorObject] = None,
+    result: typing.Optional[Dict[str, Any]] = None,
 ) -> CommandResponseObject:
+    # TODO sunmi
     return CommandResponseObject(
         status=CommandResponseStatus.failure if err else CommandResponseStatus.success,
         error=err,
         cid=cid,
+        result=result,
     )
 
 

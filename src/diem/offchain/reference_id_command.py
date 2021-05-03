@@ -8,7 +8,7 @@ from .types import (
     ReferenceIDCommandObject,
 )
 
-
+# TODO remove this class
 @dataclasses.dataclass(frozen=True)
 class ReferenceIDCommand:
     """Wrapper object of `ReferenceIDCommand` with request information

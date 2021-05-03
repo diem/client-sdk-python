@@ -11,8 +11,10 @@ from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentC
 from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
-from .... import jsonrpc, offchain, utils
-from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject, CommandRequestObject
+from .... import jsonrpc, offchain, utils, identifier
+from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject, CommandRequestObject, CommandType, \
+    protocol_error, command_error, ErrorCode, ReferenceIDCommandObject, ReferenceIDCommandResultObject, from_dict, to_dict
+
 import threading, logging, numpy, time
 
 
@@ -22,7 +24,7 @@ class Base:
         account: LocalAccount,
         child_accounts: List[LocalAccount],
         client: jsonrpc.Client,
-        name: str,
+        name: str, ## TODO sunmi: use it for diem ID domain name??
         logger: logging.Logger,
     ) -> None:
         self.logger = logger
@@ -129,8 +131,8 @@ class OffChainAPI(Base):
                     "unknown command_type: %s" % request.command_type,
                     field="command_type",
                 )
-            getattr(self, handler)(sender_address, request)
-            return offchain.reply_request(cid=request.cid)
+            result = getattr(self, handler)(sender_address, request)
+            return offchain.reply_request(cid=request.cid, result=result)
         except offchain.Error as e:
             err_msg = "process offchain request failed, sender_address: %s, request: %s"
             self.logger.exception(err_msg, sender_address, request)
@@ -155,8 +157,26 @@ class OffChainAPI(Base):
 
     def _handle_offchain_reference_i_d_command(
         self, request_sender_address: str, request: offchain.CommandRequestObject
-    ) -> None:
-        result = self.offchain.process_inbound_reference_id_command_request(request_sender_address, request)
+    ) -> Dict[str, Any]:
+        if request.command_type != CommandType.ReferenceIDCommand:
+            ## should we raise another command since technically it could be valid command type but not the right use case?
+            raise protocol_error(
+                ErrorCode.unknown_command_type,
+                f"unknown command_type: {request.command_type}",
+                field="command_type",
+            )
+        # Check if reference ID is duplicate
+        ref_id_command_object = from_dict(request.command, ReferenceIDCommandObject)
+        try:
+            txn = self.store.find(Transaction, reference_id=ref_id_command_object.reference_id)
+            msg = (
+                f"Reference ID {ref_id_command_object.reference_id} already exists for transaction {txn.id}"
+            )
+            raise command_error(ErrorCode.duplicate_reference_id, msg)
+        except NotFoundError:
+            return to_dict(ReferenceIDCommandResultObject(
+                receiver_address=request_sender_address,
+            ))
 
     def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -> None:
         self.store.create(
@@ -257,6 +277,18 @@ class BackgroundTasks(OffChainAPI):
             self._start_external_payment_txn(txn)
 
     def _start_external_payment_txn(self, txn: Transaction) -> None:
+        # TODO sunmi check transaction obejct to get if diem ID
+        # do ref ID exchange here
+        # response success: update transaction object
+        # failed: you retry with a different reference ID
+        if identifier.is_diem_id(txn.payee):
+            ref_id_command_response_object = self.offchain.ref_id_exchange_request(
+                sender=self.store.find(Account, id=txn.account_id).diem_id,
+                sender_address=,
+                receiver=txn.payee,
+                counterparty_account_identifier=encode_account(get_account_identifier_with_diem_id(txn.payee), ),
+                sign=self.diem_account.sign_by_compliance_key,
+            )
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))

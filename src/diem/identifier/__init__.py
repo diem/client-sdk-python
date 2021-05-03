@@ -12,7 +12,7 @@ import typing
 from urllib import parse
 from typing import List
 
-from . import bech32
+from . import bech32, diem_id
 from .. import diem_types, utils, chain_ids
 
 from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error, _DIEM_BECH32_SIZE
@@ -163,7 +163,7 @@ def encode_account(
     return encoded_address
 
 
-def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
+def rfvnlhgdiicthjceuiivvirltnigceggdecode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
     """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
     try:
         (_version, onchain_address_bytes, subaddress_bytes) = bech32.bech32_address_decode(hrp, encoded_address)

@@ -99,49 +99,6 @@ class ScriptCall__AddRecoveryRotationCapability(ScriptCall):
 
 
 @dataclass(frozen=True)
-class ScriptCall__AddToScriptAllowList(ScriptCall):
-    """# Summary
-    Adds a script hash to the transaction allowlist.
-
-    This transaction
-    can only be sent by the Diem Root account. Scripts with this hash can be
-    sent afterward the successful execution of this script.
-
-    # Technical Description
-
-    The sending account (`dr_account`) must be the Diem Root account. The script allow
-    list must not already hold the script `hash` being added. The `sliding_nonce` must be
-    a valid nonce for the Diem Root account. After this transaction has executed
-    successfully a reconfiguration will be initiated, and the on-chain config
-    `DiemTransactionPublishingOption::DiemTransactionPublishingOption`'s
-    `script_allow_list` field will contain the new script `hash` and transactions
-    with this `hash` can be successfully sent to the network.
-
-    # Parameters
-    | Name            | Type         | Description                                                                                     |
-    | ------          | ------       | -------------                                                                                   |
-    | `dr_account`    | `&signer`    | The signer reference of the sending account of this transaction. Must be the Diem Root signer. |
-    | `hash`          | `vector<u8>` | The hash of the script to be added to the script allowlist.                                     |
-    | `sliding_nonce` | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
-
-    # Common Abort Conditions
-    | Error Category             | Error Reason                                                           | Description                                                                                |
-    | ----------------           | --------------                                                         | -------------                                                                              |
-    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                                         | A `SlidingNonce` resource is not published under `dr_account`.                             |
-    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                                         | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
-    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                                         | The `sliding_nonce` is too far in the future.                                              |
-    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`                                | The `sliding_nonce` has been previously recorded.                                          |
-    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                                           | The sending account is not the Diem Root account.                                         |
-    | `Errors::REQUIRES_ROLE`    | `Roles::EDIEM_ROOT`                                                   | The sending account is not the Diem Root account.                                         |
-    | `Errors::INVALID_ARGUMENT` | `DiemTransactionPublishingOption::EINVALID_SCRIPT_HASH`               | The script `hash` is an invalid length.                                                    |
-    | `Errors::INVALID_ARGUMENT` | `DiemTransactionPublishingOption::EALLOWLIST_ALREADY_CONTAINS_SCRIPT` | The on-chain allowlist already contains the script `hash`.                                 |
-    """
-
-    hash: bytes
-    sliding_nonce: st.uint64
-
-
-@dataclass(frozen=True)
 class ScriptCall__AddValidatorAndReconfigure(ScriptCall):
     """# Summary
     Adds a validator account to the validator set, and triggers a
@@ -1639,8 +1596,1773 @@ class ScriptCall__UpdateMintingAbility(ScriptCall):
     allow_minting: bool
 
 
+class ScriptFunctionCall:
+    """Structured representation of a call into a known Move script function."""
+
+    pass
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__AddCurrencyToAccount(ScriptFunctionCall):
+    """# Summary
+    Adds a zero `Currency` balance to the sending `account`.
+
+    This will enable `account` to
+    send, receive, and hold `Diem::Diem<Currency>` coins. This transaction can be
+    successfully sent by any account that is allowed to hold balances
+    (e.g., VASP, Designated Dealer).
+
+    # Technical Description
+    After the successful execution of this transaction the sending account will have a
+    `DiemAccount::Balance<Currency>` resource with zero balance published under it. Only
+    accounts that can hold balances can send this transaction, the sending account cannot
+    already have a `DiemAccount::Balance<Currency>` published under it.
+
+    # Parameters
+    | Name       | Type     | Description                                                                                                                                         |
+    | ------     | ------   | -------------                                                                                                                                       |
+    | `Currency` | Type     | The Move type for the `Currency` being added to the sending account of the transaction. `Currency` must be an already-registered currency on-chain. |
+    | `account`  | `signer` | The signer of the sending account of the transaction.                                                                                               |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                             | Description                                                                |
+    | ----------------            | --------------                           | -------------                                                              |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                  | The `Currency` is not a registered currency on-chain.                      |
+    | `Errors::INVALID_ARGUMENT`  | `DiemAccount::EROLE_CANT_STORE_BALANCE` | The sending `account`'s role does not permit balances.                     |
+    | `Errors::ALREADY_PUBLISHED` | `DiemAccount::EADD_EXISTING_CURRENCY`   | A balance for `Currency` is already published under the sending `account`. |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    """
+
+    currency: diem_types.TypeTag
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__AddRecoveryRotationCapability(ScriptFunctionCall):
+    """# Summary
+    Stores the sending accounts ability to rotate its authentication key with a designated recovery
+    account.
+
+    Both the sending and recovery accounts need to belong to the same VASP and
+    both be VASP accounts. After this transaction both the sending account and the
+    specified recovery account can rotate the sender account's authentication key.
+
+    # Technical Description
+    Adds the `DiemAccount::KeyRotationCapability` for the sending account
+    (`to_recover_account`) to the `RecoveryAddress::RecoveryAddress` resource under
+    `recovery_address`. After this transaction has been executed successfully the account at
+    `recovery_address` and the `to_recover_account` may rotate the authentication key of
+    `to_recover_account` (the sender of this transaction).
+
+    The sending account of this transaction (`to_recover_account`) must not have previously given away its unique key
+    rotation capability, and must be a VASP account. The account at `recovery_address`
+    must also be a VASP account belonging to the same VASP as the `to_recover_account`.
+    Additionally the account at `recovery_address` must have already initialized itself as
+    a recovery account address using the `AccountAdministrationScripts::create_recovery_address` transaction script.
+
+    The sending account's (`to_recover_account`) key rotation capability is
+    removed in this transaction and stored in the `RecoveryAddress::RecoveryAddress`
+    resource stored under the account at `recovery_address`.
+
+    # Parameters
+    | Name                 | Type      | Description                                                                                               |
+    | ------               | ------    | -------------                                                                                             |
+    | `to_recover_account` | `signer`  | The signer of the sending account of this transaction.                                                    |
+    | `recovery_address`   | `address` | The account address where the `to_recover_account`'s `DiemAccount::KeyRotationCapability` will be stored. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                              | Description                                                                                       |
+    | ----------------           | --------------                                            | -------------                                                                                     |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `to_recover_account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.    |
+    | `Errors::NOT_PUBLISHED`    | `RecoveryAddress::ERECOVERY_ADDRESS`                      | `recovery_address` does not have a `RecoveryAddress` resource published under it.                 |
+    | `Errors::INVALID_ARGUMENT` | `RecoveryAddress::EINVALID_KEY_ROTATION_DELEGATION`       | `to_recover_account` and `recovery_address` do not belong to the same VASP.                       |
+    | `Errors::LIMIT_EXCEEDED`   | ` RecoveryAddress::EMAX_KEYS_REGISTERED`                  | `RecoveryAddress::MAX_REGISTERED_KEYS` have already been registered with this `recovery_address`. |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::create_recovery_address`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+
+    recovery_address: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__AddValidatorAndReconfigure(ScriptFunctionCall):
+    """# Summary
+    Adds a validator account to the validator set, and triggers a
+    reconfiguration of the system to admit the account to the validator set for the system.
+
+    This
+    transaction can only be successfully called by the Diem Root account.
+
+    # Technical Description
+    This script adds the account at `validator_address` to the validator set.
+    This transaction emits a `DiemConfig::NewEpochEvent` event and triggers a
+    reconfiguration. Once the reconfiguration triggered by this script's
+    execution has been performed, the account at the `validator_address` is
+    considered to be a validator in the network.
+
+    This transaction script will fail if the `validator_address` address is already in the validator set
+    or does not have a `ValidatorConfig::ValidatorConfig` resource already published under it.
+
+    # Parameters
+    | Name                | Type         | Description                                                                                                                        |
+    | ------              | ------       | -------------                                                                                                                      |
+    | `dr_account`        | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.                                               |
+    | `sliding_nonce`     | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                         |
+    | `validator_name`    | `vector<u8>` | ASCII-encoded human name for the validator. Must match the human name in the `ValidatorConfig::ValidatorConfig` for the validator. |
+    | `validator_address` | `address`    | The validator account address to be added to the validator set.                                                                    |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                 | Description                                                                                                                               |
+    | ----------------           | --------------                               | -------------                                                                                                                             |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`               | A `SlidingNonce` resource is not published under `dr_account`.                                                                            |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`               | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.                                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`               | The `sliding_nonce` is too far in the future.                                                                                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`      | The `sliding_nonce` has been previously recorded.                                                                                         |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                  | The sending account is not the Diem Root account.                                                                                         |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EDIEM_ROOT`                          | The sending account is not the Diem Root account.                                                                                         |
+    | 0                          | 0                                            | The provided `validator_name` does not match the already-recorded human name for the validator.                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemSystem::EINVALID_PROSPECTIVE_VALIDATOR` | The validator to be added does not have a `ValidatorConfig::ValidatorConfig` resource published under it, or its `config` field is empty. |
+    | `Errors::INVALID_ARGUMENT` | `DiemSystem::EALREADY_A_VALIDATOR`           | The `validator_address` account is already a registered validator.                                                                        |
+    | `Errors::INVALID_STATE`    | `DiemConfig::EINVALID_BLOCK_TIME`            | An invalid time value was encountered in reconfiguration. Unlikely to occur.                                                              |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemSystem::EMAX_VALIDATORS`                | The validator set is already at its maximum size. The validator could not be added.                                                       |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    sliding_nonce: st.uint64
+    validator_name: bytes
+    validator_address: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__BurnTxnFees(ScriptFunctionCall):
+    """# Summary
+    Burns the transaction fees collected in the `CoinType` currency so that the
+    Diem association may reclaim the backing coins off-chain.
+
+    May only be sent
+    by the Treasury Compliance account.
+
+    # Technical Description
+    Burns the transaction fees collected in `CoinType` so that the
+    association may reclaim the backing coins. Once this transaction has executed
+    successfully all transaction fees that will have been collected in
+    `CoinType` since the last time this script was called with that specific
+    currency. Both `balance` and `preburn` fields in the
+    `TransactionFee::TransactionFee<CoinType>` resource published under the `0xB1E55ED`
+    account address will have a value of 0 after the successful execution of this script.
+
+    # Events
+    The successful execution of this transaction will emit a `Diem::BurnEvent` on the event handle
+    held in the `Diem::CurrencyInfo<CoinType>` resource's `burn_events` published under
+    `0xA550C18`.
+
+    # Parameters
+    | Name         | Type     | Description                                                                                                                                         |
+    | ------       | ------   | -------------                                                                                                                                       |
+    | `CoinType`   | Type     | The Move type for the `CoinType` being added to the sending account of the transaction. `CoinType` must be an already-registered currency on-chain. |
+    | `tc_account` | `signer` | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                                     |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                          | Description                                                 |
+    | ----------------           | --------------                        | -------------                                               |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE` | The sending account is not the Treasury Compliance account. |
+    | `Errors::NOT_PUBLISHED`    | `TransactionFee::ETRANSACTION_FEE`    | `CoinType` is not an accepted transaction fee currency.     |
+    | `Errors::INVALID_ARGUMENT` | `Diem::ECOIN`                        | The collected fees in `CoinType` are zero.                  |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::burn_with_amount`
+    * `TreasuryComplianceScripts::cancel_burn_with_amount`
+    """
+
+    coin_type: diem_types.TypeTag
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__BurnWithAmount(ScriptFunctionCall):
+    """# Summary
+    Burns the coins held in a preburn resource in the preburn queue at the
+    specified preburn address, which are equal to the `amount` specified in the
+    transaction.
+
+    Finds the first relevant outstanding preburn request with
+    matching amount and removes the contained coins from the system. The sending
+    account must be the Treasury Compliance account.
+    The account that holds the preburn queue resource will normally be a Designated
+    Dealer, but there are no enforced requirements that it be one.
+
+    # Technical Description
+    This transaction permanently destroys all the coins of `Token` type
+    stored in the `Diem::Preburn<Token>` resource published under the
+    `preburn_address` account address.
+
+    This transaction will only succeed if the sending `account` has a
+    `Diem::BurnCapability<Token>`, and a `Diem::Preburn<Token>` resource
+    exists under `preburn_address`, with a non-zero `to_burn` field. After the successful execution
+    of this transaction the `total_value` field in the
+    `Diem::CurrencyInfo<Token>` resource published under `0xA550C18` will be
+    decremented by the value of the `to_burn` field of the preburn resource
+    under `preburn_address` immediately before this transaction, and the
+    `to_burn` field of the preburn resource will have a zero value.
+
+    # Events
+    The successful execution of this transaction will emit a `Diem::BurnEvent` on the event handle
+    held in the `Diem::CurrencyInfo<Token>` resource's `burn_events` published under
+    `0xA550C18`.
+
+    # Parameters
+    | Name              | Type      | Description                                                                                                        |
+    | ------            | ------    | -------------                                                                                                      |
+    | `Token`           | Type      | The Move type for the `Token` currency being burned. `Token` must be an already-registered currency on-chain.      |
+    | `tc_account`      | `signer`  | The signer of the sending account of this transaction, must have a burn capability for `Token` published under it. |
+    | `sliding_nonce`   | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                         |
+    | `preburn_address` | `address` | The address where the coins to-be-burned are currently held.                                                       |
+    | `amount`          | `u64`     | The amount to be burned.                                                                                           |
+
+    # Common Abort Conditions
+    | Error Category                | Error Reason                            | Description                                                                                                                         |
+    | ----------------              | --------------                          | -------------                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`       | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `account`.                                                                         |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.                                          |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                                                                       |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                                                                   |
+    | `Errors::REQUIRES_CAPABILITY` | `Diem::EBURN_CAPABILITY`                | The sending `account` does not have a `Diem::BurnCapability<Token>` published under it.                                             |
+    | `Errors::INVALID_STATE`       | `Diem::EPREBURN_NOT_FOUND`              | The `Diem::PreburnQueue<Token>` resource under `preburn_address` does not contain a preburn request with a value matching `amount`. |
+    | `Errors::NOT_PUBLISHED`       | `Diem::EPREBURN_QUEUE`                  | The account at `preburn_address` does not have a `Diem::PreburnQueue<Token>` resource published under it.                           |
+    | `Errors::NOT_PUBLISHED`       | `Diem::ECURRENCY_INFO`                  | The specified `Token` is not a registered currency on-chain.                                                                        |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::burn_txn_fees`
+    * `TreasuryComplianceScripts::cancel_burn_with_amount`
+    * `TreasuryComplianceScripts::preburn`
+    """
+
+    token: diem_types.TypeTag
+    sliding_nonce: st.uint64
+    preburn_address: diem_types.AccountAddress
+    amount: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CancelBurnWithAmount(ScriptFunctionCall):
+    """# Summary
+    Cancels and returns the coins held in the preburn area under
+    `preburn_address`, which are equal to the `amount` specified in the transaction.
+
+    Finds the first preburn
+    resource with the matching amount and returns the funds to the `preburn_address`'s balance.
+    Can only be successfully sent by an account with Treasury Compliance role.
+
+    # Technical Description
+    Cancels and returns all coins held in the `Diem::Preburn<Token>` resource under the `preburn_address` and
+    return the funds to the `preburn_address` account's `DiemAccount::Balance<Token>`.
+    The transaction must be sent by an `account` with a `Diem::BurnCapability<Token>`
+    resource published under it. The account at `preburn_address` must have a
+    `Diem::Preburn<Token>` resource published under it, and its value must be nonzero. The transaction removes
+    the entire balance held in the `Diem::Preburn<Token>` resource, and returns it back to the account's
+    `DiemAccount::Balance<Token>` under `preburn_address`. Due to this, the account at
+    `preburn_address` must already have a balance in the `Token` currency published
+    before this script is called otherwise the transaction will fail.
+
+    # Events
+    The successful execution of this transaction will emit:
+    * A `Diem::CancelBurnEvent` on the event handle held in the `Diem::CurrencyInfo<Token>`
+    resource's `burn_events` published under `0xA550C18`.
+    * A `DiemAccount::ReceivedPaymentEvent` on the `preburn_address`'s
+    `DiemAccount::DiemAccount` `received_events` event handle with both the `payer` and `payee`
+    being `preburn_address`.
+
+    # Parameters
+    | Name              | Type      | Description                                                                                                                          |
+    | ------            | ------    | -------------                                                                                                                        |
+    | `Token`           | Type      | The Move type for the `Token` currenty that burning is being cancelled for. `Token` must be an already-registered currency on-chain. |
+    | `account`         | `signer`  | The signer of the sending account of this transaction, must have a burn capability for `Token` published under it.                   |
+    | `preburn_address` | `address` | The address where the coins to-be-burned are currently held.                                                                         |
+    | `amount`          | `u64`     | The amount to be cancelled.                                                                                                          |
+
+    # Common Abort Conditions
+    | Error Category                | Error Reason                                     | Description                                                                                                                         |
+    | ----------------              | --------------                                   | -------------                                                                                                                       |
+    | `Errors::REQUIRES_CAPABILITY` | `Diem::EBURN_CAPABILITY`                         | The sending `account` does not have a `Diem::BurnCapability<Token>` published under it.                                             |
+    | `Errors::INVALID_STATE`       | `Diem::EPREBURN_NOT_FOUND`                       | The `Diem::PreburnQueue<Token>` resource under `preburn_address` does not contain a preburn request with a value matching `amount`. |
+    | `Errors::NOT_PUBLISHED`       | `Diem::EPREBURN_QUEUE`                           | The account at `preburn_address` does not have a `Diem::PreburnQueue<Token>` resource published under it.                           |
+    | `Errors::NOT_PUBLISHED`       | `Diem::ECURRENCY_INFO`                           | The specified `Token` is not a registered currency on-chain.                                                                        |
+    | `Errors::INVALID_ARGUMENT`    | `DiemAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE`  | The account at `preburn_address` doesn't have a balance resource for `Token`.                                                       |
+    | `Errors::LIMIT_EXCEEDED`      | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`           | The depositing of the funds held in the prebun area would exceed the `account`'s account limits.                                    |
+    | `Errors::INVALID_STATE`       | `DualAttestation::EPAYEE_COMPLIANCE_KEY_NOT_SET` | The `account` does not have a compliance key set on it but dual attestion checking was performed.                                   |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::burn_txn_fees`
+    * `TreasuryComplianceScripts::burn_with_amount`
+    * `TreasuryComplianceScripts::preburn`
+    """
+
+    token: diem_types.TypeTag
+    preburn_address: diem_types.AccountAddress
+    amount: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CreateChildVaspAccount(ScriptFunctionCall):
+    """# Summary
+    Creates a Child VASP account with its parent being the sending account of the transaction.
+
+    The sender of the transaction must be a Parent VASP account.
+
+    # Technical Description
+    Creates a `ChildVASP` account for the sender `parent_vasp` at `child_address` with a balance of
+    `child_initial_balance` in `CoinType` and an initial authentication key of
+    `auth_key_prefix | child_address`. Authentication key prefixes, and how to construct them from an ed25519 public key is described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    If `add_all_currencies` is true, the child address will have a zero balance in all available
+    currencies in the system.
+
+    The new account will be a child account of the transaction sender, which must be a
+    Parent VASP account. The child account will be recorded against the limit of
+    child accounts of the creating Parent VASP account.
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `child_address`,
+    and the `rold_id` field being `Roles::CHILD_VASP_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    Successful execution with a `child_initial_balance` greater than zero will additionaly emit:
+    * A `DiemAccount::SentPaymentEvent` with the `payee` field being `child_address`.
+    This is emitted on the Parent VASP's `DiemAccount::DiemAccount` `sent_events` handle.
+    * A `DiemAccount::ReceivedPaymentEvent` with the  `payer` field being the Parent VASP's address.
+    This is emitted on the new Child VASPS's `DiemAccount::DiemAccount` `received_events` handle.
+
+    # Parameters
+    | Name                    | Type         | Description                                                                                                                                 |
+    | ------                  | ------       | -------------                                                                                                                               |
+    | `CoinType`              | Type         | The Move type for the `CoinType` that the child account should be created with. `CoinType` must be an already-registered currency on-chain. |
+    | `parent_vasp`           | `signer`     | The reference of the sending account. Must be a Parent VASP account.                                                                        |
+    | `child_address`         | `address`    | Address of the to-be-created Child VASP account.                                                                                            |
+    | `auth_key_prefix`       | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account.                                                    |
+    | `add_all_currencies`    | `bool`       | Whether to publish balance resources for all known currencies when the account is created.                                                  |
+    | `child_initial_balance` | `u64`        | The initial balance in `CoinType` to give the child account when it's created.                                                              |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                                             | Description                                                                              |
+    | ----------------            | --------------                                           | -------------                                                                            |
+    | `Errors::INVALID_ARGUMENT`  | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`            | The `auth_key_prefix` was not of length 32.                                              |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EPARENT_VASP`                                    | The sending account wasn't a Parent VASP account.                                        |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                                        | The `child_address` address is already taken.                                            |
+    | `Errors::LIMIT_EXCEEDED`    | `VASP::ETOO_MANY_CHILDREN`                               | The sending account has reached the maximum number of allowed child accounts.            |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                                  | The `CoinType` is not a registered currency on-chain.                                    |
+    | `Errors::INVALID_STATE`     | `DiemAccount::EWITHDRAWAL_CAPABILITY_ALREADY_EXTRACTED` | The withdrawal capability for the sending account has already been extracted.            |
+    | `Errors::NOT_PUBLISHED`     | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`              | The sending account doesn't have a balance in `CoinType`.                                |
+    | `Errors::LIMIT_EXCEEDED`    | `DiemAccount::EINSUFFICIENT_BALANCE`                    | The sending account doesn't have at least `child_initial_balance` of `CoinType` balance. |
+    | `Errors::INVALID_ARGUMENT`  | `DiemAccount::ECANNOT_CREATE_AT_VM_RESERVED`            | The `child_address` is the reserved address 0x0.                                         |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::add_recovery_rotation_capability`
+    * `AccountAdministrationScripts::create_recovery_address`
+    """
+
+    coin_type: diem_types.TypeTag
+    child_address: diem_types.AccountAddress
+    auth_key_prefix: bytes
+    add_all_currencies: bool
+    child_initial_balance: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CreateDesignatedDealer(ScriptFunctionCall):
+    """# Summary
+    Creates a Designated Dealer account with the provided information, and initializes it with
+    default mint tiers.
+
+    The transaction can only be sent by the Treasury Compliance account.
+
+    # Technical Description
+    Creates an account with the Designated Dealer role at `addr` with authentication key
+    `auth_key_prefix` | `addr` and a 0 balance of type `Currency`. If `add_all_currencies` is true,
+    0 balances for all available currencies in the system will also be added. This can only be
+    invoked by an account with the TreasuryCompliance role.
+    Authentication keys, prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    At the time of creation the account is also initialized with default mint tiers of (500_000,
+    5000_000, 50_000_000, 500_000_000), and preburn areas for each currency that is added to the
+    account.
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `addr`,
+    and the `rold_id` field being `Roles::DESIGNATED_DEALER_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                 | Type         | Description                                                                                                                                         |
+    | ------               | ------       | -------------                                                                                                                                       |
+    | `Currency`           | Type         | The Move type for the `Currency` that the Designated Dealer should be initialized with. `Currency` must be an already-registered currency on-chain. |
+    | `tc_account`         | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                                     |
+    | `sliding_nonce`      | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                                          |
+    | `addr`               | `address`    | Address of the to-be-created Designated Dealer account.                                                                                             |
+    | `auth_key_prefix`    | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account.                                                            |
+    | `human_name`         | `vector<u8>` | ASCII-encoded human name for the Designated Dealer.                                                                                                 |
+    | `add_all_currencies` | `bool`       | Whether to publish preburn, balance, and tier info resources for all known (SCS) currencies or just `Currency` when the account is created.         |
+
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ETREASURY_COMPLIANCE`   | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::REQUIRES_ROLE`     | `Roles::ETREASURY_COMPLIANCE`           | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                 | The `Currency` is not a registered currency on-chain.                                      |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `addr` address is already taken.                                                       |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::tiered_mint`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+
+    currency: diem_types.TypeTag
+    sliding_nonce: st.uint64
+    addr: diem_types.AccountAddress
+    auth_key_prefix: bytes
+    human_name: bytes
+    add_all_currencies: bool
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CreateParentVaspAccount(ScriptFunctionCall):
+    """# Summary
+    Creates a Parent VASP account with the specified human name.
+
+    Must be called by the Treasury Compliance account.
+
+    # Technical Description
+    Creates an account with the Parent VASP role at `address` with authentication key
+    `auth_key_prefix` | `new_account_address` and a 0 balance of type `CoinType`. If
+    `add_all_currencies` is true, 0 balances for all available currencies in the system will
+    also be added. This can only be invoked by an TreasuryCompliance account.
+    `sliding_nonce` is a unique nonce for operation, see `SlidingNonce` for details.
+    Authentication keys, prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `new_account_address`,
+    and the `rold_id` field being `Roles::PARENT_VASP_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                  | Type         | Description                                                                                                                                                    |
+    | ------                | ------       | -------------                                                                                                                                                  |
+    | `CoinType`            | Type         | The Move type for the `CoinType` currency that the Parent VASP account should be initialized with. `CoinType` must be an already-registered currency on-chain. |
+    | `tc_account`          | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                                                |
+    | `sliding_nonce`       | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                                                     |
+    | `new_account_address` | `address`    | Address of the to-be-created Parent VASP account.                                                                                                              |
+    | `auth_key_prefix`     | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account.                                                                       |
+    | `human_name`          | `vector<u8>` | ASCII-encoded human name for the Parent VASP.                                                                                                                  |
+    | `add_all_currencies`  | `bool`       | Whether to publish balance resources for all known currencies when the account is created.                                                                     |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ETREASURY_COMPLIANCE`   | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::REQUIRES_ROLE`     | `Roles::ETREASURY_COMPLIANCE`           | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                 | The `CoinType` is not a registered currency on-chain.                                      |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::add_recovery_rotation_capability`
+    * `AccountAdministrationScripts::create_recovery_address`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+
+    coin_type: diem_types.TypeTag
+    sliding_nonce: st.uint64
+    new_account_address: diem_types.AccountAddress
+    auth_key_prefix: bytes
+    human_name: bytes
+    add_all_currencies: bool
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CreateRecoveryAddress(ScriptFunctionCall):
+    """# Summary
+    Initializes the sending account as a recovery address that may be used by
+    other accounts belonging to the same VASP as `account`.
+
+    The sending account must be a VASP account, and can be either a child or parent VASP account.
+    Multiple recovery addresses can exist for a single VASP, but accounts in
+    each must be disjoint.
+
+    # Technical Description
+    Publishes a `RecoveryAddress::RecoveryAddress` resource under `account`. It then
+    extracts the `DiemAccount::KeyRotationCapability` for `account` and adds
+    it to the resource. After the successful execution of this transaction
+    other accounts may add their key rotation to this resource so that `account`
+    may be used as a recovery account for those accounts.
+
+    # Parameters
+    | Name      | Type     | Description                                           |
+    | ------    | ------   | -------------                                         |
+    | `account` | `signer` | The signer of the sending account of the transaction. |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                                               | Description                                                                                   |
+    | ----------------            | --------------                                             | -------------                                                                                 |
+    | `Errors::INVALID_STATE`     | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.          |
+    | `Errors::INVALID_ARGUMENT`  | `RecoveryAddress::ENOT_A_VASP`                             | `account` is not a VASP account.                                                              |
+    | `Errors::INVALID_ARGUMENT`  | `RecoveryAddress::EKEY_ROTATION_DEPENDENCY_CYCLE`          | A key rotation recovery cycle would be created by adding `account`'s key rotation capability. |
+    | `Errors::ALREADY_PUBLISHED` | `RecoveryAddress::ERECOVERY_ADDRESS`                       | A `RecoveryAddress::RecoveryAddress` resource has already been published under `account`.     |
+
+    # Related Scripts
+    * `Script::add_recovery_rotation_capability`
+    * `Script::rotate_authentication_key_with_recovery_address`
+    """
+
+    pass
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CreateValidatorAccount(ScriptFunctionCall):
+    """# Summary
+    Creates a Validator account.
+
+    This transaction can only be sent by the Diem
+    Root account.
+
+    # Technical Description
+    Creates an account with a Validator role at `new_account_address`, with authentication key
+    `auth_key_prefix` | `new_account_address`. It publishes a
+    `ValidatorConfig::ValidatorConfig` resource with empty `config`, and
+    `operator_account` fields. The `human_name` field of the
+    `ValidatorConfig::ValidatorConfig` is set to the passed in `human_name`.
+    This script does not add the validator to the validator set or the system,
+    but only creates the account.
+    Authentication keys, prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `new_account_address`,
+    and the `rold_id` field being `Roles::VALIDATOR_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                  | Type         | Description                                                                              |
+    | ------                | ------       | -------------                                                                            |
+    | `dr_account`          | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.     |
+    | `sliding_nonce`       | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.               |
+    | `new_account_address` | `address`    | Address of the to-be-created Validator account.                                          |
+    | `auth_key_prefix`     | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account. |
+    | `human_name`          | `vector<u8>` | ASCII-encoded human name for the validator.                                              |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `dr_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::EDIEM_ROOT`            | The sending account is not the Diem Root account.                                         |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EDIEM_ROOT`                    | The sending account is not the Diem Root account.                                         |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    sliding_nonce: st.uint64
+    new_account_address: diem_types.AccountAddress
+    auth_key_prefix: bytes
+    human_name: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__CreateValidatorOperatorAccount(ScriptFunctionCall):
+    """# Summary
+    Creates a Validator Operator account.
+
+    This transaction can only be sent by the Diem
+    Root account.
+
+    # Technical Description
+    Creates an account with a Validator Operator role at `new_account_address`, with authentication key
+    `auth_key_prefix` | `new_account_address`. It publishes a
+    `ValidatorOperatorConfig::ValidatorOperatorConfig` resource with the specified `human_name`.
+    This script does not assign the validator operator to any validator accounts but only creates the account.
+    Authentication key prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `new_account_address`,
+    and the `rold_id` field being `Roles::VALIDATOR_OPERATOR_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                  | Type         | Description                                                                              |
+    | ------                | ------       | -------------                                                                            |
+    | `dr_account`          | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.     |
+    | `sliding_nonce`       | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.               |
+    | `new_account_address` | `address`    | Address of the to-be-created Validator account.                                          |
+    | `auth_key_prefix`     | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account. |
+    | `human_name`          | `vector<u8>` | ASCII-encoded human name for the validator.                                              |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `dr_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::EDIEM_ROOT`            | The sending account is not the Diem Root account.                                         |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EDIEM_ROOT`                    | The sending account is not the Diem Root account.                                         |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    sliding_nonce: st.uint64
+    new_account_address: diem_types.AccountAddress
+    auth_key_prefix: bytes
+    human_name: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__FreezeAccount(ScriptFunctionCall):
+    """# Summary
+    Freezes the account at `address`.
+
+    The sending account of this transaction
+    must be the Treasury Compliance account. The account being frozen cannot be
+    the Diem Root or Treasury Compliance account. After the successful
+    execution of this transaction no transactions may be sent from the frozen
+    account, and the frozen account may not send or receive coins.
+
+    # Technical Description
+    Sets the `AccountFreezing::FreezingBit` to `true` and emits a
+    `AccountFreezing::FreezeAccountEvent`. The transaction sender must be the
+    Treasury Compliance account, but the account at `to_freeze_account` must
+    not be either `0xA550C18` (the Diem Root address), or `0xB1E55ED` (the
+    Treasury Compliance address). Note that this is a per-account property
+    e.g., freezing a Parent VASP will not effect the status any of its child
+    accounts and vice versa.
+
+
+    # Events
+    Successful execution of this transaction will emit a `AccountFreezing::FreezeAccountEvent` on
+    the `freeze_event_handle` held in the `AccountFreezing::FreezeEventsHolder` resource published
+    under `0xA550C18` with the `frozen_address` being the `to_freeze_account`.
+
+    # Parameters
+    | Name                | Type      | Description                                                                                     |
+    | ------              | ------    | -------------                                                                                   |
+    | `tc_account`        | `signer`  | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `sliding_nonce`     | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | `to_freeze_account` | `address` | The account address to be frozen.                                                               |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                 | Description                                                                                |
+    | ----------------           | --------------                               | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`               | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`               | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`               | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`      | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`        | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`                | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::INVALID_ARGUMENT` | `AccountFreezing::ECANNOT_FREEZE_TC`         | `to_freeze_account` was the Treasury Compliance account (`0xB1E55ED`).                     |
+    | `Errors::INVALID_ARGUMENT` | `AccountFreezing::ECANNOT_FREEZE_DIEM_ROOT` | `to_freeze_account` was the Diem Root account (`0xA550C18`).                              |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::unfreeze_account`
+    """
+
+    sliding_nonce: st.uint64
+    to_freeze_account: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__InitializeDiemConsensusConfig(ScriptFunctionCall):
+    """# Summary
+    Initializes the Diem consensus config that is stored on-chain.
+
+    This
+    transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Initializes the `DiemConsensusConfig` on-chain config to empty and allows future updates from DiemRoot via
+    `update_diem_consensus_config`. This doesn't emit a `DiemConfig::NewEpochEvent`.
+
+    # Parameters
+    | Name            | Type      | Description                                                                |
+    | ------          | ------    | -------------                                                              |
+    | `account`       | `signer` | Signer of the sending account. Must be the Diem Root account.               |
+    | `sliding_nonce` | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                  | Description                                                                                |
+    | ----------------           | --------------                                | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`       | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                   | `account` is not the Diem Root account.                                                    |
+    """
+
+    sliding_nonce: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__PeerToPeerWithMetadata(ScriptFunctionCall):
+    """# Summary
+    Transfers a given number of coins in a specified currency from one account to another.
+
+    Transfers over a specified amount defined on-chain that are between two different VASPs, or
+    other accounts that have opted-in will be subject to on-chain checks to ensure the receiver has
+    agreed to receive the coins.  This transaction can be sent by any account that can hold a
+    balance, and to any account that can hold a balance. Both accounts must hold balances in the
+    currency being transacted.
+
+    # Technical Description
+
+    Transfers `amount` coins of type `Currency` from `payer` to `payee` with (optional) associated
+    `metadata` and an (optional) `metadata_signature` on the message of the form
+    `metadata` | `Signer::address_of(payer)` | `amount` | `DualAttestation::DOMAIN_SEPARATOR`, that
+    has been signed by the `payee`'s private key associated with the `compliance_public_key` held in
+    the `payee`'s `DualAttestation::Credential`. Both the `Signer::address_of(payer)` and `amount` fields
+    in the `metadata_signature` must be BCS-encoded bytes, and `|` denotes concatenation.
+    The `metadata` and `metadata_signature` parameters are only required if `amount` >=
+    `DualAttestation::get_cur_microdiem_limit` XDX and `payer` and `payee` are distinct VASPs.
+    However, a transaction sender can opt in to dual attestation even when it is not required
+    (e.g., a DesignatedDealer -> VASP payment) by providing a non-empty `metadata_signature`.
+    Standardized `metadata` BCS format can be found in `diem_types::transaction::metadata::Metadata`.
+
+    # Events
+    Successful execution of this script emits two events:
+    * A `DiemAccount::SentPaymentEvent` on `payer`'s `DiemAccount::DiemAccount` `sent_events` handle; and
+    * A `DiemAccount::ReceivedPaymentEvent` on `payee`'s `DiemAccount::DiemAccount` `received_events` handle.
+
+    # Parameters
+    | Name                 | Type         | Description                                                                                                                  |
+    | ------               | ------       | -------------                                                                                                                |
+    | `Currency`           | Type         | The Move type for the `Currency` being sent in this transaction. `Currency` must be an already-registered currency on-chain. |
+    | `payer`              | `signer`     | The signer of the sending account that coins are being transferred from.                                                     |
+    | `payee`              | `address`    | The address of the account the coins are being transferred to.                                                               |
+    | `metadata`           | `vector<u8>` | Optional metadata about this payment.                                                                                        |
+    | `metadata_signature` | `vector<u8>` | Optional signature over `metadata` and payment information. See                                                              |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                     | Description                                                                                                                         |
+    | ----------------           | --------------                                   | -------------                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`       | `payer` doesn't hold a balance in `Currency`.                                                                                       |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EINSUFFICIENT_BALANCE`             | `amount` is greater than `payer`'s balance in `Currency`.                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::ECOIN_DEPOSIT_IS_ZERO`             | `amount` is zero.                                                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYEE_DOES_NOT_EXIST`             | No account exists at the `payee` address.                                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE`  | An account exists at `payee`, but it does not accept payments in `Currency`.                                                        |
+    | `Errors::INVALID_STATE`    | `AccountFreezing::EACCOUNT_FROZEN`               | The `payee` account is frozen.                                                                                                      |
+    | `Errors::INVALID_ARGUMENT` | `DualAttestation::EMALFORMED_METADATA_SIGNATURE` | `metadata_signature` is not 64 bytes.                                                                                               |
+    | `Errors::INVALID_ARGUMENT` | `DualAttestation::EINVALID_METADATA_SIGNATURE`   | `metadata_signature` does not verify on the against the `payee'`s `DualAttestation::Credential` `compliance_public_key` public key. |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EWITHDRAWAL_EXCEEDS_LIMITS`        | `payer` has exceeded its daily withdrawal limits for the backing coins of XDX.                                                      |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`           | `payee` has exceeded its daily deposit limits for XDX.                                                                              |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    """
+
+    currency: diem_types.TypeTag
+    payee: diem_types.AccountAddress
+    amount: st.uint64
+    metadata: bytes
+    metadata_signature: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__Preburn(ScriptFunctionCall):
+    """# Summary
+    Moves a specified number of coins in a given currency from the account's
+    balance to its preburn area after which the coins may be burned.
+
+    This
+    transaction may be sent by any account that holds a balance and preburn area
+    in the specified currency.
+
+    # Technical Description
+    Moves the specified `amount` of coins in `Token` currency from the sending `account`'s
+    `DiemAccount::Balance<Token>` to the `Diem::Preburn<Token>` published under the same
+    `account`. `account` must have both of these resources published under it at the start of this
+    transaction in order for it to execute successfully.
+
+    # Events
+    Successful execution of this script emits two events:
+    * `DiemAccount::SentPaymentEvent ` on `account`'s `DiemAccount::DiemAccount` `sent_events`
+    handle with the `payee` and `payer` fields being `account`'s address; and
+    * A `Diem::PreburnEvent` with `Token`'s currency code on the
+    `Diem::CurrencyInfo<Token`'s `preburn_events` handle for `Token` and with
+    `preburn_address` set to `account`'s address.
+
+    # Parameters
+    | Name      | Type     | Description                                                                                                                      |
+    | ------    | ------   | -------------                                                                                                                    |
+    | `Token`   | Type     | The Move type for the `Token` currency being moved to the preburn area. `Token` must be an already-registered currency on-chain. |
+    | `account` | `signer` | The signer of the sending account.                                                                                               |
+    | `amount`  | `u64`    | The amount in `Token` to be moved to the preburn area.                                                                           |
+
+    # Common Abort Conditions
+    | Error Category           | Error Reason                                             | Description                                                                             |
+    | ----------------         | --------------                                           | -------------                                                                           |
+    | `Errors::NOT_PUBLISHED`  | `Diem::ECURRENCY_INFO`                                  | The `Token` is not a registered currency on-chain.                                      |
+    | `Errors::INVALID_STATE`  | `DiemAccount::EWITHDRAWAL_CAPABILITY_ALREADY_EXTRACTED` | The withdrawal capability for `account` has already been extracted.                     |
+    | `Errors::LIMIT_EXCEEDED` | `DiemAccount::EINSUFFICIENT_BALANCE`                    | `amount` is greater than `payer`'s balance in `Token`.                                  |
+    | `Errors::NOT_PUBLISHED`  | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`              | `account` doesn't hold a balance in `Token`.                                            |
+    | `Errors::NOT_PUBLISHED`  | `Diem::EPREBURN`                                        | `account` doesn't have a `Diem::Preburn<Token>` resource published under it.           |
+    | `Errors::INVALID_STATE`  | `Diem::EPREBURN_OCCUPIED`                               | The `value` field in the `Diem::Preburn<Token>` resource under the sender is non-zero. |
+    | `Errors::NOT_PUBLISHED`  | `Roles::EROLE_ID`                                        | The `account` did not have a role assigned to it.                                       |
+    | `Errors::REQUIRES_ROLE`  | `Roles::EDESIGNATED_DEALER`                              | The `account` did not have the role of DesignatedDealer.                                |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::cancel_burn_with_amount`
+    * `TreasuryComplianceScripts::burn_with_amount`
+    * `TreasuryComplianceScripts::burn_txn_fees`
+    """
+
+    token: diem_types.TypeTag
+    amount: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__PublishSharedEd25519PublicKey(ScriptFunctionCall):
+    """# Summary
+    Rotates the authentication key of the sending account to the newly-specified ed25519 public key and
+    publishes a new shared authentication key derived from that public key under the sender's account.
+
+    Any account can send this transaction.
+
+    # Technical Description
+    Rotates the authentication key of the sending account to the
+    [authentication key derived from `public_key`](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys)
+    and publishes a `SharedEd25519PublicKey::SharedEd25519PublicKey` resource
+    containing the 32-byte ed25519 `public_key` and the `DiemAccount::KeyRotationCapability` for
+    `account` under `account`.
+
+    # Parameters
+    | Name         | Type         | Description                                                                                        |
+    | ------       | ------       | -------------                                                                                      |
+    | `account`    | `signer`     | The signer of the sending account of the transaction.                                              |
+    | `public_key` | `vector<u8>` | A valid 32-byte Ed25519 public key for `account`'s authentication key to be rotated to and stored. |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                                               | Description                                                                                         |
+    | ----------------            | --------------                                             | -------------                                                                                       |
+    | `Errors::INVALID_STATE`     | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability` resource.       |
+    | `Errors::ALREADY_PUBLISHED` | `SharedEd25519PublicKey::ESHARED_KEY`                      | The `SharedEd25519PublicKey::SharedEd25519PublicKey` resource is already published under `account`. |
+    | `Errors::INVALID_ARGUMENT`  | `SharedEd25519PublicKey::EMALFORMED_PUBLIC_KEY`            | `public_key` is an invalid ed25519 public key.                                                      |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_shared_ed25519_public_key`
+    """
+
+    public_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RegisterValidatorConfig(ScriptFunctionCall):
+    """# Summary
+    Updates a validator's configuration.
+
+    This does not reconfigure the system and will not update
+    the configuration in the validator set that is seen by other validators in the network. Can
+    only be successfully sent by a Validator Operator account that is already registered with a
+    validator.
+
+    # Technical Description
+    This updates the fields with corresponding names held in the `ValidatorConfig::ValidatorConfig`
+    config resource held under `validator_account`. It does not emit a `DiemConfig::NewEpochEvent`
+    so the copy of this config held in the validator set will not be updated, and the changes are
+    only "locally" under the `validator_account` account address.
+
+    # Parameters
+    | Name                          | Type         | Description                                                                                                        |
+    | ------                        | ------       | -------------                                                                                                      |
+    | `validator_operator_account`  | `signer`     | Signer of the sending account. Must be the registered validator operator for the validator at `validator_address`. |
+    | `validator_account`           | `address`    | The address of the validator's `ValidatorConfig::ValidatorConfig` resource being updated.                          |
+    | `consensus_pubkey`            | `vector<u8>` | New Ed25519 public key to be used in the updated `ValidatorConfig::ValidatorConfig`.                               |
+    | `validator_network_addresses` | `vector<u8>` | New set of `validator_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.             |
+    | `fullnode_network_addresses`  | `vector<u8>` | New set of `fullnode_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.              |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                   | Description                                                                                           |
+    | ----------------           | --------------                                 | -------------                                                                                         |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`           | `validator_address` does not have a `ValidatorConfig::ValidatorConfig` resource published under it.   |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_TRANSACTION_SENDER` | `validator_operator_account` is not the registered operator for the validator at `validator_address`. |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_CONSENSUS_KEY`      | `consensus_pubkey` is not a valid ed25519 public key.                                                 |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    validator_account: diem_types.AccountAddress
+    consensus_pubkey: bytes
+    validator_network_addresses: bytes
+    fullnode_network_addresses: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RemoveValidatorAndReconfigure(ScriptFunctionCall):
+    """# Summary
+    This script removes a validator account from the validator set, and triggers a reconfiguration
+    of the system to remove the validator from the system.
+
+    This transaction can only be
+    successfully called by the Diem Root account.
+
+    # Technical Description
+    This script removes the account at `validator_address` from the validator set. This transaction
+    emits a `DiemConfig::NewEpochEvent` event. Once the reconfiguration triggered by this event
+    has been performed, the account at `validator_address` is no longer considered to be a
+    validator in the network. This transaction will fail if the validator at `validator_address`
+    is not in the validator set.
+
+    # Parameters
+    | Name                | Type         | Description                                                                                                                        |
+    | ------              | ------       | -------------                                                                                                                      |
+    | `dr_account`        | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.                                               |
+    | `sliding_nonce`     | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                         |
+    | `validator_name`    | `vector<u8>` | ASCII-encoded human name for the validator. Must match the human name in the `ValidatorConfig::ValidatorConfig` for the validator. |
+    | `validator_address` | `address`    | The validator account address to be removed from the validator set.                                                                |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                     |
+    | ----------------           | --------------                          | -------------                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `dr_account`.                                  |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.      |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                                   |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                               |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | The sending account is not the Diem Root account or Treasury Compliance account                |
+    | 0                          | 0                                       | The provided `validator_name` does not match the already-recorded human name for the validator. |
+    | `Errors::INVALID_ARGUMENT` | `DiemSystem::ENOT_AN_ACTIVE_VALIDATOR` | The validator to be removed is not in the validator set.                                        |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`            | The sending account is not the Diem Root account.                                              |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EDIEM_ROOT`                    | The sending account is not the Diem Root account.                                              |
+    | `Errors::INVALID_STATE`    | `DiemConfig::EINVALID_BLOCK_TIME`      | An invalid time value was encountered in reconfiguration. Unlikely to occur.                    |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    sliding_nonce: st.uint64
+    validator_name: bytes
+    validator_address: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RotateAuthenticationKey(ScriptFunctionCall):
+    """# Summary
+    Rotates the `account`'s authentication key to the supplied new authentication key.
+
+    May be sent by any account.
+
+    # Technical Description
+    Rotate the `account`'s `DiemAccount::DiemAccount` `authentication_key`
+    field to `new_key`. `new_key` must be a valid authentication key that
+    corresponds to an ed25519 public key as described [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys),
+    and `account` must not have previously delegated its `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name      | Type         | Description                                       |
+    | ------    | ------       | -------------                                     |
+    | `account` | `signer`     | Signer of the sending account of the transaction. |
+    | `new_key` | `vector<u8>` | New authentication key to be used for `account`.  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                              | Description                                                                         |
+    | ----------------           | --------------                                            | -------------                                                                       |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`. |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`              | `new_key` was an invalid length.                                                    |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce_admin`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+
+    new_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RotateAuthenticationKeyWithNonce(ScriptFunctionCall):
+    """# Summary
+    Rotates the sender's authentication key to the supplied new authentication key.
+
+    May be sent by
+    any account that has a sliding nonce resource published under it (usually this is Treasury
+    Compliance or Diem Root accounts).
+
+    # Technical Description
+    Rotates the `account`'s `DiemAccount::DiemAccount` `authentication_key`
+    field to `new_key`. `new_key` must be a valid authentication key that
+    corresponds to an ed25519 public key as described [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys),
+    and `account` must not have previously delegated its `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name            | Type         | Description                                                                |
+    | ------          | ------       | -------------                                                              |
+    | `account`       | `signer`     | Signer of the sending account of the transaction.                          |
+    | `sliding_nonce` | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+    | `new_key`       | `vector<u8>` | New authentication key to be used for `account`.                           |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                               | Description                                                                                |
+    | ----------------           | --------------                                             | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                             | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                             | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                             | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`                    | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.       |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`              | `new_key` was an invalid length.                                                           |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce_admin`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+
+    sliding_nonce: st.uint64
+    new_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RotateAuthenticationKeyWithNonceAdmin(ScriptFunctionCall):
+    """# Summary
+    Rotates the specified account's authentication key to the supplied new authentication key.
+
+    May
+    only be sent by the Diem Root account as a write set transaction.
+
+    # Technical Description
+    Rotate the `account`'s `DiemAccount::DiemAccount` `authentication_key` field to `new_key`.
+    `new_key` must be a valid authentication key that corresponds to an ed25519
+    public key as described [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys),
+    and `account` must not have previously delegated its `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name            | Type         | Description                                                                                       |
+    | ------          | ------       | -------------                                                                                     |
+    | `dr_account`    | `signer`     | The signer of the sending account of the write set transaction. May only be the Diem Root signer. |
+    | `account`       | `signer`     | Signer of account specified in the `execute_as` field of the write set transaction.               |
+    | `sliding_nonce` | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction for Diem Root.          |
+    | `new_key`       | `vector<u8>` | New authentication key to be used for `account`.                                                  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                              | Description                                                                                                |
+    | ----------------           | --------------                                            | -------------                                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                            | A `SlidingNonce` resource is not published under `dr_account`.                                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                            | The `sliding_nonce` in `dr_account` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                            | The `sliding_nonce` in `dr_account` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`                   | The `sliding_nonce` in` dr_account` has been previously recorded.                                          |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.                        |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`              | `new_key` was an invalid length.                                                                           |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+
+    sliding_nonce: st.uint64
+    new_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RotateAuthenticationKeyWithRecoveryAddress(ScriptFunctionCall):
+    """# Summary
+    Rotates the authentication key of a specified account that is part of a recovery address to a
+    new authentication key.
+
+    Only used for accounts that are part of a recovery address (see
+    `AccountAdministrationScripts::add_recovery_rotation_capability` for account restrictions).
+
+    # Technical Description
+    Rotates the authentication key of the `to_recover` account to `new_key` using the
+    `DiemAccount::KeyRotationCapability` stored in the `RecoveryAddress::RecoveryAddress` resource
+    published under `recovery_address`. `new_key` must be a valide authentication key as described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+    This transaction can be sent either by the `to_recover` account, or by the account where the
+    `RecoveryAddress::RecoveryAddress` resource is published that contains `to_recover`'s `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name               | Type         | Description                                                                                                                   |
+    | ------             | ------       | -------------                                                                                                                 |
+    | `account`          | `signer`     | Signer of the sending account of the transaction.                                                                             |
+    | `recovery_address` | `address`    | Address where `RecoveryAddress::RecoveryAddress` that holds `to_recover`'s `DiemAccount::KeyRotationCapability` is published. |
+    | `to_recover`       | `address`    | The address of the account whose authentication key will be updated.                                                          |
+    | `new_key`          | `vector<u8>` | New authentication key to be used for the account at the `to_recover` address.                                                |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                 | Description                                                                                                                                         |
+    | ----------------           | --------------                               | -------------                                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`    | `RecoveryAddress::ERECOVERY_ADDRESS`         | `recovery_address` does not have a `RecoveryAddress::RecoveryAddress` resource published under it.                                                  |
+    | `Errors::INVALID_ARGUMENT` | `RecoveryAddress::ECANNOT_ROTATE_KEY`        | The address of `account` is not `recovery_address` or `to_recover`.                                                                                 |
+    | `Errors::INVALID_ARGUMENT` | `RecoveryAddress::EACCOUNT_NOT_RECOVERABLE`  | `to_recover`'s `DiemAccount::KeyRotationCapability`  is not in the `RecoveryAddress::RecoveryAddress`  resource published under `recovery_address`. |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY` | `new_key` was an invalid length.                                                                                                                    |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce_admin`
+    """
+
+    recovery_address: diem_types.AccountAddress
+    to_recover: diem_types.AccountAddress
+    new_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RotateDualAttestationInfo(ScriptFunctionCall):
+    """# Summary
+    Updates the url used for off-chain communication, and the public key used to verify dual
+    attestation on-chain.
+
+    Transaction can be sent by any account that has dual attestation
+    information published under it. In practice the only such accounts are Designated Dealers and
+    Parent VASPs.
+
+    # Technical Description
+    Updates the `base_url` and `compliance_public_key` fields of the `DualAttestation::Credential`
+    resource published under `account`. The `new_key` must be a valid ed25519 public key.
+
+    # Events
+    Successful execution of this transaction emits two events:
+    * A `DualAttestation::ComplianceKeyRotationEvent` containing the new compliance public key, and
+    the blockchain time at which the key was updated emitted on the `DualAttestation::Credential`
+    `compliance_key_rotation_events` handle published under `account`; and
+    * A `DualAttestation::BaseUrlRotationEvent` containing the new base url to be used for
+    off-chain communication, and the blockchain time at which the url was updated emitted on the
+    `DualAttestation::Credential` `base_url_rotation_events` handle published under `account`.
+
+    # Parameters
+    | Name      | Type         | Description                                                               |
+    | ------    | ------       | -------------                                                             |
+    | `account` | `signer`     | Signer of the sending account of the transaction.                         |
+    | `new_url` | `vector<u8>` | ASCII-encoded url to be used for off-chain communication with `account`.  |
+    | `new_key` | `vector<u8>` | New ed25519 public key to be used for on-chain dual attestation checking. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                           | Description                                                                |
+    | ----------------           | --------------                         | -------------                                                              |
+    | `Errors::NOT_PUBLISHED`    | `DualAttestation::ECREDENTIAL`         | A `DualAttestation::Credential` resource is not published under `account`. |
+    | `Errors::INVALID_ARGUMENT` | `DualAttestation::EINVALID_PUBLIC_KEY` | `new_key` is not a valid ed25519 public key.                               |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountCreationScripts::create_designated_dealer`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+
+    new_url: bytes
+    new_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RotateSharedEd25519PublicKey(ScriptFunctionCall):
+    """# Summary
+    Rotates the authentication key in a `SharedEd25519PublicKey`.
+
+    This transaction can be sent by
+    any account that has previously published a shared ed25519 public key using
+    `AccountAdministrationScripts::publish_shared_ed25519_public_key`.
+
+    # Technical Description
+    `public_key` must be a valid ed25519 public key.  This transaction first rotates the public key stored in `account`'s
+    `SharedEd25519PublicKey::SharedEd25519PublicKey` resource to `public_key`, after which it
+    rotates the `account`'s authentication key to the new authentication key derived from `public_key` as defined
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys)
+    using the `DiemAccount::KeyRotationCapability` stored in `account`'s `SharedEd25519PublicKey::SharedEd25519PublicKey`.
+
+    # Parameters
+    | Name         | Type         | Description                                           |
+    | ------       | ------       | -------------                                         |
+    | `account`    | `signer`     | The signer of the sending account of the transaction. |
+    | `public_key` | `vector<u8>` | 32-byte Ed25519 public key.                           |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                    | Description                                                                                   |
+    | ----------------           | --------------                                  | -------------                                                                                 |
+    | `Errors::NOT_PUBLISHED`    | `SharedEd25519PublicKey::ESHARED_KEY`           | A `SharedEd25519PublicKey::SharedEd25519PublicKey` resource is not published under `account`. |
+    | `Errors::INVALID_ARGUMENT` | `SharedEd25519PublicKey::EMALFORMED_PUBLIC_KEY` | `public_key` is an invalid ed25519 public key.                                                |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::publish_shared_ed25519_public_key`
+    """
+
+    public_key: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__SetGasConstants(ScriptFunctionCall):
+    """# Summary
+    Updates the gas constants stored on chain and used by the VM for gas
+    metering.
+
+    This transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Updates the on-chain config holding the `DiemVMConfig` and emits a
+    `DiemConfig::NewEpochEvent` to trigger a reconfiguration of the system.
+
+    # Parameters
+    | Name                                | Type     | Description                                                                                            |
+    | ------                              | ------   | -------------                                                                                          |
+    | `account`                           | `signer` | Signer of the sending account. Must be the Diem Root account.                                          |
+    | `sliding_nonce`                     | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                             |
+    | `global_memory_per_byte_cost`       | `u64`    | The new cost to read global memory per-byte to be used for gas metering.                               |
+    | `global_memory_per_byte_write_cost` | `u64`    | The new cost to write global memory per-byte to be used for gas metering.                              |
+    | `min_transaction_gas_units`         | `u64`    | The new flat minimum amount of gas required for any transaction.                                       |
+    | `large_transaction_cutoff`          | `u64`    | The new size over which an additional charge will be assessed for each additional byte.                |
+    | `intrinsic_gas_per_byte`            | `u64`    | The new number of units of gas that to be charged per-byte over the new `large_transaction_cutoff`.    |
+    | `maximum_number_of_gas_units`       | `u64`    | The new maximum number of gas units that can be set in a transaction.                                  |
+    | `min_price_per_gas_unit`            | `u64`    | The new minimum gas price that can be set for a transaction.                                           |
+    | `max_price_per_gas_unit`            | `u64`    | The new maximum gas price that can be set for a transaction.                                           |
+    | `max_transaction_size_in_bytes`     | `u64`    | The new maximum size of a transaction that can be processed.                                           |
+    | `gas_unit_scaling_factor`           | `u64`    | The new scaling factor to use when scaling between external and internal gas units.                    |
+    | `default_account_size`              | `u64`    | The new default account size to use when assessing final costs for reads and writes to global storage. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                | Description                                                                                |
+    | ----------------           | --------------                              | -------------                                                                              |
+    | `Errors::INVALID_ARGUMENT` | `DiemVMConfig::EGAS_CONSTANT_INCONSISTENCY` | The provided gas constants are inconsistent.                                               |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`              | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`              | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`              | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`     | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                 | `account` is not the Diem Root account.                                                    |
+    """
+
+    sliding_nonce: st.uint64
+    global_memory_per_byte_cost: st.uint64
+    global_memory_per_byte_write_cost: st.uint64
+    min_transaction_gas_units: st.uint64
+    large_transaction_cutoff: st.uint64
+    intrinsic_gas_per_byte: st.uint64
+    maximum_number_of_gas_units: st.uint64
+    min_price_per_gas_unit: st.uint64
+    max_price_per_gas_unit: st.uint64
+    max_transaction_size_in_bytes: st.uint64
+    gas_unit_scaling_factor: st.uint64
+    default_account_size: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__SetValidatorConfigAndReconfigure(ScriptFunctionCall):
+    """# Summary
+    Updates a validator's configuration, and triggers a reconfiguration of the system to update the
+    validator set with this new validator configuration.
+
+    Can only be successfully sent by a
+    Validator Operator account that is already registered with a validator.
+
+    # Technical Description
+    This updates the fields with corresponding names held in the `ValidatorConfig::ValidatorConfig`
+    config resource held under `validator_account`. It then emits a `DiemConfig::NewEpochEvent` to
+    trigger a reconfiguration of the system.  This reconfiguration will update the validator set
+    on-chain with the updated `ValidatorConfig::ValidatorConfig`.
+
+    # Parameters
+    | Name                          | Type         | Description                                                                                                        |
+    | ------                        | ------       | -------------                                                                                                      |
+    | `validator_operator_account`  | `signer`     | Signer of the sending account. Must be the registered validator operator for the validator at `validator_address`. |
+    | `validator_account`           | `address`    | The address of the validator's `ValidatorConfig::ValidatorConfig` resource being updated.                          |
+    | `consensus_pubkey`            | `vector<u8>` | New Ed25519 public key to be used in the updated `ValidatorConfig::ValidatorConfig`.                               |
+    | `validator_network_addresses` | `vector<u8>` | New set of `validator_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.             |
+    | `fullnode_network_addresses`  | `vector<u8>` | New set of `fullnode_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.              |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                   | Description                                                                                           |
+    | ----------------           | --------------                                 | -------------                                                                                         |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`           | `validator_address` does not have a `ValidatorConfig::ValidatorConfig` resource published under it.   |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EVALIDATOR_OPERATOR`                   | `validator_operator_account` does not have a Validator Operator role.                                 |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_TRANSACTION_SENDER` | `validator_operator_account` is not the registered operator for the validator at `validator_address`. |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_CONSENSUS_KEY`      | `consensus_pubkey` is not a valid ed25519 public key.                                                 |
+    | `Errors::INVALID_STATE`    | `DiemConfig::EINVALID_BLOCK_TIME`             | An invalid time value was encountered in reconfiguration. Unlikely to occur.                          |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    """
+
+    validator_account: diem_types.AccountAddress
+    consensus_pubkey: bytes
+    validator_network_addresses: bytes
+    fullnode_network_addresses: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__SetValidatorOperator(ScriptFunctionCall):
+    """# Summary
+    Sets the validator operator for a validator in the validator's configuration resource "locally"
+    and does not reconfigure the system.
+
+    Changes from this transaction will not picked up by the
+    system until a reconfiguration of the system is triggered. May only be sent by an account with
+    Validator role.
+
+    # Technical Description
+    Sets the account at `operator_account` address and with the specified `human_name` as an
+    operator for the sending validator account. The account at `operator_account` address must have
+    a Validator Operator role and have a `ValidatorOperatorConfig::ValidatorOperatorConfig`
+    resource published under it. The sending `account` must be a Validator and have a
+    `ValidatorConfig::ValidatorConfig` resource published under it. This script does not emit a
+    `DiemConfig::NewEpochEvent` and no reconfiguration of the system is initiated by this script.
+
+    # Parameters
+    | Name               | Type         | Description                                                                                  |
+    | ------             | ------       | -------------                                                                                |
+    | `account`          | `signer`     | The signer of the sending account of the transaction.                                        |
+    | `operator_name`    | `vector<u8>` | Validator operator's human name.                                                             |
+    | `operator_account` | `address`    | Address of the validator operator account to be added as the `account` validator's operator. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                          | Description                                                                                                                                                  |
+    | ----------------           | --------------                                        | -------------                                                                                                                                                |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorOperatorConfig::EVALIDATOR_OPERATOR_CONFIG` | The `ValidatorOperatorConfig::ValidatorOperatorConfig` resource is not published under `operator_account`.                                                   |
+    | 0                          | 0                                                     | The `human_name` field of the `ValidatorOperatorConfig::ValidatorOperatorConfig` resource under `operator_account` does not match the provided `human_name`. |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EVALIDATOR`                                   | `account` does not have a Validator account role.                                                                                                            |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::ENOT_A_VALIDATOR_OPERATOR`          | The account at `operator_account` does not have a `ValidatorOperatorConfig::ValidatorOperatorConfig` resource.                                               |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`                  | A `ValidatorConfig::ValidatorConfig` is not published under `account`.                                                                                       |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    operator_name: bytes
+    operator_account: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__SetValidatorOperatorWithNonceAdmin(ScriptFunctionCall):
+    """# Summary
+    Sets the validator operator for a validator in the validator's configuration resource "locally"
+    and does not reconfigure the system.
+
+    Changes from this transaction will not picked up by the
+    system until a reconfiguration of the system is triggered. May only be sent by the Diem Root
+    account as a write set transaction.
+
+    # Technical Description
+    Sets the account at `operator_account` address and with the specified `human_name` as an
+    operator for the validator `account`. The account at `operator_account` address must have a
+    Validator Operator role and have a `ValidatorOperatorConfig::ValidatorOperatorConfig` resource
+    published under it. The account represented by the `account` signer must be a Validator and
+    have a `ValidatorConfig::ValidatorConfig` resource published under it. No reconfiguration of
+    the system is initiated by this script.
+
+    # Parameters
+    | Name               | Type         | Description                                                                                   |
+    | ------             | ------       | -------------                                                                                 |
+    | `dr_account`       | `signer`     | Signer of the sending account of the write set transaction. May only be the Diem Root signer. |
+    | `account`          | `signer`     | Signer of account specified in the `execute_as` field of the write set transaction.           |
+    | `sliding_nonce`    | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction for Diem Root.      |
+    | `operator_name`    | `vector<u8>` | Validator operator's human name.                                                              |
+    | `operator_account` | `address`    | Address of the validator operator account to be added as the `account` validator's operator.  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                          | Description                                                                                                                                                  |
+    | ----------------           | --------------                                        | -------------                                                                                                                                                |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                        | A `SlidingNonce` resource is not published under `dr_account`.                                                                                               |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                        | The `sliding_nonce` in `dr_account` is too old and it's impossible to determine if it's duplicated or not.                                                   |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                        | The `sliding_nonce` in `dr_account` is too far in the future.                                                                                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`               | The `sliding_nonce` in` dr_account` has been previously recorded.                                                                                            |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                        | The sending account is not the Diem Root account or Treasury Compliance account                                                                             |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorOperatorConfig::EVALIDATOR_OPERATOR_CONFIG` | The `ValidatorOperatorConfig::ValidatorOperatorConfig` resource is not published under `operator_account`.                                                   |
+    | 0                          | 0                                                     | The `human_name` field of the `ValidatorOperatorConfig::ValidatorOperatorConfig` resource under `operator_account` does not match the provided `human_name`. |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EVALIDATOR`                                   | `account` does not have a Validator account role.                                                                                                            |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::ENOT_A_VALIDATOR_OPERATOR`          | The account at `operator_account` does not have a `ValidatorOperatorConfig::ValidatorOperatorConfig` resource.                                               |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`                  | A `ValidatorConfig::ValidatorConfig` is not published under `account`.                                                                                       |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+
+    sliding_nonce: st.uint64
+    operator_name: bytes
+    operator_account: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__TieredMint(ScriptFunctionCall):
+    """# Summary
+    Mints a specified number of coins in a currency to a Designated Dealer.
+
+    The sending account
+    must be the Treasury Compliance account, and coins can only be minted to a Designated Dealer
+    account.
+
+    # Technical Description
+    Mints `mint_amount` of coins in the `CoinType` currency to Designated Dealer account at
+    `designated_dealer_address`. The `tier_index` parameter specifies which tier should be used to
+    check verify the off-chain approval policy, and is based in part on the on-chain tier values
+    for the specific Designated Dealer, and the number of `CoinType` coins that have been minted to
+    the dealer over the past 24 hours. Every Designated Dealer has 4 tiers for each currency that
+    they support. The sending `tc_account` must be the Treasury Compliance account, and the
+    receiver an authorized Designated Dealer account.
+
+    # Events
+    Successful execution of the transaction will emit two events:
+    * A `Diem::MintEvent` with the amount and currency code minted is emitted on the
+    `mint_event_handle` in the stored `Diem::CurrencyInfo<CoinType>` resource stored under
+    `0xA550C18`; and
+    * A `DesignatedDealer::ReceivedMintEvent` with the amount, currency code, and Designated
+    Dealer's address is emitted on the `mint_event_handle` in the stored `DesignatedDealer::Dealer`
+    resource published under the `designated_dealer_address`.
+
+    # Parameters
+    | Name                        | Type      | Description                                                                                                |
+    | ------                      | ------    | -------------                                                                                              |
+    | `CoinType`                  | Type      | The Move type for the `CoinType` being minted. `CoinType` must be an already-registered currency on-chain. |
+    | `tc_account`                | `signer`  | The signer of the sending account of this transaction. Must be the Treasury Compliance account.            |
+    | `sliding_nonce`             | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                 |
+    | `designated_dealer_address` | `address` | The address of the Designated Dealer account being minted to.                                              |
+    | `mint_amount`               | `u64`     | The number of coins to be minted.                                                                          |
+    | `tier_index`                | `u64`     | [Deprecated] The mint tier index to use for the Designated Dealer account. Will be ignored                 |
+
+    # Common Abort Conditions
+    | Error Category                | Error Reason                                 | Description                                                                                                                  |
+    | ----------------              | --------------                               | -------------                                                                                                                |
+    | `Errors::NOT_PUBLISHED`       | `SlidingNonce::ESLIDING_NONCE`               | A `SlidingNonce` resource is not published under `tc_account`.                                                               |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_OLD`               | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.                                   |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_NEW`               | The `sliding_nonce` is too far in the future.                                                                                |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_ALREADY_RECORDED`      | The `sliding_nonce` has been previously recorded.                                                                            |
+    | `Errors::REQUIRES_ADDRESS`    | `CoreAddresses::ETREASURY_COMPLIANCE`        | `tc_account` is not the Treasury Compliance account.                                                                         |
+    | `Errors::REQUIRES_ROLE`       | `Roles::ETREASURY_COMPLIANCE`                | `tc_account` is not the Treasury Compliance account.                                                                         |
+    | `Errors::INVALID_ARGUMENT`    | `DesignatedDealer::EINVALID_MINT_AMOUNT`     | `mint_amount` is zero.                                                                                                       |
+    | `Errors::NOT_PUBLISHED`       | `DesignatedDealer::EDEALER`                  | `DesignatedDealer::Dealer` or `DesignatedDealer::TierInfo<CoinType>` resource does not exist at `designated_dealer_address`. |
+    | `Errors::REQUIRES_CAPABILITY` | `Diem::EMINT_CAPABILITY`                    | `tc_account` does not have a `Diem::MintCapability<CoinType>` resource published under it.                                  |
+    | `Errors::INVALID_STATE`       | `Diem::EMINTING_NOT_ALLOWED`                | Minting is not currently allowed for `CoinType` coins.                                                                       |
+    | `Errors::LIMIT_EXCEEDED`      | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`      | The depositing of the funds would exceed the `account`'s account limits.                                                     |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_designated_dealer`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+
+    coin_type: diem_types.TypeTag
+    sliding_nonce: st.uint64
+    designated_dealer_address: diem_types.AccountAddress
+    mint_amount: st.uint64
+    tier_index: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__UnfreezeAccount(ScriptFunctionCall):
+    """# Summary
+    Unfreezes the account at `address`.
+
+    The sending account of this transaction must be the
+    Treasury Compliance account. After the successful execution of this transaction transactions
+    may be sent from the previously frozen account, and coins may be sent and received.
+
+    # Technical Description
+    Sets the `AccountFreezing::FreezingBit` to `false` and emits a
+    `AccountFreezing::UnFreezeAccountEvent`. The transaction sender must be the Treasury Compliance
+    account. Note that this is a per-account property so unfreezing a Parent VASP will not effect
+    the status any of its child accounts and vice versa.
+
+    # Events
+    Successful execution of this script will emit a `AccountFreezing::UnFreezeAccountEvent` with
+    the `unfrozen_address` set the `to_unfreeze_account`'s address.
+
+    # Parameters
+    | Name                  | Type      | Description                                                                                     |
+    | ------                | ------    | -------------                                                                                   |
+    | `tc_account`          | `signer`  | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `sliding_nonce`       | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | `to_unfreeze_account` | `address` | The account address to be frozen.                                                               |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                |
+    | ----------------           | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`   | The sending account is not the Treasury Compliance account.                                |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::freeze_account`
+    """
+
+    sliding_nonce: st.uint64
+    to_unfreeze_account: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__UpdateDiemConsensusConfig(ScriptFunctionCall):
+    """# Summary
+    Updates the Diem consensus config that is stored on-chain and is used by the Consensus.
+
+    This
+    transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Updates the `DiemConsensusConfig` on-chain config and emits a `DiemConfig::NewEpochEvent` to trigger
+    a reconfiguration of the system.
+
+    # Parameters
+    | Name            | Type          | Description                                                                |
+    | ------          | ------        | -------------                                                              |
+    | `account`       | `signer`      | Signer of the sending account. Must be the Diem Root account.              |
+    | `sliding_nonce` | `u64`         | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+    | `config`        | `vector<u8>`  | The serialized bytes of consensus config.                                  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                  | Description                                                                                |
+    | ----------------           | --------------                                | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`       | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                   | `account` is not the Diem Root account.                                                    |
+    """
+
+    sliding_nonce: st.uint64
+    config: bytes
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__UpdateDiemVersion(ScriptFunctionCall):
+    """# Summary
+    Updates the Diem major version that is stored on-chain and is used by the VM.
+
+    This
+    transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Updates the `DiemVersion` on-chain config and emits a `DiemConfig::NewEpochEvent` to trigger
+    a reconfiguration of the system. The `major` version that is passed in must be strictly greater
+    than the current major version held on-chain. The VM reads this information and can use it to
+    preserve backwards compatibility with previous major versions of the VM.
+
+    # Parameters
+    | Name            | Type     | Description                                                                |
+    | ------          | ------   | -------------                                                              |
+    | `account`       | `signer` | Signer of the sending account. Must be the Diem Root account.              |
+    | `sliding_nonce` | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+    | `major`         | `u64`    | The `major` version of the VM to be used from this transaction on.         |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                  | Description                                                                                |
+    | ----------------           | --------------                                | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`       | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                   | `account` is not the Diem Root account.                                                    |
+    | `Errors::INVALID_ARGUMENT` | `DiemVersion::EINVALID_MAJOR_VERSION_NUMBER`  | `major` is less-than or equal to the current major version stored on-chain.                |
+    """
+
+    sliding_nonce: st.uint64
+    major: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__UpdateDualAttestationLimit(ScriptFunctionCall):
+    """# Summary
+    Update the dual attestation limit on-chain.
+
+    Defined in terms of micro-XDX.  The transaction can
+    only be sent by the Treasury Compliance account.  After this transaction all inter-VASP
+    payments over this limit must be checked for dual attestation.
+
+    # Technical Description
+    Updates the `micro_xdx_limit` field of the `DualAttestation::Limit` resource published under
+    `0xA550C18`. The amount is set in micro-XDX.
+
+    # Parameters
+    | Name                  | Type     | Description                                                                                     |
+    | ------                | ------   | -------------                                                                                   |
+    | `tc_account`          | `signer` | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `sliding_nonce`       | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | `new_micro_xdx_limit` | `u64`    | The new dual attestation limit to be used on-chain.                                             |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                |
+    | ----------------           | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`   | `tc_account` is not the Treasury Compliance account.                                       |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::update_exchange_rate`
+    * `TreasuryComplianceScripts::update_minting_ability`
+    """
+
+    sliding_nonce: st.uint64
+    new_micro_xdx_limit: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__UpdateExchangeRate(ScriptFunctionCall):
+    """# Summary
+    Update the rough on-chain exchange rate between a specified currency and XDX (as a conversion
+    to micro-XDX).
+
+    The transaction can only be sent by the Treasury Compliance account. After this
+    transaction the updated exchange rate will be used for normalization of gas prices, and for
+    dual attestation checking.
+
+    # Technical Description
+    Updates the on-chain exchange rate from the given `Currency` to micro-XDX.  The exchange rate
+    is given by `new_exchange_rate_numerator/new_exchange_rate_denominator`.
+
+    # Parameters
+    | Name                            | Type     | Description                                                                                                                        |
+    | ------                          | ------   | -------------                                                                                                                      |
+    | `Currency`                      | Type     | The Move type for the `Currency` whose exchange rate is being updated. `Currency` must be an already-registered currency on-chain. |
+    | `tc_account`                    | `signer` | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                    |
+    | `sliding_nonce`                 | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for the transaction.                                                          |
+    | `new_exchange_rate_numerator`   | `u64`    | The numerator for the new to micro-XDX exchange rate for `Currency`.                                                               |
+    | `new_exchange_rate_denominator` | `u64`    | The denominator for the new to micro-XDX exchange rate for `Currency`.                                                             |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                |
+    | ----------------           | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`   | `tc_account` is not the Treasury Compliance account.                                       |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`           | `tc_account` is not the Treasury Compliance account.                                       |
+    | `Errors::INVALID_ARGUMENT` | `FixedPoint32::EDENOMINATOR`            | `new_exchange_rate_denominator` is zero.                                                   |
+    | `Errors::INVALID_ARGUMENT` | `FixedPoint32::ERATIO_OUT_OF_RANGE`     | The quotient is unrepresentable as a `FixedPoint32`.                                       |
+    | `Errors::LIMIT_EXCEEDED`   | `FixedPoint32::ERATIO_OUT_OF_RANGE`     | The quotient is unrepresentable as a `FixedPoint32`.                                       |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::update_dual_attestation_limit`
+    * `TreasuryComplianceScripts::update_minting_ability`
+    """
+
+    currency: diem_types.TypeTag
+    sliding_nonce: st.uint64
+    new_exchange_rate_numerator: st.uint64
+    new_exchange_rate_denominator: st.uint64
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__UpdateMintingAbility(ScriptFunctionCall):
+    """# Summary
+    Script to allow or disallow minting of new coins in a specified currency.
+
+    This transaction can
+    only be sent by the Treasury Compliance account.  Turning minting off for a currency will have
+    no effect on coins already in circulation, and coins may still be removed from the system.
+
+    # Technical Description
+    This transaction sets the `can_mint` field of the `Diem::CurrencyInfo<Currency>` resource
+    published under `0xA550C18` to the value of `allow_minting`. Minting of coins if allowed if
+    this field is set to `true` and minting of new coins in `Currency` is disallowed otherwise.
+    This transaction needs to be sent by the Treasury Compliance account.
+
+    # Parameters
+    | Name            | Type     | Description                                                                                                                          |
+    | ------          | ------   | -------------                                                                                                                        |
+    | `Currency`      | Type     | The Move type for the `Currency` whose minting ability is being updated. `Currency` must be an already-registered currency on-chain. |
+    | `account`       | `signer` | Signer of the sending account. Must be the Diem Root account.                                                                        |
+    | `allow_minting` | `bool`   | Whether to allow minting of new coins in `Currency`.                                                                                 |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                          | Description                                          |
+    | ----------------           | --------------                        | -------------                                        |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE` | `tc_account` is not the Treasury Compliance account. |
+    | `Errors::NOT_PUBLISHED`    | `Diem::ECURRENCY_INFO`               | `Currency` is not a registered currency on-chain.    |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::update_dual_attestation_limit`
+    * `TreasuryComplianceScripts::update_exchange_rate`
+    """
+
+    currency: diem_types.TypeTag
+    allow_minting: bool
+
+
+from diem.bcs import deserialize as bcs_deserialize, serialize as bcs_serialize
 from diem.diem_types import (
     Script,
+    ScriptFunction,
+    TransactionPayload,
+    TransactionPayload__ScriptFunction,
+    Identifier,
+    ModuleId,
     TypeTag,
     AccountAddress,
     TransactionArgument,
@@ -1655,13 +3377,30 @@ from diem.diem_types import (
 
 def encode_script(call: ScriptCall) -> Script:
     """Build a Diem `Script` from a structured object `ScriptCall`."""
-    helper = SCRIPT_ENCODER_MAP[call.__class__]
+    helper = TRANSACTION_SCRIPT_ENCODER_MAP[call.__class__]
+    return helper(call)
+
+
+def encode_script_function(call: ScriptFunctionCall) -> TransactionPayload:
+    """Build a Diem `ScriptFunction` `TransactionPayload` from a structured object `ScriptFunctionCall`."""
+    helper = SCRIPT_FUNCTION_ENCODER_MAP[call.__class__]
     return helper(call)
 
 
 def decode_script(script: Script) -> ScriptCall:
     """Try to recognize a Diem `Script` and convert it into a structured object `ScriptCall`."""
-    helper = SCRIPT_DECODER_MAP.get(script.code)
+    helper = TRANSACTION_SCRIPT_DECODER_MAP.get(script.code)
+    if helper is None:
+        raise ValueError("Unknown script bytecode")
+    return helper(script)
+
+
+def decode_script_function_payload(payload: TransactionPayload) -> ScriptFunctionCall:
+    """Try to recognize a Diem `TransactionPayload` and convert it into a structured object `ScriptFunctionCall`."""
+    if not isinstance(payload, TransactionPayload__ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    script = payload.value
+    helper = SCRIPT_FUNCTION_DECODER_MAP.get(script.module.name.value + script.function.value)
     if helper is None:
         raise ValueError("Unknown script bytecode")
     return helper(script)
@@ -1704,6 +3443,52 @@ def encode_add_currency_to_account_script(currency: TypeTag) -> Script:
         code=ADD_CURRENCY_TO_ACCOUNT_CODE,
         ty_args=[currency],
         args=[],
+    )
+
+
+def encode_add_currency_to_account_script_function(currency: TypeTag) -> TransactionPayload:
+    """# Summary
+    Adds a zero `Currency` balance to the sending `account`.
+
+    This will enable `account` to
+    send, receive, and hold `Diem::Diem<Currency>` coins. This transaction can be
+    successfully sent by any account that is allowed to hold balances
+    (e.g., VASP, Designated Dealer).
+
+    # Technical Description
+    After the successful execution of this transaction the sending account will have a
+    `DiemAccount::Balance<Currency>` resource with zero balance published under it. Only
+    accounts that can hold balances can send this transaction, the sending account cannot
+    already have a `DiemAccount::Balance<Currency>` published under it.
+
+    # Parameters
+    | Name       | Type     | Description                                                                                                                                         |
+    | ------     | ------   | -------------                                                                                                                                       |
+    | `Currency` | Type     | The Move type for the `Currency` being added to the sending account of the transaction. `Currency` must be an already-registered currency on-chain. |
+    | `account`  | `signer` | The signer of the sending account of the transaction.                                                                                               |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                             | Description                                                                |
+    | ----------------            | --------------                           | -------------                                                              |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                  | The `Currency` is not a registered currency on-chain.                      |
+    | `Errors::INVALID_ARGUMENT`  | `DiemAccount::EROLE_CANT_STORE_BALANCE` | The sending `account`'s role does not permit balances.                     |
+    | `Errors::ALREADY_PUBLISHED` | `DiemAccount::EADD_EXISTING_CURRENCY`   | A balance for `Currency` is already published under the sending `account`. |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("add_currency_to_account"),
+            ty_args=[currency],
+            args=[],
+        )
     )
 
 
@@ -1758,47 +3543,60 @@ def encode_add_recovery_rotation_capability_script(recovery_address: AccountAddr
     )
 
 
-def encode_add_to_script_allow_list_script(hash: bytes, sliding_nonce: st.uint64) -> Script:
+def encode_add_recovery_rotation_capability_script_function(recovery_address: AccountAddress) -> TransactionPayload:
     """# Summary
-    Adds a script hash to the transaction allowlist.
+    Stores the sending accounts ability to rotate its authentication key with a designated recovery
+    account.
 
-    This transaction
-    can only be sent by the Diem Root account. Scripts with this hash can be
-    sent afterward the successful execution of this script.
+    Both the sending and recovery accounts need to belong to the same VASP and
+    both be VASP accounts. After this transaction both the sending account and the
+    specified recovery account can rotate the sender account's authentication key.
 
     # Technical Description
+    Adds the `DiemAccount::KeyRotationCapability` for the sending account
+    (`to_recover_account`) to the `RecoveryAddress::RecoveryAddress` resource under
+    `recovery_address`. After this transaction has been executed successfully the account at
+    `recovery_address` and the `to_recover_account` may rotate the authentication key of
+    `to_recover_account` (the sender of this transaction).
 
-    The sending account (`dr_account`) must be the Diem Root account. The script allow
-    list must not already hold the script `hash` being added. The `sliding_nonce` must be
-    a valid nonce for the Diem Root account. After this transaction has executed
-    successfully a reconfiguration will be initiated, and the on-chain config
-    `DiemTransactionPublishingOption::DiemTransactionPublishingOption`'s
-    `script_allow_list` field will contain the new script `hash` and transactions
-    with this `hash` can be successfully sent to the network.
+    The sending account of this transaction (`to_recover_account`) must not have previously given away its unique key
+    rotation capability, and must be a VASP account. The account at `recovery_address`
+    must also be a VASP account belonging to the same VASP as the `to_recover_account`.
+    Additionally the account at `recovery_address` must have already initialized itself as
+    a recovery account address using the `AccountAdministrationScripts::create_recovery_address` transaction script.
+
+    The sending account's (`to_recover_account`) key rotation capability is
+    removed in this transaction and stored in the `RecoveryAddress::RecoveryAddress`
+    resource stored under the account at `recovery_address`.
 
     # Parameters
-    | Name            | Type         | Description                                                                                     |
-    | ------          | ------       | -------------                                                                                   |
-    | `dr_account`    | `&signer`    | The signer reference of the sending account of this transaction. Must be the Diem Root signer. |
-    | `hash`          | `vector<u8>` | The hash of the script to be added to the script allowlist.                                     |
-    | `sliding_nonce` | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | Name                 | Type      | Description                                                                                               |
+    | ------               | ------    | -------------                                                                                             |
+    | `to_recover_account` | `signer`  | The signer of the sending account of this transaction.                                                    |
+    | `recovery_address`   | `address` | The account address where the `to_recover_account`'s `DiemAccount::KeyRotationCapability` will be stored. |
 
     # Common Abort Conditions
-    | Error Category             | Error Reason                                                           | Description                                                                                |
-    | ----------------           | --------------                                                         | -------------                                                                              |
-    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                                         | A `SlidingNonce` resource is not published under `dr_account`.                             |
-    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                                         | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
-    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                                         | The `sliding_nonce` is too far in the future.                                              |
-    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`                                | The `sliding_nonce` has been previously recorded.                                          |
-    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                                           | The sending account is not the Diem Root account.                                         |
-    | `Errors::REQUIRES_ROLE`    | `Roles::EDIEM_ROOT`                                                   | The sending account is not the Diem Root account.                                         |
-    | `Errors::INVALID_ARGUMENT` | `DiemTransactionPublishingOption::EINVALID_SCRIPT_HASH`               | The script `hash` is an invalid length.                                                    |
-    | `Errors::INVALID_ARGUMENT` | `DiemTransactionPublishingOption::EALLOWLIST_ALREADY_CONTAINS_SCRIPT` | The on-chain allowlist already contains the script `hash`.                                 |
+    | Error Category             | Error Reason                                              | Description                                                                                       |
+    | ----------------           | --------------                                            | -------------                                                                                     |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `to_recover_account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.    |
+    | `Errors::NOT_PUBLISHED`    | `RecoveryAddress::ERECOVERY_ADDRESS`                      | `recovery_address` does not have a `RecoveryAddress` resource published under it.                 |
+    | `Errors::INVALID_ARGUMENT` | `RecoveryAddress::EINVALID_KEY_ROTATION_DELEGATION`       | `to_recover_account` and `recovery_address` do not belong to the same VASP.                       |
+    | `Errors::LIMIT_EXCEEDED`   | ` RecoveryAddress::EMAX_KEYS_REGISTERED`                  | `RecoveryAddress::MAX_REGISTERED_KEYS` have already been registered with this `recovery_address`. |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::create_recovery_address`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
     """
-    return Script(
-        code=ADD_TO_SCRIPT_ALLOW_LIST_CODE,
-        ty_args=[],
-        args=[TransactionArgument__U8Vector(value=hash), TransactionArgument__U64(value=sliding_nonce)],
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("add_recovery_rotation_capability"),
+            ty_args=[],
+            args=[encode_address_argument(recovery_address)],
+        )
     )
 
 
@@ -1861,6 +3659,75 @@ def encode_add_validator_and_reconfigure_script(
             TransactionArgument__U8Vector(value=validator_name),
             TransactionArgument__Address(value=validator_address),
         ],
+    )
+
+
+def encode_add_validator_and_reconfigure_script_function(
+    sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress
+) -> TransactionPayload:
+    """# Summary
+    Adds a validator account to the validator set, and triggers a
+    reconfiguration of the system to admit the account to the validator set for the system.
+
+    This
+    transaction can only be successfully called by the Diem Root account.
+
+    # Technical Description
+    This script adds the account at `validator_address` to the validator set.
+    This transaction emits a `DiemConfig::NewEpochEvent` event and triggers a
+    reconfiguration. Once the reconfiguration triggered by this script's
+    execution has been performed, the account at the `validator_address` is
+    considered to be a validator in the network.
+
+    This transaction script will fail if the `validator_address` address is already in the validator set
+    or does not have a `ValidatorConfig::ValidatorConfig` resource already published under it.
+
+    # Parameters
+    | Name                | Type         | Description                                                                                                                        |
+    | ------              | ------       | -------------                                                                                                                      |
+    | `dr_account`        | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.                                               |
+    | `sliding_nonce`     | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                         |
+    | `validator_name`    | `vector<u8>` | ASCII-encoded human name for the validator. Must match the human name in the `ValidatorConfig::ValidatorConfig` for the validator. |
+    | `validator_address` | `address`    | The validator account address to be added to the validator set.                                                                    |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                 | Description                                                                                                                               |
+    | ----------------           | --------------                               | -------------                                                                                                                             |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`               | A `SlidingNonce` resource is not published under `dr_account`.                                                                            |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`               | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.                                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`               | The `sliding_nonce` is too far in the future.                                                                                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`      | The `sliding_nonce` has been previously recorded.                                                                                         |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                  | The sending account is not the Diem Root account.                                                                                         |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EDIEM_ROOT`                          | The sending account is not the Diem Root account.                                                                                         |
+    | 0                          | 0                                            | The provided `validator_name` does not match the already-recorded human name for the validator.                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemSystem::EINVALID_PROSPECTIVE_VALIDATOR` | The validator to be added does not have a `ValidatorConfig::ValidatorConfig` resource published under it, or its `config` field is empty. |
+    | `Errors::INVALID_ARGUMENT` | `DiemSystem::EALREADY_A_VALIDATOR`           | The `validator_address` account is already a registered validator.                                                                        |
+    | `Errors::INVALID_STATE`    | `DiemConfig::EINVALID_BLOCK_TIME`            | An invalid time value was encountered in reconfiguration. Unlikely to occur.                                                              |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemSystem::EMAX_VALIDATORS`                | The validator set is already at its maximum size. The validator could not be added.                                                       |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("ValidatorAdministrationScripts"),
+            ),
+            function=Identifier("add_validator_and_reconfigure"),
+            ty_args=[],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_u8vector_argument(validator_name),
+                encode_address_argument(validator_address),
+            ],
+        )
     )
 
 
@@ -1971,6 +3838,134 @@ def encode_burn_txn_fees_script(coin_type: TypeTag) -> Script:
     )
 
 
+def encode_burn_txn_fees_script_function(coin_type: TypeTag) -> TransactionPayload:
+    """# Summary
+    Burns the transaction fees collected in the `CoinType` currency so that the
+    Diem association may reclaim the backing coins off-chain.
+
+    May only be sent
+    by the Treasury Compliance account.
+
+    # Technical Description
+    Burns the transaction fees collected in `CoinType` so that the
+    association may reclaim the backing coins. Once this transaction has executed
+    successfully all transaction fees that will have been collected in
+    `CoinType` since the last time this script was called with that specific
+    currency. Both `balance` and `preburn` fields in the
+    `TransactionFee::TransactionFee<CoinType>` resource published under the `0xB1E55ED`
+    account address will have a value of 0 after the successful execution of this script.
+
+    # Events
+    The successful execution of this transaction will emit a `Diem::BurnEvent` on the event handle
+    held in the `Diem::CurrencyInfo<CoinType>` resource's `burn_events` published under
+    `0xA550C18`.
+
+    # Parameters
+    | Name         | Type     | Description                                                                                                                                         |
+    | ------       | ------   | -------------                                                                                                                                       |
+    | `CoinType`   | Type     | The Move type for the `CoinType` being added to the sending account of the transaction. `CoinType` must be an already-registered currency on-chain. |
+    | `tc_account` | `signer` | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                                     |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                          | Description                                                 |
+    | ----------------           | --------------                        | -------------                                               |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE` | The sending account is not the Treasury Compliance account. |
+    | `Errors::NOT_PUBLISHED`    | `TransactionFee::ETRANSACTION_FEE`    | `CoinType` is not an accepted transaction fee currency.     |
+    | `Errors::INVALID_ARGUMENT` | `Diem::ECOIN`                        | The collected fees in `CoinType` are zero.                  |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::burn_with_amount`
+    * `TreasuryComplianceScripts::cancel_burn_with_amount`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("burn_txn_fees"),
+            ty_args=[coin_type],
+            args=[],
+        )
+    )
+
+
+def encode_burn_with_amount_script_function(
+    token: TypeTag, sliding_nonce: st.uint64, preburn_address: AccountAddress, amount: st.uint64
+) -> TransactionPayload:
+    """# Summary
+    Burns the coins held in a preburn resource in the preburn queue at the
+    specified preburn address, which are equal to the `amount` specified in the
+    transaction.
+
+    Finds the first relevant outstanding preburn request with
+    matching amount and removes the contained coins from the system. The sending
+    account must be the Treasury Compliance account.
+    The account that holds the preburn queue resource will normally be a Designated
+    Dealer, but there are no enforced requirements that it be one.
+
+    # Technical Description
+    This transaction permanently destroys all the coins of `Token` type
+    stored in the `Diem::Preburn<Token>` resource published under the
+    `preburn_address` account address.
+
+    This transaction will only succeed if the sending `account` has a
+    `Diem::BurnCapability<Token>`, and a `Diem::Preburn<Token>` resource
+    exists under `preburn_address`, with a non-zero `to_burn` field. After the successful execution
+    of this transaction the `total_value` field in the
+    `Diem::CurrencyInfo<Token>` resource published under `0xA550C18` will be
+    decremented by the value of the `to_burn` field of the preburn resource
+    under `preburn_address` immediately before this transaction, and the
+    `to_burn` field of the preburn resource will have a zero value.
+
+    # Events
+    The successful execution of this transaction will emit a `Diem::BurnEvent` on the event handle
+    held in the `Diem::CurrencyInfo<Token>` resource's `burn_events` published under
+    `0xA550C18`.
+
+    # Parameters
+    | Name              | Type      | Description                                                                                                        |
+    | ------            | ------    | -------------                                                                                                      |
+    | `Token`           | Type      | The Move type for the `Token` currency being burned. `Token` must be an already-registered currency on-chain.      |
+    | `tc_account`      | `signer`  | The signer of the sending account of this transaction, must have a burn capability for `Token` published under it. |
+    | `sliding_nonce`   | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                         |
+    | `preburn_address` | `address` | The address where the coins to-be-burned are currently held.                                                       |
+    | `amount`          | `u64`     | The amount to be burned.                                                                                           |
+
+    # Common Abort Conditions
+    | Error Category                | Error Reason                            | Description                                                                                                                         |
+    | ----------------              | --------------                          | -------------                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`       | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `account`.                                                                         |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.                                          |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                                                                       |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                                                                   |
+    | `Errors::REQUIRES_CAPABILITY` | `Diem::EBURN_CAPABILITY`                | The sending `account` does not have a `Diem::BurnCapability<Token>` published under it.                                             |
+    | `Errors::INVALID_STATE`       | `Diem::EPREBURN_NOT_FOUND`              | The `Diem::PreburnQueue<Token>` resource under `preburn_address` does not contain a preburn request with a value matching `amount`. |
+    | `Errors::NOT_PUBLISHED`       | `Diem::EPREBURN_QUEUE`                  | The account at `preburn_address` does not have a `Diem::PreburnQueue<Token>` resource published under it.                           |
+    | `Errors::NOT_PUBLISHED`       | `Diem::ECURRENCY_INFO`                  | The specified `Token` is not a registered currency on-chain.                                                                        |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::burn_txn_fees`
+    * `TreasuryComplianceScripts::cancel_burn_with_amount`
+    * `TreasuryComplianceScripts::preburn`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("burn_with_amount"),
+            ty_args=[token],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_address_argument(preburn_address),
+                encode_u64_argument(amount),
+            ],
+        )
+    )
+
+
 def encode_cancel_burn_script(token: TypeTag, preburn_address: AccountAddress) -> Script:
     """# Summary
     Cancels and returns all coins held in the preburn area under
@@ -2024,6 +4019,73 @@ def encode_cancel_burn_script(token: TypeTag, preburn_address: AccountAddress) -
         code=CANCEL_BURN_CODE,
         ty_args=[token],
         args=[TransactionArgument__Address(value=preburn_address)],
+    )
+
+
+def encode_cancel_burn_with_amount_script_function(
+    token: TypeTag, preburn_address: AccountAddress, amount: st.uint64
+) -> TransactionPayload:
+    """# Summary
+    Cancels and returns the coins held in the preburn area under
+    `preburn_address`, which are equal to the `amount` specified in the transaction.
+
+    Finds the first preburn
+    resource with the matching amount and returns the funds to the `preburn_address`'s balance.
+    Can only be successfully sent by an account with Treasury Compliance role.
+
+    # Technical Description
+    Cancels and returns all coins held in the `Diem::Preburn<Token>` resource under the `preburn_address` and
+    return the funds to the `preburn_address` account's `DiemAccount::Balance<Token>`.
+    The transaction must be sent by an `account` with a `Diem::BurnCapability<Token>`
+    resource published under it. The account at `preburn_address` must have a
+    `Diem::Preburn<Token>` resource published under it, and its value must be nonzero. The transaction removes
+    the entire balance held in the `Diem::Preburn<Token>` resource, and returns it back to the account's
+    `DiemAccount::Balance<Token>` under `preburn_address`. Due to this, the account at
+    `preburn_address` must already have a balance in the `Token` currency published
+    before this script is called otherwise the transaction will fail.
+
+    # Events
+    The successful execution of this transaction will emit:
+    * A `Diem::CancelBurnEvent` on the event handle held in the `Diem::CurrencyInfo<Token>`
+    resource's `burn_events` published under `0xA550C18`.
+    * A `DiemAccount::ReceivedPaymentEvent` on the `preburn_address`'s
+    `DiemAccount::DiemAccount` `received_events` event handle with both the `payer` and `payee`
+    being `preburn_address`.
+
+    # Parameters
+    | Name              | Type      | Description                                                                                                                          |
+    | ------            | ------    | -------------                                                                                                                        |
+    | `Token`           | Type      | The Move type for the `Token` currenty that burning is being cancelled for. `Token` must be an already-registered currency on-chain. |
+    | `account`         | `signer`  | The signer of the sending account of this transaction, must have a burn capability for `Token` published under it.                   |
+    | `preburn_address` | `address` | The address where the coins to-be-burned are currently held.                                                                         |
+    | `amount`          | `u64`     | The amount to be cancelled.                                                                                                          |
+
+    # Common Abort Conditions
+    | Error Category                | Error Reason                                     | Description                                                                                                                         |
+    | ----------------              | --------------                                   | -------------                                                                                                                       |
+    | `Errors::REQUIRES_CAPABILITY` | `Diem::EBURN_CAPABILITY`                         | The sending `account` does not have a `Diem::BurnCapability<Token>` published under it.                                             |
+    | `Errors::INVALID_STATE`       | `Diem::EPREBURN_NOT_FOUND`                       | The `Diem::PreburnQueue<Token>` resource under `preburn_address` does not contain a preburn request with a value matching `amount`. |
+    | `Errors::NOT_PUBLISHED`       | `Diem::EPREBURN_QUEUE`                           | The account at `preburn_address` does not have a `Diem::PreburnQueue<Token>` resource published under it.                           |
+    | `Errors::NOT_PUBLISHED`       | `Diem::ECURRENCY_INFO`                           | The specified `Token` is not a registered currency on-chain.                                                                        |
+    | `Errors::INVALID_ARGUMENT`    | `DiemAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE`  | The account at `preburn_address` doesn't have a balance resource for `Token`.                                                       |
+    | `Errors::LIMIT_EXCEEDED`      | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`           | The depositing of the funds held in the prebun area would exceed the `account`'s account limits.                                    |
+    | `Errors::INVALID_STATE`       | `DualAttestation::EPAYEE_COMPLIANCE_KEY_NOT_SET` | The `account` does not have a compliance key set on it but dual attestion checking was performed.                                   |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::burn_txn_fees`
+    * `TreasuryComplianceScripts::burn_with_amount`
+    * `TreasuryComplianceScripts::preburn`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("cancel_burn_with_amount"),
+            ty_args=[token],
+            args=[encode_address_argument(preburn_address), encode_u64_argument(amount)],
+        )
     )
 
 
@@ -2102,6 +4164,91 @@ def encode_create_child_vasp_account_script(
     )
 
 
+def encode_create_child_vasp_account_script_function(
+    coin_type: TypeTag,
+    child_address: AccountAddress,
+    auth_key_prefix: bytes,
+    add_all_currencies: bool,
+    child_initial_balance: st.uint64,
+) -> TransactionPayload:
+    """# Summary
+    Creates a Child VASP account with its parent being the sending account of the transaction.
+
+    The sender of the transaction must be a Parent VASP account.
+
+    # Technical Description
+    Creates a `ChildVASP` account for the sender `parent_vasp` at `child_address` with a balance of
+    `child_initial_balance` in `CoinType` and an initial authentication key of
+    `auth_key_prefix | child_address`. Authentication key prefixes, and how to construct them from an ed25519 public key is described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    If `add_all_currencies` is true, the child address will have a zero balance in all available
+    currencies in the system.
+
+    The new account will be a child account of the transaction sender, which must be a
+    Parent VASP account. The child account will be recorded against the limit of
+    child accounts of the creating Parent VASP account.
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `child_address`,
+    and the `rold_id` field being `Roles::CHILD_VASP_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    Successful execution with a `child_initial_balance` greater than zero will additionaly emit:
+    * A `DiemAccount::SentPaymentEvent` with the `payee` field being `child_address`.
+    This is emitted on the Parent VASP's `DiemAccount::DiemAccount` `sent_events` handle.
+    * A `DiemAccount::ReceivedPaymentEvent` with the  `payer` field being the Parent VASP's address.
+    This is emitted on the new Child VASPS's `DiemAccount::DiemAccount` `received_events` handle.
+
+    # Parameters
+    | Name                    | Type         | Description                                                                                                                                 |
+    | ------                  | ------       | -------------                                                                                                                               |
+    | `CoinType`              | Type         | The Move type for the `CoinType` that the child account should be created with. `CoinType` must be an already-registered currency on-chain. |
+    | `parent_vasp`           | `signer`     | The reference of the sending account. Must be a Parent VASP account.                                                                        |
+    | `child_address`         | `address`    | Address of the to-be-created Child VASP account.                                                                                            |
+    | `auth_key_prefix`       | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account.                                                    |
+    | `add_all_currencies`    | `bool`       | Whether to publish balance resources for all known currencies when the account is created.                                                  |
+    | `child_initial_balance` | `u64`        | The initial balance in `CoinType` to give the child account when it's created.                                                              |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                                             | Description                                                                              |
+    | ----------------            | --------------                                           | -------------                                                                            |
+    | `Errors::INVALID_ARGUMENT`  | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`            | The `auth_key_prefix` was not of length 32.                                              |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EPARENT_VASP`                                    | The sending account wasn't a Parent VASP account.                                        |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                                        | The `child_address` address is already taken.                                            |
+    | `Errors::LIMIT_EXCEEDED`    | `VASP::ETOO_MANY_CHILDREN`                               | The sending account has reached the maximum number of allowed child accounts.            |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                                  | The `CoinType` is not a registered currency on-chain.                                    |
+    | `Errors::INVALID_STATE`     | `DiemAccount::EWITHDRAWAL_CAPABILITY_ALREADY_EXTRACTED` | The withdrawal capability for the sending account has already been extracted.            |
+    | `Errors::NOT_PUBLISHED`     | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`              | The sending account doesn't have a balance in `CoinType`.                                |
+    | `Errors::LIMIT_EXCEEDED`    | `DiemAccount::EINSUFFICIENT_BALANCE`                    | The sending account doesn't have at least `child_initial_balance` of `CoinType` balance. |
+    | `Errors::INVALID_ARGUMENT`  | `DiemAccount::ECANNOT_CREATE_AT_VM_RESERVED`            | The `child_address` is the reserved address 0x0.                                         |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::add_recovery_rotation_capability`
+    * `AccountAdministrationScripts::create_recovery_address`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountCreationScripts"),
+            ),
+            function=Identifier("create_child_vasp_account"),
+            ty_args=[coin_type],
+            args=[
+                encode_address_argument(child_address),
+                encode_u8vector_argument(auth_key_prefix),
+                encode_bool_argument(add_all_currencies),
+                encode_u64_argument(child_initial_balance),
+            ],
+        )
+    )
+
+
 def encode_create_designated_dealer_script(
     currency: TypeTag,
     sliding_nonce: st.uint64,
@@ -2165,6 +4312,86 @@ def encode_create_designated_dealer_script(
             TransactionArgument__U8Vector(value=human_name),
             TransactionArgument__Bool(value=add_all_currencies),
         ],
+    )
+
+
+def encode_create_designated_dealer_script_function(
+    currency: TypeTag,
+    sliding_nonce: st.uint64,
+    addr: AccountAddress,
+    auth_key_prefix: bytes,
+    human_name: bytes,
+    add_all_currencies: bool,
+) -> TransactionPayload:
+    """# Summary
+    Creates a Designated Dealer account with the provided information, and initializes it with
+    default mint tiers.
+
+    The transaction can only be sent by the Treasury Compliance account.
+
+    # Technical Description
+    Creates an account with the Designated Dealer role at `addr` with authentication key
+    `auth_key_prefix` | `addr` and a 0 balance of type `Currency`. If `add_all_currencies` is true,
+    0 balances for all available currencies in the system will also be added. This can only be
+    invoked by an account with the TreasuryCompliance role.
+    Authentication keys, prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    At the time of creation the account is also initialized with default mint tiers of (500_000,
+    5000_000, 50_000_000, 500_000_000), and preburn areas for each currency that is added to the
+    account.
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `addr`,
+    and the `rold_id` field being `Roles::DESIGNATED_DEALER_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                 | Type         | Description                                                                                                                                         |
+    | ------               | ------       | -------------                                                                                                                                       |
+    | `Currency`           | Type         | The Move type for the `Currency` that the Designated Dealer should be initialized with. `Currency` must be an already-registered currency on-chain. |
+    | `tc_account`         | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                                     |
+    | `sliding_nonce`      | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                                          |
+    | `addr`               | `address`    | Address of the to-be-created Designated Dealer account.                                                                                             |
+    | `auth_key_prefix`    | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account.                                                            |
+    | `human_name`         | `vector<u8>` | ASCII-encoded human name for the Designated Dealer.                                                                                                 |
+    | `add_all_currencies` | `bool`       | Whether to publish preburn, balance, and tier info resources for all known (SCS) currencies or just `Currency` when the account is created.         |
+
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ETREASURY_COMPLIANCE`   | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::REQUIRES_ROLE`     | `Roles::ETREASURY_COMPLIANCE`           | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                 | The `Currency` is not a registered currency on-chain.                                      |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `addr` address is already taken.                                                       |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::tiered_mint`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountCreationScripts"),
+            ),
+            function=Identifier("create_designated_dealer"),
+            ty_args=[currency],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_address_argument(addr),
+                encode_u8vector_argument(auth_key_prefix),
+                encode_u8vector_argument(human_name),
+                encode_bool_argument(add_all_currencies),
+            ],
+        )
     )
 
 
@@ -2232,6 +4459,84 @@ def encode_create_parent_vasp_account_script(
     )
 
 
+def encode_create_parent_vasp_account_script_function(
+    coin_type: TypeTag,
+    sliding_nonce: st.uint64,
+    new_account_address: AccountAddress,
+    auth_key_prefix: bytes,
+    human_name: bytes,
+    add_all_currencies: bool,
+) -> TransactionPayload:
+    """# Summary
+    Creates a Parent VASP account with the specified human name.
+
+    Must be called by the Treasury Compliance account.
+
+    # Technical Description
+    Creates an account with the Parent VASP role at `address` with authentication key
+    `auth_key_prefix` | `new_account_address` and a 0 balance of type `CoinType`. If
+    `add_all_currencies` is true, 0 balances for all available currencies in the system will
+    also be added. This can only be invoked by an TreasuryCompliance account.
+    `sliding_nonce` is a unique nonce for operation, see `SlidingNonce` for details.
+    Authentication keys, prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `new_account_address`,
+    and the `rold_id` field being `Roles::PARENT_VASP_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                  | Type         | Description                                                                                                                                                    |
+    | ------                | ------       | -------------                                                                                                                                                  |
+    | `CoinType`            | Type         | The Move type for the `CoinType` currency that the Parent VASP account should be initialized with. `CoinType` must be an already-registered currency on-chain. |
+    | `tc_account`          | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                                                |
+    | `sliding_nonce`       | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                                                     |
+    | `new_account_address` | `address`    | Address of the to-be-created Parent VASP account.                                                                                                              |
+    | `auth_key_prefix`     | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account.                                                                       |
+    | `human_name`          | `vector<u8>` | ASCII-encoded human name for the Parent VASP.                                                                                                                  |
+    | `add_all_currencies`  | `bool`       | Whether to publish balance resources for all known currencies when the account is created.                                                                     |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::ETREASURY_COMPLIANCE`   | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::REQUIRES_ROLE`     | `Roles::ETREASURY_COMPLIANCE`           | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::NOT_PUBLISHED`     | `Diem::ECURRENCY_INFO`                 | The `CoinType` is not a registered currency on-chain.                                      |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::add_recovery_rotation_capability`
+    * `AccountAdministrationScripts::create_recovery_address`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountCreationScripts"),
+            ),
+            function=Identifier("create_parent_vasp_account"),
+            ty_args=[coin_type],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_address_argument(new_account_address),
+                encode_u8vector_argument(auth_key_prefix),
+                encode_u8vector_argument(human_name),
+                encode_bool_argument(add_all_currencies),
+            ],
+        )
+    )
+
+
 def encode_create_recovery_address_script() -> Script:
     """# Summary
     Initializes the sending account as a recovery address that may be used by
@@ -2269,6 +4574,52 @@ def encode_create_recovery_address_script() -> Script:
         code=CREATE_RECOVERY_ADDRESS_CODE,
         ty_args=[],
         args=[],
+    )
+
+
+def encode_create_recovery_address_script_function() -> TransactionPayload:
+    """# Summary
+    Initializes the sending account as a recovery address that may be used by
+    other accounts belonging to the same VASP as `account`.
+
+    The sending account must be a VASP account, and can be either a child or parent VASP account.
+    Multiple recovery addresses can exist for a single VASP, but accounts in
+    each must be disjoint.
+
+    # Technical Description
+    Publishes a `RecoveryAddress::RecoveryAddress` resource under `account`. It then
+    extracts the `DiemAccount::KeyRotationCapability` for `account` and adds
+    it to the resource. After the successful execution of this transaction
+    other accounts may add their key rotation to this resource so that `account`
+    may be used as a recovery account for those accounts.
+
+    # Parameters
+    | Name      | Type     | Description                                           |
+    | ------    | ------   | -------------                                         |
+    | `account` | `signer` | The signer of the sending account of the transaction. |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                                               | Description                                                                                   |
+    | ----------------            | --------------                                             | -------------                                                                                 |
+    | `Errors::INVALID_STATE`     | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.          |
+    | `Errors::INVALID_ARGUMENT`  | `RecoveryAddress::ENOT_A_VASP`                             | `account` is not a VASP account.                                                              |
+    | `Errors::INVALID_ARGUMENT`  | `RecoveryAddress::EKEY_ROTATION_DEPENDENCY_CYCLE`          | A key rotation recovery cycle would be created by adding `account`'s key rotation capability. |
+    | `Errors::ALREADY_PUBLISHED` | `RecoveryAddress::ERECOVERY_ADDRESS`                       | A `RecoveryAddress::RecoveryAddress` resource has already been published under `account`.     |
+
+    # Related Scripts
+    * `Script::add_recovery_rotation_capability`
+    * `Script::rotate_authentication_key_with_recovery_address`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("create_recovery_address"),
+            ty_args=[],
+            args=[],
+        )
     )
 
 
@@ -2331,6 +4682,79 @@ def encode_create_validator_account_script(
     )
 
 
+def encode_create_validator_account_script_function(
+    sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
+) -> TransactionPayload:
+    """# Summary
+    Creates a Validator account.
+
+    This transaction can only be sent by the Diem
+    Root account.
+
+    # Technical Description
+    Creates an account with a Validator role at `new_account_address`, with authentication key
+    `auth_key_prefix` | `new_account_address`. It publishes a
+    `ValidatorConfig::ValidatorConfig` resource with empty `config`, and
+    `operator_account` fields. The `human_name` field of the
+    `ValidatorConfig::ValidatorConfig` is set to the passed in `human_name`.
+    This script does not add the validator to the validator set or the system,
+    but only creates the account.
+    Authentication keys, prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `new_account_address`,
+    and the `rold_id` field being `Roles::VALIDATOR_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                  | Type         | Description                                                                              |
+    | ------                | ------       | -------------                                                                            |
+    | `dr_account`          | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.     |
+    | `sliding_nonce`       | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.               |
+    | `new_account_address` | `address`    | Address of the to-be-created Validator account.                                          |
+    | `auth_key_prefix`     | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account. |
+    | `human_name`          | `vector<u8>` | ASCII-encoded human name for the validator.                                              |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `dr_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::EDIEM_ROOT`            | The sending account is not the Diem Root account.                                         |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EDIEM_ROOT`                    | The sending account is not the Diem Root account.                                         |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountCreationScripts"),
+            ),
+            function=Identifier("create_validator_account"),
+            ty_args=[],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_address_argument(new_account_address),
+                encode_u8vector_argument(auth_key_prefix),
+                encode_u8vector_argument(human_name),
+            ],
+        )
+    )
+
+
 def encode_create_validator_operator_account_script(
     sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
 ) -> Script:
@@ -2387,6 +4811,76 @@ def encode_create_validator_operator_account_script(
     )
 
 
+def encode_create_validator_operator_account_script_function(
+    sliding_nonce: st.uint64, new_account_address: AccountAddress, auth_key_prefix: bytes, human_name: bytes
+) -> TransactionPayload:
+    """# Summary
+    Creates a Validator Operator account.
+
+    This transaction can only be sent by the Diem
+    Root account.
+
+    # Technical Description
+    Creates an account with a Validator Operator role at `new_account_address`, with authentication key
+    `auth_key_prefix` | `new_account_address`. It publishes a
+    `ValidatorOperatorConfig::ValidatorOperatorConfig` resource with the specified `human_name`.
+    This script does not assign the validator operator to any validator accounts but only creates the account.
+    Authentication key prefixes, and how to construct them from an ed25519 public key are described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+
+    # Events
+    Successful execution will emit:
+    * A `DiemAccount::CreateAccountEvent` with the `created` field being `new_account_address`,
+    and the `rold_id` field being `Roles::VALIDATOR_OPERATOR_ROLE_ID`. This is emitted on the
+    `DiemAccount::AccountOperationsCapability` `creation_events` handle.
+
+    # Parameters
+    | Name                  | Type         | Description                                                                              |
+    | ------                | ------       | -------------                                                                            |
+    | `dr_account`          | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.     |
+    | `sliding_nonce`       | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.               |
+    | `new_account_address` | `address`    | Address of the to-be-created Validator account.                                          |
+    | `auth_key_prefix`     | `vector<u8>` | The authentication key prefix that will be used initially for the newly created account. |
+    | `human_name`          | `vector<u8>` | ASCII-encoded human name for the validator.                                              |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                            | Description                                                                                |
+    | ----------------            | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`     | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `dr_account`.                             |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT`  | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS`  | `CoreAddresses::EDIEM_ROOT`            | The sending account is not the Diem Root account.                                         |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EDIEM_ROOT`                    | The sending account is not the Diem Root account.                                         |
+    | `Errors::ALREADY_PUBLISHED` | `Roles::EROLE_ID`                       | The `new_account_address` address is already taken.                                        |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountCreationScripts"),
+            ),
+            function=Identifier("create_validator_operator_account"),
+            ty_args=[],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_address_argument(new_account_address),
+                encode_u8vector_argument(auth_key_prefix),
+                encode_u8vector_argument(human_name),
+            ],
+        )
+    )
+
+
 def encode_freeze_account_script(sliding_nonce: st.uint64, to_freeze_account: AccountAddress) -> Script:
     """# Summary
     Freezes the account at `address`.
@@ -2438,6 +4932,107 @@ def encode_freeze_account_script(sliding_nonce: st.uint64, to_freeze_account: Ac
         code=FREEZE_ACCOUNT_CODE,
         ty_args=[],
         args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__Address(value=to_freeze_account)],
+    )
+
+
+def encode_freeze_account_script_function(
+    sliding_nonce: st.uint64, to_freeze_account: AccountAddress
+) -> TransactionPayload:
+    """# Summary
+    Freezes the account at `address`.
+
+    The sending account of this transaction
+    must be the Treasury Compliance account. The account being frozen cannot be
+    the Diem Root or Treasury Compliance account. After the successful
+    execution of this transaction no transactions may be sent from the frozen
+    account, and the frozen account may not send or receive coins.
+
+    # Technical Description
+    Sets the `AccountFreezing::FreezingBit` to `true` and emits a
+    `AccountFreezing::FreezeAccountEvent`. The transaction sender must be the
+    Treasury Compliance account, but the account at `to_freeze_account` must
+    not be either `0xA550C18` (the Diem Root address), or `0xB1E55ED` (the
+    Treasury Compliance address). Note that this is a per-account property
+    e.g., freezing a Parent VASP will not effect the status any of its child
+    accounts and vice versa.
+
+
+    # Events
+    Successful execution of this transaction will emit a `AccountFreezing::FreezeAccountEvent` on
+    the `freeze_event_handle` held in the `AccountFreezing::FreezeEventsHolder` resource published
+    under `0xA550C18` with the `frozen_address` being the `to_freeze_account`.
+
+    # Parameters
+    | Name                | Type      | Description                                                                                     |
+    | ------              | ------    | -------------                                                                                   |
+    | `tc_account`        | `signer`  | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `sliding_nonce`     | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | `to_freeze_account` | `address` | The account address to be frozen.                                                               |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                 | Description                                                                                |
+    | ----------------           | --------------                               | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`               | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`               | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`               | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`      | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`        | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`                | The sending account is not the Treasury Compliance account.                                |
+    | `Errors::INVALID_ARGUMENT` | `AccountFreezing::ECANNOT_FREEZE_TC`         | `to_freeze_account` was the Treasury Compliance account (`0xB1E55ED`).                     |
+    | `Errors::INVALID_ARGUMENT` | `AccountFreezing::ECANNOT_FREEZE_DIEM_ROOT` | `to_freeze_account` was the Diem Root account (`0xA550C18`).                              |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::unfreeze_account`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("freeze_account"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_address_argument(to_freeze_account)],
+        )
+    )
+
+
+def encode_initialize_diem_consensus_config_script_function(sliding_nonce: st.uint64) -> TransactionPayload:
+    """# Summary
+    Initializes the Diem consensus config that is stored on-chain.
+
+    This
+    transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Initializes the `DiemConsensusConfig` on-chain config to empty and allows future updates from DiemRoot via
+    `update_diem_consensus_config`. This doesn't emit a `DiemConfig::NewEpochEvent`.
+
+    # Parameters
+    | Name            | Type      | Description                                                                |
+    | ------          | ------    | -------------                                                              |
+    | `account`       | `signer` | Signer of the sending account. Must be the Diem Root account.               |
+    | `sliding_nonce` | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                  | Description                                                                                |
+    | ----------------           | --------------                                | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`       | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                   | `account` is not the Diem Root account.                                                    |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("SystemAdministrationScripts"),
+            ),
+            function=Identifier("initialize_diem_consensus_config"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce)],
+        )
     )
 
 
@@ -2509,6 +5104,82 @@ def encode_peer_to_peer_with_metadata_script(
     )
 
 
+def encode_peer_to_peer_with_metadata_script_function(
+    currency: TypeTag, payee: AccountAddress, amount: st.uint64, metadata: bytes, metadata_signature: bytes
+) -> TransactionPayload:
+    """# Summary
+    Transfers a given number of coins in a specified currency from one account to another.
+
+    Transfers over a specified amount defined on-chain that are between two different VASPs, or
+    other accounts that have opted-in will be subject to on-chain checks to ensure the receiver has
+    agreed to receive the coins.  This transaction can be sent by any account that can hold a
+    balance, and to any account that can hold a balance. Both accounts must hold balances in the
+    currency being transacted.
+
+    # Technical Description
+
+    Transfers `amount` coins of type `Currency` from `payer` to `payee` with (optional) associated
+    `metadata` and an (optional) `metadata_signature` on the message of the form
+    `metadata` | `Signer::address_of(payer)` | `amount` | `DualAttestation::DOMAIN_SEPARATOR`, that
+    has been signed by the `payee`'s private key associated with the `compliance_public_key` held in
+    the `payee`'s `DualAttestation::Credential`. Both the `Signer::address_of(payer)` and `amount` fields
+    in the `metadata_signature` must be BCS-encoded bytes, and `|` denotes concatenation.
+    The `metadata` and `metadata_signature` parameters are only required if `amount` >=
+    `DualAttestation::get_cur_microdiem_limit` XDX and `payer` and `payee` are distinct VASPs.
+    However, a transaction sender can opt in to dual attestation even when it is not required
+    (e.g., a DesignatedDealer -> VASP payment) by providing a non-empty `metadata_signature`.
+    Standardized `metadata` BCS format can be found in `diem_types::transaction::metadata::Metadata`.
+
+    # Events
+    Successful execution of this script emits two events:
+    * A `DiemAccount::SentPaymentEvent` on `payer`'s `DiemAccount::DiemAccount` `sent_events` handle; and
+    * A `DiemAccount::ReceivedPaymentEvent` on `payee`'s `DiemAccount::DiemAccount` `received_events` handle.
+
+    # Parameters
+    | Name                 | Type         | Description                                                                                                                  |
+    | ------               | ------       | -------------                                                                                                                |
+    | `Currency`           | Type         | The Move type for the `Currency` being sent in this transaction. `Currency` must be an already-registered currency on-chain. |
+    | `payer`              | `signer`     | The signer of the sending account that coins are being transferred from.                                                     |
+    | `payee`              | `address`    | The address of the account the coins are being transferred to.                                                               |
+    | `metadata`           | `vector<u8>` | Optional metadata about this payment.                                                                                        |
+    | `metadata_signature` | `vector<u8>` | Optional signature over `metadata` and payment information. See                                                              |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                     | Description                                                                                                                         |
+    | ----------------           | --------------                                   | -------------                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`       | `payer` doesn't hold a balance in `Currency`.                                                                                       |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EINSUFFICIENT_BALANCE`             | `amount` is greater than `payer`'s balance in `Currency`.                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::ECOIN_DEPOSIT_IS_ZERO`             | `amount` is zero.                                                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYEE_DOES_NOT_EXIST`             | No account exists at the `payee` address.                                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE`  | An account exists at `payee`, but it does not accept payments in `Currency`.                                                        |
+    | `Errors::INVALID_STATE`    | `AccountFreezing::EACCOUNT_FROZEN`               | The `payee` account is frozen.                                                                                                      |
+    | `Errors::INVALID_ARGUMENT` | `DualAttestation::EMALFORMED_METADATA_SIGNATURE` | `metadata_signature` is not 64 bytes.                                                                                               |
+    | `Errors::INVALID_ARGUMENT` | `DualAttestation::EINVALID_METADATA_SIGNATURE`   | `metadata_signature` does not verify on the against the `payee'`s `DualAttestation::Credential` `compliance_public_key` public key. |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EWITHDRAWAL_EXCEEDS_LIMITS`        | `payer` has exceeded its daily withdrawal limits for the backing coins of XDX.                                                      |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`           | `payee` has exceeded its daily deposit limits for XDX.                                                                              |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"), name=Identifier("PaymentScripts")
+            ),
+            function=Identifier("peer_to_peer_with_metadata"),
+            ty_args=[currency],
+            args=[
+                encode_address_argument(payee),
+                encode_u64_argument(amount),
+                encode_u8vector_argument(metadata),
+                encode_u8vector_argument(metadata_signature),
+            ],
+        )
+    )
+
+
 def encode_preburn_script(token: TypeTag, amount: st.uint64) -> Script:
     """# Summary
     Moves a specified number of coins in a given currency from the account's
@@ -2563,6 +5234,66 @@ def encode_preburn_script(token: TypeTag, amount: st.uint64) -> Script:
     )
 
 
+def encode_preburn_script_function(token: TypeTag, amount: st.uint64) -> TransactionPayload:
+    """# Summary
+    Moves a specified number of coins in a given currency from the account's
+    balance to its preburn area after which the coins may be burned.
+
+    This
+    transaction may be sent by any account that holds a balance and preburn area
+    in the specified currency.
+
+    # Technical Description
+    Moves the specified `amount` of coins in `Token` currency from the sending `account`'s
+    `DiemAccount::Balance<Token>` to the `Diem::Preburn<Token>` published under the same
+    `account`. `account` must have both of these resources published under it at the start of this
+    transaction in order for it to execute successfully.
+
+    # Events
+    Successful execution of this script emits two events:
+    * `DiemAccount::SentPaymentEvent ` on `account`'s `DiemAccount::DiemAccount` `sent_events`
+    handle with the `payee` and `payer` fields being `account`'s address; and
+    * A `Diem::PreburnEvent` with `Token`'s currency code on the
+    `Diem::CurrencyInfo<Token`'s `preburn_events` handle for `Token` and with
+    `preburn_address` set to `account`'s address.
+
+    # Parameters
+    | Name      | Type     | Description                                                                                                                      |
+    | ------    | ------   | -------------                                                                                                                    |
+    | `Token`   | Type     | The Move type for the `Token` currency being moved to the preburn area. `Token` must be an already-registered currency on-chain. |
+    | `account` | `signer` | The signer of the sending account.                                                                                               |
+    | `amount`  | `u64`    | The amount in `Token` to be moved to the preburn area.                                                                           |
+
+    # Common Abort Conditions
+    | Error Category           | Error Reason                                             | Description                                                                             |
+    | ----------------         | --------------                                           | -------------                                                                           |
+    | `Errors::NOT_PUBLISHED`  | `Diem::ECURRENCY_INFO`                                  | The `Token` is not a registered currency on-chain.                                      |
+    | `Errors::INVALID_STATE`  | `DiemAccount::EWITHDRAWAL_CAPABILITY_ALREADY_EXTRACTED` | The withdrawal capability for `account` has already been extracted.                     |
+    | `Errors::LIMIT_EXCEEDED` | `DiemAccount::EINSUFFICIENT_BALANCE`                    | `amount` is greater than `payer`'s balance in `Token`.                                  |
+    | `Errors::NOT_PUBLISHED`  | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`              | `account` doesn't hold a balance in `Token`.                                            |
+    | `Errors::NOT_PUBLISHED`  | `Diem::EPREBURN`                                        | `account` doesn't have a `Diem::Preburn<Token>` resource published under it.           |
+    | `Errors::INVALID_STATE`  | `Diem::EPREBURN_OCCUPIED`                               | The `value` field in the `Diem::Preburn<Token>` resource under the sender is non-zero. |
+    | `Errors::NOT_PUBLISHED`  | `Roles::EROLE_ID`                                        | The `account` did not have a role assigned to it.                                       |
+    | `Errors::REQUIRES_ROLE`  | `Roles::EDESIGNATED_DEALER`                              | The `account` did not have the role of DesignatedDealer.                                |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::cancel_burn_with_amount`
+    * `TreasuryComplianceScripts::burn_with_amount`
+    * `TreasuryComplianceScripts::burn_txn_fees`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("preburn"),
+            ty_args=[token],
+            args=[encode_u64_argument(amount)],
+        )
+    )
+
+
 def encode_publish_shared_ed25519_public_key_script(public_key: bytes) -> Script:
     """# Summary
     Rotates the authentication key of the sending account to the
@@ -2597,6 +5328,49 @@ def encode_publish_shared_ed25519_public_key_script(public_key: bytes) -> Script
         code=PUBLISH_SHARED_ED25519_PUBLIC_KEY_CODE,
         ty_args=[],
         args=[TransactionArgument__U8Vector(value=public_key)],
+    )
+
+
+def encode_publish_shared_ed25519_public_key_script_function(public_key: bytes) -> TransactionPayload:
+    """# Summary
+    Rotates the authentication key of the sending account to the newly-specified ed25519 public key and
+    publishes a new shared authentication key derived from that public key under the sender's account.
+
+    Any account can send this transaction.
+
+    # Technical Description
+    Rotates the authentication key of the sending account to the
+    [authentication key derived from `public_key`](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys)
+    and publishes a `SharedEd25519PublicKey::SharedEd25519PublicKey` resource
+    containing the 32-byte ed25519 `public_key` and the `DiemAccount::KeyRotationCapability` for
+    `account` under `account`.
+
+    # Parameters
+    | Name         | Type         | Description                                                                                        |
+    | ------       | ------       | -------------                                                                                      |
+    | `account`    | `signer`     | The signer of the sending account of the transaction.                                              |
+    | `public_key` | `vector<u8>` | A valid 32-byte Ed25519 public key for `account`'s authentication key to be rotated to and stored. |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason                                               | Description                                                                                         |
+    | ----------------            | --------------                                             | -------------                                                                                       |
+    | `Errors::INVALID_STATE`     | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability` resource.       |
+    | `Errors::ALREADY_PUBLISHED` | `SharedEd25519PublicKey::ESHARED_KEY`                      | The `SharedEd25519PublicKey::SharedEd25519PublicKey` resource is already published under `account`. |
+    | `Errors::INVALID_ARGUMENT`  | `SharedEd25519PublicKey::EMALFORMED_PUBLIC_KEY`            | `public_key` is an invalid ed25519 public key.                                                      |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_shared_ed25519_public_key`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("publish_shared_ed25519_public_key"),
+            ty_args=[],
+            args=[encode_u8vector_argument(public_key)],
+        )
     )
 
 
@@ -2654,6 +5428,69 @@ def encode_register_validator_config_script(
             TransactionArgument__U8Vector(value=validator_network_addresses),
             TransactionArgument__U8Vector(value=fullnode_network_addresses),
         ],
+    )
+
+
+def encode_register_validator_config_script_function(
+    validator_account: AccountAddress,
+    consensus_pubkey: bytes,
+    validator_network_addresses: bytes,
+    fullnode_network_addresses: bytes,
+) -> TransactionPayload:
+    """# Summary
+    Updates a validator's configuration.
+
+    This does not reconfigure the system and will not update
+    the configuration in the validator set that is seen by other validators in the network. Can
+    only be successfully sent by a Validator Operator account that is already registered with a
+    validator.
+
+    # Technical Description
+    This updates the fields with corresponding names held in the `ValidatorConfig::ValidatorConfig`
+    config resource held under `validator_account`. It does not emit a `DiemConfig::NewEpochEvent`
+    so the copy of this config held in the validator set will not be updated, and the changes are
+    only "locally" under the `validator_account` account address.
+
+    # Parameters
+    | Name                          | Type         | Description                                                                                                        |
+    | ------                        | ------       | -------------                                                                                                      |
+    | `validator_operator_account`  | `signer`     | Signer of the sending account. Must be the registered validator operator for the validator at `validator_address`. |
+    | `validator_account`           | `address`    | The address of the validator's `ValidatorConfig::ValidatorConfig` resource being updated.                          |
+    | `consensus_pubkey`            | `vector<u8>` | New Ed25519 public key to be used in the updated `ValidatorConfig::ValidatorConfig`.                               |
+    | `validator_network_addresses` | `vector<u8>` | New set of `validator_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.             |
+    | `fullnode_network_addresses`  | `vector<u8>` | New set of `fullnode_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.              |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                   | Description                                                                                           |
+    | ----------------           | --------------                                 | -------------                                                                                         |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`           | `validator_address` does not have a `ValidatorConfig::ValidatorConfig` resource published under it.   |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_TRANSACTION_SENDER` | `validator_operator_account` is not the registered operator for the validator at `validator_address`. |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_CONSENSUS_KEY`      | `consensus_pubkey` is not a valid ed25519 public key.                                                 |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("ValidatorAdministrationScripts"),
+            ),
+            function=Identifier("register_validator_config"),
+            ty_args=[],
+            args=[
+                encode_address_argument(validator_account),
+                encode_u8vector_argument(consensus_pubkey),
+                encode_u8vector_argument(validator_network_addresses),
+                encode_u8vector_argument(fullnode_network_addresses),
+            ],
+        )
     )
 
 
@@ -2716,6 +5553,71 @@ def encode_remove_validator_and_reconfigure_script(
     )
 
 
+def encode_remove_validator_and_reconfigure_script_function(
+    sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress
+) -> TransactionPayload:
+    """# Summary
+    This script removes a validator account from the validator set, and triggers a reconfiguration
+    of the system to remove the validator from the system.
+
+    This transaction can only be
+    successfully called by the Diem Root account.
+
+    # Technical Description
+    This script removes the account at `validator_address` from the validator set. This transaction
+    emits a `DiemConfig::NewEpochEvent` event. Once the reconfiguration triggered by this event
+    has been performed, the account at `validator_address` is no longer considered to be a
+    validator in the network. This transaction will fail if the validator at `validator_address`
+    is not in the validator set.
+
+    # Parameters
+    | Name                | Type         | Description                                                                                                                        |
+    | ------              | ------       | -------------                                                                                                                      |
+    | `dr_account`        | `signer`     | The signer of the sending account of this transaction. Must be the Diem Root signer.                                               |
+    | `sliding_nonce`     | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                                         |
+    | `validator_name`    | `vector<u8>` | ASCII-encoded human name for the validator. Must match the human name in the `ValidatorConfig::ValidatorConfig` for the validator. |
+    | `validator_address` | `address`    | The validator account address to be removed from the validator set.                                                                |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                     |
+    | ----------------           | --------------                          | -------------                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `dr_account`.                                  |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.      |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                                   |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                               |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | The sending account is not the Diem Root account or Treasury Compliance account                |
+    | 0                          | 0                                       | The provided `validator_name` does not match the already-recorded human name for the validator. |
+    | `Errors::INVALID_ARGUMENT` | `DiemSystem::ENOT_AN_ACTIVE_VALIDATOR` | The validator to be removed is not in the validator set.                                        |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`            | The sending account is not the Diem Root account.                                              |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EDIEM_ROOT`                    | The sending account is not the Diem Root account.                                              |
+    | `Errors::INVALID_STATE`    | `DiemConfig::EINVALID_BLOCK_TIME`      | An invalid time value was encountered in reconfiguration. Unlikely to occur.                    |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("ValidatorAdministrationScripts"),
+            ),
+            function=Identifier("remove_validator_and_reconfigure"),
+            ty_args=[],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_u8vector_argument(validator_name),
+                encode_address_argument(validator_address),
+            ],
+        )
+    )
+
+
 def encode_rotate_authentication_key_script(new_key: bytes) -> Script:
     """# Summary
     Rotates the transaction sender's authentication key to the supplied new authentication key.
@@ -2749,6 +5651,48 @@ def encode_rotate_authentication_key_script(new_key: bytes) -> Script:
         code=ROTATE_AUTHENTICATION_KEY_CODE,
         ty_args=[],
         args=[TransactionArgument__U8Vector(value=new_key)],
+    )
+
+
+def encode_rotate_authentication_key_script_function(new_key: bytes) -> TransactionPayload:
+    """# Summary
+    Rotates the `account`'s authentication key to the supplied new authentication key.
+
+    May be sent by any account.
+
+    # Technical Description
+    Rotate the `account`'s `DiemAccount::DiemAccount` `authentication_key`
+    field to `new_key`. `new_key` must be a valid authentication key that
+    corresponds to an ed25519 public key as described [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys),
+    and `account` must not have previously delegated its `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name      | Type         | Description                                       |
+    | ------    | ------       | -------------                                     |
+    | `account` | `signer`     | Signer of the sending account of the transaction. |
+    | `new_key` | `vector<u8>` | New authentication key to be used for `account`.  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                              | Description                                                                         |
+    | ----------------           | --------------                                            | -------------                                                                       |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`. |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`              | `new_key` was an invalid length.                                                    |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce_admin`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("rotate_authentication_key"),
+            ty_args=[],
+            args=[encode_u8vector_argument(new_key)],
+        )
     )
 
 
@@ -2794,6 +5738,57 @@ def encode_rotate_authentication_key_with_nonce_script(sliding_nonce: st.uint64,
     )
 
 
+def encode_rotate_authentication_key_with_nonce_script_function(
+    sliding_nonce: st.uint64, new_key: bytes
+) -> TransactionPayload:
+    """# Summary
+    Rotates the sender's authentication key to the supplied new authentication key.
+
+    May be sent by
+    any account that has a sliding nonce resource published under it (usually this is Treasury
+    Compliance or Diem Root accounts).
+
+    # Technical Description
+    Rotates the `account`'s `DiemAccount::DiemAccount` `authentication_key`
+    field to `new_key`. `new_key` must be a valid authentication key that
+    corresponds to an ed25519 public key as described [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys),
+    and `account` must not have previously delegated its `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name            | Type         | Description                                                                |
+    | ------          | ------       | -------------                                                              |
+    | `account`       | `signer`     | Signer of the sending account of the transaction.                          |
+    | `sliding_nonce` | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+    | `new_key`       | `vector<u8>` | New authentication key to be used for `account`.                           |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                               | Description                                                                                |
+    | ----------------           | --------------                                             | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                             | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                             | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                             | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`                    | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.       |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`              | `new_key` was an invalid length.                                                           |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce_admin`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("rotate_authentication_key_with_nonce"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_u8vector_argument(new_key)],
+        )
+    )
+
+
 def encode_rotate_authentication_key_with_nonce_admin_script(sliding_nonce: st.uint64, new_key: bytes) -> Script:
     """# Summary
     Rotates the specified account's authentication key to the supplied new authentication key.
@@ -2833,6 +5828,57 @@ def encode_rotate_authentication_key_with_nonce_admin_script(sliding_nonce: st.u
         code=ROTATE_AUTHENTICATION_KEY_WITH_NONCE_ADMIN_CODE,
         ty_args=[],
         args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U8Vector(value=new_key)],
+    )
+
+
+def encode_rotate_authentication_key_with_nonce_admin_script_function(
+    sliding_nonce: st.uint64, new_key: bytes
+) -> TransactionPayload:
+    """# Summary
+    Rotates the specified account's authentication key to the supplied new authentication key.
+
+    May
+    only be sent by the Diem Root account as a write set transaction.
+
+    # Technical Description
+    Rotate the `account`'s `DiemAccount::DiemAccount` `authentication_key` field to `new_key`.
+    `new_key` must be a valid authentication key that corresponds to an ed25519
+    public key as described [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys),
+    and `account` must not have previously delegated its `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name            | Type         | Description                                                                                       |
+    | ------          | ------       | -------------                                                                                     |
+    | `dr_account`    | `signer`     | The signer of the sending account of the write set transaction. May only be the Diem Root signer. |
+    | `account`       | `signer`     | Signer of account specified in the `execute_as` field of the write set transaction.               |
+    | `sliding_nonce` | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction for Diem Root.          |
+    | `new_key`       | `vector<u8>` | New authentication key to be used for `account`.                                                  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                              | Description                                                                                                |
+    | ----------------           | --------------                                            | -------------                                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                            | A `SlidingNonce` resource is not published under `dr_account`.                                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                            | The `sliding_nonce` in `dr_account` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                            | The `sliding_nonce` in `dr_account` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`                   | The `sliding_nonce` in` dr_account` has been previously recorded.                                          |
+    | `Errors::INVALID_STATE`    | `DiemAccount::EKEY_ROTATION_CAPABILITY_ALREADY_EXTRACTED` | `account` has already delegated/extracted its `DiemAccount::KeyRotationCapability`.                        |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY`              | `new_key` was an invalid length.                                                                           |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_recovery_address`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("rotate_authentication_key_with_nonce_admin"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_u8vector_argument(new_key)],
+        )
     )
 
 
@@ -2885,6 +5931,62 @@ def encode_rotate_authentication_key_with_recovery_address_script(
     )
 
 
+def encode_rotate_authentication_key_with_recovery_address_script_function(
+    recovery_address: AccountAddress, to_recover: AccountAddress, new_key: bytes
+) -> TransactionPayload:
+    """# Summary
+    Rotates the authentication key of a specified account that is part of a recovery address to a
+    new authentication key.
+
+    Only used for accounts that are part of a recovery address (see
+    `AccountAdministrationScripts::add_recovery_rotation_capability` for account restrictions).
+
+    # Technical Description
+    Rotates the authentication key of the `to_recover` account to `new_key` using the
+    `DiemAccount::KeyRotationCapability` stored in the `RecoveryAddress::RecoveryAddress` resource
+    published under `recovery_address`. `new_key` must be a valide authentication key as described
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys).
+    This transaction can be sent either by the `to_recover` account, or by the account where the
+    `RecoveryAddress::RecoveryAddress` resource is published that contains `to_recover`'s `DiemAccount::KeyRotationCapability`.
+
+    # Parameters
+    | Name               | Type         | Description                                                                                                                   |
+    | ------             | ------       | -------------                                                                                                                 |
+    | `account`          | `signer`     | Signer of the sending account of the transaction.                                                                             |
+    | `recovery_address` | `address`    | Address where `RecoveryAddress::RecoveryAddress` that holds `to_recover`'s `DiemAccount::KeyRotationCapability` is published. |
+    | `to_recover`       | `address`    | The address of the account whose authentication key will be updated.                                                          |
+    | `new_key`          | `vector<u8>` | New authentication key to be used for the account at the `to_recover` address.                                                |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                 | Description                                                                                                                                         |
+    | ----------------           | --------------                               | -------------                                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`    | `RecoveryAddress::ERECOVERY_ADDRESS`         | `recovery_address` does not have a `RecoveryAddress::RecoveryAddress` resource published under it.                                                  |
+    | `Errors::INVALID_ARGUMENT` | `RecoveryAddress::ECANNOT_ROTATE_KEY`        | The address of `account` is not `recovery_address` or `to_recover`.                                                                                 |
+    | `Errors::INVALID_ARGUMENT` | `RecoveryAddress::EACCOUNT_NOT_RECOVERABLE`  | `to_recover`'s `DiemAccount::KeyRotationCapability`  is not in the `RecoveryAddress::RecoveryAddress`  resource published under `recovery_address`. |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EMALFORMED_AUTHENTICATION_KEY` | `new_key` was an invalid length.                                                                                                                    |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::rotate_authentication_key`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce`
+    * `AccountAdministrationScripts::rotate_authentication_key_with_nonce_admin`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("rotate_authentication_key_with_recovery_address"),
+            ty_args=[],
+            args=[
+                encode_address_argument(recovery_address),
+                encode_address_argument(to_recover),
+                encode_u8vector_argument(new_key),
+            ],
+        )
+    )
+
+
 def encode_rotate_dual_attestation_info_script(new_url: bytes, new_key: bytes) -> Script:
     """# Summary
     Updates the url used for off-chain communication, and the public key used to verify dual
@@ -2932,6 +6034,59 @@ def encode_rotate_dual_attestation_info_script(new_url: bytes, new_key: bytes) -
     )
 
 
+def encode_rotate_dual_attestation_info_script_function(new_url: bytes, new_key: bytes) -> TransactionPayload:
+    """# Summary
+    Updates the url used for off-chain communication, and the public key used to verify dual
+    attestation on-chain.
+
+    Transaction can be sent by any account that has dual attestation
+    information published under it. In practice the only such accounts are Designated Dealers and
+    Parent VASPs.
+
+    # Technical Description
+    Updates the `base_url` and `compliance_public_key` fields of the `DualAttestation::Credential`
+    resource published under `account`. The `new_key` must be a valid ed25519 public key.
+
+    # Events
+    Successful execution of this transaction emits two events:
+    * A `DualAttestation::ComplianceKeyRotationEvent` containing the new compliance public key, and
+    the blockchain time at which the key was updated emitted on the `DualAttestation::Credential`
+    `compliance_key_rotation_events` handle published under `account`; and
+    * A `DualAttestation::BaseUrlRotationEvent` containing the new base url to be used for
+    off-chain communication, and the blockchain time at which the url was updated emitted on the
+    `DualAttestation::Credential` `base_url_rotation_events` handle published under `account`.
+
+    # Parameters
+    | Name      | Type         | Description                                                               |
+    | ------    | ------       | -------------                                                             |
+    | `account` | `signer`     | Signer of the sending account of the transaction.                         |
+    | `new_url` | `vector<u8>` | ASCII-encoded url to be used for off-chain communication with `account`.  |
+    | `new_key` | `vector<u8>` | New ed25519 public key to be used for on-chain dual attestation checking. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                           | Description                                                                |
+    | ----------------           | --------------                         | -------------                                                              |
+    | `Errors::NOT_PUBLISHED`    | `DualAttestation::ECREDENTIAL`         | A `DualAttestation::Credential` resource is not published under `account`. |
+    | `Errors::INVALID_ARGUMENT` | `DualAttestation::EINVALID_PUBLIC_KEY` | `new_key` is not a valid ed25519 public key.                               |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountCreationScripts::create_designated_dealer`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("rotate_dual_attestation_info"),
+            ty_args=[],
+            args=[encode_u8vector_argument(new_url), encode_u8vector_argument(new_key)],
+        )
+    )
+
+
 def encode_rotate_shared_ed25519_public_key_script(public_key: bytes) -> Script:
     """# Summary
     Rotates the authentication key in a `SharedEd25519PublicKey`.
@@ -2965,6 +6120,126 @@ def encode_rotate_shared_ed25519_public_key_script(public_key: bytes) -> Script:
         code=ROTATE_SHARED_ED25519_PUBLIC_KEY_CODE,
         ty_args=[],
         args=[TransactionArgument__U8Vector(value=public_key)],
+    )
+
+
+def encode_rotate_shared_ed25519_public_key_script_function(public_key: bytes) -> TransactionPayload:
+    """# Summary
+    Rotates the authentication key in a `SharedEd25519PublicKey`.
+
+    This transaction can be sent by
+    any account that has previously published a shared ed25519 public key using
+    `AccountAdministrationScripts::publish_shared_ed25519_public_key`.
+
+    # Technical Description
+    `public_key` must be a valid ed25519 public key.  This transaction first rotates the public key stored in `account`'s
+    `SharedEd25519PublicKey::SharedEd25519PublicKey` resource to `public_key`, after which it
+    rotates the `account`'s authentication key to the new authentication key derived from `public_key` as defined
+    [here](https://developers.diem.com/docs/core/accounts/#addresses-authentication-keys-and-cryptographic-keys)
+    using the `DiemAccount::KeyRotationCapability` stored in `account`'s `SharedEd25519PublicKey::SharedEd25519PublicKey`.
+
+    # Parameters
+    | Name         | Type         | Description                                           |
+    | ------       | ------       | -------------                                         |
+    | `account`    | `signer`     | The signer of the sending account of the transaction. |
+    | `public_key` | `vector<u8>` | 32-byte Ed25519 public key.                           |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                    | Description                                                                                   |
+    | ----------------           | --------------                                  | -------------                                                                                 |
+    | `Errors::NOT_PUBLISHED`    | `SharedEd25519PublicKey::ESHARED_KEY`           | A `SharedEd25519PublicKey::SharedEd25519PublicKey` resource is not published under `account`. |
+    | `Errors::INVALID_ARGUMENT` | `SharedEd25519PublicKey::EMALFORMED_PUBLIC_KEY` | `public_key` is an invalid ed25519 public key.                                                |
+
+    # Related Scripts
+    * `AccountAdministrationScripts::publish_shared_ed25519_public_key`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("rotate_shared_ed25519_public_key"),
+            ty_args=[],
+            args=[encode_u8vector_argument(public_key)],
+        )
+    )
+
+
+def encode_set_gas_constants_script_function(
+    sliding_nonce: st.uint64,
+    global_memory_per_byte_cost: st.uint64,
+    global_memory_per_byte_write_cost: st.uint64,
+    min_transaction_gas_units: st.uint64,
+    large_transaction_cutoff: st.uint64,
+    intrinsic_gas_per_byte: st.uint64,
+    maximum_number_of_gas_units: st.uint64,
+    min_price_per_gas_unit: st.uint64,
+    max_price_per_gas_unit: st.uint64,
+    max_transaction_size_in_bytes: st.uint64,
+    gas_unit_scaling_factor: st.uint64,
+    default_account_size: st.uint64,
+) -> TransactionPayload:
+    """# Summary
+    Updates the gas constants stored on chain and used by the VM for gas
+    metering.
+
+    This transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Updates the on-chain config holding the `DiemVMConfig` and emits a
+    `DiemConfig::NewEpochEvent` to trigger a reconfiguration of the system.
+
+    # Parameters
+    | Name                                | Type     | Description                                                                                            |
+    | ------                              | ------   | -------------                                                                                          |
+    | `account`                           | `signer` | Signer of the sending account. Must be the Diem Root account.                                          |
+    | `sliding_nonce`                     | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                             |
+    | `global_memory_per_byte_cost`       | `u64`    | The new cost to read global memory per-byte to be used for gas metering.                               |
+    | `global_memory_per_byte_write_cost` | `u64`    | The new cost to write global memory per-byte to be used for gas metering.                              |
+    | `min_transaction_gas_units`         | `u64`    | The new flat minimum amount of gas required for any transaction.                                       |
+    | `large_transaction_cutoff`          | `u64`    | The new size over which an additional charge will be assessed for each additional byte.                |
+    | `intrinsic_gas_per_byte`            | `u64`    | The new number of units of gas that to be charged per-byte over the new `large_transaction_cutoff`.    |
+    | `maximum_number_of_gas_units`       | `u64`    | The new maximum number of gas units that can be set in a transaction.                                  |
+    | `min_price_per_gas_unit`            | `u64`    | The new minimum gas price that can be set for a transaction.                                           |
+    | `max_price_per_gas_unit`            | `u64`    | The new maximum gas price that can be set for a transaction.                                           |
+    | `max_transaction_size_in_bytes`     | `u64`    | The new maximum size of a transaction that can be processed.                                           |
+    | `gas_unit_scaling_factor`           | `u64`    | The new scaling factor to use when scaling between external and internal gas units.                    |
+    | `default_account_size`              | `u64`    | The new default account size to use when assessing final costs for reads and writes to global storage. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                | Description                                                                                |
+    | ----------------           | --------------                              | -------------                                                                              |
+    | `Errors::INVALID_ARGUMENT` | `DiemVMConfig::EGAS_CONSTANT_INCONSISTENCY` | The provided gas constants are inconsistent.                                               |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`              | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`              | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`              | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`     | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                 | `account` is not the Diem Root account.                                                    |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("SystemAdministrationScripts"),
+            ),
+            function=Identifier("set_gas_constants"),
+            ty_args=[],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_u64_argument(global_memory_per_byte_cost),
+                encode_u64_argument(global_memory_per_byte_write_cost),
+                encode_u64_argument(min_transaction_gas_units),
+                encode_u64_argument(large_transaction_cutoff),
+                encode_u64_argument(intrinsic_gas_per_byte),
+                encode_u64_argument(maximum_number_of_gas_units),
+                encode_u64_argument(min_price_per_gas_unit),
+                encode_u64_argument(max_price_per_gas_unit),
+                encode_u64_argument(max_transaction_size_in_bytes),
+                encode_u64_argument(gas_unit_scaling_factor),
+                encode_u64_argument(default_account_size),
+            ],
+        )
     )
 
 
@@ -3026,6 +6301,70 @@ def encode_set_validator_config_and_reconfigure_script(
     )
 
 
+def encode_set_validator_config_and_reconfigure_script_function(
+    validator_account: AccountAddress,
+    consensus_pubkey: bytes,
+    validator_network_addresses: bytes,
+    fullnode_network_addresses: bytes,
+) -> TransactionPayload:
+    """# Summary
+    Updates a validator's configuration, and triggers a reconfiguration of the system to update the
+    validator set with this new validator configuration.
+
+    Can only be successfully sent by a
+    Validator Operator account that is already registered with a validator.
+
+    # Technical Description
+    This updates the fields with corresponding names held in the `ValidatorConfig::ValidatorConfig`
+    config resource held under `validator_account`. It then emits a `DiemConfig::NewEpochEvent` to
+    trigger a reconfiguration of the system.  This reconfiguration will update the validator set
+    on-chain with the updated `ValidatorConfig::ValidatorConfig`.
+
+    # Parameters
+    | Name                          | Type         | Description                                                                                                        |
+    | ------                        | ------       | -------------                                                                                                      |
+    | `validator_operator_account`  | `signer`     | Signer of the sending account. Must be the registered validator operator for the validator at `validator_address`. |
+    | `validator_account`           | `address`    | The address of the validator's `ValidatorConfig::ValidatorConfig` resource being updated.                          |
+    | `consensus_pubkey`            | `vector<u8>` | New Ed25519 public key to be used in the updated `ValidatorConfig::ValidatorConfig`.                               |
+    | `validator_network_addresses` | `vector<u8>` | New set of `validator_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.             |
+    | `fullnode_network_addresses`  | `vector<u8>` | New set of `fullnode_network_addresses` to be used in the updated `ValidatorConfig::ValidatorConfig`.              |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                   | Description                                                                                           |
+    | ----------------           | --------------                                 | -------------                                                                                         |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`           | `validator_address` does not have a `ValidatorConfig::ValidatorConfig` resource published under it.   |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EVALIDATOR_OPERATOR`                   | `validator_operator_account` does not have a Validator Operator role.                                 |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_TRANSACTION_SENDER` | `validator_operator_account` is not the registered operator for the validator at `validator_address`. |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::EINVALID_CONSENSUS_KEY`      | `consensus_pubkey` is not a valid ed25519 public key.                                                 |
+    | `Errors::INVALID_STATE`    | `DiemConfig::EINVALID_BLOCK_TIME`             | An invalid time value was encountered in reconfiguration. Unlikely to occur.                          |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("ValidatorAdministrationScripts"),
+            ),
+            function=Identifier("set_validator_config_and_reconfigure"),
+            ty_args=[],
+            args=[
+                encode_address_argument(validator_account),
+                encode_u8vector_argument(consensus_pubkey),
+                encode_u8vector_argument(validator_network_addresses),
+                encode_u8vector_argument(fullnode_network_addresses),
+            ],
+        )
+    )
+
+
 def encode_set_validator_operator_script(operator_name: bytes, operator_account: AccountAddress) -> Script:
     """# Summary
     Sets the validator operator for a validator in the validator's configuration resource "locally"
@@ -3072,6 +6411,63 @@ def encode_set_validator_operator_script(operator_name: bytes, operator_account:
         code=SET_VALIDATOR_OPERATOR_CODE,
         ty_args=[],
         args=[TransactionArgument__U8Vector(value=operator_name), TransactionArgument__Address(value=operator_account)],
+    )
+
+
+def encode_set_validator_operator_script_function(
+    operator_name: bytes, operator_account: AccountAddress
+) -> TransactionPayload:
+    """# Summary
+    Sets the validator operator for a validator in the validator's configuration resource "locally"
+    and does not reconfigure the system.
+
+    Changes from this transaction will not picked up by the
+    system until a reconfiguration of the system is triggered. May only be sent by an account with
+    Validator role.
+
+    # Technical Description
+    Sets the account at `operator_account` address and with the specified `human_name` as an
+    operator for the sending validator account. The account at `operator_account` address must have
+    a Validator Operator role and have a `ValidatorOperatorConfig::ValidatorOperatorConfig`
+    resource published under it. The sending `account` must be a Validator and have a
+    `ValidatorConfig::ValidatorConfig` resource published under it. This script does not emit a
+    `DiemConfig::NewEpochEvent` and no reconfiguration of the system is initiated by this script.
+
+    # Parameters
+    | Name               | Type         | Description                                                                                  |
+    | ------             | ------       | -------------                                                                                |
+    | `account`          | `signer`     | The signer of the sending account of the transaction.                                        |
+    | `operator_name`    | `vector<u8>` | Validator operator's human name.                                                             |
+    | `operator_account` | `address`    | Address of the validator operator account to be added as the `account` validator's operator. |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                          | Description                                                                                                                                                  |
+    | ----------------           | --------------                                        | -------------                                                                                                                                                |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorOperatorConfig::EVALIDATOR_OPERATOR_CONFIG` | The `ValidatorOperatorConfig::ValidatorOperatorConfig` resource is not published under `operator_account`.                                                   |
+    | 0                          | 0                                                     | The `human_name` field of the `ValidatorOperatorConfig::ValidatorOperatorConfig` resource under `operator_account` does not match the provided `human_name`. |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EVALIDATOR`                                   | `account` does not have a Validator account role.                                                                                                            |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::ENOT_A_VALIDATOR_OPERATOR`          | The account at `operator_account` does not have a `ValidatorOperatorConfig::ValidatorOperatorConfig` resource.                                               |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`                  | A `ValidatorConfig::ValidatorConfig` is not published under `account`.                                                                                       |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator_with_nonce_admin`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("ValidatorAdministrationScripts"),
+            ),
+            function=Identifier("set_validator_operator"),
+            ty_args=[],
+            args=[encode_u8vector_argument(operator_name), encode_address_argument(operator_account)],
+        )
     )
 
 
@@ -3134,6 +6530,74 @@ def encode_set_validator_operator_with_nonce_admin_script(
             TransactionArgument__U8Vector(value=operator_name),
             TransactionArgument__Address(value=operator_account),
         ],
+    )
+
+
+def encode_set_validator_operator_with_nonce_admin_script_function(
+    sliding_nonce: st.uint64, operator_name: bytes, operator_account: AccountAddress
+) -> TransactionPayload:
+    """# Summary
+    Sets the validator operator for a validator in the validator's configuration resource "locally"
+    and does not reconfigure the system.
+
+    Changes from this transaction will not picked up by the
+    system until a reconfiguration of the system is triggered. May only be sent by the Diem Root
+    account as a write set transaction.
+
+    # Technical Description
+    Sets the account at `operator_account` address and with the specified `human_name` as an
+    operator for the validator `account`. The account at `operator_account` address must have a
+    Validator Operator role and have a `ValidatorOperatorConfig::ValidatorOperatorConfig` resource
+    published under it. The account represented by the `account` signer must be a Validator and
+    have a `ValidatorConfig::ValidatorConfig` resource published under it. No reconfiguration of
+    the system is initiated by this script.
+
+    # Parameters
+    | Name               | Type         | Description                                                                                   |
+    | ------             | ------       | -------------                                                                                 |
+    | `dr_account`       | `signer`     | Signer of the sending account of the write set transaction. May only be the Diem Root signer. |
+    | `account`          | `signer`     | Signer of account specified in the `execute_as` field of the write set transaction.           |
+    | `sliding_nonce`    | `u64`        | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction for Diem Root.      |
+    | `operator_name`    | `vector<u8>` | Validator operator's human name.                                                              |
+    | `operator_account` | `address`    | Address of the validator operator account to be added as the `account` validator's operator.  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                          | Description                                                                                                                                                  |
+    | ----------------           | --------------                                        | -------------                                                                                                                                                |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                        | A `SlidingNonce` resource is not published under `dr_account`.                                                                                               |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                        | The `sliding_nonce` in `dr_account` is too old and it's impossible to determine if it's duplicated or not.                                                   |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                        | The `sliding_nonce` in `dr_account` is too far in the future.                                                                                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`               | The `sliding_nonce` in` dr_account` has been previously recorded.                                                                                            |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                        | The sending account is not the Diem Root account or Treasury Compliance account                                                                             |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorOperatorConfig::EVALIDATOR_OPERATOR_CONFIG` | The `ValidatorOperatorConfig::ValidatorOperatorConfig` resource is not published under `operator_account`.                                                   |
+    | 0                          | 0                                                     | The `human_name` field of the `ValidatorOperatorConfig::ValidatorOperatorConfig` resource under `operator_account` does not match the provided `human_name`. |
+    | `Errors::REQUIRES_ROLE`    | `Roles::EVALIDATOR`                                   | `account` does not have a Validator account role.                                                                                                            |
+    | `Errors::INVALID_ARGUMENT` | `ValidatorConfig::ENOT_A_VALIDATOR_OPERATOR`          | The account at `operator_account` does not have a `ValidatorOperatorConfig::ValidatorOperatorConfig` resource.                                               |
+    | `Errors::NOT_PUBLISHED`    | `ValidatorConfig::EVALIDATOR_CONFIG`                  | A `ValidatorConfig::ValidatorConfig` is not published under `account`.                                                                                       |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_validator_account`
+    * `AccountCreationScripts::create_validator_operator_account`
+    * `ValidatorAdministrationScripts::register_validator_config`
+    * `ValidatorAdministrationScripts::remove_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::add_validator_and_reconfigure`
+    * `ValidatorAdministrationScripts::set_validator_operator`
+    * `ValidatorAdministrationScripts::set_validator_config_and_reconfigure`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("ValidatorAdministrationScripts"),
+            ),
+            function=Identifier("set_validator_operator_with_nonce_admin"),
+            ty_args=[],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_u8vector_argument(operator_name),
+                encode_address_argument(operator_account),
+            ],
+        )
     )
 
 
@@ -3213,6 +6677,86 @@ def encode_tiered_mint_script(
     )
 
 
+def encode_tiered_mint_script_function(
+    coin_type: TypeTag,
+    sliding_nonce: st.uint64,
+    designated_dealer_address: AccountAddress,
+    mint_amount: st.uint64,
+    tier_index: st.uint64,
+) -> TransactionPayload:
+    """# Summary
+    Mints a specified number of coins in a currency to a Designated Dealer.
+
+    The sending account
+    must be the Treasury Compliance account, and coins can only be minted to a Designated Dealer
+    account.
+
+    # Technical Description
+    Mints `mint_amount` of coins in the `CoinType` currency to Designated Dealer account at
+    `designated_dealer_address`. The `tier_index` parameter specifies which tier should be used to
+    check verify the off-chain approval policy, and is based in part on the on-chain tier values
+    for the specific Designated Dealer, and the number of `CoinType` coins that have been minted to
+    the dealer over the past 24 hours. Every Designated Dealer has 4 tiers for each currency that
+    they support. The sending `tc_account` must be the Treasury Compliance account, and the
+    receiver an authorized Designated Dealer account.
+
+    # Events
+    Successful execution of the transaction will emit two events:
+    * A `Diem::MintEvent` with the amount and currency code minted is emitted on the
+    `mint_event_handle` in the stored `Diem::CurrencyInfo<CoinType>` resource stored under
+    `0xA550C18`; and
+    * A `DesignatedDealer::ReceivedMintEvent` with the amount, currency code, and Designated
+    Dealer's address is emitted on the `mint_event_handle` in the stored `DesignatedDealer::Dealer`
+    resource published under the `designated_dealer_address`.
+
+    # Parameters
+    | Name                        | Type      | Description                                                                                                |
+    | ------                      | ------    | -------------                                                                                              |
+    | `CoinType`                  | Type      | The Move type for the `CoinType` being minted. `CoinType` must be an already-registered currency on-chain. |
+    | `tc_account`                | `signer`  | The signer of the sending account of this transaction. Must be the Treasury Compliance account.            |
+    | `sliding_nonce`             | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                                 |
+    | `designated_dealer_address` | `address` | The address of the Designated Dealer account being minted to.                                              |
+    | `mint_amount`               | `u64`     | The number of coins to be minted.                                                                          |
+    | `tier_index`                | `u64`     | [Deprecated] The mint tier index to use for the Designated Dealer account. Will be ignored                 |
+
+    # Common Abort Conditions
+    | Error Category                | Error Reason                                 | Description                                                                                                                  |
+    | ----------------              | --------------                               | -------------                                                                                                                |
+    | `Errors::NOT_PUBLISHED`       | `SlidingNonce::ESLIDING_NONCE`               | A `SlidingNonce` resource is not published under `tc_account`.                                                               |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_OLD`               | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not.                                   |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_TOO_NEW`               | The `sliding_nonce` is too far in the future.                                                                                |
+    | `Errors::INVALID_ARGUMENT`    | `SlidingNonce::ENONCE_ALREADY_RECORDED`      | The `sliding_nonce` has been previously recorded.                                                                            |
+    | `Errors::REQUIRES_ADDRESS`    | `CoreAddresses::ETREASURY_COMPLIANCE`        | `tc_account` is not the Treasury Compliance account.                                                                         |
+    | `Errors::REQUIRES_ROLE`       | `Roles::ETREASURY_COMPLIANCE`                | `tc_account` is not the Treasury Compliance account.                                                                         |
+    | `Errors::INVALID_ARGUMENT`    | `DesignatedDealer::EINVALID_MINT_AMOUNT`     | `mint_amount` is zero.                                                                                                       |
+    | `Errors::NOT_PUBLISHED`       | `DesignatedDealer::EDEALER`                  | `DesignatedDealer::Dealer` or `DesignatedDealer::TierInfo<CoinType>` resource does not exist at `designated_dealer_address`. |
+    | `Errors::REQUIRES_CAPABILITY` | `Diem::EMINT_CAPABILITY`                    | `tc_account` does not have a `Diem::MintCapability<CoinType>` resource published under it.                                  |
+    | `Errors::INVALID_STATE`       | `Diem::EMINTING_NOT_ALLOWED`                | Minting is not currently allowed for `CoinType` coins.                                                                       |
+    | `Errors::LIMIT_EXCEEDED`      | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`      | The depositing of the funds would exceed the `account`'s account limits.                                                     |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_designated_dealer`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    * `AccountAdministrationScripts::rotate_dual_attestation_info`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("tiered_mint"),
+            ty_args=[coin_type],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_address_argument(designated_dealer_address),
+                encode_u64_argument(mint_amount),
+                encode_u64_argument(tier_index),
+            ],
+        )
+    )
+
+
 def encode_unfreeze_account_script(sliding_nonce: st.uint64, to_unfreeze_account: AccountAddress) -> Script:
     """# Summary
     Unfreezes the account at `address`.
@@ -3257,6 +6801,98 @@ def encode_unfreeze_account_script(sliding_nonce: st.uint64, to_unfreeze_account
     )
 
 
+def encode_unfreeze_account_script_function(
+    sliding_nonce: st.uint64, to_unfreeze_account: AccountAddress
+) -> TransactionPayload:
+    """# Summary
+    Unfreezes the account at `address`.
+
+    The sending account of this transaction must be the
+    Treasury Compliance account. After the successful execution of this transaction transactions
+    may be sent from the previously frozen account, and coins may be sent and received.
+
+    # Technical Description
+    Sets the `AccountFreezing::FreezingBit` to `false` and emits a
+    `AccountFreezing::UnFreezeAccountEvent`. The transaction sender must be the Treasury Compliance
+    account. Note that this is a per-account property so unfreezing a Parent VASP will not effect
+    the status any of its child accounts and vice versa.
+
+    # Events
+    Successful execution of this script will emit a `AccountFreezing::UnFreezeAccountEvent` with
+    the `unfrozen_address` set the `to_unfreeze_account`'s address.
+
+    # Parameters
+    | Name                  | Type      | Description                                                                                     |
+    | ------                | ------    | -------------                                                                                   |
+    | `tc_account`          | `signer`  | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `sliding_nonce`       | `u64`     | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | `to_unfreeze_account` | `address` | The account address to be frozen.                                                               |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                |
+    | ----------------           | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`   | The sending account is not the Treasury Compliance account.                                |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::freeze_account`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("unfreeze_account"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_address_argument(to_unfreeze_account)],
+        )
+    )
+
+
+def encode_update_diem_consensus_config_script_function(sliding_nonce: st.uint64, config: bytes) -> TransactionPayload:
+    """# Summary
+    Updates the Diem consensus config that is stored on-chain and is used by the Consensus.
+
+    This
+    transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Updates the `DiemConsensusConfig` on-chain config and emits a `DiemConfig::NewEpochEvent` to trigger
+    a reconfiguration of the system.
+
+    # Parameters
+    | Name            | Type          | Description                                                                |
+    | ------          | ------        | -------------                                                              |
+    | `account`       | `signer`      | Signer of the sending account. Must be the Diem Root account.              |
+    | `sliding_nonce` | `u64`         | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+    | `config`        | `vector<u8>`  | The serialized bytes of consensus config.                                  |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                  | Description                                                                                |
+    | ----------------           | --------------                                | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`       | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                   | `account` is not the Diem Root account.                                                    |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("SystemAdministrationScripts"),
+            ),
+            function=Identifier("update_diem_consensus_config"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_u8vector_argument(config)],
+        )
+    )
+
+
 def encode_update_diem_version_script(sliding_nonce: st.uint64, major: st.uint64) -> Script:
     """# Summary
     Updates the Diem major version that is stored on-chain and is used by the VM.
@@ -3291,6 +6927,49 @@ def encode_update_diem_version_script(sliding_nonce: st.uint64, major: st.uint64
         code=UPDATE_DIEM_VERSION_CODE,
         ty_args=[],
         args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U64(value=major)],
+    )
+
+
+def encode_update_diem_version_script_function(sliding_nonce: st.uint64, major: st.uint64) -> TransactionPayload:
+    """# Summary
+    Updates the Diem major version that is stored on-chain and is used by the VM.
+
+    This
+    transaction can only be sent from the Diem Root account.
+
+    # Technical Description
+    Updates the `DiemVersion` on-chain config and emits a `DiemConfig::NewEpochEvent` to trigger
+    a reconfiguration of the system. The `major` version that is passed in must be strictly greater
+    than the current major version held on-chain. The VM reads this information and can use it to
+    preserve backwards compatibility with previous major versions of the VM.
+
+    # Parameters
+    | Name            | Type     | Description                                                                |
+    | ------          | ------   | -------------                                                              |
+    | `account`       | `signer` | Signer of the sending account. Must be the Diem Root account.              |
+    | `sliding_nonce` | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction. |
+    | `major`         | `u64`    | The `major` version of the VM to be used from this transaction on.         |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                  | Description                                                                                |
+    | ----------------           | --------------                                | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`                | A `SlidingNonce` resource is not published under `account`.                                |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`                | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`                | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED`       | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::EDIEM_ROOT`                   | `account` is not the Diem Root account.                                                    |
+    | `Errors::INVALID_ARGUMENT` | `DiemVersion::EINVALID_MAJOR_VERSION_NUMBER`  | `major` is less-than or equal to the current major version stored on-chain.                |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("SystemAdministrationScripts"),
+            ),
+            function=Identifier("update_diem_version"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_u64_argument(major)],
+        )
     )
 
 
@@ -3330,6 +7009,53 @@ def encode_update_dual_attestation_limit_script(sliding_nonce: st.uint64, new_mi
         code=UPDATE_DUAL_ATTESTATION_LIMIT_CODE,
         ty_args=[],
         args=[TransactionArgument__U64(value=sliding_nonce), TransactionArgument__U64(value=new_micro_xdx_limit)],
+    )
+
+
+def encode_update_dual_attestation_limit_script_function(
+    sliding_nonce: st.uint64, new_micro_xdx_limit: st.uint64
+) -> TransactionPayload:
+    """# Summary
+    Update the dual attestation limit on-chain.
+
+    Defined in terms of micro-XDX.  The transaction can
+    only be sent by the Treasury Compliance account.  After this transaction all inter-VASP
+    payments over this limit must be checked for dual attestation.
+
+    # Technical Description
+    Updates the `micro_xdx_limit` field of the `DualAttestation::Limit` resource published under
+    `0xA550C18`. The amount is set in micro-XDX.
+
+    # Parameters
+    | Name                  | Type     | Description                                                                                     |
+    | ------                | ------   | -------------                                                                                   |
+    | `tc_account`          | `signer` | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `sliding_nonce`       | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for this transaction.                      |
+    | `new_micro_xdx_limit` | `u64`    | The new dual attestation limit to be used on-chain.                                             |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                |
+    | ----------------           | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`   | `tc_account` is not the Treasury Compliance account.                                       |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::update_exchange_rate`
+    * `TreasuryComplianceScripts::update_minting_ability`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("update_dual_attestation_limit"),
+            ty_args=[],
+            args=[encode_u64_argument(sliding_nonce), encode_u64_argument(new_micro_xdx_limit)],
+        )
     )
 
 
@@ -3388,6 +7114,67 @@ def encode_update_exchange_rate_script(
     )
 
 
+def encode_update_exchange_rate_script_function(
+    currency: TypeTag,
+    sliding_nonce: st.uint64,
+    new_exchange_rate_numerator: st.uint64,
+    new_exchange_rate_denominator: st.uint64,
+) -> TransactionPayload:
+    """# Summary
+    Update the rough on-chain exchange rate between a specified currency and XDX (as a conversion
+    to micro-XDX).
+
+    The transaction can only be sent by the Treasury Compliance account. After this
+    transaction the updated exchange rate will be used for normalization of gas prices, and for
+    dual attestation checking.
+
+    # Technical Description
+    Updates the on-chain exchange rate from the given `Currency` to micro-XDX.  The exchange rate
+    is given by `new_exchange_rate_numerator/new_exchange_rate_denominator`.
+
+    # Parameters
+    | Name                            | Type     | Description                                                                                                                        |
+    | ------                          | ------   | -------------                                                                                                                      |
+    | `Currency`                      | Type     | The Move type for the `Currency` whose exchange rate is being updated. `Currency` must be an already-registered currency on-chain. |
+    | `tc_account`                    | `signer` | The signer of the sending account of this transaction. Must be the Treasury Compliance account.                                    |
+    | `sliding_nonce`                 | `u64`    | The `sliding_nonce` (see: `SlidingNonce`) to be used for the transaction.                                                          |
+    | `new_exchange_rate_numerator`   | `u64`    | The numerator for the new to micro-XDX exchange rate for `Currency`.                                                               |
+    | `new_exchange_rate_denominator` | `u64`    | The denominator for the new to micro-XDX exchange rate for `Currency`.                                                             |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                            | Description                                                                                |
+    | ----------------           | --------------                          | -------------                                                                              |
+    | `Errors::NOT_PUBLISHED`    | `SlidingNonce::ESLIDING_NONCE`          | A `SlidingNonce` resource is not published under `tc_account`.                             |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_OLD`          | The `sliding_nonce` is too old and it's impossible to determine if it's duplicated or not. |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_TOO_NEW`          | The `sliding_nonce` is too far in the future.                                              |
+    | `Errors::INVALID_ARGUMENT` | `SlidingNonce::ENONCE_ALREADY_RECORDED` | The `sliding_nonce` has been previously recorded.                                          |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`   | `tc_account` is not the Treasury Compliance account.                                       |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`           | `tc_account` is not the Treasury Compliance account.                                       |
+    | `Errors::INVALID_ARGUMENT` | `FixedPoint32::EDENOMINATOR`            | `new_exchange_rate_denominator` is zero.                                                   |
+    | `Errors::INVALID_ARGUMENT` | `FixedPoint32::ERATIO_OUT_OF_RANGE`     | The quotient is unrepresentable as a `FixedPoint32`.                                       |
+    | `Errors::LIMIT_EXCEEDED`   | `FixedPoint32::ERATIO_OUT_OF_RANGE`     | The quotient is unrepresentable as a `FixedPoint32`.                                       |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::update_dual_attestation_limit`
+    * `TreasuryComplianceScripts::update_minting_ability`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("update_exchange_rate"),
+            ty_args=[currency],
+            args=[
+                encode_u64_argument(sliding_nonce),
+                encode_u64_argument(new_exchange_rate_numerator),
+                encode_u64_argument(new_exchange_rate_denominator),
+            ],
+        )
+    )
+
+
 def encode_update_minting_ability_script(currency: TypeTag, allow_minting: bool) -> Script:
     """# Summary
     Script to allow or disallow minting of new coins in a specified currency.
@@ -3426,8 +7213,60 @@ def encode_update_minting_ability_script(currency: TypeTag, allow_minting: bool)
     )
 
 
+def encode_update_minting_ability_script_function(currency: TypeTag, allow_minting: bool) -> TransactionPayload:
+    """# Summary
+    Script to allow or disallow minting of new coins in a specified currency.
+
+    This transaction can
+    only be sent by the Treasury Compliance account.  Turning minting off for a currency will have
+    no effect on coins already in circulation, and coins may still be removed from the system.
+
+    # Technical Description
+    This transaction sets the `can_mint` field of the `Diem::CurrencyInfo<Currency>` resource
+    published under `0xA550C18` to the value of `allow_minting`. Minting of coins if allowed if
+    this field is set to `true` and minting of new coins in `Currency` is disallowed otherwise.
+    This transaction needs to be sent by the Treasury Compliance account.
+
+    # Parameters
+    | Name            | Type     | Description                                                                                                                          |
+    | ------          | ------   | -------------                                                                                                                        |
+    | `Currency`      | Type     | The Move type for the `Currency` whose minting ability is being updated. `Currency` must be an already-registered currency on-chain. |
+    | `account`       | `signer` | Signer of the sending account. Must be the Diem Root account.                                                                        |
+    | `allow_minting` | `bool`   | Whether to allow minting of new coins in `Currency`.                                                                                 |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                          | Description                                          |
+    | ----------------           | --------------                        | -------------                                        |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE` | `tc_account` is not the Treasury Compliance account. |
+    | `Errors::NOT_PUBLISHED`    | `Diem::ECURRENCY_INFO`               | `Currency` is not a registered currency on-chain.    |
+
+    # Related Scripts
+    * `TreasuryComplianceScripts::update_dual_attestation_limit`
+    * `TreasuryComplianceScripts::update_exchange_rate`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("update_minting_ability"),
+            ty_args=[currency],
+            args=[encode_bool_argument(allow_minting)],
+        )
+    )
+
+
 def decode_add_currency_to_account_script(script: Script) -> ScriptCall:
     return ScriptCall__AddCurrencyToAccount(
+        currency=script.ty_args[0],
+    )
+
+
+def decode_add_currency_to_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__AddCurrencyToAccount(
         currency=script.ty_args[0],
     )
 
@@ -3438,10 +7277,11 @@ def decode_add_recovery_rotation_capability_script(script: Script) -> ScriptCall
     )
 
 
-def decode_add_to_script_allow_list_script(script: Script) -> ScriptCall:
-    return ScriptCall__AddToScriptAllowList(
-        hash=decode_u8vector_argument(script.args[0]),
-        sliding_nonce=decode_u64_argument(script.args[1]),
+def decode_add_recovery_rotation_capability_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__AddRecoveryRotationCapability(
+        recovery_address=bcs_deserialize(script.args[0], AccountAddress)[0],
     )
 
 
@@ -3450,6 +7290,16 @@ def decode_add_validator_and_reconfigure_script(script: Script) -> ScriptCall:
         sliding_nonce=decode_u64_argument(script.args[0]),
         validator_name=decode_u8vector_argument(script.args[1]),
         validator_address=decode_address_argument(script.args[2]),
+    )
+
+
+def decode_add_validator_and_reconfigure_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__AddValidatorAndReconfigure(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        validator_name=bcs_deserialize(script.args[1], bytes)[0],
+        validator_address=bcs_deserialize(script.args[2], AccountAddress)[0],
     )
 
 
@@ -3467,10 +7317,39 @@ def decode_burn_txn_fees_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_burn_txn_fees_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__BurnTxnFees(
+        coin_type=script.ty_args[0],
+    )
+
+
+def decode_burn_with_amount_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__BurnWithAmount(
+        token=script.ty_args[0],
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        preburn_address=bcs_deserialize(script.args[1], AccountAddress)[0],
+        amount=bcs_deserialize(script.args[2], st.uint64)[0],
+    )
+
+
 def decode_cancel_burn_script(script: Script) -> ScriptCall:
     return ScriptCall__CancelBurn(
         token=script.ty_args[0],
         preburn_address=decode_address_argument(script.args[0]),
+    )
+
+
+def decode_cancel_burn_with_amount_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CancelBurnWithAmount(
+        token=script.ty_args[0],
+        preburn_address=bcs_deserialize(script.args[0], AccountAddress)[0],
+        amount=bcs_deserialize(script.args[1], st.uint64)[0],
     )
 
 
@@ -3481,6 +7360,18 @@ def decode_create_child_vasp_account_script(script: Script) -> ScriptCall:
         auth_key_prefix=decode_u8vector_argument(script.args[1]),
         add_all_currencies=decode_bool_argument(script.args[2]),
         child_initial_balance=decode_u64_argument(script.args[3]),
+    )
+
+
+def decode_create_child_vasp_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateChildVaspAccount(
+        coin_type=script.ty_args[0],
+        child_address=bcs_deserialize(script.args[0], AccountAddress)[0],
+        auth_key_prefix=bcs_deserialize(script.args[1], bytes)[0],
+        add_all_currencies=bcs_deserialize(script.args[2], bool)[0],
+        child_initial_balance=bcs_deserialize(script.args[3], st.uint64)[0],
     )
 
 
@@ -3495,6 +7386,19 @@ def decode_create_designated_dealer_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_create_designated_dealer_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateDesignatedDealer(
+        currency=script.ty_args[0],
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        addr=bcs_deserialize(script.args[1], AccountAddress)[0],
+        auth_key_prefix=bcs_deserialize(script.args[2], bytes)[0],
+        human_name=bcs_deserialize(script.args[3], bytes)[0],
+        add_all_currencies=bcs_deserialize(script.args[4], bool)[0],
+    )
+
+
 def decode_create_parent_vasp_account_script(script: Script) -> ScriptCall:
     return ScriptCall__CreateParentVaspAccount(
         coin_type=script.ty_args[0],
@@ -3506,8 +7410,27 @@ def decode_create_parent_vasp_account_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_create_parent_vasp_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateParentVaspAccount(
+        coin_type=script.ty_args[0],
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_account_address=bcs_deserialize(script.args[1], AccountAddress)[0],
+        auth_key_prefix=bcs_deserialize(script.args[2], bytes)[0],
+        human_name=bcs_deserialize(script.args[3], bytes)[0],
+        add_all_currencies=bcs_deserialize(script.args[4], bool)[0],
+    )
+
+
 def decode_create_recovery_address_script(_script: Script) -> ScriptCall:
     return ScriptCall__CreateRecoveryAddress()
+
+
+def decode_create_recovery_address_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateRecoveryAddress()
 
 
 def decode_create_validator_account_script(script: Script) -> ScriptCall:
@@ -3516,6 +7439,17 @@ def decode_create_validator_account_script(script: Script) -> ScriptCall:
         new_account_address=decode_address_argument(script.args[1]),
         auth_key_prefix=decode_u8vector_argument(script.args[2]),
         human_name=decode_u8vector_argument(script.args[3]),
+    )
+
+
+def decode_create_validator_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateValidatorAccount(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_account_address=bcs_deserialize(script.args[1], AccountAddress)[0],
+        auth_key_prefix=bcs_deserialize(script.args[2], bytes)[0],
+        human_name=bcs_deserialize(script.args[3], bytes)[0],
     )
 
 
@@ -3528,10 +7462,38 @@ def decode_create_validator_operator_account_script(script: Script) -> ScriptCal
     )
 
 
+def decode_create_validator_operator_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateValidatorOperatorAccount(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_account_address=bcs_deserialize(script.args[1], AccountAddress)[0],
+        auth_key_prefix=bcs_deserialize(script.args[2], bytes)[0],
+        human_name=bcs_deserialize(script.args[3], bytes)[0],
+    )
+
+
 def decode_freeze_account_script(script: Script) -> ScriptCall:
     return ScriptCall__FreezeAccount(
         sliding_nonce=decode_u64_argument(script.args[0]),
         to_freeze_account=decode_address_argument(script.args[1]),
+    )
+
+
+def decode_freeze_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__FreezeAccount(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        to_freeze_account=bcs_deserialize(script.args[1], AccountAddress)[0],
+    )
+
+
+def decode_initialize_diem_consensus_config_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__InitializeDiemConsensusConfig(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
     )
 
 
@@ -3545,6 +7507,18 @@ def decode_peer_to_peer_with_metadata_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_peer_to_peer_with_metadata_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__PeerToPeerWithMetadata(
+        currency=script.ty_args[0],
+        payee=bcs_deserialize(script.args[0], AccountAddress)[0],
+        amount=bcs_deserialize(script.args[1], st.uint64)[0],
+        metadata=bcs_deserialize(script.args[2], bytes)[0],
+        metadata_signature=bcs_deserialize(script.args[3], bytes)[0],
+    )
+
+
 def decode_preburn_script(script: Script) -> ScriptCall:
     return ScriptCall__Preburn(
         token=script.ty_args[0],
@@ -3552,9 +7526,26 @@ def decode_preburn_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_preburn_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__Preburn(
+        token=script.ty_args[0],
+        amount=bcs_deserialize(script.args[0], st.uint64)[0],
+    )
+
+
 def decode_publish_shared_ed25519_public_key_script(script: Script) -> ScriptCall:
     return ScriptCall__PublishSharedEd25519PublicKey(
         public_key=decode_u8vector_argument(script.args[0]),
+    )
+
+
+def decode_publish_shared_ed25519_public_key_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__PublishSharedEd25519PublicKey(
+        public_key=bcs_deserialize(script.args[0], bytes)[0],
     )
 
 
@@ -3567,6 +7558,17 @@ def decode_register_validator_config_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_register_validator_config_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RegisterValidatorConfig(
+        validator_account=bcs_deserialize(script.args[0], AccountAddress)[0],
+        consensus_pubkey=bcs_deserialize(script.args[1], bytes)[0],
+        validator_network_addresses=bcs_deserialize(script.args[2], bytes)[0],
+        fullnode_network_addresses=bcs_deserialize(script.args[3], bytes)[0],
+    )
+
+
 def decode_remove_validator_and_reconfigure_script(script: Script) -> ScriptCall:
     return ScriptCall__RemoveValidatorAndReconfigure(
         sliding_nonce=decode_u64_argument(script.args[0]),
@@ -3575,9 +7577,27 @@ def decode_remove_validator_and_reconfigure_script(script: Script) -> ScriptCall
     )
 
 
+def decode_remove_validator_and_reconfigure_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RemoveValidatorAndReconfigure(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        validator_name=bcs_deserialize(script.args[1], bytes)[0],
+        validator_address=bcs_deserialize(script.args[2], AccountAddress)[0],
+    )
+
+
 def decode_rotate_authentication_key_script(script: Script) -> ScriptCall:
     return ScriptCall__RotateAuthenticationKey(
         new_key=decode_u8vector_argument(script.args[0]),
+    )
+
+
+def decode_rotate_authentication_key_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RotateAuthenticationKey(
+        new_key=bcs_deserialize(script.args[0], bytes)[0],
     )
 
 
@@ -3588,10 +7608,28 @@ def decode_rotate_authentication_key_with_nonce_script(script: Script) -> Script
     )
 
 
+def decode_rotate_authentication_key_with_nonce_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RotateAuthenticationKeyWithNonce(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_key=bcs_deserialize(script.args[1], bytes)[0],
+    )
+
+
 def decode_rotate_authentication_key_with_nonce_admin_script(script: Script) -> ScriptCall:
     return ScriptCall__RotateAuthenticationKeyWithNonceAdmin(
         sliding_nonce=decode_u64_argument(script.args[0]),
         new_key=decode_u8vector_argument(script.args[1]),
+    )
+
+
+def decode_rotate_authentication_key_with_nonce_admin_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RotateAuthenticationKeyWithNonceAdmin(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_key=bcs_deserialize(script.args[1], bytes)[0],
     )
 
 
@@ -3603,6 +7641,18 @@ def decode_rotate_authentication_key_with_recovery_address_script(script: Script
     )
 
 
+def decode_rotate_authentication_key_with_recovery_address_script_function(
+    script: TransactionPayload,
+) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RotateAuthenticationKeyWithRecoveryAddress(
+        recovery_address=bcs_deserialize(script.args[0], AccountAddress)[0],
+        to_recover=bcs_deserialize(script.args[1], AccountAddress)[0],
+        new_key=bcs_deserialize(script.args[2], bytes)[0],
+    )
+
+
 def decode_rotate_dual_attestation_info_script(script: Script) -> ScriptCall:
     return ScriptCall__RotateDualAttestationInfo(
         new_url=decode_u8vector_argument(script.args[0]),
@@ -3610,9 +7660,45 @@ def decode_rotate_dual_attestation_info_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_rotate_dual_attestation_info_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RotateDualAttestationInfo(
+        new_url=bcs_deserialize(script.args[0], bytes)[0],
+        new_key=bcs_deserialize(script.args[1], bytes)[0],
+    )
+
+
 def decode_rotate_shared_ed25519_public_key_script(script: Script) -> ScriptCall:
     return ScriptCall__RotateSharedEd25519PublicKey(
         public_key=decode_u8vector_argument(script.args[0]),
+    )
+
+
+def decode_rotate_shared_ed25519_public_key_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RotateSharedEd25519PublicKey(
+        public_key=bcs_deserialize(script.args[0], bytes)[0],
+    )
+
+
+def decode_set_gas_constants_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__SetGasConstants(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        global_memory_per_byte_cost=bcs_deserialize(script.args[1], st.uint64)[0],
+        global_memory_per_byte_write_cost=bcs_deserialize(script.args[2], st.uint64)[0],
+        min_transaction_gas_units=bcs_deserialize(script.args[3], st.uint64)[0],
+        large_transaction_cutoff=bcs_deserialize(script.args[4], st.uint64)[0],
+        intrinsic_gas_per_byte=bcs_deserialize(script.args[5], st.uint64)[0],
+        maximum_number_of_gas_units=bcs_deserialize(script.args[6], st.uint64)[0],
+        min_price_per_gas_unit=bcs_deserialize(script.args[7], st.uint64)[0],
+        max_price_per_gas_unit=bcs_deserialize(script.args[8], st.uint64)[0],
+        max_transaction_size_in_bytes=bcs_deserialize(script.args[9], st.uint64)[0],
+        gas_unit_scaling_factor=bcs_deserialize(script.args[10], st.uint64)[0],
+        default_account_size=bcs_deserialize(script.args[11], st.uint64)[0],
     )
 
 
@@ -3625,10 +7711,30 @@ def decode_set_validator_config_and_reconfigure_script(script: Script) -> Script
     )
 
 
+def decode_set_validator_config_and_reconfigure_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__SetValidatorConfigAndReconfigure(
+        validator_account=bcs_deserialize(script.args[0], AccountAddress)[0],
+        consensus_pubkey=bcs_deserialize(script.args[1], bytes)[0],
+        validator_network_addresses=bcs_deserialize(script.args[2], bytes)[0],
+        fullnode_network_addresses=bcs_deserialize(script.args[3], bytes)[0],
+    )
+
+
 def decode_set_validator_operator_script(script: Script) -> ScriptCall:
     return ScriptCall__SetValidatorOperator(
         operator_name=decode_u8vector_argument(script.args[0]),
         operator_account=decode_address_argument(script.args[1]),
+    )
+
+
+def decode_set_validator_operator_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__SetValidatorOperator(
+        operator_name=bcs_deserialize(script.args[0], bytes)[0],
+        operator_account=bcs_deserialize(script.args[1], AccountAddress)[0],
     )
 
 
@@ -3637,6 +7743,16 @@ def decode_set_validator_operator_with_nonce_admin_script(script: Script) -> Scr
         sliding_nonce=decode_u64_argument(script.args[0]),
         operator_name=decode_u8vector_argument(script.args[1]),
         operator_account=decode_address_argument(script.args[2]),
+    )
+
+
+def decode_set_validator_operator_with_nonce_admin_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__SetValidatorOperatorWithNonceAdmin(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        operator_name=bcs_deserialize(script.args[1], bytes)[0],
+        operator_account=bcs_deserialize(script.args[2], AccountAddress)[0],
     )
 
 
@@ -3650,10 +7766,40 @@ def decode_tiered_mint_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_tiered_mint_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__TieredMint(
+        coin_type=script.ty_args[0],
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        designated_dealer_address=bcs_deserialize(script.args[1], AccountAddress)[0],
+        mint_amount=bcs_deserialize(script.args[2], st.uint64)[0],
+        tier_index=bcs_deserialize(script.args[3], st.uint64)[0],
+    )
+
+
 def decode_unfreeze_account_script(script: Script) -> ScriptCall:
     return ScriptCall__UnfreezeAccount(
         sliding_nonce=decode_u64_argument(script.args[0]),
         to_unfreeze_account=decode_address_argument(script.args[1]),
+    )
+
+
+def decode_unfreeze_account_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__UnfreezeAccount(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        to_unfreeze_account=bcs_deserialize(script.args[1], AccountAddress)[0],
+    )
+
+
+def decode_update_diem_consensus_config_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__UpdateDiemConsensusConfig(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        config=bcs_deserialize(script.args[1], bytes)[0],
     )
 
 
@@ -3664,10 +7810,28 @@ def decode_update_diem_version_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_update_diem_version_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__UpdateDiemVersion(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        major=bcs_deserialize(script.args[1], st.uint64)[0],
+    )
+
+
 def decode_update_dual_attestation_limit_script(script: Script) -> ScriptCall:
     return ScriptCall__UpdateDualAttestationLimit(
         sliding_nonce=decode_u64_argument(script.args[0]),
         new_micro_xdx_limit=decode_u64_argument(script.args[1]),
+    )
+
+
+def decode_update_dual_attestation_limit_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__UpdateDualAttestationLimit(
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_micro_xdx_limit=bcs_deserialize(script.args[1], st.uint64)[0],
     )
 
 
@@ -3680,6 +7844,17 @@ def decode_update_exchange_rate_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_update_exchange_rate_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__UpdateExchangeRate(
+        currency=script.ty_args[0],
+        sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+        new_exchange_rate_numerator=bcs_deserialize(script.args[1], st.uint64)[0],
+        new_exchange_rate_denominator=bcs_deserialize(script.args[2], st.uint64)[0],
+    )
+
+
 def decode_update_minting_ability_script(script: Script) -> ScriptCall:
     return ScriptCall__UpdateMintingAbility(
         currency=script.ty_args[0],
@@ -3687,11 +7862,18 @@ def decode_update_minting_ability_script(script: Script) -> ScriptCall:
     )
 
 
+def decode_update_minting_ability_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__UpdateMintingAbility(
+        currency=script.ty_args[0],
+        allow_minting=bcs_deserialize(script.args[0], bool)[0],
+    )
+
+
 ADD_CURRENCY_TO_ACCOUNT_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x02\x03\x02\x06\x04\x08\x02\x05\x0a\x07\x07\x11\x19\x08\x2a\x10\x00\x00\x00\x01\x00\x01\x01\x01\x00\x02\x01\x06\x0c\x00\x01\x09\x00\x0b\x44\x69\x65\x6d\x41\x63\x63\x6f\x75\x6e\x74\x0c\x61\x64\x64\x5f\x63\x75\x72\x72\x65\x6e\x63\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x00\x01\x03\x0b\x00\x38\x00\x02"
 
 ADD_RECOVERY_ROTATION_CAPABILITY_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x04\x02\x04\x04\x03\x08\x0a\x05\x12\x0f\x07\x21\x6a\x08\x8b\x01\x10\x00\x00\x00\x01\x00\x02\x01\x00\x00\x03\x00\x01\x00\x01\x04\x02\x03\x00\x01\x06\x0c\x01\x08\x00\x02\x08\x00\x05\x00\x02\x06\x0c\x05\x0b\x44\x69\x65\x6d\x41\x63\x63\x6f\x75\x6e\x74\x0f\x52\x65\x63\x6f\x76\x65\x72\x79\x41\x64\x64\x72\x65\x73\x73\x15\x4b\x65\x79\x52\x6f\x74\x61\x74\x69\x6f\x6e\x43\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x1f\x65\x78\x74\x72\x61\x63\x74\x5f\x6b\x65\x79\x5f\x72\x6f\x74\x61\x74\x69\x6f\x6e\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x17\x61\x64\x64\x5f\x72\x6f\x74\x61\x74\x69\x6f\x6e\x5f\x63\x61\x70\x61\x62\x69\x6c\x69\x74\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x04\x03\x05\x0b\x00\x11\x00\x0a\x01\x11\x01\x02"
-
-ADD_TO_SCRIPT_ALLOW_LIST_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x04\x03\x04\x0a\x05\x0e\x10\x07\x1e\x5c\x08\x7a\x10\x00\x00\x00\x01\x00\x02\x00\x01\x00\x01\x03\x02\x01\x00\x02\x06\x0c\x0a\x02\x00\x02\x06\x0c\x03\x03\x06\x0c\x0a\x02\x03\x1f\x44\x69\x65\x6d\x54\x72\x61\x6e\x73\x61\x63\x74\x69\x6f\x6e\x50\x75\x62\x6c\x69\x73\x68\x69\x6e\x67\x4f\x70\x74\x69\x6f\x6e\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x18\x61\x64\x64\x5f\x74\x6f\x5f\x73\x63\x72\x69\x70\x74\x5f\x61\x6c\x6c\x6f\x77\x5f\x6c\x69\x73\x74\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x03\x01\x07\x0a\x00\x0a\x02\x11\x01\x0b\x00\x0b\x01\x11\x00\x02"
 
 ADD_VALIDATOR_AND_RECONFIGURE_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x05\x01\x00\x06\x03\x06\x0f\x05\x15\x18\x07\x2d\x5b\x08\x88\x01\x10\x00\x00\x00\x01\x00\x02\x01\x03\x00\x01\x00\x02\x04\x02\x03\x00\x00\x05\x04\x01\x00\x02\x06\x0c\x03\x00\x01\x05\x01\x0a\x02\x02\x06\x0c\x05\x04\x06\x0c\x03\x0a\x02\x05\x02\x01\x03\x0a\x44\x69\x65\x6d\x53\x79\x73\x74\x65\x6d\x0c\x53\x6c\x69\x64\x69\x6e\x67\x4e\x6f\x6e\x63\x65\x0f\x56\x61\x6c\x69\x64\x61\x74\x6f\x72\x43\x6f\x6e\x66\x69\x67\x15\x72\x65\x63\x6f\x72\x64\x5f\x6e\x6f\x6e\x63\x65\x5f\x6f\x72\x5f\x61\x62\x6f\x72\x74\x0e\x67\x65\x74\x5f\x68\x75\x6d\x61\x6e\x5f\x6e\x61\x6d\x65\x0d\x61\x64\x64\x5f\x76\x61\x6c\x69\x64\x61\x74\x6f\x72\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x05\x06\x12\x0a\x00\x0a\x01\x11\x00\x0a\x03\x11\x01\x0b\x02\x21\x0c\x04\x0b\x04\x03\x0e\x0b\x00\x01\x06\x00\x00\x00\x00\x00\x00\x00\x00\x27\x0b\x00\x0a\x03\x11\x02\x02"
 
@@ -3756,10 +7938,9 @@ UPDATE_EXCHANGE_RATE_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x07\x01\x00\x06\x
 UPDATE_MINTING_ABILITY_CODE = b"\xa1\x1c\xeb\x0b\x01\x00\x00\x00\x06\x01\x00\x02\x03\x02\x06\x04\x08\x02\x05\x0a\x08\x07\x12\x1c\x08\x2e\x10\x00\x00\x00\x01\x00\x01\x01\x01\x00\x02\x02\x06\x0c\x01\x00\x01\x09\x00\x04\x44\x69\x65\x6d\x16\x75\x70\x64\x61\x74\x65\x5f\x6d\x69\x6e\x74\x69\x6e\x67\x5f\x61\x62\x69\x6c\x69\x74\x79\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x01\x01\x00\x01\x04\x0b\x00\x0a\x01\x38\x00\x02"
 
 # pyre-ignore
-SCRIPT_ENCODER_MAP: typing.Dict[typing.Type[ScriptCall], typing.Callable[[ScriptCall], Script]] = {
+TRANSACTION_SCRIPT_ENCODER_MAP: typing.Dict[typing.Type[ScriptCall], typing.Callable[[ScriptCall], Script]] = {
     ScriptCall__AddCurrencyToAccount: encode_add_currency_to_account_script,
     ScriptCall__AddRecoveryRotationCapability: encode_add_recovery_rotation_capability_script,
-    ScriptCall__AddToScriptAllowList: encode_add_to_script_allow_list_script,
     ScriptCall__AddValidatorAndReconfigure: encode_add_validator_and_reconfigure_script,
     ScriptCall__Burn: encode_burn_script,
     ScriptCall__BurnTxnFees: encode_burn_txn_fees_script,
@@ -3794,10 +7975,52 @@ SCRIPT_ENCODER_MAP: typing.Dict[typing.Type[ScriptCall], typing.Callable[[Script
 }
 
 
-SCRIPT_DECODER_MAP: typing.Dict[bytes, typing.Callable[[Script], ScriptCall]] = {
+# pyre-ignore
+SCRIPT_FUNCTION_ENCODER_MAP: typing.Dict[
+    typing.Type[ScriptFunctionCall], typing.Callable[[ScriptFunctionCall], TransactionPayload]
+] = {
+    ScriptFunctionCall__AddCurrencyToAccount: encode_add_currency_to_account_script_function,
+    ScriptFunctionCall__AddRecoveryRotationCapability: encode_add_recovery_rotation_capability_script_function,
+    ScriptFunctionCall__AddValidatorAndReconfigure: encode_add_validator_and_reconfigure_script_function,
+    ScriptFunctionCall__BurnTxnFees: encode_burn_txn_fees_script_function,
+    ScriptFunctionCall__BurnWithAmount: encode_burn_with_amount_script_function,
+    ScriptFunctionCall__CancelBurnWithAmount: encode_cancel_burn_with_amount_script_function,
+    ScriptFunctionCall__CreateChildVaspAccount: encode_create_child_vasp_account_script_function,
+    ScriptFunctionCall__CreateDesignatedDealer: encode_create_designated_dealer_script_function,
+    ScriptFunctionCall__CreateParentVaspAccount: encode_create_parent_vasp_account_script_function,
+    ScriptFunctionCall__CreateRecoveryAddress: encode_create_recovery_address_script_function,
+    ScriptFunctionCall__CreateValidatorAccount: encode_create_validator_account_script_function,
+    ScriptFunctionCall__CreateValidatorOperatorAccount: encode_create_validator_operator_account_script_function,
+    ScriptFunctionCall__FreezeAccount: encode_freeze_account_script_function,
+    ScriptFunctionCall__InitializeDiemConsensusConfig: encode_initialize_diem_consensus_config_script_function,
+    ScriptFunctionCall__PeerToPeerWithMetadata: encode_peer_to_peer_with_metadata_script_function,
+    ScriptFunctionCall__Preburn: encode_preburn_script_function,
+    ScriptFunctionCall__PublishSharedEd25519PublicKey: encode_publish_shared_ed25519_public_key_script_function,
+    ScriptFunctionCall__RegisterValidatorConfig: encode_register_validator_config_script_function,
+    ScriptFunctionCall__RemoveValidatorAndReconfigure: encode_remove_validator_and_reconfigure_script_function,
+    ScriptFunctionCall__RotateAuthenticationKey: encode_rotate_authentication_key_script_function,
+    ScriptFunctionCall__RotateAuthenticationKeyWithNonce: encode_rotate_authentication_key_with_nonce_script_function,
+    ScriptFunctionCall__RotateAuthenticationKeyWithNonceAdmin: encode_rotate_authentication_key_with_nonce_admin_script_function,
+    ScriptFunctionCall__RotateAuthenticationKeyWithRecoveryAddress: encode_rotate_authentication_key_with_recovery_address_script_function,
+    ScriptFunctionCall__RotateDualAttestationInfo: encode_rotate_dual_attestation_info_script_function,
+    ScriptFunctionCall__RotateSharedEd25519PublicKey: encode_rotate_shared_ed25519_public_key_script_function,
+    ScriptFunctionCall__SetGasConstants: encode_set_gas_constants_script_function,
+    ScriptFunctionCall__SetValidatorConfigAndReconfigure: encode_set_validator_config_and_reconfigure_script_function,
+    ScriptFunctionCall__SetValidatorOperator: encode_set_validator_operator_script_function,
+    ScriptFunctionCall__SetValidatorOperatorWithNonceAdmin: encode_set_validator_operator_with_nonce_admin_script_function,
+    ScriptFunctionCall__TieredMint: encode_tiered_mint_script_function,
+    ScriptFunctionCall__UnfreezeAccount: encode_unfreeze_account_script_function,
+    ScriptFunctionCall__UpdateDiemConsensusConfig: encode_update_diem_consensus_config_script_function,
+    ScriptFunctionCall__UpdateDiemVersion: encode_update_diem_version_script_function,
+    ScriptFunctionCall__UpdateDualAttestationLimit: encode_update_dual_attestation_limit_script_function,
+    ScriptFunctionCall__UpdateExchangeRate: encode_update_exchange_rate_script_function,
+    ScriptFunctionCall__UpdateMintingAbility: encode_update_minting_ability_script_function,
+}
+
+
+TRANSACTION_SCRIPT_DECODER_MAP: typing.Dict[bytes, typing.Callable[[Script], ScriptCall]] = {
     ADD_CURRENCY_TO_ACCOUNT_CODE: decode_add_currency_to_account_script,
     ADD_RECOVERY_ROTATION_CAPABILITY_CODE: decode_add_recovery_rotation_capability_script,
-    ADD_TO_SCRIPT_ALLOW_LIST_CODE: decode_add_to_script_allow_list_script,
     ADD_VALIDATOR_AND_RECONFIGURE_CODE: decode_add_validator_and_reconfigure_script,
     BURN_CODE: decode_burn_script,
     BURN_TXN_FEES_CODE: decode_burn_txn_fees_script,
@@ -3830,6 +8053,62 @@ SCRIPT_DECODER_MAP: typing.Dict[bytes, typing.Callable[[Script], ScriptCall]] = 
     UPDATE_EXCHANGE_RATE_CODE: decode_update_exchange_rate_script,
     UPDATE_MINTING_ABILITY_CODE: decode_update_minting_ability_script,
 }
+
+
+SCRIPT_FUNCTION_DECODER_MAP: typing.Dict[str, typing.Callable[[TransactionPayload], ScriptFunctionCall]] = {
+    "AccountAdministrationScriptsadd_currency_to_account": decode_add_currency_to_account_script_function,
+    "AccountAdministrationScriptsadd_recovery_rotation_capability": decode_add_recovery_rotation_capability_script_function,
+    "ValidatorAdministrationScriptsadd_validator_and_reconfigure": decode_add_validator_and_reconfigure_script_function,
+    "TreasuryComplianceScriptsburn_txn_fees": decode_burn_txn_fees_script_function,
+    "TreasuryComplianceScriptsburn_with_amount": decode_burn_with_amount_script_function,
+    "TreasuryComplianceScriptscancel_burn_with_amount": decode_cancel_burn_with_amount_script_function,
+    "AccountCreationScriptscreate_child_vasp_account": decode_create_child_vasp_account_script_function,
+    "AccountCreationScriptscreate_designated_dealer": decode_create_designated_dealer_script_function,
+    "AccountCreationScriptscreate_parent_vasp_account": decode_create_parent_vasp_account_script_function,
+    "AccountAdministrationScriptscreate_recovery_address": decode_create_recovery_address_script_function,
+    "AccountCreationScriptscreate_validator_account": decode_create_validator_account_script_function,
+    "AccountCreationScriptscreate_validator_operator_account": decode_create_validator_operator_account_script_function,
+    "TreasuryComplianceScriptsfreeze_account": decode_freeze_account_script_function,
+    "SystemAdministrationScriptsinitialize_diem_consensus_config": decode_initialize_diem_consensus_config_script_function,
+    "PaymentScriptspeer_to_peer_with_metadata": decode_peer_to_peer_with_metadata_script_function,
+    "TreasuryComplianceScriptspreburn": decode_preburn_script_function,
+    "AccountAdministrationScriptspublish_shared_ed25519_public_key": decode_publish_shared_ed25519_public_key_script_function,
+    "ValidatorAdministrationScriptsregister_validator_config": decode_register_validator_config_script_function,
+    "ValidatorAdministrationScriptsremove_validator_and_reconfigure": decode_remove_validator_and_reconfigure_script_function,
+    "AccountAdministrationScriptsrotate_authentication_key": decode_rotate_authentication_key_script_function,
+    "AccountAdministrationScriptsrotate_authentication_key_with_nonce": decode_rotate_authentication_key_with_nonce_script_function,
+    "AccountAdministrationScriptsrotate_authentication_key_with_nonce_admin": decode_rotate_authentication_key_with_nonce_admin_script_function,
+    "AccountAdministrationScriptsrotate_authentication_key_with_recovery_address": decode_rotate_authentication_key_with_recovery_address_script_function,
+    "AccountAdministrationScriptsrotate_dual_attestation_info": decode_rotate_dual_attestation_info_script_function,
+    "AccountAdministrationScriptsrotate_shared_ed25519_public_key": decode_rotate_shared_ed25519_public_key_script_function,
+    "SystemAdministrationScriptsset_gas_constants": decode_set_gas_constants_script_function,
+    "ValidatorAdministrationScriptsset_validator_config_and_reconfigure": decode_set_validator_config_and_reconfigure_script_function,
+    "ValidatorAdministrationScriptsset_validator_operator": decode_set_validator_operator_script_function,
+    "ValidatorAdministrationScriptsset_validator_operator_with_nonce_admin": decode_set_validator_operator_with_nonce_admin_script_function,
+    "TreasuryComplianceScriptstiered_mint": decode_tiered_mint_script_function,
+    "TreasuryComplianceScriptsunfreeze_account": decode_unfreeze_account_script_function,
+    "SystemAdministrationScriptsupdate_diem_consensus_config": decode_update_diem_consensus_config_script_function,
+    "SystemAdministrationScriptsupdate_diem_version": decode_update_diem_version_script_function,
+    "TreasuryComplianceScriptsupdate_dual_attestation_limit": decode_update_dual_attestation_limit_script_function,
+    "TreasuryComplianceScriptsupdate_exchange_rate": decode_update_exchange_rate_script_function,
+    "TreasuryComplianceScriptsupdate_minting_ability": decode_update_minting_ability_script_function,
+}
+
+
+def encode_bool_argument(arg: bool) -> bytes:
+    return bcs_serialize(arg, bool)
+
+
+def encode_u64_argument(arg: st.uint64) -> bytes:
+    return bcs_serialize(arg, st.uint64)
+
+
+def encode_address_argument(arg: AccountAddress) -> bytes:
+    return arg.bcs_serialize()
+
+
+def encode_u8vector_argument(arg: bytes) -> bytes:
+    return bcs_serialize(arg, bytes)
 
 
 def decode_bool_argument(arg: TransactionArgument) -> bool:

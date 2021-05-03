@@ -4,7 +4,7 @@
 from click.testing import CliRunner, Result
 from diem.testing import cli
 from diem.testing.suites import envs
-from diem.testing.miniwallet import ServerConfig
+from diem.testing.miniwallet import ServerConfig, RestClient
 from diem.testing import LocalAccount
 from diem import identifier, testnet, utils
 from typing import List
@@ -93,6 +93,51 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
                 stub_config_file,
                 "-k",
                 "test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+
+
+def test_hrp_option(runner: CliRunner) -> None:
+    conf = start_target_server(runner, ["--hrp", "xdm"])
+    c = RestClient(server_url=conf.base_url, name="test-hrp-option").with_retry()
+    assert c.create_account().generate_account_identifier()[:3] == "xdm"
+
+    result = start_test(
+        runner,
+        conf,
+        [
+            "--stub-hrp",
+            "xdm",
+            "-k",
+            "test_generate_account_identifier",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+
+def test_hrp_option_overwrites_hrp_from_diem_account_config_file(runner: CliRunner) -> None:
+    app_config_file = "app.json"
+    stub_config_file = "stub.json"
+    with runner.isolated_filesystem():
+        LocalAccount(hrp=identifier.DM).write_to_file(app_config_file)
+        LocalAccount(hrp=identifier.DM).write_to_file(stub_config_file)
+
+        conf = start_target_server(runner, ["-i", app_config_file, "--hrp", "xdm"])
+        c = RestClient(server_url=conf.base_url, name="x").with_retry()
+        assert c.create_account().generate_account_identifier()[:3] == "xdm"
+
+        result = start_test(
+            runner,
+            conf,
+            [
+                "-i",
+                stub_config_file,
+                "--stub-hrp",
+                "xdm",
+                "-k",
+                "test_generate_account_identifier",
             ],
         )
 

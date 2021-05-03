@@ -13,7 +13,7 @@ black:
 
 lint:
 	./venv/bin/pylama src tests examples
-	./venv/bin/pyre --search-path venv/lib/python3.7/site-packages --search-path venv/lib/python3.8/site-packages --search-path venv/lib/python3.9/site-packages check
+	./venv/bin/pyre --search-path venv/lib/python*/site-packages check
 
 format:
 	./venv/bin/python -m black src tests examples

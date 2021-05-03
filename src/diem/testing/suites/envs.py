@@ -12,10 +12,15 @@ DMW_STUB_BIND_HOST: str = "DMW_STUB_BIND_HOST"
 DMW_STUB_BIND_PORT: str = "DMW_STUB_BIND_PORT"
 DMW_STUB_DIEM_ACCOUNT_BASE_URL: str = "DMW_STUB_DIEM_ACCOUNT_BASE_URL"
 DMW_STUB_DIEM_ACCOUNT_CONFIG: str = "DMW_STUB_DIEM_ACCOUNT_CONFIG"
+DMW_STUB_DIEM_ACCOUNT_HRP: str = "DMW_STUB_DIEM_ACCOUNT_HRP"
 
 
 def dmw_stub_diem_account_config() -> Optional[str]:
     return getenv(DMW_STUB_DIEM_ACCOUNT_CONFIG)
+
+
+def dmw_stub_diem_account_hrp() -> Optional[str]:
+    return getenv(DMW_STUB_DIEM_ACCOUNT_HRP)
 
 
 def dmw_stub_diem_account_base_url() -> Optional[str]:

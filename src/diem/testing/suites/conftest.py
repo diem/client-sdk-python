@@ -11,6 +11,7 @@ from .envs import (
     is_self_check,
     dmw_stub_server,
     dmw_stub_diem_account_config,
+    dmw_stub_diem_account_hrp,
 )
 from typing import Optional, Tuple, Dict, Any, Generator
 from dataclasses import asdict
@@ -53,6 +54,9 @@ def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
     if account_conf:
         print("loads stub account config: %s" % account_conf)
         conf.account_config = json.loads(account_conf)
+    hrp = dmw_stub_diem_account_hrp()
+    if hrp:
+        conf.account_config["hrp"] = hrp
     print("Start stub app with config %s" % conf)
     app, _ = conf.start(diem_client)
     return (conf, app)

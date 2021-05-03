@@ -49,6 +49,12 @@ def main() -> None:
     help="Import the diem account config from a file. The config file content should be JSON generated from command `gen-diem-account-config`.",
     type=click.File(),
 )
+@click.option(
+    "--hrp",
+    default=None,
+    help="Set Diem account identifier hrp; if '-i' option is used, this option overwrites hrp configured by '-i' option.",
+    type=str,
+)
 @click.help_option("-h", "--help")
 def start_server(
     name: str,
@@ -59,6 +65,7 @@ def start_server(
     disable_events_api: bool,
     import_diem_account_config_file: Optional[TextIO],
     logfile: Optional[str],
+    hrp: str,
 ) -> None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
@@ -66,6 +73,8 @@ def start_server(
     conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), disable_events_api=disable_events_api)
     if import_diem_account_config_file:
         conf.account_config = json.load(import_diem_account_config_file)
+    if hrp:
+        conf.account_config["hrp"] = hrp
 
     print("Server Config: %s" % conf)
 
@@ -123,13 +132,20 @@ def start_server(
     "--logfile", "-l", default=None, help="Log to a file instead of printing into console.", type=click.Path()
 )
 @click.option("--verbose", "-v", default=False, help="Enable verbose log output.", type=bool, is_flag=True)
-@click.option(  # pyre-ignore
+@click.option(
     "--import-stub-diem-account-config-file",
     "-i",
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_CONFIG, is_io=True),
     help="Import the diem account config from a file for miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.",
     type=click.File(),
+)
+@click.option(  # pyre-ignore
+    "--stub-hrp",
+    default=None,
+    help="Set Diem account identifier hrp for the stub wallet application; if '-i' option is used, this option overwrites hrp configured by '-i' option.",
+    type=str,
+    callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_HRP),
 )
 @click.help_option("-h", "--help")
 def test(
@@ -144,6 +160,7 @@ def test(
     logfile: Optional[str],
     verbose: bool,
     import_stub_diem_account_config_file: Optional[TextIO],
+    stub_hrp: Optional[str],
 ) -> None:
     configure_testnet(jsonrpc, faucet)
 

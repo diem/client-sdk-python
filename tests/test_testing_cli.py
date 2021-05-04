@@ -167,7 +167,8 @@ def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -
 
 
 def start_target_server(runner: CliRunner, options: List[str] = []) -> ServerConfig:
-    conf = ServerConfig()
+    conf = ServerConfig(host="0.0.0.0")
+    conf.base_url = "http://127.0.0.1:%s" % conf.port
 
     def start_server():
         runner.invoke(
@@ -177,8 +178,12 @@ def start_target_server(runner: CliRunner, options: List[str] = []) -> ServerCon
                 testnet.JSON_RPC_URL,
                 "--faucet",
                 testnet.FAUCET_URL,
+                "--host",
+                conf.host,
                 "--port",
                 conf.port,
+                "--diem-account-base-url",
+                conf.base_url,
             ]
             + options,
         )

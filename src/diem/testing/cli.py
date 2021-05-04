@@ -36,6 +36,12 @@ def main() -> None:
 @click.option("--name", "-n", default="mini-wallet", help="Application name.")
 @click.option("--host", "-H", default="localhost", help="Start server host.")
 @click.option("--port", "-p", default=8888, help="Start server port.")
+@click.option(
+    "--diem-account-base-url",
+    "-u",
+    default=None,
+    help="The address that will be used for offchain callbacks. Defaults to http://localhost:{port}",
+)
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option("--disable-events-api", "-o", default=False, help="Disable account events API.", type=bool, is_flag=True)
@@ -60,6 +66,7 @@ def start_server(
     name: str,
     host: str,
     port: int,
+    diem_account_base_url: Optional[str],
     jsonrpc: str,
     faucet: str,
     disable_events_api: bool,
@@ -70,7 +77,11 @@ def start_server(
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
-    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), disable_events_api=disable_events_api)
+    conf = AppConfig(
+        name=name,
+        server_conf=ServerConfig(host=host, port=port, base_url=diem_account_base_url),
+        disable_events_api=disable_events_api,
+    )
     if import_diem_account_config_file:
         conf.account_config = json.load(import_diem_account_config_file)
     if hrp:
@@ -112,7 +123,7 @@ def start_server(
     "-u",
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL),
-    help="The address that will be used for offchain callbacks. Defaults to http://localhost:{random_port}",
+    help="The address that will be used for offchain callbacks. Defaults to http://localhost:{port}",
 )
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option(

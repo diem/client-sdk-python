@@ -453,6 +453,22 @@ class Module:
 
 
 @dataclass(frozen=True)
+class ModuleId:
+    address: &#34;AccountAddress&#34;
+    name: &#34;Identifier&#34;
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, ModuleId)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;ModuleId&#34;:
+        v, buffer = bcs.deserialize(input, ModuleId)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v
+
+
+@dataclass(frozen=True)
 class MultiEd25519PublicKey:
     value: bytes
 
@@ -603,6 +619,24 @@ class Script:
     @staticmethod
     def bcs_deserialize(input: bytes) -&gt; &#34;Script&#34;:
         v, buffer = bcs.deserialize(input, Script)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v
+
+
+@dataclass(frozen=True)
+class ScriptFunction:
+    module: &#34;ModuleId&#34;
+    function: &#34;Identifier&#34;
+    ty_args: typing.Sequence[&#34;TypeTag&#34;]
+    args: typing.Sequence[bytes]
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, ScriptFunction)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;ScriptFunction&#34;:
+        v, buffer = bcs.deserialize(input, ScriptFunction)
         if buffer:
             raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
         return v
@@ -817,10 +851,17 @@ class TransactionPayload__Module(TransactionPayload):
     value: &#34;Module&#34;
 
 
+@dataclass(frozen=True)
+class TransactionPayload__ScriptFunction(TransactionPayload):
+    INDEX = 3  # type: int
+    value: &#34;ScriptFunction&#34;
+
+
 TransactionPayload.VARIANTS = [
     TransactionPayload__WriteSet,
     TransactionPayload__Script,
     TransactionPayload__Module,
+    TransactionPayload__ScriptFunction,
 ]
 
 
@@ -2875,6 +2916,79 @@ def bcs_deserialize(input: bytes) -&gt; &#34;Module&#34;:
 </dd>
 </dl>
 </dd>
+<dt id="diem.diem_types.ModuleId"><code class="flex name class">
+<span>class <span class="ident">ModuleId</span></span>
+<span>(</span><span>address: <a title="diem.diem_types.AccountAddress" href="#diem.diem_types.AccountAddress">AccountAddress</a>, name: <a title="diem.diem_types.Identifier" href="#diem.diem_types.Identifier">Identifier</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ModuleId(address: 'AccountAddress', name: 'Identifier')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class ModuleId:
+    address: &#34;AccountAddress&#34;
+    name: &#34;Identifier&#34;
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, ModuleId)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;ModuleId&#34;:
+        v, buffer = bcs.deserialize(input, ModuleId)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.ModuleId.address"><code class="name">var <span class="ident">address</span> : <a title="diem.diem_types.AccountAddress" href="#diem.diem_types.AccountAddress">AccountAddress</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.ModuleId.name"><code class="name">var <span class="ident">name</span> : <a title="diem.diem_types.Identifier" href="#diem.diem_types.Identifier">Identifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.diem_types.ModuleId.bcs_deserialize"><code class="name flex">
+<span>def <span class="ident">bcs_deserialize</span></span>(<span>input: bytes) ‑> <a title="diem.diem_types.ModuleId" href="#diem.diem_types.ModuleId">ModuleId</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def bcs_deserialize(input: bytes) -&gt; &#34;ModuleId&#34;:
+    v, buffer = bcs.deserialize(input, ModuleId)
+    if buffer:
+        raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+    return v</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.diem_types.ModuleId.bcs_serialize"><code class="name flex">
+<span>def <span class="ident">bcs_serialize</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bcs_serialize(self) -&gt; bytes:
+    return bcs.serialize(self, ModuleId)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="diem.diem_types.MultiEd25519PublicKey"><code class="flex name class">
 <span>class <span class="ident">MultiEd25519PublicKey</span></span>
 <span>(</span><span>value: bytes)</span>
@@ -3539,6 +3653,89 @@ def bcs_deserialize(input: bytes) -&gt; &#34;Script&#34;:
 </summary>
 <pre><code class="python">def bcs_serialize(self) -&gt; bytes:
     return bcs.serialize(self, Script)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="diem.diem_types.ScriptFunction"><code class="flex name class">
+<span>class <span class="ident">ScriptFunction</span></span>
+<span>(</span><span>module: <a title="diem.diem_types.ModuleId" href="#diem.diem_types.ModuleId">ModuleId</a>, function: <a title="diem.diem_types.Identifier" href="#diem.diem_types.Identifier">Identifier</a>, ty_args: Sequence[ForwardRef('<a title="diem.diem_types.TypeTag" href="#diem.diem_types.TypeTag">TypeTag</a>')], args: Sequence[bytes])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ScriptFunction(module: 'ModuleId', function: 'Identifier', ty_args: Sequence[ForwardRef('TypeTag')], args: Sequence[bytes])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class ScriptFunction:
+    module: &#34;ModuleId&#34;
+    function: &#34;Identifier&#34;
+    ty_args: typing.Sequence[&#34;TypeTag&#34;]
+    args: typing.Sequence[bytes]
+
+    def bcs_serialize(self) -&gt; bytes:
+        return bcs.serialize(self, ScriptFunction)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -&gt; &#34;ScriptFunction&#34;:
+        v, buffer = bcs.deserialize(input, ScriptFunction)
+        if buffer:
+            raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+        return v</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.ScriptFunction.args"><code class="name">var <span class="ident">args</span> : Sequence[bytes]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.ScriptFunction.function"><code class="name">var <span class="ident">function</span> : <a title="diem.diem_types.Identifier" href="#diem.diem_types.Identifier">Identifier</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.ScriptFunction.module"><code class="name">var <span class="ident">module</span> : <a title="diem.diem_types.ModuleId" href="#diem.diem_types.ModuleId">ModuleId</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.ScriptFunction.ty_args"><code class="name">var <span class="ident">ty_args</span> : Sequence[<a title="diem.diem_types.TypeTag" href="#diem.diem_types.TypeTag">TypeTag</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="diem.diem_types.ScriptFunction.bcs_deserialize"><code class="name flex">
+<span>def <span class="ident">bcs_deserialize</span></span>(<span>input: bytes) ‑> <a title="diem.diem_types.ScriptFunction" href="#diem.diem_types.ScriptFunction">ScriptFunction</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def bcs_deserialize(input: bytes) -&gt; &#34;ScriptFunction&#34;:
+    v, buffer = bcs.deserialize(input, ScriptFunction)
+    if buffer:
+        raise st.DeserializationError(&#34;Some input bytes were not read&#34;)
+    return v</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="diem.diem_types.ScriptFunction.bcs_serialize"><code class="name flex">
+<span>def <span class="ident">bcs_serialize</span></span>(<span>self) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bcs_serialize(self) -&gt; bytes:
+    return bcs.serialize(self, ScriptFunction)</code></pre>
 </details>
 </dd>
 </dl>
@@ -4231,6 +4428,7 @@ class TransactionAuthenticator__MultiEd25519(TransactionAuthenticator):
 <ul class="hlist">
 <li><a title="diem.diem_types.TransactionPayload__Module" href="#diem.diem_types.TransactionPayload__Module">TransactionPayload__Module</a></li>
 <li><a title="diem.diem_types.TransactionPayload__Script" href="#diem.diem_types.TransactionPayload__Script">TransactionPayload__Script</a></li>
+<li><a title="diem.diem_types.TransactionPayload__ScriptFunction" href="#diem.diem_types.TransactionPayload__ScriptFunction">TransactionPayload__ScriptFunction</a></li>
 <li><a title="diem.diem_types.TransactionPayload__WriteSet" href="#diem.diem_types.TransactionPayload__WriteSet">TransactionPayload__WriteSet</a></li>
 </ul>
 <h3>Class variables</h3>
@@ -4334,6 +4532,37 @@ class TransactionPayload__Script(TransactionPayload):
 <div class="desc"></div>
 </dd>
 <dt id="diem.diem_types.TransactionPayload__Script.value"><code class="name">var <span class="ident">value</span> : <a title="diem.diem_types.Script" href="#diem.diem_types.Script">Script</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="diem.diem_types.TransactionPayload__ScriptFunction"><code class="flex name class">
+<span>class <span class="ident">TransactionPayload__ScriptFunction</span></span>
+<span>(</span><span>value: <a title="diem.diem_types.ScriptFunction" href="#diem.diem_types.ScriptFunction">ScriptFunction</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>TransactionPayload__ScriptFunction(value: 'ScriptFunction')</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(frozen=True)
+class TransactionPayload__ScriptFunction(TransactionPayload):
+    INDEX = 3  # type: int
+    value: &#34;ScriptFunction&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="diem.diem_types.TransactionPayload" href="#diem.diem_types.TransactionPayload">TransactionPayload</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="diem.diem_types.TransactionPayload__ScriptFunction.INDEX"><code class="name">var <span class="ident">INDEX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.diem_types.TransactionPayload__ScriptFunction.value"><code class="name">var <span class="ident">value</span> : <a title="diem.diem_types.ScriptFunction" href="#diem.diem_types.ScriptFunction">ScriptFunction</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -5729,6 +5958,15 @@ class WriteSetPayload__Script(WriteSetPayload):
 </ul>
 </li>
 <li>
+<h4><code><a title="diem.diem_types.ModuleId" href="#diem.diem_types.ModuleId">ModuleId</a></code></h4>
+<ul class="">
+<li><code><a title="diem.diem_types.ModuleId.address" href="#diem.diem_types.ModuleId.address">address</a></code></li>
+<li><code><a title="diem.diem_types.ModuleId.bcs_deserialize" href="#diem.diem_types.ModuleId.bcs_deserialize">bcs_deserialize</a></code></li>
+<li><code><a title="diem.diem_types.ModuleId.bcs_serialize" href="#diem.diem_types.ModuleId.bcs_serialize">bcs_serialize</a></code></li>
+<li><code><a title="diem.diem_types.ModuleId.name" href="#diem.diem_types.ModuleId.name">name</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="diem.diem_types.MultiEd25519PublicKey" href="#diem.diem_types.MultiEd25519PublicKey">MultiEd25519PublicKey</a></code></h4>
 <ul class="">
 <li><code><a title="diem.diem_types.MultiEd25519PublicKey.bcs_deserialize" href="#diem.diem_types.MultiEd25519PublicKey.bcs_deserialize">bcs_deserialize</a></code></li>
@@ -5823,6 +6061,17 @@ class WriteSetPayload__Script(WriteSetPayload):
 <li><code><a title="diem.diem_types.Script.bcs_serialize" href="#diem.diem_types.Script.bcs_serialize">bcs_serialize</a></code></li>
 <li><code><a title="diem.diem_types.Script.code" href="#diem.diem_types.Script.code">code</a></code></li>
 <li><code><a title="diem.diem_types.Script.ty_args" href="#diem.diem_types.Script.ty_args">ty_args</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.diem_types.ScriptFunction" href="#diem.diem_types.ScriptFunction">ScriptFunction</a></code></h4>
+<ul class="two-column">
+<li><code><a title="diem.diem_types.ScriptFunction.args" href="#diem.diem_types.ScriptFunction.args">args</a></code></li>
+<li><code><a title="diem.diem_types.ScriptFunction.bcs_deserialize" href="#diem.diem_types.ScriptFunction.bcs_deserialize">bcs_deserialize</a></code></li>
+<li><code><a title="diem.diem_types.ScriptFunction.bcs_serialize" href="#diem.diem_types.ScriptFunction.bcs_serialize">bcs_serialize</a></code></li>
+<li><code><a title="diem.diem_types.ScriptFunction.function" href="#diem.diem_types.ScriptFunction.function">function</a></code></li>
+<li><code><a title="diem.diem_types.ScriptFunction.module" href="#diem.diem_types.ScriptFunction.module">module</a></code></li>
+<li><code><a title="diem.diem_types.ScriptFunction.ty_args" href="#diem.diem_types.ScriptFunction.ty_args">ty_args</a></code></li>
 </ul>
 </li>
 <li>
@@ -5948,6 +6197,13 @@ class WriteSetPayload__Script(WriteSetPayload):
 <ul class="">
 <li><code><a title="diem.diem_types.TransactionPayload__Script.INDEX" href="#diem.diem_types.TransactionPayload__Script.INDEX">INDEX</a></code></li>
 <li><code><a title="diem.diem_types.TransactionPayload__Script.value" href="#diem.diem_types.TransactionPayload__Script.value">value</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="diem.diem_types.TransactionPayload__ScriptFunction" href="#diem.diem_types.TransactionPayload__ScriptFunction">TransactionPayload__ScriptFunction</a></code></h4>
+<ul class="">
+<li><code><a title="diem.diem_types.TransactionPayload__ScriptFunction.INDEX" href="#diem.diem_types.TransactionPayload__ScriptFunction.INDEX">INDEX</a></code></li>
+<li><code><a title="diem.diem_types.TransactionPayload__ScriptFunction.value" href="#diem.diem_types.TransactionPayload__ScriptFunction.value">value</a></code></li>
 </ul>
 </li>
 <li>

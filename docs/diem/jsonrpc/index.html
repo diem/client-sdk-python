@@ -216,6 +216,10 @@ shown below.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="diem.jsonrpc.Account.VERSION_FIELD_NUMBER"><code class="name">var <span class="ident">VERSION_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
@@ -394,6 +398,19 @@ shown below.</p></div>
 <dt id="diem.jsonrpc.Account.sequence_number"><code class="name">var <span class="ident">sequence_number</span></code></dt>
 <dd>
 <div class="desc"><p>Getter for sequence_number.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.Account.version"><code class="name">var <span class="ident">version</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for version.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -925,6 +942,10 @@ shown below.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="diem.jsonrpc.AccountRole.PREBURN_QUEUES_FIELD_NUMBER"><code class="name">var <span class="ident">PREBURN_QUEUES_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="diem.jsonrpc.AccountRole.RECEIVED_MINT_EVENTS_KEY_FIELD_NUMBER"><code class="name">var <span class="ident">RECEIVED_MINT_EVENTS_KEY_FIELD_NUMBER</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -1078,6 +1099,29 @@ shown below.</p></div>
 <dt id="diem.jsonrpc.AccountRole.preburn_balances"><code class="name">var <span class="ident">preburn_balances</span></code></dt>
 <dd>
 <div class="desc"><p>Getter for preburn_balances.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.AccountRole.preburn_queues"><code class="name">var <span class="ident">preburn_queues</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for preburn_queues.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -4601,6 +4645,10 @@ shown below.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="diem.jsonrpc.EventData.BYTES_FIELD_NUMBER"><code class="name">var <span class="ident">BYTES_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="diem.jsonrpc.EventData.COMMITTED_TIMESTAMP_SECS_FIELD_NUMBER"><code class="name">var <span class="ident">COMMITTED_TIMESTAMP_SECS_FIELD_NUMBER</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -4736,6 +4784,19 @@ shown below.</p></div>
     #   in several other locations in this file.
     field_value = self._fields.setdefault(field, field_value)
   return field_value</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.EventData.bytes"><code class="name">var <span class="ident">bytes</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for bytes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
 </details>
 </dd>
 <dt id="diem.jsonrpc.EventData.committed_timestamp_secs"><code class="name">var <span class="ident">committed_timestamp_secs</span></code></dt>
@@ -6126,6 +6187,10 @@ shown below.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="diem.jsonrpc.Script.ARGUMENTS_BCS_FIELD_NUMBER"><code class="name">var <span class="ident">ARGUMENTS_BCS_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="diem.jsonrpc.Script.ARGUMENTS_FIELD_NUMBER"><code class="name">var <span class="ident">ARGUMENTS_FIELD_NUMBER</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -6142,11 +6207,23 @@ shown below.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="diem.jsonrpc.Script.FUNCTION_NAME_FIELD_NUMBER"><code class="name">var <span class="ident">FUNCTION_NAME_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="diem.jsonrpc.Script.METADATA_FIELD_NUMBER"><code class="name">var <span class="ident">METADATA_FIELD_NUMBER</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 <dt id="diem.jsonrpc.Script.METADATA_SIGNATURE_FIELD_NUMBER"><code class="name">var <span class="ident">METADATA_SIGNATURE_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.jsonrpc.Script.MODULE_ADDRESS_FIELD_NUMBER"><code class="name">var <span class="ident">MODULE_ADDRESS_FIELD_NUMBER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="diem.jsonrpc.Script.MODULE_NAME_FIELD_NUMBER"><code class="name">var <span class="ident">MODULE_NAME_FIELD_NUMBER</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -6236,6 +6313,29 @@ shown below.</p></div>
   return field_value</code></pre>
 </details>
 </dd>
+<dt id="diem.jsonrpc.Script.arguments_bcs"><code class="name">var <span class="ident">arguments_bcs</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for arguments_bcs.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  field_value = self._fields.get(field)
+  if field_value is None:
+    # Construct a new object to represent this field.
+    field_value = field._default_constructor(self)
+
+    # Atomically check if another thread has preempted us and, if not, swap
+    # in the new object we just created.  If someone has preempted us, we
+    # take that object and discard ours.
+    # WARNING:  We are relying on setdefault() being atomic.  This is true
+    #   in CPython but we haven&#39;t investigated others.  This warning appears
+    #   in several other locations in this file.
+    field_value = self._fields.setdefault(field, field_value)
+  return field_value</code></pre>
+</details>
+</dd>
 <dt id="diem.jsonrpc.Script.code"><code class="name">var <span class="ident">code</span></code></dt>
 <dd>
 <div class="desc"><p>Getter for code.</p></div>
@@ -6262,6 +6362,19 @@ shown below.</p></div>
   return self._fields.get(field, default_value)</code></pre>
 </details>
 </dd>
+<dt id="diem.jsonrpc.Script.function_name"><code class="name">var <span class="ident">function_name</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for function_name.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
+</details>
+</dd>
 <dt id="diem.jsonrpc.Script.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
 <dd>
 <div class="desc"><p>Getter for metadata.</p></div>
@@ -6278,6 +6391,32 @@ shown below.</p></div>
 <dt id="diem.jsonrpc.Script.metadata_signature"><code class="name">var <span class="ident">metadata_signature</span></code></dt>
 <dd>
 <div class="desc"><p>Getter for metadata_signature.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.Script.module_address"><code class="name">var <span class="ident">module_address</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for module_address.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getter(self):
+  # TODO(protobuf-team): This may be broken since there may not be
+  # default_value.  Combine with has_default_value somehow.
+  return self._fields.get(field, default_value)</code></pre>
+</details>
+</dd>
+<dt id="diem.jsonrpc.Script.module_name"><code class="name">var <span class="ident">module_name</span></code></dt>
+<dd>
+<div class="desc"><p>Getter for module_name.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -9524,6 +9663,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.Account.SerializeToString" href="#diem.jsonrpc.Account.SerializeToString">SerializeToString</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.SetInParent" href="#diem.jsonrpc.Account.SetInParent">SetInParent</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.UnknownFields" href="#diem.jsonrpc.Account.UnknownFields">UnknownFields</a></code></li>
+<li><code><a title="diem.jsonrpc.Account.VERSION_FIELD_NUMBER" href="#diem.jsonrpc.Account.VERSION_FIELD_NUMBER">VERSION_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.WhichOneof" href="#diem.jsonrpc.Account.WhichOneof">WhichOneof</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.address" href="#diem.jsonrpc.Account.address">address</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.authentication_key" href="#diem.jsonrpc.Account.authentication_key">authentication_key</a></code></li>
@@ -9535,6 +9675,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.Account.role" href="#diem.jsonrpc.Account.role">role</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.sent_events_key" href="#diem.jsonrpc.Account.sent_events_key">sent_events_key</a></code></li>
 <li><code><a title="diem.jsonrpc.Account.sequence_number" href="#diem.jsonrpc.Account.sequence_number">sequence_number</a></code></li>
+<li><code><a title="diem.jsonrpc.Account.version" href="#diem.jsonrpc.Account.version">version</a></code></li>
 </ul>
 </li>
 <li>
@@ -9561,6 +9702,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.AccountRole.NUM_CHILDREN_FIELD_NUMBER" href="#diem.jsonrpc.AccountRole.NUM_CHILDREN_FIELD_NUMBER">NUM_CHILDREN_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.PARENT_VASP_ADDRESS_FIELD_NUMBER" href="#diem.jsonrpc.AccountRole.PARENT_VASP_ADDRESS_FIELD_NUMBER">PARENT_VASP_ADDRESS_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.PREBURN_BALANCES_FIELD_NUMBER" href="#diem.jsonrpc.AccountRole.PREBURN_BALANCES_FIELD_NUMBER">PREBURN_BALANCES_FIELD_NUMBER</a></code></li>
+<li><code><a title="diem.jsonrpc.AccountRole.PREBURN_QUEUES_FIELD_NUMBER" href="#diem.jsonrpc.AccountRole.PREBURN_QUEUES_FIELD_NUMBER">PREBURN_QUEUES_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.RECEIVED_MINT_EVENTS_KEY_FIELD_NUMBER" href="#diem.jsonrpc.AccountRole.RECEIVED_MINT_EVENTS_KEY_FIELD_NUMBER">RECEIVED_MINT_EVENTS_KEY_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.RegisterExtension" href="#diem.jsonrpc.AccountRole.RegisterExtension">RegisterExtension</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.SerializePartialToString" href="#diem.jsonrpc.AccountRole.SerializePartialToString">SerializePartialToString</a></code></li>
@@ -9578,6 +9720,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.AccountRole.num_children" href="#diem.jsonrpc.AccountRole.num_children">num_children</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.parent_vasp_address" href="#diem.jsonrpc.AccountRole.parent_vasp_address">parent_vasp_address</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.preburn_balances" href="#diem.jsonrpc.AccountRole.preburn_balances">preburn_balances</a></code></li>
+<li><code><a title="diem.jsonrpc.AccountRole.preburn_queues" href="#diem.jsonrpc.AccountRole.preburn_queues">preburn_queues</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.received_mint_events_key" href="#diem.jsonrpc.AccountRole.received_mint_events_key">received_mint_events_key</a></code></li>
 <li><code><a title="diem.jsonrpc.AccountRole.type" href="#diem.jsonrpc.AccountRole.type">type</a></code></li>
 </ul>
@@ -9743,6 +9886,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <h4><code><a title="diem.jsonrpc.EventData" href="#diem.jsonrpc.EventData">EventData</a></code></h4>
 <ul class="">
 <li><code><a title="diem.jsonrpc.EventData.AMOUNT_FIELD_NUMBER" href="#diem.jsonrpc.EventData.AMOUNT_FIELD_NUMBER">AMOUNT_FIELD_NUMBER</a></code></li>
+<li><code><a title="diem.jsonrpc.EventData.BYTES_FIELD_NUMBER" href="#diem.jsonrpc.EventData.BYTES_FIELD_NUMBER">BYTES_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.ByteSize" href="#diem.jsonrpc.EventData.ByteSize">ByteSize</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.COMMITTED_TIMESTAMP_SECS_FIELD_NUMBER" href="#diem.jsonrpc.EventData.COMMITTED_TIMESTAMP_SECS_FIELD_NUMBER">COMMITTED_TIMESTAMP_SECS_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.CREATED_ADDRESS_FIELD_NUMBER" href="#diem.jsonrpc.EventData.CREATED_ADDRESS_FIELD_NUMBER">CREATED_ADDRESS_FIELD_NUMBER</a></code></li>
@@ -9780,6 +9924,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.EventData.UnknownFields" href="#diem.jsonrpc.EventData.UnknownFields">UnknownFields</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.WhichOneof" href="#diem.jsonrpc.EventData.WhichOneof">WhichOneof</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.amount" href="#diem.jsonrpc.EventData.amount">amount</a></code></li>
+<li><code><a title="diem.jsonrpc.EventData.bytes" href="#diem.jsonrpc.EventData.bytes">bytes</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.committed_timestamp_secs" href="#diem.jsonrpc.EventData.committed_timestamp_secs">committed_timestamp_secs</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.created_address" href="#diem.jsonrpc.EventData.created_address">created_address</a></code></li>
 <li><code><a title="diem.jsonrpc.EventData.currency_code" href="#diem.jsonrpc.EventData.currency_code">currency_code</a></code></li>
@@ -9843,6 +9988,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <h4><code><a title="diem.jsonrpc.Script" href="#diem.jsonrpc.Script">Script</a></code></h4>
 <ul class="">
 <li><code><a title="diem.jsonrpc.Script.AMOUNT_FIELD_NUMBER" href="#diem.jsonrpc.Script.AMOUNT_FIELD_NUMBER">AMOUNT_FIELD_NUMBER</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.ARGUMENTS_BCS_FIELD_NUMBER" href="#diem.jsonrpc.Script.ARGUMENTS_BCS_FIELD_NUMBER">ARGUMENTS_BCS_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.ARGUMENTS_FIELD_NUMBER" href="#diem.jsonrpc.Script.ARGUMENTS_FIELD_NUMBER">ARGUMENTS_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.ByteSize" href="#diem.jsonrpc.Script.ByteSize">ByteSize</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.CODE_FIELD_NUMBER" href="#diem.jsonrpc.Script.CODE_FIELD_NUMBER">CODE_FIELD_NUMBER</a></code></li>
@@ -9851,6 +9997,7 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.Script.ClearField" href="#diem.jsonrpc.Script.ClearField">ClearField</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.DESCRIPTOR" href="#diem.jsonrpc.Script.DESCRIPTOR">DESCRIPTOR</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.DiscardUnknownFields" href="#diem.jsonrpc.Script.DiscardUnknownFields">DiscardUnknownFields</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.FUNCTION_NAME_FIELD_NUMBER" href="#diem.jsonrpc.Script.FUNCTION_NAME_FIELD_NUMBER">FUNCTION_NAME_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.FindInitializationErrors" href="#diem.jsonrpc.Script.FindInitializationErrors">FindInitializationErrors</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.FromString" href="#diem.jsonrpc.Script.FromString">FromString</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.HasField" href="#diem.jsonrpc.Script.HasField">HasField</a></code></li>
@@ -9858,6 +10005,8 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.Script.ListFields" href="#diem.jsonrpc.Script.ListFields">ListFields</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.METADATA_FIELD_NUMBER" href="#diem.jsonrpc.Script.METADATA_FIELD_NUMBER">METADATA_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.METADATA_SIGNATURE_FIELD_NUMBER" href="#diem.jsonrpc.Script.METADATA_SIGNATURE_FIELD_NUMBER">METADATA_SIGNATURE_FIELD_NUMBER</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.MODULE_ADDRESS_FIELD_NUMBER" href="#diem.jsonrpc.Script.MODULE_ADDRESS_FIELD_NUMBER">MODULE_ADDRESS_FIELD_NUMBER</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.MODULE_NAME_FIELD_NUMBER" href="#diem.jsonrpc.Script.MODULE_NAME_FIELD_NUMBER">MODULE_NAME_FIELD_NUMBER</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.MergeFrom" href="#diem.jsonrpc.Script.MergeFrom">MergeFrom</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.MergeFromString" href="#diem.jsonrpc.Script.MergeFromString">MergeFromString</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.RECEIVER_FIELD_NUMBER" href="#diem.jsonrpc.Script.RECEIVER_FIELD_NUMBER">RECEIVER_FIELD_NUMBER</a></code></li>
@@ -9871,10 +10020,14 @@ and propagates this to our listener iff this was a state change.</p></div>
 <li><code><a title="diem.jsonrpc.Script.WhichOneof" href="#diem.jsonrpc.Script.WhichOneof">WhichOneof</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.amount" href="#diem.jsonrpc.Script.amount">amount</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.arguments" href="#diem.jsonrpc.Script.arguments">arguments</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.arguments_bcs" href="#diem.jsonrpc.Script.arguments_bcs">arguments_bcs</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.code" href="#diem.jsonrpc.Script.code">code</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.currency" href="#diem.jsonrpc.Script.currency">currency</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.function_name" href="#diem.jsonrpc.Script.function_name">function_name</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.metadata" href="#diem.jsonrpc.Script.metadata">metadata</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.metadata_signature" href="#diem.jsonrpc.Script.metadata_signature">metadata_signature</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.module_address" href="#diem.jsonrpc.Script.module_address">module_address</a></code></li>
+<li><code><a title="diem.jsonrpc.Script.module_name" href="#diem.jsonrpc.Script.module_name">module_name</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.receiver" href="#diem.jsonrpc.Script.receiver">receiver</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.type" href="#diem.jsonrpc.Script.type">type</a></code></li>
 <li><code><a title="diem.jsonrpc.Script.type_arguments" href="#diem.jsonrpc.Script.type_arguments">type_arguments</a></code></li>

@@ -29,14 +29,14 @@
 <pre><code class="python"># Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from dataclasses import dataclass, field, replace, asdict
+from dataclasses import dataclass, field, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from typing import List, Optional, Any, Dict, Callable
 from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
-import requests, logging, random, string, json, time, os
+import requests, logging, json, time, os
 
 
 @dataclass
@@ -76,13 +76,7 @@ class RestClient:
         account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)
 
-    def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; offchain.KycDataObject:
-        obj = getattr(self.kyc_sample(), sample)
-        if not name:
-            name = &#34;&#34;.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        return replace(obj, legal_entity_name=name)
-
-    def kyc_sample(self) -&gt; KycSample:
+    def get_kyc_sample(self) -&gt; KycSample:
         return offchain.from_dict(self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json(), KycSample)
 
     def create(self, path: str, **kwargs: Any) -&gt; Dict[str, Any]:
@@ -866,13 +860,7 @@ class RestClient:
         account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)
 
-    def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; offchain.KycDataObject:
-        obj = getattr(self.kyc_sample(), sample)
-        if not name:
-            name = &#34;&#34;.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        return replace(obj, legal_entity_name=name)
-
-    def kyc_sample(self) -&gt; KycSample:
+    def get_kyc_sample(self) -&gt; KycSample:
         return offchain.from_dict(self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json(), KycSample)
 
     def create(self, path: str, **kwargs: Any) -&gt; Dict[str, Any]:
@@ -972,8 +960,8 @@ class RestClient:
     return self.send(&#34;GET&#34;, path).json()</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.miniwallet.client.RestClient.kyc_sample"><code class="name flex">
-<span>def <span class="ident">kyc_sample</span></span>(<span>self) ‑> <a title="diem.testing.miniwallet.app.models.KycSample" href="app/models.html#diem.testing.miniwallet.app.models.KycSample">KycSample</a></span>
+<dt id="diem.testing.miniwallet.client.RestClient.get_kyc_sample"><code class="name flex">
+<span>def <span class="ident">get_kyc_sample</span></span>(<span>self) ‑> <a title="diem.testing.miniwallet.app.models.KycSample" href="app/models.html#diem.testing.miniwallet.app.models.KycSample">KycSample</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -981,24 +969,8 @@ class RestClient:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def kyc_sample(self) -&gt; KycSample:
+<pre><code class="python">def get_kyc_sample(self) -&gt; KycSample:
     return offchain.from_dict(self.send(&#34;GET&#34;, &#34;/kyc_sample&#34;).json(), KycSample)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.RestClient.new_kyc_data"><code class="name flex">
-<span>def <span class="ident">new_kyc_data</span></span>(<span>self, name: Optional[str] = None, sample: str = 'minimum') ‑> <a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def new_kyc_data(self, name: Optional[str] = None, sample: str = &#34;minimum&#34;) -&gt; offchain.KycDataObject:
-    obj = getattr(self.kyc_sample(), sample)
-    if not name:
-        name = &#34;&#34;.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    return replace(obj, legal_entity_name=name)</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.send"><code class="name flex">
@@ -1105,10 +1077,9 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.RestClient.create" href="#diem.testing.miniwallet.client.RestClient.create">create</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.create_account" href="#diem.testing.miniwallet.client.RestClient.create_account">create_account</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.get" href="#diem.testing.miniwallet.client.RestClient.get">get</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.RestClient.kyc_sample" href="#diem.testing.miniwallet.client.RestClient.kyc_sample">kyc_sample</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.RestClient.get_kyc_sample" href="#diem.testing.miniwallet.client.RestClient.get_kyc_sample">get_kyc_sample</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.logger" href="#diem.testing.miniwallet.client.RestClient.logger">logger</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.name" href="#diem.testing.miniwallet.client.RestClient.name">name</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.RestClient.new_kyc_data" href="#diem.testing.miniwallet.client.RestClient.new_kyc_data">new_kyc_data</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.send" href="#diem.testing.miniwallet.client.RestClient.send">send</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.server_url" href="#diem.testing.miniwallet.client.RestClient.server_url">server_url</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.session" href="#diem.testing.miniwallet.client.RestClient.session">session</a></code></li>

@@ -2,32 +2,47 @@ openapi: 3.0.3
 info:
   title: Mini Wallet API Specification
   description: >
-      **MiniWallet API** is designed as a minimum wallet application API
-      for testing a wallet application by playing as counterparty wallet application.
-      An implementation of **MiniWallet API** are free to add any new API for its
-      own purpose.
+      **Introduction**
 
 
-      **MiniWallet Test Suite** is a set of tests built on top of **MiniWallet API**
-      for validating a wallet application Diem Payment Network integration.
+      The **Diem MiniWallet API** has been designed as a minimum wallet application API
+      to test other wallet apps by playing as the counterparty app.
+      You can add any new API to suit your testing purposes to the implementation of the
+      Diem MiniWallet API.
 
 
-      To enable **MiniWallet Test Suite** for your wallet application, you need create
-      a MiniWallet API proxy to your wallet application with the following endpoints:
-
-        * [Create account endpoint](#post-/accounts): required for isolating test data.
-        * [Get account balances endpoint](#get-/accounts/-account_id-/balances): required for verifying test results.
-        * [Generate account identifier endpoint](#post-/accounts/-account_id-/account_identifiers): required for test receiving payment.
-        * [Send payment endpoint](#post-/accounts/-account_id-/payments): required for test sending payment.
-        * [Get KYC sample endpoint](#get-/kyc_sample): required for test sending payment equal / above travel rule threshold limit.
-
-      You can selectively implement endpoints for testing sub-set features. For example,
-      [get KYC sample endpoint](#get-/kyc_sample) is not required until you need test
-      payment that triggers travel rule.
+      **Enable the Diem MiniWallet Test Suite**
 
 
-      The **MiniWallet Test Suite** also provides tests to verify teh **MiniWallet API** built
-      for your application is meeting requirements for running payment integration tests.
+      The Diem MiniWallet Test Suite is a set of tests built on top of the Diem MiniWallet API
+      and is used to validate a wallet app's integration with the Diem Payment Network (DPN). 
+      To enable the Diem MiniWallet Test Suite for your wallet app, create a Diem MiniWallet API
+      proxy to your wallet app with the following endpoints:
+
+
+        * **(Minimum required) To test sending and receiving payments on-chain:**
+          * [Create account endpoint](#post-/accounts): Used for isolating test data.
+          * [Get account balances endpoint](#get-/accounts/-account_id-/balances): Used for verifying test results.
+          * [Generate account identifier endpoint](#post-/accounts/-account_id-/account_identifiers): Used for testing receiving payments.
+          * [Send payment endpoint](#post-/accounts/-account_id-/payments): Used for testing sending payments.
+
+
+        * **To test sending and receiving payments off-chain:**
+          * [Get KYC sample endpoint](#get-/kyc_sample): Used for testing sending payments equal to or above the Travel Rule threshold limit. 
+
+
+        * **To debug:**
+          * [Get account events](#get-/get-events): Used for debugging the test suite.
+
+
+      You can implement some of these endpoints selectively if they are used for testing subset
+      features. For example, the KYC sample endpoint is not required until you test payments that
+      trigger the Travel Rule. 
+
+
+      The Diem MiniWallet Test Suite also provides tests to verify that
+      the MiniWallet API build for your application meets requirements for running payment integration 
+      tests. We will continue to improve and develop the Diem MiniWallet Test Suite to cover more use cases. 
 
 
       We will improve and grow **MiniWallet Test Suite** to cover more cases.
@@ -38,32 +53,37 @@ info:
 tags:
   - name: Minimum
     description: >
-        Minimum required endpoints for running **MiniWallet Test Suite** to test sending
-        and receiving payment under travel rule threshold limit.
+        The following are the minimum required endpoints for running Diem MiniWallet Test Suite to test sending
+        and receiving payments under the Travel Rule threshold limit.
   - name: Off-chain
     description: >
-        Required endpoint for running **MiniWallet Test Suite** to test payment requires
-        Diem off-chain API, e.g. payment amount is equal or above travel rule threshold limit.
+        The following are the required endpoints for running the Diem MiniWallet Test Suite to test payments that
+        require the Diem off-chain API (such as payments that are equal to or above the Travel Rule threshold limit).
   - name: Optional
     description: >
-        Optional debug endpoint that is not required to implement for running
-        **MiniWallet Test Suite**
+        This is an optional debugging endpoint that is not required to be implemented for running
+        the Diem MiniWallet Test Suite.
 paths:
   /accounts:
     post:
       summary: Create a new account
       description: >
-          * When the account is required to provide KYC data during off-chain KYC exchange process,
-            server should use `kyc_data` property value as KycDataObject and send to counterparty service.
-          * Server should not raise error for the case `kyc_data` property value is valid but
-            it does not meet its business criterias.
-          * `balances` property values are the initial deposit to the account.
-          * Client should call [get account balances endpoint](#get-/accounts/-account_id-/balances)
-            to check account balances after the account is created.
-          * Client should store the response account id for all
-            the operations to the account.
-          * MiniWallet Test Suite isolates test data by creating new account for
-            each test case.
+          This method creates a new account. 
+
+          
+          * The Diem MiniWallet Test Suite isolates test data by creating a new account for each test case.
+
+          * Client should store the response account ID for all the operations to the account.
+          
+          * The balances property value shows the initial currency deposits to the account. Client can use the 
+          get account balances endpoint to check the account balances available after creating the account. 
+          
+          * When the account is required to provide Know Your Customer (KYC) data during an off-chain transaction,
+           the server should use the kyc_data property value as the KycDataObject and send it to the counterparty service.
+
+ 
+
+
       operationId: create-account
       tags:
         - Minimum
@@ -75,7 +95,7 @@ paths:
         required: true
       responses:
         201:
-          description: Account is created; balances are deposited to account if provided.
+          description: Account is created; currency balances are deposited to the account if provided.
           content:
             application/json:
               schema:
@@ -126,18 +146,18 @@ paths:
       responses:
         202:
           description: >
-              Server accepted the sending payment request.
+              The server accepts the payment request. 
 
+              * The server may reflect the payment sent in the account balance immediately. 
+                The funds being sent are considered to be in the process of being transferred 
+                out and should not be used for any other purpose. 
+              * Once a client receives the response, expect the payment to be sent in a short time. 
+                But it is not a limit to the server to complete the payment before respond the request.
+              * Client can confirm if the payment is completed by:
+                  * Checking if the sending and receiving account balances have been updated accordingly. 
+                  * Checking if the sending or receiving wallet app exposes an event using the get account events endpoint. 
+              * The optional get account events endpoint (if implemented) can be used to confirm if the action has failed. 
 
-              * Server may reflect the result on account balances immediately as the fund is considered as
-                in the process of transferring out and should not be used for other purpose.
-              * A client should expect the payment will be sent in short time after received the response,
-                but it is not a limit to the server to complete the payment before respond the request.
-              * A client can confirm the payment is completed by the following ways:
-                1. Both sender and receiver account balances are updated accordingly.
-                2. Sender or receiver application exposes an event by [get account events endpoint](#get-/accounts/-account_id-/events).
-              * There is no clear way to confirm the action is failed unless server exposes an event by
-                [get account events endpoint](#get-/accounts/-account_id-/events).
 
           content:
             application/json:
@@ -174,9 +194,8 @@ paths:
       tags:
         - Off-chain
       description: >
-          KYC sample data can be used for testing different behaviors during
-          off-chain KYC data exchanging process. The data is used for counterparty wallet
-          application to set up their test account's KYC data.
+          This method can be used to test different behaviors during the off-chain KYC data exchange 
+          process. The data is used by the counterparty wallet app to set up its test account’s KYC data. 
       responses:
         200:
           description: success
@@ -191,23 +210,22 @@ paths:
       tags:
         - Optional
       description: >-
-          This is an optional debug endpoint for a wallet application to run **MiniWallet Test Suite**.
+          This method can be used to collect the context of a failure and will be ignored if the endpoint 
+          has not been implemented or if the call fails. 
 
+          The Diem MiniWallet implements the following events:
 
-          When a **MiniWallet Test Suite** test failed, this endpoint maybe called for collecting context of
-          the failure, and it will be ignored if the endpoint is not implemented or the call failed.
-
-          The followings are events implemented by the python SDK **MiniWallet** application:
+          
 
             | Event Type                | Data Attribute Type | Description                                                                       |
             |---------------------------|---------------------|-----------------------------------------------------------------------------------|
-            | `info`                    | string              | Human readable message for whatever happened.                                     |
-            | `created_account`         | JSON-encoded string | An account is created.                                                            |
-            | `created_transaction`     | JSON-encoded string | An incoming or outgoing transaction is created.                                   |
-            | `updated_transaction`     | JSON-encoded string | Outgoing transactions are updated due to Diem transactions being submitted or executed. |
-            | `created_subaddress`      | JSON-encoded string | A Subaddress is created.                                                          |
-            | `created_payment_command` | JSON-encoded string | Off-chain payment command is created.                                             |
-            | `updated_payment_command` | JSON-encoded string | Off-chain payment command is updated.                                             |
+            | `info`                    | string              | Human readable message for what has occured.                                      |
+            | `created_account`         | JSON-encoded string | An account has been created.                                                      |
+            | `created_transaction`     | JSON-encoded string | An incoming or outgoing transaction has been created.                             |
+            | `updated_transaction`     | JSON-encoded string | An outgoing transactions has been updated due to Diem transactions being submitted or executed. |
+            | `created_subaddress`      | JSON-encoded string | A Subaddress has been created.                                                    |
+            | `created_payment_command` | JSON-encoded string | Off-chain payment command has been created.                                       |
+            | `updated_payment_command` | JSON-encoded string | Off-chain payment command has been updated.                                       |
 
       parameters:
       - name: account_id

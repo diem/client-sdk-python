@@ -162,7 +162,7 @@ class CommandResponseObject:
     # The Command identifier to which this is a response.
     cid: typing.Optional[str] = datafield(default=None)
     # An result JSON object that may be defined when status == "success"
-    result: typing.Optional[Dict[str, Any]] = datafield(default=None)
+    result: typing.Optional[typing.Dict[str, typing.Any]] = datafield(default=None)
 
 
 @dataclass(frozen=True)

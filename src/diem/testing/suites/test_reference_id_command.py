@@ -24,13 +24,14 @@ def test_send_reference_id_command(
     7. Expect cid is different for the 2 response status.
     """
 
+    sender = "alice@avasp"
+    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver = "bob@bvasp"
     receiver_address = target_client.create_account().generate_account_identifier()
+
     offchain_client = offchain.Client(stub_config.account.account_address, diem_client, hrp)
     cid = str(uuid.uuid4())
     reference_id = str(uuid.uuid4())
-    sender = "alice@avasp"
-    sender_address = "tdm1pptdxvfjck4jyw3rkfnm2mnd2t5qqqqqqqqqqqqq305frg"
-    receiver = "bob@bvasp"
     resp = offchain_client.ref_id_exchange_request(
         sender=sender,
         sender_address=sender_address,

@@ -1,6 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
+import uuid
 from dataclasses import asdict
 from typing import List, Tuple, Dict, Optional, Any
 from json.decoder import JSONDecodeError
@@ -12,8 +13,21 @@ from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
 from .... import jsonrpc, offchain, utils, identifier
-from ....offchain import KycDataObject, Status, AbortCode, CommandResponseObject, CommandRequestObject, CommandType, \
-    protocol_error, command_error, ErrorCode, ReferenceIDCommandObject, ReferenceIDCommandResultObject, from_dict, to_dict
+from ....offchain import (
+    KycDataObject,
+    Status,
+    AbortCode,
+    CommandResponseObject,
+    CommandRequestObject,
+    CommandType,
+    protocol_error,
+    command_error,
+    ErrorCode,
+    ReferenceIDCommandObject,
+    ReferenceIDCommandResultObject,
+    from_dict,
+    to_dict,
+)
 
 import threading, logging, numpy, time
 
@@ -24,7 +38,7 @@ class Base:
         account: LocalAccount,
         child_accounts: List[LocalAccount],
         client: jsonrpc.Client,
-        name: str, ## TODO sunmi: use it for diem ID domain name??
+        name: str,  ## TODO sunmi: use it for diem ID domain name??
         logger: logging.Logger,
     ) -> None:
         self.logger = logger
@@ -166,17 +180,20 @@ class OffChainAPI(Base):
                 field="command_type",
             )
         # Check if reference ID is duplicate
+        print("=====================================")
+        print(request.command)
+        print(request)
         ref_id_command_object = from_dict(request.command, ReferenceIDCommandObject)
         try:
             txn = self.store.find(Transaction, reference_id=ref_id_command_object.reference_id)
-            msg = (
-                f"Reference ID {ref_id_command_object.reference_id} already exists for transaction {txn.id}"
-            )
+            msg = f"Reference ID {ref_id_command_object.reference_id} already exists for transaction {txn.id}"
             raise command_error(ErrorCode.duplicate_reference_id, msg)
         except NotFoundError:
-            return to_dict(ReferenceIDCommandResultObject(
-                receiver_address=request_sender_address,
-            ))
+            return to_dict(
+                ReferenceIDCommandResultObject(
+                    receiver_address=request_sender_address,
+                )
+            )
 
     def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -> None:
         self.store.create(
@@ -282,13 +299,22 @@ class BackgroundTasks(OffChainAPI):
         # response success: update transaction object
         # failed: you retry with a different reference ID
         if identifier.is_diem_id(txn.payee):
+            reference_id = str(uuid.uuid4())
+            sender_address, _ = self.diem_account.decode_account_identifier(self.diem_account.account_identifier())
             ref_id_command_response_object = self.offchain.ref_id_exchange_request(
                 sender=self.store.find(Account, id=txn.account_id).diem_id,
-                sender_address=,
+                sender_address=sender_address,
                 receiver=txn.payee,
-                counterparty_account_identifier=encode_account(get_account_identifier_with_diem_id(txn.payee), ),
+                reference_id=reference_id,
+                counterparty_account_identifier=identifier.encode_account(
+                    identifier.get_account_identifier_with_diem_id(txn.payee), None, self.diem_account.hrp
+                ),
                 sign=self.diem_account.sign_by_compliance_key,
             )
+            if ref_id_command_response_object.status == "success":
+                self.store.update(txn, reference_id=reference_id)
+            else:
+                return
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
@@ -406,6 +432,7 @@ class App(BackgroundTasks):
             # it is used for testing offchain api.
             disable_background_tasks=data.get_nullable("disable_outbound_request", bool),
         )
+        self.store.update(account, diem_id=account.id)
         balances = data.get_nullable("balances", dict)
         if balances:
             for c, a in balances.items():

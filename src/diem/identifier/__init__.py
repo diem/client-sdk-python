@@ -163,7 +163,7 @@ def encode_account(
     return encoded_address
 
 
-def rfvnlhgdiicthjceuiivvirltnigceggdecode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
+def decode_account(encoded_address: str, hrp: str) -> typing.Tuple[diem_types.AccountAddress, typing.Optional[bytes]]:
     """Return (addrees_str, subaddress_str) given a bech32 encoded str & human readable prefix(hrp)"""
     try:
         (_version, onchain_address_bytes, subaddress_bytes) = bech32.bech32_address_decode(hrp, encoded_address)

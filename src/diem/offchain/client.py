@@ -10,7 +10,6 @@ from json.decoder import JSONDecodeError
 
 from .command import Command
 from .payment_command import PaymentCommand
-from .reference_id_command import ReferenceIDCommand
 
 from .types import (
     CommandType,
@@ -26,6 +25,7 @@ from .types import (
     from_dict,
     to_dict,
     ReferenceIDCommandResultObject,
+    ReferenceIDCommandObject,
 )
 from .error import command_error, protocol_error
 
@@ -135,11 +135,13 @@ class Client:
         reference_id: typing.Optional[str] = None,
         cid: typing.Optional[str] = None,
     ) -> CommandResponseObject:
-        reference_id_command = ReferenceIDCommand.init(sender, sender_address, receiver, reference_id)
+        reference_id_command_object = ReferenceIDCommandObject(
+            sender=sender, sender_address=sender_address, receiver=receiver, reference_id=reference_id
+        )
         request = CommandRequestObject(
             cid=cid or str(uuid.uuid4()),
             command_type=CommandType.ReferenceIDCommand,
-            command=to_dict(reference_id_command),
+            command=to_dict(reference_id_command_object),
         )
         jws_msg = jws.serialize(request, sign)
         return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
@@ -167,7 +169,9 @@ class Client:
         if response.status_code not in [200, 400]:
             response.raise_for_status()
 
+        print("=============command")
         cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key)
+        print(cmd_resp)
         if cmd_resp.status == CommandResponseStatus.failure:
             raise CommandResponseError(cmd_resp)
         return cmd_resp
@@ -255,7 +259,6 @@ class Client:
     #         cid="3185027f-0574-6f55-2668-3a38fdb5de98",
     #         result=to_dict(ref_id_command_result),
     #     )
-
 
     def get_inbound_request_sender_public_key(self, request_sender_address: str) -> Ed25519PublicKey:
         """find the public key of the request sender address, raises protocol error if not found or public key is invalid"""

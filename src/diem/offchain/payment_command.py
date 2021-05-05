@@ -48,6 +48,7 @@ class PaymentCommand(Command):
         original_payment_reference_id: typing.Optional[str] = None,
         description: typing.Optional[str] = None,
         inbound: bool = False,
+        reference_id: typing.Optional[str] = None,
     ) -> "PaymentCommand":
         """init functon initializes a new `PaymentCommand` for starting the process of exchanging KYC data
         and recipient signature."""
@@ -62,6 +63,7 @@ class PaymentCommand(Command):
                 currency,
                 original_payment_reference_id=original_payment_reference_id,
                 description=description,
+                reference_id=reference_id,
             ),
             inbound=inbound,
         )

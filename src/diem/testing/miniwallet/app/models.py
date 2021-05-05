@@ -109,6 +109,9 @@ class Transaction(Base):
     def __str__(self) -> str:
         return "Transaction %s" % json.dumps(asdict(self), indent=2)
 
+    def get_payee_onchain_identifier(self) -> str:
+
+
 
 @dataclass
 class PaymentCommand(Base):

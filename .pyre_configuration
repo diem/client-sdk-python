@@ -9,6 +9,7 @@
   "typeshed": "./venv/lib/pyre_check/typeshed",
   "ignore_all_errors": [
     "src/diem/jsonrpc/jsonrpc_pb2.py",
+    "src/diem/jsonrpc/jsonrpc_pb2.pyi",
     "src/diem/bcs",
     "src/diem/diem_types",
     "src/diem/serde_binary",

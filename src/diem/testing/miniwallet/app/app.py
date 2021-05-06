@@ -5,6 +5,7 @@ from dataclasses import asdict
 from typing import List, Tuple, Dict, Optional, Any
 from json.decoder import JSONDecodeError
 from .store import InMemoryStore, NotFoundError
+from .pending_account import PENDING_INBOUND_ACCOUNT_ID
 from .diem_account import DiemAccount
 from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentCommand
 from .event_puller import EventPuller
@@ -27,6 +28,7 @@ class Base:
         self.logger = logger
         self.diem_account = DiemAccount(account, child_accounts, client)
         self.store = InMemoryStore()
+        self.store.create(Account, id=PENDING_INBOUND_ACCOUNT_ID)
         self.diem_client = client
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
@@ -36,7 +38,6 @@ class Base:
             self.event_puller.add(child_account.account_address)
         self.event_puller.head()
         self.cache: Dict[str, CommandResponseObject] = {}
-        self.bg_worker: str = "disabled"
 
     def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
         try:
@@ -181,22 +182,16 @@ class OffChainAPI(Base):
 
 class BackgroundTasks(OffChainAPI):
     def start_bg_worker_thread(self, delay: float = 0.1) -> None:
-        self.bg_worker = "running"
-
         def worker() -> None:
             while True:
-                if self.bg_worker == "disable":
-                    self.bg_worker = "disabled"
-                    self.logger.info("background tasks worker is disabled")
-                elif self.bg_worker == "running":
-                    try:
-                        self.run_bg_tasks()
-                        delay = 0.1
-                    except Exception as e:
-                        self.logger.exception(e)
-                        # Exponential backoff for the delay to slow down the background
-                        # tasks execution cycle and reduce the duplicated error logs.
-                        delay = delay * 2
+                try:
+                    self.run_bg_tasks()
+                    delay = 0.1
+                except Exception as e:
+                    self.logger.exception(e)
+                    # Exponential backoff for the delay to slow down the background
+                    # tasks execution cycle and reduce the duplicated error logs.
+                    delay = delay * 2
                 time.sleep(delay)
 
         t = threading.Thread(target=worker, daemon=True)
@@ -209,6 +204,9 @@ class BackgroundTasks(OffChainAPI):
 
     def _send_pending_payments(self) -> None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
+            if self.store.find(Account, id=txn.account_id).disable_background_tasks:
+                self.logger.debug("account bg tasks disabled, ignore %s", txn)
+                continue
             self.logger.info("processing %s", txn)
             try:
                 if self.offchain.is_my_account_id(str(txn.payee)):
@@ -292,6 +290,9 @@ class BackgroundTasks(OffChainAPI):
     def _process_offchain_commands(self) -> None:
         cmds = self.store.find_all(PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None)
         for cmd in cmds:
+            if self.store.find(Account, id=cmd.account_id).disable_background_tasks:
+                self.logger.debug("account bg tasks disabled, ignore %s", cmd)
+                continue
             try:
                 offchain_cmd = cmd.to_offchain_command()
                 action = offchain_cmd.follow_up_action()
@@ -361,9 +362,12 @@ class App(BackgroundTasks):
         account = self.store.create(
             Account,
             kyc_data=data.get_nullable("kyc_data", dict, self._validate_kyc_data),
-            # reject_additional_kyc_data_request is belongs to mini-wallet stub API, used for
-            # setting up mini-wallet stub to reject additional_kyc_data request.
+            # reject_additional_kyc_data_request is used for setting up rejecting
+            # additional_kyc_data request in offchain PaymentCommand processing.
             reject_additional_kyc_data_request=data.get_nullable("reject_additional_kyc_data_request", bool),
+            # disable_background_tasks disables background task processing in the App for the account,
+            # it is used for testing offchain api.
+            disable_background_tasks=data.get_nullable("disable_outbound_request", bool),
         )
         balances = data.get_nullable("balances", dict)
         if balances:

@@ -18,6 +18,12 @@ def test_create_event():
     assert s.find_all(Event) == [event]
 
 
+def test_create_with_id():
+    s = store.InMemoryStore()
+    account = s.create(Account, id="abc")
+    assert account.id == "abc"
+
+
 def test_find_returns_one_matched_item():
     s = store.InMemoryStore()
     s.create_event("1", "create-abc", "test data")

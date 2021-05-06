@@ -74,7 +74,8 @@ class InMemoryStore:
         records[index] = asdict(obj)
 
     def _insert(self, typ: Type[T], **res: Any) -> Dict[str, Any]:
-        res["id"] = str(self.next_id())
+        if "id" not in res:
+            res["id"] = str(self.next_id())
         self.resources.setdefault(typ, []).append(asdict(typ(**res)))
         return res
 

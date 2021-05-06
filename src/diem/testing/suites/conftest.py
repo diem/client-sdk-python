@@ -5,7 +5,7 @@
 from ... import testnet, jsonrpc, identifier, offchain
 from .. import LocalAccount
 from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App
-from ..miniwallet.app.event_puller import PENDING_INBOUND_ACCOUNT_ID
+from ..miniwallet.app import PENDING_INBOUND_ACCOUNT_ID
 from .envs import (
     target_url,
     is_self_check,
@@ -15,7 +15,6 @@ from .envs import (
 )
 from typing import Optional, Tuple, Dict, Any, Generator
 from dataclasses import asdict
-from contextlib import contextmanager
 import pytest, json, uuid, requests, time, warnings
 
 
@@ -112,18 +111,6 @@ def log_stub_wallet_pending_income_account(
 ) -> Generator[None, None, None]:
     yield
     stub_wallet_pending_income_account.log_events()
-
-
-@contextmanager
-def disable_background_tasks(app: App) -> Generator[None, None, None]:
-    app.bg_worker = "disable"
-    # wait for status changed from disable to disabled
-    while app.bg_worker == "disable":
-        time.sleep(0.01)
-    try:
-        yield
-    finally:
-        app.bg_worker = "running"
 
 
 def send_request_json(

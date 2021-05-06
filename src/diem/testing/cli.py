@@ -79,7 +79,7 @@ def start_server(
 
     conf = AppConfig(
         name=name,
-        server_conf=ServerConfig(host=host, port=port, base_url=diem_account_base_url),
+        server_conf=ServerConfig(host=host, port=port, base_url=diem_account_base_url or ""),
         disable_events_api=disable_events_api,
     )
     if import_diem_account_config_file:

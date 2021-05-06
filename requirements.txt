@@ -6,7 +6,7 @@ pytest==6.2.1
 click==7.1
 pylama
 black
-pyre-check==0.0.58
+pyre-check
 pytest-cov
 mypy-protobuf
 pdoc3

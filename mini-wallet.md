@@ -4,15 +4,15 @@
 
 ## Introduction
 
-The Diem MiniWallet is a simplified wallet that can be run from the command line. You can use the Diem MiniWallet (and the included testing suite) to test your wallet application and to help develop your app to meet our requirements. 
+The Diem MiniWallet is a simplified wallet that can be run from the command line. You can use the Diem MiniWallet (and the included testing suite) to test your wallet application and to help develop your app to meet our requirements.
 
-The Diem MiniWallet connects to the Diem testnet by default. If you want to use the Diem MiniWallet to test in your local test network, read the instructions here. 
+The Diem MiniWallet connects to the Diem testnet by default. If you want to use the Diem MiniWallet to test in your local test network, read the instructions here.
 
 
 
 ## Instal the Diem MiniWallet
 
-1. Install the Diem Python SDK with the MiniWallet and it’s Test Suite (both included since version 1.2.6) using this command: `pip install diem[all]`. You may need to use quotes around `'diem[all]'`. 
+1. Install the Diem Python SDK with the MiniWallet and it’s Test Suite (both included since version 1.2.6) using this command: `pip install diem[all]`. You may need to use quotes around `'diem[all]'`.
 You may need to use quotes `pip install 'diem[all]'`.
 
 	To include the Diem MiniWallet in a pip requirements.txt file add:
@@ -31,49 +31,72 @@ The Diem MiniWallet server connects to the Diem testnet by default. To start the
 
 ```
 dmw start-server --help
+
 Usage: dmw start-server [OPTIONS]
 
 Options:
   -n, --name TEXT                 Application name.  [default: mini-wallet]
-  -h, --host TEXT                 Start server host.  [default: localhost]
+  -H, --host TEXT                 Start server host.  [default: localhost]
   -p, --port INTEGER              Start server port.  [default: 8888]
+  -u, --diem-account-base-url TEXT
+                                  The address that will be used for offchain
+                                  callbacks. Defaults to
+                                  http://localhost:{port}
+
   -j, --jsonrpc TEXT              Diem fullnode JSON-RPC URL.  [default:
                                   http://testnet.diem.com/v1]
 
   -f, --faucet TEXT               Testnet faucet URL.  [default:
                                   http://testnet.diem.com/mint]
 
-  -l, --logfile TEXT              Log to a file instead of printing into
+  -o, --disable-events-api        Disable account events API.  [default:
+                                  False]
+
+  -l, --logfile PATH              Log to a file instead of printing into
                                   console.
 
-  -o, --enable-debug-api BOOLEAN  Enable debug API.  [default: True]
-  --help                          Show this message and exit.
+  -i, --import-diem-account-config-file FILENAME
+                                  Import the diem account config from a file.
+                                  The config file content should be JSON
+                                  generated from command `gen-diem-account-
+                                  config`.
+
+  --hrp TEXT                      Set Diem account identifier hrp; if '-i'
+                                  option is used, this option overwrites hrp
+                                  configured by '-i' option.
+
+  -h, --help                      Show this message and exit.
 ```
 
-View the DiemMiniWallet API specification (OpenAPI Specification 3.0.3) by opening http://localhost:8888. These specs include simple examples to try out the MiniWallet API. A hosted version of the API specification document is also available [here](https://diem.github.io/client-sdk-python/mini-wallet-api-spec.html).
+View the Diem MiniWallet API specification (OpenAPI Specification 3.0.3) by opening http://localhost:8888. These specs include simple examples to try out the MiniWallet API. A hosted version of the API specification document is also available [here](https://diem.github.io/client-sdk-python/mini-wallet-api-spec.html).
 
 
 ## Use the Diem MiniWallet Test Suite
 
-The Diem MiniWallet Test Suite is a set of tests built on top of the Diem MiniWallet API and is used to validate a wallet app’s integration with the Diem Payment Network (DPN). 
+The Diem MiniWallet Test Suite is a set of tests built on top of the Diem MiniWallet API and is used to validate a wallet app’s integration with the Diem Payment Network (DPN).
 
-Use the MiniWallet Test Suite to automate testing and checking if your wallet application meets our requirements. 
+Use the MiniWallet Test Suite to automate testing and checking if your wallet application meets our requirements.
 
-1. Hit the target server we started by `dmw start-server`:
-	`dmw test --target http://localhost:8888` 
+1. To test the wallet application we started by `dmw start-server -p 8888`:
+	`dmw test --target http://localhost:8888`
 
 	You should see the following test report:
 
 	```
-	> dmw test
-	Diem JSON-RPC URL: http://testnet.diem.com/v1
-	Diem Testnet Faucet URL: http://testnet.diem.com/mint
-	======================================== test session starts===============================================
-	…...
-	collected 61 items
-	src/diem/testing/suites/test_miniwallet_api.py ......................ss.                              [ 40%]
-	src/diem/testing/suites/test_payment.py ....................................                          [100%]
-	============================== 59 passed, 2 skipped, 198 deselected in 	18.26===============================
+    Diem JSON-RPC URL: http://testnet.diem.com/v1
+    Diem Testnet Faucet URL: http://testnet.diem.com/mint
+    =========================================== test session starts ==============================================
+    collected 181 items
+
+    src/diem/testing/suites/test_create_test_account.py .........                                           [  4%]
+    src/diem/testing/suites/test_generate_account_identifier.py .                                           [  5%]
+    src/diem/testing/suites/test_offchain_protocol_error_cases.py ...................                       [ 16%]
+    src/diem/testing/suites/test_payment_command.py ..................................................      [ 46%]
+    src/diem/testing/suites/test_ping_command.py .                                                          [ 47%]
+    src/diem/testing/suites/test_receive_payment.py ....................................................... [ 82%]
+    src/diem/testing/suites/test_send_payment.py ...............................                            [100%]
+
+    ========================================== 181 passed in 46.18s ==============================================
 	```
 
 
@@ -87,48 +110,67 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	`test` options:
 	```
 	dmw test --help
-	Usage: dmw test [OPTIONS]
-	
-	Options:
-    -t, --target TEXT               					Target mini-wallet application URL.
-	                                  				[default: http://localhost:8888]	
-	                                  				
-	 -h, --stub-bind-host TEXT       					The host the miniwallet stub server will
-	                                  				bind to  [default: localhost]
-	                                  				
-	 -p, --stub-bind-port INTEGER    					The port the miniwallet stub server will
-	                             							bind to. Random if empty.
-	                             							
-	 -u, --stub-diem-account-base-url TEXT		The address that will be used for offchain
-	                                  				callbacks. Defaults to
-	                                 					http://localhost:{random_port}
-	                                 					
-	 -j, --jsonrpc TEXT              					Diem fullnode JSON-RPC URL.  [default:
-	                                  				http://testnet.diem.com/v1]
-	                                  				
-	 -f, --faucet TEXT               					Testnet faucet URL.  [default:
-	                                 				  http://testnet.diem.com/mint]
-	                                 				  
-	 --pytest-args TEXT              					Additional pytest arguments, split by empty
-	                                  				space, e.g. `--pytest-args '-v -s'`
-	                                  				
-	 -d, --test-debug-api BOOLEAN    					Run tests for debug APIs.  [default: False]
-	 
-	 -v, --verbose                   					Enable verbose log output.  [default: False]
-	 
-	 --help                          					Show this message and exit.
-	```
 
+	Usage: dmw test [OPTIONS]
+
+	Options:
+	  -t, --target TEXT               Target mini-wallet application URL.
+	                                  [default: http://localhost:8888]
+
+	  -H, --stub-bind-host TEXT       The host the miniwallet stub server will
+	                                  bind to  [default: localhost]
+
+	  -p, --stub-bind-port INTEGER    The port the miniwallet stub server will
+	                                  bind to. Random if empty.
+
+	  -u, --stub-diem-account-base-url TEXT
+	                                  The address that will be used for offchain
+	                                  callbacks. Defaults to
+	                                  http://localhost:{port}
+
+	  -j, --jsonrpc TEXT              Diem fullnode JSON-RPC URL.  [default:
+	                                  http://testnet.diem.com/v1]
+
+	  -k, --match-keywords TEXT       Only run tests which match the given
+	                                  substring expression. Same with pytest `-k`
+	                                  option. Example: -k 'test_method or
+	                                  test_other' matches all test functions and
+	                                  classes whose name contains 'test_method' or
+	                                  'test_other', while -k 'not test_method'
+	                                  matches those that don't contain
+	                                  'test_method' in their names
+
+	  -f, --faucet TEXT               Testnet faucet URL.  [default:
+	                                  http://testnet.diem.com/mint]
+
+	  --pytest-args TEXT              Additional pytest arguments, split by empty
+	                                  space, e.g. `--pytest-args '-v -s'`.
+
+	  -l, --logfile PATH              Log to a file instead of printing into
+	                                  console.
+
+	  -v, --verbose                   Enable verbose log output.  [default: False]
+	  -i, --import-stub-diem-account-config-file FILENAME
+	                                  Import the diem account config from a file
+	                                  for miniwallet stub server. The config file
+	                                  content should be JSON generated from
+	                                  command `gen-diem-account-config`.
+
+	  --stub-hrp TEXT                 Set Diem account identifier hrp for the stub
+	                                  wallet application; if '-i' option is used,
+	                                  this option overwrites hrp configured by
+	                                  '-i' option.
+
+	  -h, --help                      Show this message and exit.
+	```
 
 ### How it works
 
-The `diem.testing.suites` package contains the Diem MiniWallet Test Suite and includes the pytest file `conftest.py`.
+`dmv test` launches a pytest runner to run Diem MiniWallet Test Suite tests in `diem.testing.suites` package.
 
-Use `dmv test` to launch a pytest runner to run tests.
+`diem.testing.suites` package includes a `conftest.py`, which will be loaded by pytest for setting up test fixtures.
 
-The `conftest.py` starts a stub MiniWallet as a counterparty service for testing payment with the target server specified by the `--target` option here.
-
-
+A package scope fixture in the `conftest.py` starts a MiniWallet application named `stub-wallet` as a counterparty service for testing payment with the target server specified by the `--target` option here.
 
 ### Work with a local testnet
 

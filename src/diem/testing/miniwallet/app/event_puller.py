@@ -4,12 +4,10 @@
 from dataclasses import dataclass, field
 from typing import Dict, Callable, Any
 from .store import InMemoryStore, NotFoundError
-from .models import Transaction, Subaddress, PaymentCommand, RefundReason
+from .pending_account import PENDING_INBOUND_ACCOUNT_ID
+from .models import Transaction, Subaddress, PaymentCommand, RefundReason, Account
 from .... import jsonrpc, diem_types, txnmetadata, identifier, utils
 import copy, logging
-
-
-PENDING_INBOUND_ACCOUNT_ID: str = "pending_inbound_account"
 
 
 @dataclass
@@ -104,6 +102,10 @@ class EventPuller:
         )
 
     def _create_txn(self, account_id: str, event: jsonrpc.Event, **kwargs: Any) -> None:
+        if self.store.find(Account, id=account_id).disable_background_tasks:
+            self.logger.debug("account(%s) bg tasks disabled, ignore %s", account_id, event)
+            return
+
         self.logger.info("account(id=%s) receives payment amount %s", account_id, event.data.amount.amount)
         self.store.create(
             Transaction,

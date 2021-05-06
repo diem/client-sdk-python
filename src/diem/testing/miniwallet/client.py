@@ -39,11 +39,13 @@ class RestClient:
         balances: Optional[Dict[str, int]] = None,
         kyc_data: Optional[offchain.KycDataObject] = None,
         reject_additional_kyc_data_request: Optional[bool] = None,
+        disable_background_tasks: Optional[bool] = None,
     ) -> "AccountResource":
         kwargs = {
             "balances": balances,
             "kyc_data": asdict(kyc_data) if kyc_data else None,
             "reject_additional_kyc_data_request": reject_additional_kyc_data_request,
+            "disable_background_tasks": disable_background_tasks,
         }
         account = self.create("/accounts", **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account["id"], kyc_data=kyc_data)

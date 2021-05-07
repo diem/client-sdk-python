@@ -67,11 +67,13 @@ class RestClient:
         balances: Optional[Dict[str, int]] = None,
         kyc_data: Optional[offchain.KycDataObject] = None,
         reject_additional_kyc_data_request: Optional[bool] = None,
+        disable_background_tasks: Optional[bool] = None,
     ) -&gt; &#34;AccountResource&#34;:
         kwargs = {
             &#34;balances&#34;: balances,
             &#34;kyc_data&#34;: asdict(kyc_data) if kyc_data else None,
             &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
+            &#34;disable_background_tasks&#34;: disable_background_tasks,
         }
         account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)
@@ -851,11 +853,13 @@ class RestClient:
         balances: Optional[Dict[str, int]] = None,
         kyc_data: Optional[offchain.KycDataObject] = None,
         reject_additional_kyc_data_request: Optional[bool] = None,
+        disable_background_tasks: Optional[bool] = None,
     ) -&gt; &#34;AccountResource&#34;:
         kwargs = {
             &#34;balances&#34;: balances,
             &#34;kyc_data&#34;: asdict(kyc_data) if kyc_data else None,
             &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
+            &#34;disable_background_tasks&#34;: disable_background_tasks,
         }
         account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
         return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)
@@ -924,7 +928,7 @@ class RestClient:
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient.create_account"><code class="name flex">
-<span>def <span class="ident">create_account</span></span>(<span>self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None, reject_additional_kyc_data_request: Optional[bool] = None) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
+<span>def <span class="ident">create_account</span></span>(<span>self, balances: Optional[Dict[str, int]] = None, kyc_data: Optional[<a title="diem.offchain.types.payment_types.KycDataObject" href="../../offchain/types/payment_types.html#diem.offchain.types.payment_types.KycDataObject">KycDataObject</a>] = None, reject_additional_kyc_data_request: Optional[bool] = None, disable_background_tasks: Optional[bool] = None) ‑> <a title="diem.testing.miniwallet.client.AccountResource" href="#diem.testing.miniwallet.client.AccountResource">AccountResource</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -937,11 +941,13 @@ class RestClient:
     balances: Optional[Dict[str, int]] = None,
     kyc_data: Optional[offchain.KycDataObject] = None,
     reject_additional_kyc_data_request: Optional[bool] = None,
+    disable_background_tasks: Optional[bool] = None,
 ) -&gt; &#34;AccountResource&#34;:
     kwargs = {
         &#34;balances&#34;: balances,
         &#34;kyc_data&#34;: asdict(kyc_data) if kyc_data else None,
         &#34;reject_additional_kyc_data_request&#34;: reject_additional_kyc_data_request,
+        &#34;disable_background_tasks&#34;: disable_background_tasks,
     }
     account = self.create(&#34;/accounts&#34;, **{k: v for k, v in kwargs.items() if v})
     return AccountResource(client=self, id=account[&#34;id&#34;], kyc_data=kyc_data)</code></pre>

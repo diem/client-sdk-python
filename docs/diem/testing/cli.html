@@ -65,6 +65,12 @@ def main() -&gt; None:
 @click.option(&#34;--name&#34;, &#34;-n&#34;, default=&#34;mini-wallet&#34;, help=&#34;Application name.&#34;)
 @click.option(&#34;--host&#34;, &#34;-H&#34;, default=&#34;localhost&#34;, help=&#34;Start server host.&#34;)
 @click.option(&#34;--port&#34;, &#34;-p&#34;, default=8888, help=&#34;Start server port.&#34;)
+@click.option(
+    &#34;--diem-account-base-url&#34;,
+    &#34;-u&#34;,
+    default=None,
+    help=&#34;The address that will be used for offchain callbacks. Defaults to http://localhost:{port}&#34;,
+)
 @click.option(&#34;--jsonrpc&#34;, &#34;-j&#34;, default=testnet.JSON_RPC_URL, help=&#34;Diem fullnode JSON-RPC URL.&#34;)
 @click.option(&#34;--faucet&#34;, &#34;-f&#34;, default=testnet.FAUCET_URL, help=&#34;Testnet faucet URL.&#34;)
 @click.option(&#34;--disable-events-api&#34;, &#34;-o&#34;, default=False, help=&#34;Disable account events API.&#34;, type=bool, is_flag=True)
@@ -89,6 +95,7 @@ def start_server(
     name: str,
     host: str,
     port: int,
+    diem_account_base_url: Optional[str],
     jsonrpc: str,
     faucet: str,
     disable_events_api: bool,
@@ -99,7 +106,11 @@ def start_server(
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
 
-    conf = AppConfig(name=name, server_conf=ServerConfig(host=host, port=port), disable_events_api=disable_events_api)
+    conf = AppConfig(
+        name=name,
+        server_conf=ServerConfig(host=host, port=port, base_url=diem_account_base_url or &#34;&#34;),
+        disable_events_api=disable_events_api,
+    )
     if import_diem_account_config_file:
         conf.account_config = json.load(import_diem_account_config_file)
     if hrp:
@@ -141,7 +152,7 @@ def start_server(
     &#34;-u&#34;,
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL),
-    help=&#34;The address that will be used for offchain callbacks. Defaults to http://localhost:{random_port}&#34;,
+    help=&#34;The address that will be used for offchain callbacks. Defaults to http://localhost:{port}&#34;,
 )
 @click.option(&#34;--jsonrpc&#34;, &#34;-j&#34;, default=testnet.JSON_RPC_URL, help=&#34;Diem fullnode JSON-RPC URL.&#34;)
 @click.option(

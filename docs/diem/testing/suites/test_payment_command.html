@@ -38,7 +38,6 @@ from .conftest import (
     assert_response_error,
     payment_command_request_sample,
     send_request_json,
-    disable_background_tasks,
 )
 import json, pytest
 
@@ -306,19 +305,20 @@ def test_replay_the_same_payment_command(
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            cmd = stub_wallet_app.send_initial_payment_command(txn)
-            stub_wallet_app.send_offchain_command_without_retries(cmd)
-            stub_wallet_app.send_offchain_command_without_retries(cmd)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        cmd = stub_wallet_app.send_initial_payment_command(txn)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -347,37 +347,38 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
-            # wait for receiver to update payment command
-            sender_account.wait_for_event(&#34;updated_payment_command&#34;)
-            # find updated payment command
-            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
-            offchain_cmd = updated_cmd.to_offchain_command()
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
 
-            # update sender KYC data
-            assert offchain_cmd.payment.sender.kyc_data
-            if offchain_cmd.payment.sender.kyc_data.dob == &#34;01/01/1979&#34;:
-                kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/01/1979&#34;)
-            else:
-                kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/02/1979&#34;)
-            # create new payment command with correct status and changed kyc data
-            new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
+        # update sender KYC data
+        assert offchain_cmd.payment.sender.kyc_data
+        if offchain_cmd.payment.sender.kyc_data.dob == &#34;01/01/1979&#34;:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/01/1979&#34;)
+        else:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/02/1979&#34;)
+        # create new payment command with correct status and changed kyc data
+        new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
 
-            with pytest.raises(offchain.CommandResponseError) as err:
-                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
-            assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.kyc_data&#34;)
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.kyc_data&#34;)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -407,38 +408,39 @@ def test_payment_command_sender_address_can_only_be_written_once(
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
-            # wait for receiver to update payment command
-            sender_account.wait_for_event(&#34;updated_payment_command&#34;)
-            # find updated payment command
-            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
-            offchain_cmd = updated_cmd.to_offchain_command()
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
 
-            # update sender address
-            sender_account_address = offchain_cmd.sender_account_address(hrp)
-            new_subaddress = stub_wallet_app._gen_subaddress(sender_account.id)
-            new_sender_address = identifier.encode_account(sender_account_address, new_subaddress, hrp)
-            new_sender = replace(offchain_cmd.payment.sender, address=new_sender_address)
-            new_payment = replace(offchain_cmd.payment, sender=new_sender)
-            new_offchain_cmd = replace(offchain_cmd, payment=new_payment, my_actor_address=new_sender_address)
+        # update sender address
+        sender_account_address = offchain_cmd.sender_account_address(hrp)
+        new_subaddress = stub_wallet_app._gen_subaddress(sender_account.id)
+        new_sender_address = identifier.encode_account(sender_account_address, new_subaddress, hrp)
+        new_sender = replace(offchain_cmd.payment.sender, address=new_sender_address)
+        new_payment = replace(offchain_cmd.payment, sender=new_sender)
+        new_offchain_cmd = replace(offchain_cmd, payment=new_payment, my_actor_address=new_sender_address)
 
-            new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+        new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
-            with pytest.raises(offchain.CommandResponseError) as err:
-                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
-            assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.address&#34;)
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.address&#34;)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -477,41 +479,42 @@ def test_payment_command_action_can_only_be_written_once(
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
-            # wait for receiver to update payment command
-            sender_account.wait_for_event(&#34;updated_payment_command&#34;)
-            # find updated payment command
-            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
-            offchain_cmd = updated_cmd.to_offchain_command()
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
 
-            # update action field value
-            if field_name == &#34;currency&#34;:
-                field_value = &#34;XDX&#34; if offchain_cmd.payment.action.currency == &#34;XUS&#34; else &#34;XUS&#34;
-            elif field_name == &#34;amount&#34;:
-                field_value = offchain_cmd.payment.action.amount + 10_000
-            elif field_name == &#34;timestamp&#34;:
-                field_value = offchain_cmd.payment.action.timestamp - 1
-            new_action = replace(offchain_cmd.payment.action, **{field_name: field_value})
-            new_payment = replace(offchain_cmd.payment, action=new_action)
-            new_offchain_cmd = replace(offchain_cmd, payment=new_payment)
+        # update action field value
+        if field_name == &#34;currency&#34;:
+            field_value = &#34;XDX&#34; if offchain_cmd.payment.action.currency == &#34;XUS&#34; else &#34;XUS&#34;
+        elif field_name == &#34;amount&#34;:
+            field_value = offchain_cmd.payment.action.amount + 10_000
+        elif field_name == &#34;timestamp&#34;:
+            field_value = offchain_cmd.payment.action.timestamp - 1
+        new_action = replace(offchain_cmd.payment.action, **{field_name: field_value})
+        new_payment = replace(offchain_cmd.payment, action=new_action)
+        new_offchain_cmd = replace(offchain_cmd, payment=new_payment)
 
-            new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+        new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
-            with pytest.raises(offchain.CommandResponseError) as err:
-                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
-            assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.action&#34;)
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.action&#34;)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -661,41 +664,42 @@ def test_payment_command_action_can_only_be_written_once(
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
-            # wait for receiver to update payment command
-            sender_account.wait_for_event(&#34;updated_payment_command&#34;)
-            # find updated payment command
-            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
-            offchain_cmd = updated_cmd.to_offchain_command()
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
 
-            # update action field value
-            if field_name == &#34;currency&#34;:
-                field_value = &#34;XDX&#34; if offchain_cmd.payment.action.currency == &#34;XUS&#34; else &#34;XUS&#34;
-            elif field_name == &#34;amount&#34;:
-                field_value = offchain_cmd.payment.action.amount + 10_000
-            elif field_name == &#34;timestamp&#34;:
-                field_value = offchain_cmd.payment.action.timestamp - 1
-            new_action = replace(offchain_cmd.payment.action, **{field_name: field_value})
-            new_payment = replace(offchain_cmd.payment, action=new_action)
-            new_offchain_cmd = replace(offchain_cmd, payment=new_payment)
+        # update action field value
+        if field_name == &#34;currency&#34;:
+            field_value = &#34;XDX&#34; if offchain_cmd.payment.action.currency == &#34;XUS&#34; else &#34;XUS&#34;
+        elif field_name == &#34;amount&#34;:
+            field_value = offchain_cmd.payment.action.amount + 10_000
+        elif field_name == &#34;timestamp&#34;:
+            field_value = offchain_cmd.payment.action.timestamp - 1
+        new_action = replace(offchain_cmd.payment.action, **{field_name: field_value})
+        new_payment = replace(offchain_cmd.payment, action=new_action)
+        new_offchain_cmd = replace(offchain_cmd, payment=new_payment)
 
-            new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+        new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
-            with pytest.raises(offchain.CommandResponseError) as err:
-                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
-            assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.action&#34;)
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.action&#34;)
     finally:
         receiver_account.log_events()
         sender_account.log_events()</code></pre>
@@ -1074,38 +1078,39 @@ and <code>invalid_overwrite</code> error code.</li>
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
-            # wait for receiver to update payment command
-            sender_account.wait_for_event(&#34;updated_payment_command&#34;)
-            # find updated payment command
-            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
-            offchain_cmd = updated_cmd.to_offchain_command()
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
 
-            # update sender address
-            sender_account_address = offchain_cmd.sender_account_address(hrp)
-            new_subaddress = stub_wallet_app._gen_subaddress(sender_account.id)
-            new_sender_address = identifier.encode_account(sender_account_address, new_subaddress, hrp)
-            new_sender = replace(offchain_cmd.payment.sender, address=new_sender_address)
-            new_payment = replace(offchain_cmd.payment, sender=new_sender)
-            new_offchain_cmd = replace(offchain_cmd, payment=new_payment, my_actor_address=new_sender_address)
+        # update sender address
+        sender_account_address = offchain_cmd.sender_account_address(hrp)
+        new_subaddress = stub_wallet_app._gen_subaddress(sender_account.id)
+        new_sender_address = identifier.encode_account(sender_account_address, new_subaddress, hrp)
+        new_sender = replace(offchain_cmd.payment.sender, address=new_sender_address)
+        new_payment = replace(offchain_cmd.payment, sender=new_sender)
+        new_offchain_cmd = replace(offchain_cmd, payment=new_payment, my_actor_address=new_sender_address)
 
-            new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
+        new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
-            with pytest.raises(offchain.CommandResponseError) as err:
-                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
-            assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.address&#34;)
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.address&#34;)
     finally:
         receiver_account.log_events()
         sender_account.log_events()</code></pre>
@@ -1155,37 +1160,38 @@ and <code>invalid_overwrite</code> error code.</li>
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
-            # wait for receiver to update payment command
-            sender_account.wait_for_event(&#34;updated_payment_command&#34;)
-            # find updated payment command
-            updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
-            offchain_cmd = updated_cmd.to_offchain_command()
+        # wait for receiver to update payment command
+        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        # find updated payment command
+        updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
+        offchain_cmd = updated_cmd.to_offchain_command()
 
-            # update sender KYC data
-            assert offchain_cmd.payment.sender.kyc_data
-            if offchain_cmd.payment.sender.kyc_data.dob == &#34;01/01/1979&#34;:
-                kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/01/1979&#34;)
-            else:
-                kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/02/1979&#34;)
-            # create new payment command with correct status and changed kyc data
-            new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
+        # update sender KYC data
+        assert offchain_cmd.payment.sender.kyc_data
+        if offchain_cmd.payment.sender.kyc_data.dob == &#34;01/01/1979&#34;:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/01/1979&#34;)
+        else:
+            kyc_data = replace(offchain_cmd.payment.sender.kyc_data, dob=&#34;01/02/1979&#34;)
+        # create new payment command with correct status and changed kyc data
+        new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
 
-            with pytest.raises(offchain.CommandResponseError) as err:
-                stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+        with pytest.raises(offchain.CommandResponseError) as err:
+            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
 
-            assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.kyc_data&#34;)
+        assert_response_error(err.value.resp, &#34;invalid_overwrite&#34;, &#34;command_error&#34;, field=&#34;payment.sender.kyc_data&#34;)
     finally:
         receiver_account.log_events()
         sender_account.log_events()</code></pre>
@@ -1229,19 +1235,20 @@ and <code>invalid_overwrite</code> error code.</li>
     &#34;&#34;&#34;
 
     sender_account = stub_client.create_account(
-        balances={currency: travel_rule_threshold}, kyc_data=target_client.get_kyc_sample().minimum
+        balances={currency: travel_rule_threshold},
+        kyc_data=target_client.get_kyc_sample().minimum,
+        disable_background_tasks=True,
     )
     receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
     try:
         payee = receiver_account.generate_account_identifier()
 
-        with disable_background_tasks(stub_wallet_app):
-            payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
-            txn = stub_wallet_app.store.find(Transaction, id=payment.id)
-            # send initial payment command
-            cmd = stub_wallet_app.send_initial_payment_command(txn)
-            stub_wallet_app.send_offchain_command_without_retries(cmd)
-            stub_wallet_app.send_offchain_command_without_retries(cmd)
+        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        txn = stub_wallet_app.store.find(Transaction, id=payment.id)
+        # send initial payment command
+        cmd = stub_wallet_app.send_initial_payment_command(txn)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
+        stub_wallet_app.send_offchain_command_without_retries(cmd)
     finally:
         receiver_account.log_events()
         sender_account.log_events()</code></pre>

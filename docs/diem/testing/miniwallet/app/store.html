@@ -102,7 +102,8 @@ class InMemoryStore:
         records[index] = asdict(obj)
 
     def _insert(self, typ: Type[T], **res: Any) -&gt; Dict[str, Any]:
-        res[&#34;id&#34;] = str(self.next_id())
+        if &#34;id&#34; not in res:
+            res[&#34;id&#34;] = str(self.next_id())
         self.resources.setdefault(typ, []).append(asdict(typ(**res)))
         return res
 
@@ -202,7 +203,8 @@ class InMemoryStore:
         records[index] = asdict(obj)
 
     def _insert(self, typ: Type[T], **res: Any) -&gt; Dict[str, Any]:
-        res[&#34;id&#34;] = str(self.next_id())
+        if &#34;id&#34; not in res:
+            res[&#34;id&#34;] = str(self.next_id())
         self.resources.setdefault(typ, []).append(asdict(typ(**res)))
         return res
 

@@ -8,7 +8,7 @@ from diem.testing.miniwallet import ServerConfig, RestClient
 from diem.testing import LocalAccount
 from diem import identifier, testnet, utils
 from typing import List
-import json, threading, pytest, pkg_resources
+import json, threading, pytest, pkg_resources, time
 
 
 @pytest.fixture(autouse=True)
@@ -142,6 +142,23 @@ def test_hrp_option_overwrites_hrp_from_diem_account_config_file(runner: CliRunn
         )
 
         assert result.exit_code == 0, result.output
+
+
+def test_wait_timeout_for_target_ready(runner: CliRunner) -> None:
+    start = time.time()
+    result = start_test(
+        runner,
+        ServerConfig(),
+        [
+            "--wait-for-target-timeout",
+            1,
+            "-k",
+            "test_create_a_blank_account",
+        ],
+    )
+    assert result.exit_code == 1, result.output
+    duration = time.time() - start
+    assert duration < 2
 
 
 def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -> Result:

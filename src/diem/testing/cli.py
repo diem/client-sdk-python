@@ -4,11 +4,12 @@
 """This module provides command-line interface for starting mini-wallet application and running test suites.
 """
 
-from diem import testnet
+from diem import testnet, utils
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO
+from urllib.parse import urlsplit
 import logging, click, functools, pytest, os, sys, json, shlex
 
 
@@ -158,6 +159,12 @@ def start_server(
     type=str,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_HRP),
 )
+@click.option(
+    "--wait-for-target-timeout",
+    default=20,
+    help="Before start test, the target wallet application host port should be ready for connection. This is wait timeout (seconds) for the port ready.",
+    type=int,
+)
 @click.help_option("-h", "--help")
 def test(
     target: str,
@@ -172,12 +179,19 @@ def test(
     verbose: bool,
     import_stub_diem_account_config_file: Optional[TextIO],
     stub_hrp: Optional[str],
+    wait_for_target_timeout: int,
 ) -> None:
     configure_testnet(jsonrpc, faucet)
 
     # If stub_bind_host is provided, then stub_diem_account_base_url must be as well or the test won't work
     if stub_bind_host is not None and stub_bind_host != "localhost" and not stub_diem_account_base_url:
         raise click.ClickException("--stub-diem-account-base-url is required when passing in a custom --stub-bind-host")
+
+    url = urlsplit(target)
+    target_port = url.port or 80
+    print("Waiting for %s:%s ready" % (url.hostname, target_port))
+    utils.wait_for_port(target_port, host=str(url.hostname), timeout=wait_for_target_timeout)
+    print("Target wallet at %s:%s is ready for connection" % (url.hostname, target_port))
 
     args = shlex.split(pytest_args)
     args = ["--pyargs", "diem.testing.suites"] + args

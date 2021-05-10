@@ -98,6 +98,20 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
 
         assert result.exit_code == 0, result.output
 
+        # use the same configuration file for multiple times testing
+        result = start_test(
+            runner,
+            conf,
+            [
+                "-i",
+                stub_config_file,
+                "-k",
+                "test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted",
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+
 
 def test_hrp_option(runner: CliRunner) -> None:
     conf = start_target_server(runner, ["--hrp", "xdm"])

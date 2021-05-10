@@ -53,21 +53,20 @@ class AppConfig:
         return RestClient(server_url=self.server_url, name="%s-client" % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -> None:
-        if not client.get_account(self.account.account_address):
-            self.logger.info("faucet: mint %s", self.account.account_address.to_hex())
-            faucet = testnet.Faucet(client)
-            faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
+        self.logger.info("faucet: mint %s", self.account.account_address.to_hex())
+        faucet = testnet.Faucet(client)
+        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
 
-            self.logger.info("rotate dual attestation info for %s", self.account.account_address.to_hex())
-            self.logger.info("set base url to: %s", self.server_url)
-            self.account.rotate_dual_attestation_info(client, self.server_url)
+        self.logger.info("rotate dual attestation info for %s", self.account.account_address.to_hex())
+        self.logger.info("set base url to: %s", self.server_url)
+        self.account.rotate_dual_attestation_info(client, self.server_url)
 
-            self.logger.info("generate child VASP accounts: %s", self.child_account_size)
-            child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
-            for i in range(self.child_account_size):
-                child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
-                self.logger.info("generate child VASP account(%s): %s", i, child.to_dict())
-                self.child_account_configs.append(child.to_dict())
+        self.logger.info("generate child VASP accounts: %s", self.child_account_size)
+        child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+        for i in range(self.child_account_size):
+            child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+            self.logger.info("generate child VASP account(%s): %s", i, child.to_dict())
+            self.child_account_configs.append(child.to_dict())
 
     def serve(self, client: jsonrpc.Client, app: App) -> threading.Thread:
         api: falcon.API = falcon_api(app, self.disable_events_api)

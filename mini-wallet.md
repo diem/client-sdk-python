@@ -178,7 +178,7 @@ The Diem MiniWallet server connects to the Diem testnet by default. However, you
 
 To run your local test network:
 1. Download and install [Docker](https://docs.docker.com/get-docker/) and Docker Compose (comes with Docker for Mac and Windows).
-2. Download the [Diem testnet docker compose configuration file](https://github.com/diem/diem/blob/master/docker/compose/validator-testnet/docker-compose.yaml).
+2. Download the [Diem testnet docker compose configuration file](https://github.com/diem/diem/blob/main/docker/compose/validator-testnet/docker-compose.yaml) and [Diem node configuration file](https://github.com/diem/diem/blob/main/docker/compose/validator-testnet/validator_node_template.yaml); place them in same directory.
 3. Run the following command: `docker-compose -f <path to your validator-testnet/docker-compose.yaml file> up --detach`
 	* The Faucet service will now be available at http://127.0.0.1:8000.
 	* A JSON-RPC server will now be available at http://127.0.0.1:8080.
@@ -190,3 +190,61 @@ To run your local test network:
 As the test counterparty wallet application server is started locally, you need make sure your wallet application's off-chain API can access the stub server using it's base_url: `http://localhost:<port>`.
 
 If your wallet application is not running locally, you will need to setup a tunnel for your wallet application to access the stub server.
+
+
+## Run Mini-wallet application in a docker container
+
+Download the [Mini-wallet service docker compose file](./docker-compose/mini-wallet-service.yaml).
+
+Start a local mini-wallet application with Diem global testnet:
+
+`docker-compose -p dmw -f mini-wallet-service.yaml up --detach`
+
+You can combine it with [Diem testnet docker compose configuration file](https://github.com/diem/diem/blob/main/docker/compose/validator-testnet/docker-compose.yaml) and launch the mini-wallet service with local testnet:
+
+```
+DIEM_JSON_RPC_URL="http://validator:8080" DIEM_FAUCET_URL="http://faucet:8000/mint" \
+docker-compose \
+	-p dmw \
+	-f <path to your validator-testnet/docker-compose.yaml file> \
+	-f mini-wallet-service.yaml \
+	up --detach
+```
+
+## Run Test Suite in a docker container
+
+In this example, we use a Mini-wallet application lanched by [Mini-wallet service docker compose file](./docker-compose/mini-wallet-service.yaml) as test target. You may replace it with your application's compose file for testing your application.
+
+Start a target wallet application:
+
+```
+DIEM_JSON_RPC_URL="http://validator:8080" DIEM_FAUCET_URL="http://faucet:8000/mint" \
+docker-compose \
+	-p dmw \
+	-f <path to your validator-testnet/docker-compose.yaml file> \
+	-f mini-wallet-service.yaml \
+	up --detach
+```
+
+Run `dmw test` in a docker container against the target wallet application:
+
+```
+docker run \
+	--name dmw-test-runner \
+	--network diem-docker-compose-shared \
+	--rm \
+	-t \
+	-p "8889:8889" \
+	"python:3.8" \
+	/bin/bash -c "apt-get update && \
+		pip install diem[all] && \
+		dmw test \
+		--jsonrpc http://validator:8080/v1 \
+		--faucet http://faucet:8000/mint \
+		--target http://mini-wallet:8888 \
+		--stub-bind-host 0.0.0.0 \
+		--stub-bind-port 8889 \
+		--stub-diem-account-base-url http://dmw-test-runner:8889"
+```
+
+Note: `http://mini-wallet:8888` is the target wallet application URL.

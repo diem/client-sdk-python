@@ -1,0 +1,37 @@
+# Copyright (c) The Diem Core Contributors
+# SPDX-License-Identifier: Apache-2.0
+
+# This compose file defines a single MiniWallet application service on port 8888.
+# You can access it at http://127.0.0.1:8888.
+#
+# Set environment variables to customize Diem node JSON-RPC URL:
+# * DIEM_JSON_RPC_URL, defaults to Diem testnet URL.
+# * DIEM_FAUCET_URL, defaults to Diem testnet faucet URL.
+
+version: "3.8"
+services:
+  mini-wallet:
+    image: "python:3.8"
+    networks:
+      shared:
+    environment:
+      - DIEM_JSON_RPC_URL
+      - DIEM_FAUCET_URL
+    command: >-
+        /bin/bash -c "
+          apt-get update &&
+            pip install diem[all] &&
+              dmw start-server \
+                -j ${DIEM_JSON_RPC_URL:-https://testnet.diem.com/v1} \
+                -f ${DIEM_FAUCET_URL:-https://testnet.diem.com/mint} \
+                --host 0.0.0.0 \
+                --port 8888 \
+                --diem-account-base-url http://mini-wallet:8888"
+    ports:
+      - "8888:8888"
+networks:
+  shared:
+    name: "diem-docker-compose-shared"
+    ipam:
+      config:
+        - subnet: 172.16.1.0/24

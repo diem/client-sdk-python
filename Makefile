@@ -83,4 +83,41 @@ docker-down:
 docker-stop:
 	docker-compose -f diem/docker/compose/validator-testnet/docker-compose.yaml stop
 
-.PHONY: init lint format test cover build diemtypes protobuf gen dist docs server docker docker-down docker-stop
+
+docker-test: docker-test-up docker-test-run docker-test-down
+
+docker-test-up:
+	DIEM_JSON_RPC_URL="http://validator:8080" DIEM_FAUCET_URL="http://faucet:8000/mint" \
+	docker-compose \
+		-p dmw \
+		-f diem/docker/compose/validator-testnet/docker-compose.yaml \
+		-f docker-compose/mini-wallet-service.yaml \
+		up --detach
+
+docker-test-down:
+	docker-compose \
+		-p dmw \
+		-f diem/docker/compose/validator-testnet/docker-compose.yaml \
+		-f docker-compose/mini-wallet-service.yaml \
+		down
+
+docker-test-run:
+	docker run \
+		--name dmw-test-runner \
+		--network diem-docker-compose-shared \
+		--rm \
+		-t \
+		-p "8889:8889" \
+		"python:3.8" \
+		/bin/bash -c "apt-get update && \
+			pip install diem[all] && \
+			dmw test \
+			--jsonrpc http://validator:8080/v1 \
+			--faucet http://faucet:8000/mint \
+			--target http://mini-wallet:8888 \
+			--stub-bind-host 0.0.0.0 \
+			--stub-bind-port 8889 \
+			--stub-diem-account-base-url http://dmw-test-runner:8889"
+
+
+.PHONY: init lint format test cover build diemtypes protobuf gen dist docs server docker docker-down docker-stop docker-test docker-test-up docker-test-down docker-test-run

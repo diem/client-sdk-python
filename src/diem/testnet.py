@@ -94,7 +94,7 @@ class Faucet:
 
     def _mint_without_retry(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
         response = self._session.post(
-            FAUCET_URL,
+            self._url,
             params={
                 "amount": amount,
                 "auth_key": authkey,

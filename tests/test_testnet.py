@@ -396,6 +396,13 @@ def test_gen_dd_account():
     assert onchain_account.role.type == "designated_dealer"
 
 
+def test_init_faucet_with_url():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client, "invalid-url")
+    with pytest.raises(ValueError):
+        faucet.gen_account()
+
+
 def create_child_vasp_txn(
     parent_vasp: LocalAccount, child_vasp: LocalAccount, seq: int = 0
 ) -> diem_types.RawTransaction:

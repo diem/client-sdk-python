@@ -6,7 +6,7 @@ from random import randrange
 from typing import Tuple, Optional, Union, List
 from .models import Transaction, RefundReason
 from ... import LocalAccount
-from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, diem_types
+from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, diem_types, testnet
 
 
 @dataclass
@@ -45,6 +45,9 @@ class DiemAccount:
         metadata: Tuple[bytes, bytes],
         by_address: Optional[diem_types.AccountAddress] = None,
     ) -> str:
+        from_account = self._get_payment_account(by_address)
+        self._ensure_account_balance(from_account, txn)
+
         to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
         script = stdlib.encode_peer_to_peer_with_metadata_script(
             currency=utils.currency_code(txn.currency),
@@ -53,7 +56,7 @@ class DiemAccount:
             metadata=metadata[0],
             metadata_signature=metadata[1],
         )
-        return self._get_payment_account(by_address).submit_txn(self._client, script).bcs_serialize().hex()
+        return from_account.submit_txn(self._client, script).bcs_serialize().hex()
 
     def _get_payment_account(self, address: Optional[diem_types.AccountAddress] = None) -> LocalAccount:
         if address is None:
@@ -67,3 +70,11 @@ class DiemAccount:
             "could not find account by address: %s in child accounts: %s"
             % (address.to_hex(), list(map(lambda a: a.to_dict(), self._child_accounts)))
         )
+
+    def _ensure_account_balance(self, account: LocalAccount, txn: Transaction) -> None:
+        data = self._client.must_get_account(account.account_address)
+        amount = max(txn.amount, 1_000_000_000_000)
+        for balance in data.balances:
+            if balance.currency == txn.currency and balance.amount < txn.amount:
+                testnet.Faucet(self._client).mint(account.auth_key.hex(), amount, txn.currency)
+                return

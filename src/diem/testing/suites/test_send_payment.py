@@ -14,6 +14,7 @@ from diem import identifier, offchain
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import RestClient, AccountResource
 from typing import List
+from .conftest import wait_for, wait_for_balance
 import json, pytest, requests
 
 
@@ -219,8 +220,8 @@ def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
         receiver_account_identifier = receiver_account.generate_account_identifier()
         sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
 
-        receiver_account.wait_for_balance(currency, amount)
-        sender_account.wait_for_balance(currency, 0)
+        wait_for_balance(receiver_account, currency, amount)
+        wait_for_balance(sender_account, currency, 0)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -254,8 +255,8 @@ def test_send_payment_to_the_other_account_in_the_same_wallet(
     try:
         receiver_account_identifier = receiver_account.generate_account_identifier()
         sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
-        sender_account.wait_for_balance(currency, 0)
-        receiver_account.wait_for_balance(currency, amount)
+        wait_for_balance(sender_account, currency, 0)
+        wait_for_balance(receiver_account, currency, amount)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -584,11 +585,11 @@ def send_payment_meets_travel_rule_threshold(
                 states.append(offchain.payment_state.MACHINE.match_state(payment).id)
         assert states == payment_command_states
 
-    receiver.wait_for(match_exchange_states)
+    wait_for(match_exchange_states)
 
     if payment_command_states[-1] == "READY":
-        sender.wait_for_balance(currency, sender_initial - amount)
-        receiver.wait_for_balance(currency, receiver_initial + amount)
+        wait_for_balance(sender, currency, sender_initial - amount)
+        wait_for_balance(receiver, currency, receiver_initial + amount)
     else:
-        sender.wait_for_balance(currency, sender_initial)
-        receiver.wait_for_balance(currency, receiver_initial)
+        wait_for_balance(sender, currency, sender_initial)
+        wait_for_balance(receiver, currency, receiver_initial)

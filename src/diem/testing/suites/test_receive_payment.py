@@ -4,6 +4,7 @@
 from diem.testing.miniwallet import RestClient, AccountResource, Transaction, AppConfig, RefundReason
 from diem import offchain, jsonrpc, stdlib, utils, txnmetadata, diem_types, identifier
 from typing import Optional, List
+from .conftest import wait_for, wait_for_balance, wait_for_event
 import pytest, json
 
 
@@ -61,7 +62,7 @@ def test_receive_payment_with_invalid_metadata(
 
         pay = sender_account.send_payment(currency=currency, amount=amount, payee=account_identifier)
         wait_for_payment_transaction_complete(sender_account, pay.id)
-        receiver_account.wait_for_balance(currency, amount)
+        wait_for_balance(receiver_account, currency, amount)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -90,7 +91,7 @@ def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresse
         payee = receiver_account.generate_account_identifier()
         pay = sender_account.send_payment(currency=currency, amount=amount, payee=payee)
         wait_for_payment_transaction_complete(sender_account, pay.id)
-        receiver_account.wait_for_balance(currency, amount)
+        wait_for_balance(receiver_account, currency, amount)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -145,7 +146,8 @@ def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
             ),
         )
 
-        sender_account.wait_for_event(
+        wait_for_event(
+            sender_account,
             "created_transaction",
             status=Transaction.Status.completed,
             refund_diem_txn_version=original_payment_txn.version,
@@ -201,7 +203,7 @@ def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
                 metadata_signature=b"",
             ),
         )
-        receiver_account.wait_for_balance(currency, amount)
+        wait_for_balance(receiver_account, currency, amount)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -257,7 +259,8 @@ def test_receive_payment_with_general_metadata_and_invalid_subaddresses(
             ),
         )
 
-        stub_wallet_pending_income_account.wait_for_event(
+        wait_for_event(
+            stub_wallet_pending_income_account,
             "created_transaction",
             status=Transaction.Status.completed,
             refund_diem_txn_version=original_payment_txn.version,
@@ -293,7 +296,7 @@ def test_receive_payment_with_travel_rule_metadata_and_valid_reference_id(
         account_identifier = receiver_account.generate_account_identifier()
         pay = sender_account.send_payment(currency, travel_rule_threshold, payee=account_identifier)
         wait_for_payment_transaction_complete(sender_account, pay.id)
-        receiver_account.wait_for_balance(currency, travel_rule_threshold)
+        wait_for_balance(receiver_account, currency, travel_rule_threshold)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -359,7 +362,8 @@ def test_receive_payment_with_travel_rule_metadata_and_invalid_reference_id(
             ),
         )
 
-        stub_wallet_pending_income_account.wait_for_event(
+        wait_for_event(
+            stub_wallet_pending_income_account,
             "created_transaction",
             status=Transaction.Status.completed,
             refund_diem_txn_version=original_payment_txn.version,
@@ -418,7 +422,7 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
 
         pay = sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
         wait_for_payment_transaction_complete(sender_account, pay.id)
-        receiver_account.wait_for_balance(currency, amount)
+        wait_for_balance(receiver_account, currency, amount)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -427,7 +431,7 @@ def test_receive_payment_with_refund_metadata_and_invalid_transaction_version(
 def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -> None:
     # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
     # Payment id is same with Transaction id.
-    account.wait_for_event("updated_transaction", status=Transaction.Status.completed, id=payment_id)
+    wait_for_event(account, "updated_transaction", status=Transaction.Status.completed, id=payment_id)
 
 
 def test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted(
@@ -764,11 +768,11 @@ def receive_payment_meets_travel_rule_threshold(
                 states.append(offchain.payment_state.MACHINE.match_state(payment).id)
         assert states == payment_command_states
 
-    sender.wait_for(match_exchange_states)
+    wait_for(match_exchange_states)
 
     if payment_command_states[-1] == "READY":
-        sender.wait_for_balance(currency, sender_initial - amount)
-        receiver.wait_for_balance(currency, receiver_initial + amount)
+        wait_for_balance(sender, currency, sender_initial - amount)
+        wait_for_balance(receiver, currency, receiver_initial + amount)
     else:
-        sender.wait_for_balance(currency, sender_initial)
-        receiver.wait_for_balance(currency, receiver_initial)
+        wait_for_balance(sender, currency, sender_initial)
+        wait_for_balance(receiver, currency, receiver_initial)

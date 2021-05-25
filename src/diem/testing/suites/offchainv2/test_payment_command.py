@@ -5,7 +5,7 @@ from dataclasses import replace
 from diem import jsonrpc, offchain, identifier
 from diem.testing.miniwallet import RestClient, AppConfig, App, Transaction, PaymentCommand
 from typing import Union, List
-from .conftest import (
+from ..conftest import (
     set_field,
     assert_response_error,
     payment_command_request_sample,

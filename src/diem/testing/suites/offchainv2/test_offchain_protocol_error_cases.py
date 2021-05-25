@@ -4,7 +4,7 @@
 from diem import jsonrpc, testnet
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import RestClient, AppConfig
-from .conftest import assert_response_error, payment_command_request_sample, send_request_json
+from ..conftest import assert_response_error, payment_command_request_sample, send_request_json
 import json, pytest
 
 

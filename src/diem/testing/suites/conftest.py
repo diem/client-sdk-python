@@ -4,7 +4,7 @@
 
 from ... import testnet, jsonrpc, identifier, offchain
 from .. import LocalAccount
-from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App
+from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App, Transaction
 from ..miniwallet.app import PENDING_INBOUND_ACCOUNT_ID
 from .envs import (
     target_url,
@@ -245,3 +245,9 @@ def wait_for_event(account: AccountResource, event_type: str, start_index: int =
         assert event, "could not find %s event with %s" % (event_type, (start_index, kwargs))
 
     wait_for(match_event)
+
+
+def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -> None:
+    # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
+    # Payment id is same with Transaction id.
+    wait_for_event(account, "updated_transaction", status=Transaction.Status.completed, id=payment_id)

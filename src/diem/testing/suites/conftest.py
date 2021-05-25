@@ -205,7 +205,7 @@ def set_field(dic: Dict[str, Any], field: str, value: Any) -> None:  # pyre-igno
 
 
 def wait_for(fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) -> None:
-    """Wait for a fucntion call success
+    """Wait for a function call success
 
     The given `fn` argument should:
 

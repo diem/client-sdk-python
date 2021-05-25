@@ -13,7 +13,7 @@ from .envs import (
     dmw_stub_diem_account_config,
     dmw_stub_diem_account_hrp,
 )
-from typing import Optional, Tuple, Dict, Any, Generator
+from typing import Optional, Tuple, Dict, Any, Generator, Callable
 from dataclasses import asdict
 import pytest, json, uuid, requests, time, warnings
 
@@ -202,3 +202,46 @@ def set_field(dic: Dict[str, Any], field: str, value: Any) -> None:  # pyre-igno
         dic = dic[f]
 
     dic[path[len(path) - 1]] = value
+
+
+def wait_for(fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) -> None:
+    """Wait for a fucntion call success
+
+    The given `fn` argument should:
+
+        1. Raise `AssertionError` for the case condition not meet and continue to wait.
+        2. Return `None` for success (meet condition)
+    """
+
+    tries = 0
+    while True:
+        tries += 1
+        try:
+            return fn()
+        except AssertionError as e:
+            if tries >= max_tries:
+                raise e
+            time.sleep(delay)
+
+
+def wait_for_balance(account: AccountResource, currency: str, amount: int) -> None:
+    """Wait for account balance of the given currency meets given `amount`"""
+
+    def match_balance() -> None:
+        assert account.balance(currency) == amount
+
+    wait_for(match_balance)
+
+
+def wait_for_event(account: AccountResource, event_type: str, start_index: int = 0, **kwargs: Any) -> None:
+    """Wait for a specific event happened.
+
+    Internally calls to `AccountResource#find_event` to decided whether the event happened.
+    See `AccountResource#find_event` for arguments document.
+    """
+
+    def match_event() -> None:
+        event = account.find_event(event_type, start_index=start_index, **kwargs)
+        assert event, "could not find %s event with %s" % (event_type, (start_index, kwargs))
+
+    wait_for(match_event)

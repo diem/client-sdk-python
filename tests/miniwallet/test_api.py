@@ -4,6 +4,7 @@
 from diem.testing.miniwallet import RestClient, Account
 from diem import utils, identifier
 from typing import Dict, Any
+from diem.testing.suites.conftest import wait_for_balance, wait_for_event
 import pytest, requests, json, time
 
 
@@ -71,9 +72,9 @@ def test_receive_multiple_payments(target_client: RestClient, stub_client: RestC
     sender2 = target_client.create_account({currency: amount})
     sender2.send_payment(currency, amount, receiver_account_identifier)
 
-    sender1.wait_for_balance(currency, 0)
-    sender2.wait_for_balance(currency, 0)
-    receiver.wait_for_balance(currency, amount * 2)
+    wait_for_balance(sender1, currency, 0)
+    wait_for_balance(sender2, currency, 0)
+    wait_for_balance(receiver, currency, amount * 2)
 
     new_events = [e for e in receiver.events(index) if e.type != "info"]
     assert len(new_events) == 2
@@ -91,12 +92,12 @@ def test_account_balance_validation_should_exclude_canceled_transactions(
     # payment should be rejected during offchain kyc data exchange
     payment = sender.send_payment(currency, amount, payee=payee)
 
-    sender.wait_for_event("updated_transaction", id=payment.id, status="canceled")
+    wait_for_event(sender, "updated_transaction", id=payment.id, status="canceled")
 
     sender.send_payment(currency, travel_rule_threshold - 1, payee)
 
-    receiver.wait_for_balance(currency, travel_rule_threshold - 1)
-    sender.wait_for_balance(currency, 1)
+    wait_for_balance(receiver, currency, travel_rule_threshold - 1)
+    wait_for_balance(sender, currency, 1)
 
 
 def test_create_account_event(target_client: RestClient, currency: str) -> None:

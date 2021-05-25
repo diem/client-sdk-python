@@ -4,11 +4,11 @@
 from dataclasses import dataclass, field, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-from typing import List, Optional, Any, Dict, Callable
+from typing import List, Optional, Any, Dict
 from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
-import requests, logging, json, time, os
+import requests, logging, json, os
 
 
 @dataclass
@@ -140,18 +140,6 @@ class AccountResource:
         ret = self.client.send("GET", self._resources("event")).json()
         return [Event(**obj) for obj in ret[start:]]
 
-    def wait_for_balance(self, currency: str, amount: int) -> None:
-        """Wait for account balance of the given currency meets given `amount`
-
-        Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
-        120 tries for every 0.1 second).
-        """
-
-        def fn() -> None:
-            assert self.balance(currency) == amount
-
-        self.wait_for(fn)
-
     def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -> Optional[Event]:
         """Find a specific event by `type`, `start_index` and `data`
 
@@ -163,38 +151,6 @@ class AccountResource:
         for e in events:
             if _match(json.loads(e.data), **kwargs):
                 return e
-
-    def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -> None:
-        """Wait for a specific event happened.
-
-        Internally calls to `find_event` to decided whether the event happened.
-        See `find_event` for arguments document.
-        """
-
-        def fn() -> None:
-            event = self.find_event(event_type, start_index=start_index, **kwargs)
-            assert event, "could not find %s event with %s" % (event_type, (start_index, kwargs))
-
-        self.wait_for(fn)
-
-    def wait_for(self, fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) -> None:
-        """Wait for a fucntion call success
-
-        The given `fn` argument should:
-
-            1. Raise `AssertionError` for the case condition not meet and continue to wait.
-            2. Return `None` for success (meet condition)
-        """
-
-        tries = 0
-        while True:
-            tries += 1
-            try:
-                return fn()
-            except AssertionError as e:
-                if tries >= max_tries:
-                    raise TimeoutError("account(%s) events: %s" % (self.id, self.dump_events())) from e
-                time.sleep(delay)
 
     def log_events(self) -> None:
         """Log account events as INFO

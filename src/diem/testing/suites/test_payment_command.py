@@ -10,6 +10,7 @@ from .conftest import (
     assert_response_error,
     payment_command_request_sample,
     send_request_json,
+    wait_for_event,
 )
 import json, pytest
 
@@ -333,7 +334,7 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event("updated_payment_command")
+        wait_for_event(sender_account, "updated_payment_command")
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -394,7 +395,7 @@ def test_payment_command_sender_address_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event("updated_payment_command")
+        wait_for_event(sender_account, "updated_payment_command")
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -465,7 +466,7 @@ def test_payment_command_action_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event("updated_payment_command")
+        wait_for_event(sender_account, "updated_payment_command")
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()

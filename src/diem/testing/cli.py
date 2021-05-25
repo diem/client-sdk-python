@@ -149,7 +149,7 @@ def start_server(
     "-i",
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_CONFIG, is_io=True),
-    help="Import the diem account config from a file for miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.",
+    help="Import the diem account config from a file for the miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.",
     type=click.File(),
 )
 @click.option(  # pyre-ignore

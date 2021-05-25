@@ -8,6 +8,9 @@ The Diem MiniWallet is a simplified wallet that can be run from the command line
 
 The Diem MiniWallet connects to the Diem testnet by default. If you want to use the Diem MiniWallet to test in your local test network, read the instructions here.
 
+The following diagram shows how the Diem MiniWallet may work with your wallet application in a local testnet:
+
+![MiniWallet App](images/mini-wallet-test-app.png)
 
 
 ## Instal the Diem MiniWallet
@@ -74,6 +77,10 @@ View the Diem MiniWallet API specification (OpenAPI Specification 3.0.3) by open
 ## Use the Diem MiniWallet Test Suite
 
 The Diem MiniWallet Test Suite is a set of tests built on top of the Diem MiniWallet API and is used to validate a wallet app’s integration with the Diem Payment Network (DPN).
+
+The following diagram shows how the test suite works with your wallet application behind the MiniWallet API in a local testnet environment:
+
+![Testing Framework](images/mini-wallet-testing.png)
 
 Use the MiniWallet Test Suite to automate testing and checking if your wallet application meets our requirements.
 
@@ -152,8 +159,8 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	  -v, --verbose                   Enable verbose log output.  [default: False]
 	  -i, --import-stub-diem-account-config-file FILENAME
 	                                  Import the diem account config from a file
-	                                  for miniwallet stub server. The config file
-	                                  content should be JSON generated from
+	                                  for the miniwallet stub server. The config
+	                                  file content should be JSON generated from
 	                                  command `gen-diem-account-config`.
 
 	  --stub-hrp TEXT                 Set Diem account identifier hrp for the stub
@@ -187,9 +194,9 @@ To run your local test network:
 
 ### Test Off-chain API
 
-As the test counterparty wallet application server is started locally, you need make sure your wallet application's off-chain API can access the stub server using it's base_url: `http://localhost:<port>`.
+As the test counterparty wallet application server is started locally, you need to make sure your wallet application's off-chain API can access the stub server using it's base_url: `http://localhost:<port>`.
 
-If your wallet application is not running locally, you will need to setup a tunnel for your wallet application to access the stub server.
+If your wallet application is not running locally, you will need to set up a tunnel for your wallet application to access the stub server.
 
 
 ## Run Mini-wallet application in a docker container
@@ -213,7 +220,7 @@ docker-compose \
 
 ## Run Test Suite in a docker container
 
-In this example, we use a Mini-wallet application lanched by [Mini-wallet service docker compose file](./docker-compose/mini-wallet-service.yaml) as test target. You may replace it with your application's compose file for testing your application.
+In this example, we use a Mini-wallet application launched by [Mini-wallet service docker compose file](./docker-compose/mini-wallet-service.yaml) as test target. You may replace it with your application's compose file for testing your application.
 
 Start a target wallet application:
 

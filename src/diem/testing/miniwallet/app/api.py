@@ -21,7 +21,8 @@ class LoggerMiddleware:
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
         tc = req.get_header("X-Test-Case")
-        test_case = "[%s] " % tc if tc else ""
+        # test case format is <file>::<test method name>, only log the test method name
+        test_case = "[%s] " % tc.split("::")[-1] if tc else ""
         self.logger.info("%s%s %s - %s", test_case, req.method, req.relative_uri, resp.status)
 
 

@@ -129,7 +129,7 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	                                  http://localhost:{port}
 
 	  -j, --jsonrpc TEXT              Diem fullnode JSON-RPC URL.  [default:
-	                                  http://testnet.diem.com/v1]
+	                                  https://testnet.diem.com/v1]
 
 	  -k, --match-keywords TEXT       Only run tests which match the given
 	                                  substring expression. Same with pytest `-k`
@@ -141,7 +141,7 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	                                  'test_method' in their names
 
 	  -f, --faucet TEXT               Testnet faucet URL.  [default:
-	                                  http://testnet.diem.com/mint]
+	                                  https://testnet.diem.com/mint]
 
 	  --pytest-args TEXT              Additional pytest arguments, split by empty
 	                                  space, e.g. `--pytest-args '-v -s'`.
@@ -160,6 +160,15 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 	                                  wallet application; if '-i' option is used,
 	                                  this option overwrites hrp configured by
 	                                  '-i' option.
+
+	  --wait-for-target-timeout INTEGER
+	                                  Before start test, the target wallet
+	                                  application host port should be ready for
+	                                  connection. This is wait timeout (seconds)
+	                                  for the port ready.  [default: 20]
+
+	  --include-offchain-v2           Include offchain v2 test suites  [default:
+	                                  False]
 
 	  -h, --help                      Show this message and exit.
 	```

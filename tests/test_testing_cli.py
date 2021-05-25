@@ -77,6 +77,33 @@ def test_run_test_with_pytest_args(runner: CliRunner) -> None:
     assert result.exit_code == 0, result.output
 
 
+def test_run_disable_offchainv2_tests_by_default(runner: CliRunner) -> None:
+    conf = start_target_server(runner)
+    result = start_test(
+        runner,
+        conf,
+        [
+            "--pytest-args",
+            "-k 'test_invalid_x_request_id'",
+        ],
+    )
+    assert result.exit_code == pytest.ExitCode.NO_TESTS_COLLECTED, result.output
+
+
+def test_include_offchainv2_tests(runner: CliRunner) -> None:
+    conf = start_target_server(runner)
+    result = start_test(
+        runner,
+        conf,
+        [
+            "--include-offchain-v2",
+            "--pytest-args",
+            "-k 'test_invalid_x_request_id'",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+
+
 def test_load_diem_account_config_file(runner: CliRunner) -> None:
     app_config_file = "app.json"
     stub_config_file = "stub.json"
@@ -106,7 +133,7 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
                 "-i",
                 stub_config_file,
                 "-k",
-                "test_receive_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted",
+                "test_send_payment_with_valid_inputs_under_the_travel_rule_threshold",
             ],
         )
 

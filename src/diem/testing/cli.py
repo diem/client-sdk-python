@@ -165,6 +165,13 @@ def start_server(
     help="Before start test, the target wallet application host port should be ready for connection. This is wait timeout (seconds) for the port ready.",
     type=int,
 )
+@click.option(
+    "--include-offchain-v2",
+    type=bool,
+    is_flag=True,
+    default=False,
+    help="Include offchain v2 test suites",
+)
 @click.help_option("-h", "--help")
 def test(
     target: str,
@@ -180,6 +187,7 @@ def test(
     import_stub_diem_account_config_file: Optional[TextIO],
     stub_hrp: Optional[str],
     wait_for_target_timeout: int,
+    include_offchain_v2: bool,
 ) -> None:
     configure_testnet(jsonrpc, faucet)
 
@@ -193,8 +201,10 @@ def test(
     utils.wait_for_port(target_port, host=str(url.hostname), timeout=wait_for_target_timeout)
     print("Target wallet at %s:%s is ready for connection" % (url.hostname, target_port))
 
-    args = shlex.split(pytest_args)
-    args = ["--pyargs", "diem.testing.suites"] + args
+    args = ["--pyargs", "diem.testing.suites.basic"]
+    if include_offchain_v2:
+        args.append("diem.testing.suites.offchainv2")
+    args += shlex.split(pytest_args)
     if match_keywords:
         args.append("-k")
         args.append(match_keywords)

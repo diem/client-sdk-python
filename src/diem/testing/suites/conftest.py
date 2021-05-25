@@ -26,7 +26,7 @@ def target_client(diem_client: jsonrpc.Client) -> RestClient:
         conf.start(diem_client)
         return conf.create_client()
     print("target wallet server url: %s" % target_url())
-    return RestClient(name="target-wallet-client", server_url=target_url()).with_retry()
+    return RestClient(name="target-wallet-client", server_url=target_url(), events_api_is_optional=True).with_retry()
 
 
 @pytest.fixture(scope="package")

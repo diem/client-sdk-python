@@ -26,6 +26,7 @@ class RestClient:
     server_url: str
     session: requests.Session = field(default_factory=requests.Session)
     logger: logging.Logger = field(init=False)
+    events_api_is_optional: bool = field(default=False)
 
     def __post_init__(self) -> None:
         self.logger = logging.getLogger(self.name)
@@ -74,6 +75,9 @@ class RestClient:
             headers={k: v for k, v in headers.items() if v},
         )
         log_level = logging.DEBUG if resp.status_code < 300 else logging.ERROR
+        if self.events_api_is_optional and path.endswith("/events"):
+            log_level = logging.DEBUG
+
         self.logger.log(log_level, "%s %s: %s - %s", method, path, data, resp.status_code)
         self.logger.log(log_level, "response body: \n%s", try_json(resp.text))
         resp.raise_for_status()

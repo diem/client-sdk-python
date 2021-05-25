@@ -20,7 +20,7 @@ class InMemoryStore:
     """InMemoryStore is a simple in-memory store for resources"""
 
     resources: Dict[Type[Base], List[Dict[str, Any]]] = field(default_factory=dict)
-    resources_lock: threading.Lock = field(default_factory=threading.Lock)
+    resources_lock: threading.RLock = field(default_factory=threading.RLock)
     gen_id_lock: threading.Lock = field(default_factory=threading.Lock)
     gen_id: int = field(default=0)
 
@@ -33,7 +33,8 @@ class InMemoryStore:
         return self.create(Event, account_id=account_id, type=type, data=data, timestamp=_ts())
 
     def find(self, typ: Type[T], **conds: Any) -> T:
-        list = self._select(typ, **conds)
+        with self.resources_lock:
+            list = self._select(typ, **conds)
         ret = next(list, None)
         if not ret:
             raise NotFoundError("%s not found by %s" % (typ.__name__, conds))
@@ -42,7 +43,8 @@ class InMemoryStore:
         return ret
 
     def find_all(self, typ: Type[T], **conds: Any) -> List[T]:
-        return list(self._select(typ, **conds))
+        with self.resources_lock:
+            return list(self._select(typ, **conds))
 
     def create(self, typ: Type[T], before_create: Callable[[Dict[str, Any]], None] = lambda _: _, **data: Any) -> T:
         with self.resources_lock:

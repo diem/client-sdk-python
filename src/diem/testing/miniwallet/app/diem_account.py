@@ -39,6 +39,12 @@ class DiemAccount:
         metadata = cmd.travel_rule_metadata(self.hrp)
         return (metadata, bytes.fromhex(str(cmd.payment.recipient_signature)))
 
+    def payment_metadata(self, reference_id: str) -> Tuple[bytes, bytes]:
+        metadata = txnmetadata.payment_metadata(
+            self.payment.reference_id, self.sender_account_address(hrp), self.payment.action.amount
+        )
+        return (metadata, bytes.fromhex(str(cmd.payment.recipient_signature)))
+
     def submit_p2p(
         self,
         txn: Transaction,

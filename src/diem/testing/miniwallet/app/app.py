@@ -106,9 +106,8 @@ class Base:
                 return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)  # pyre-ignore
             if txn.subaddress_hex:
                 return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
-            ## TODO sunmi
-            if txn.payee_onchain_address:
-                return payment metadata
+            if txn.reference_id:
+                return self.diem_account.payment_metadata(txn.reference_id)
         elif txn.reference_id:
             cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
             return self.diem_account.travel_metadata(cmd.to_offchain_command())
@@ -305,30 +304,33 @@ class BackgroundTasks(OffChainAPI):
             reference_id = str(uuid.uuid4())
             sender_address, _ = self.diem_account.decode_account_identifier(self.diem_account.account_identifier())
             try:
-                ref_id_command_response_object = self.offchain.ref_id_exchange_request(
+                payee_onchain_address = identifier.get_account_identifier_with_diem_id(txn.payee)
+                self.offchain.ref_id_exchange_request(
                     sender=self.store.find(Account, id=txn.account_id).diem_id,
                     sender_address=sender_address,
                     receiver=txn.payee,
                     reference_id=reference_id,
                     counterparty_account_identifier=identifier.encode_account(
-                        identifier.get_account_identifier_with_diem_id(txn.payee), None, self.diem_account.hrp
+                        payee_onchain_address, None, self.diem_account.hrp
                     ),
                     sign=self.diem_account.sign_by_compliance_key,
                 )
                 self.store.update(txn, reference_id=reference_id)
-                txn.payee_onchain_address
-            catch duplicate ref id error:
-                return
-            else:
-                throw same error again
+                self.store.update(txn, payee_onchain_address=payee_onchain_address)
+            except offchain.Error as e:
+                if e.obj.code == ErrorCode.duplicate_reference_id:
+                    return
+                else:
+                    raise e
+            except Exception as e:
+                raise e
 
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self._txn_metadata(txn))
                 self.store.update(txn, signed_transaction=signed_txn)
         else:
-            # if txn.reference_id:
-            # try:
+            try:
                 cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
                 if cmd.is_sender:
                     if cmd.is_abort:
@@ -341,7 +343,7 @@ class BackgroundTasks(OffChainAPI):
                             by_address=cmd.to_offchain_command().sender_account_address(self.diem_account.hrp),
                         )
                         self.store.update(txn, signed_transaction=signed_txn)
-            # except:
+            except:
                 self.send_initial_payment_command(txn)
 
     def send_initial_payment_command(self, txn: Transaction) -> offchain.PaymentCommand:

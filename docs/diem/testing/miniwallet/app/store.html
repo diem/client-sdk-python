@@ -48,7 +48,7 @@ class InMemoryStore:
     &#34;&#34;&#34;InMemoryStore is a simple in-memory store for resources&#34;&#34;&#34;
 
     resources: Dict[Type[Base], List[Dict[str, Any]]] = field(default_factory=dict)
-    resources_lock: threading.Lock = field(default_factory=threading.Lock)
+    resources_lock: threading.RLock = field(default_factory=threading.RLock)
     gen_id_lock: threading.Lock = field(default_factory=threading.Lock)
     gen_id: int = field(default=0)
 
@@ -61,7 +61,8 @@ class InMemoryStore:
         return self.create(Event, account_id=account_id, type=type, data=data, timestamp=_ts())
 
     def find(self, typ: Type[T], **conds: Any) -&gt; T:
-        list = self._select(typ, **conds)
+        with self.resources_lock:
+            list = self._select(typ, **conds)
         ret = next(list, None)
         if not ret:
             raise NotFoundError(&#34;%s not found by %s&#34; % (typ.__name__, conds))
@@ -70,7 +71,8 @@ class InMemoryStore:
         return ret
 
     def find_all(self, typ: Type[T], **conds: Any) -&gt; List[T]:
-        return list(self._select(typ, **conds))
+        with self.resources_lock:
+            return list(self._select(typ, **conds))
 
     def create(self, typ: Type[T], before_create: Callable[[Dict[str, Any]], None] = lambda _: _, **data: Any) -&gt; T:
         with self.resources_lock:
@@ -136,7 +138,7 @@ def _ts() -&gt; int:
 <dl>
 <dt id="diem.testing.miniwallet.app.store.InMemoryStore"><code class="flex name class">
 <span>class <span class="ident">InMemoryStore</span></span>
-<span>(</span><span>resources: Dict[Type[<a title="diem.testing.miniwallet.app.models.Base" href="models.html#diem.testing.miniwallet.app.models.Base">Base</a>], List[Dict[str, Any]]] = &lt;factory&gt;, resources_lock: <built-in function allocate_lock> = &lt;factory&gt;, gen_id_lock: <built-in function allocate_lock> = &lt;factory&gt;, gen_id: int = 0)</span>
+<span>(</span><span>resources: Dict[Type[<a title="diem.testing.miniwallet.app.models.Base" href="models.html#diem.testing.miniwallet.app.models.Base">Base</a>], List[Dict[str, Any]]] = &lt;factory&gt;, resources_lock: <function RLock at 0x104593280> = &lt;factory&gt;, gen_id_lock: <built-in function allocate_lock> = &lt;factory&gt;, gen_id: int = 0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>InMemoryStore is a simple in-memory store for resources</p></div>
@@ -149,7 +151,7 @@ class InMemoryStore:
     &#34;&#34;&#34;InMemoryStore is a simple in-memory store for resources&#34;&#34;&#34;
 
     resources: Dict[Type[Base], List[Dict[str, Any]]] = field(default_factory=dict)
-    resources_lock: threading.Lock = field(default_factory=threading.Lock)
+    resources_lock: threading.RLock = field(default_factory=threading.RLock)
     gen_id_lock: threading.Lock = field(default_factory=threading.Lock)
     gen_id: int = field(default=0)
 
@@ -162,7 +164,8 @@ class InMemoryStore:
         return self.create(Event, account_id=account_id, type=type, data=data, timestamp=_ts())
 
     def find(self, typ: Type[T], **conds: Any) -&gt; T:
-        list = self._select(typ, **conds)
+        with self.resources_lock:
+            list = self._select(typ, **conds)
         ret = next(list, None)
         if not ret:
             raise NotFoundError(&#34;%s not found by %s&#34; % (typ.__name__, conds))
@@ -171,7 +174,8 @@ class InMemoryStore:
         return ret
 
     def find_all(self, typ: Type[T], **conds: Any) -&gt; List[T]:
-        return list(self._select(typ, **conds))
+        with self.resources_lock:
+            return list(self._select(typ, **conds))
 
     def create(self, typ: Type[T], before_create: Callable[[Dict[str, Any]], None] = lambda _: _, **data: Any) -&gt; T:
         with self.resources_lock:
@@ -228,7 +232,7 @@ class InMemoryStore:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="diem.testing.miniwallet.app.store.InMemoryStore.resources_lock"><code class="name">var <span class="ident">resources_lock</span> : <built-in function allocate_lock></code></dt>
+<dt id="diem.testing.miniwallet.app.store.InMemoryStore.resources_lock"><code class="name">var <span class="ident">resources_lock</span> : <function RLock at 0x104593280></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -275,7 +279,8 @@ class InMemoryStore:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def find(self, typ: Type[T], **conds: Any) -&gt; T:
-    list = self._select(typ, **conds)
+    with self.resources_lock:
+        list = self._select(typ, **conds)
     ret = next(list, None)
     if not ret:
         raise NotFoundError(&#34;%s not found by %s&#34; % (typ.__name__, conds))
@@ -294,7 +299,8 @@ class InMemoryStore:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def find_all(self, typ: Type[T], **conds: Any) -&gt; List[T]:
-    return list(self._select(typ, **conds))</code></pre>
+    with self.resources_lock:
+        return list(self._select(typ, **conds))</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.app.store.InMemoryStore.next_id"><code class="name flex">

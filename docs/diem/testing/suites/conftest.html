@@ -32,7 +32,7 @@
 
 from ... import testnet, jsonrpc, identifier, offchain
 from .. import LocalAccount
-from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App
+from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App, Transaction
 from ..miniwallet.app import PENDING_INBOUND_ACCOUNT_ID
 from .envs import (
     target_url,
@@ -41,7 +41,7 @@ from .envs import (
     dmw_stub_diem_account_config,
     dmw_stub_diem_account_hrp,
 )
-from typing import Optional, Tuple, Dict, Any, Generator
+from typing import Optional, Tuple, Dict, Any, Generator, Callable
 from dataclasses import asdict
 import pytest, json, uuid, requests, time, warnings
 
@@ -54,7 +54,7 @@ def target_client(diem_client: jsonrpc.Client) -&gt; RestClient:
         conf.start(diem_client)
         return conf.create_client()
     print(&#34;target wallet server url: %s&#34; % target_url())
-    return RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url()).with_retry()
+    return RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url(), events_api_is_optional=True).with_retry()
 
 
 @pytest.fixture(scope=&#34;package&#34;)
@@ -229,7 +229,56 @@ def set_field(dic: Dict[str, Any], field: str, value: Any) -&gt; None:  # pyre-i
             dic[f] = {}
         dic = dic[f]
 
-    dic[path[len(path) - 1]] = value</code></pre>
+    dic[path[len(path) - 1]] = value
+
+
+def wait_for(fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) -&gt; None:
+    &#34;&#34;&#34;Wait for a function call success
+
+    The given `fn` argument should:
+
+        1. Raise `AssertionError` for the case condition not meet and continue to wait.
+        2. Return `None` for success (meet condition)
+    &#34;&#34;&#34;
+
+    tries = 0
+    while True:
+        tries += 1
+        try:
+            return fn()
+        except AssertionError as e:
+            if tries &gt;= max_tries:
+                raise e
+            time.sleep(delay)
+
+
+def wait_for_balance(account: AccountResource, currency: str, amount: int) -&gt; None:
+    &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`&#34;&#34;&#34;
+
+    def match_balance() -&gt; None:
+        assert account.balance(currency) == amount
+
+    wait_for(match_balance)
+
+
+def wait_for_event(account: AccountResource, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
+    &#34;&#34;&#34;Wait for a specific event happened.
+
+    Internally calls to `AccountResource#find_event` to decided whether the event happened.
+    See `AccountResource#find_event` for arguments document.
+    &#34;&#34;&#34;
+
+    def match_event() -&gt; None:
+        event = account.find_event(event_type, start_index=start_index, **kwargs)
+        assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
+
+    wait_for(match_event)
+
+
+def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -&gt; None:
+    # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
+    # Payment id is same with Transaction id.
+    wait_for_event(account, &#34;updated_transaction&#34;, status=Transaction.Status.completed, id=payment_id)</code></pre>
 </details>
 </section>
 <section>
@@ -394,7 +443,7 @@ def log_stub_wallet_pending_income_account(
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.send_request_json"><code class="name flex">
-<span>def <span class="ident">send_request_json</span></span>(<span>diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, sender_account: <a title="diem.testing.local_account.LocalAccount" href="../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, sender_address: Optional[str], receiver_address: str, request_json: str, hrp: str, x_request_id: Optional[str] = '1f1422a0-401f-4117-9811-423ea5520686', request_body: Optional[bytes] = None) ‑> Tuple[int, <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a>]</span>
+<span>def <span class="ident">send_request_json</span></span>(<span>diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, sender_account: <a title="diem.testing.local_account.LocalAccount" href="../local_account.html#diem.testing.local_account.LocalAccount">LocalAccount</a>, sender_address: Optional[str], receiver_address: str, request_json: str, hrp: str, x_request_id: Optional[str] = '0c6f1b9e-5de6-4ffc-bf3c-10dfea599ead', request_body: Optional[bytes] = None) ‑> Tuple[int, <a title="diem.offchain.types.command_types.CommandResponseObject" href="../../offchain/types/command_types.html#diem.offchain.types.command_types.CommandResponseObject">CommandResponseObject</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -554,7 +603,7 @@ def target_client(diem_client: jsonrpc.Client) -&gt; RestClient:
         conf.start(diem_client)
         return conf.create_client()
     print(&#34;target wallet server url: %s&#34; % target_url())
-    return RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url()).with_retry()</code></pre>
+    return RestClient(name=&#34;target-wallet-client&#34;, server_url=target_url(), events_api_is_optional=True).with_retry()</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.suites.conftest.travel_rule_threshold"><code class="name flex">
@@ -570,6 +619,97 @@ def target_client(diem_client: jsonrpc.Client) -&gt; RestClient:
 def travel_rule_threshold(diem_client: jsonrpc.Client) -&gt; int:
     # todo: convert the limit base on currency
     return diem_client.get_metadata().dual_attestation_limit</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.conftest.wait_for"><code class="name flex">
+<span>def <span class="ident">wait_for</span></span>(<span>fn: Callable[[], NoneType], max_tries: int = 60, delay: float = 0.1) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wait for a function call success</p>
+<p>The given <code>fn</code> argument should:</p>
+<pre><code>1. Raise &lt;code&gt;AssertionError&lt;/code&gt; for the case condition not meet and continue to wait.
+2. Return &lt;code&gt;None&lt;/code&gt; for success (meet condition)
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for(fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) -&gt; None:
+    &#34;&#34;&#34;Wait for a function call success
+
+    The given `fn` argument should:
+
+        1. Raise `AssertionError` for the case condition not meet and continue to wait.
+        2. Return `None` for success (meet condition)
+    &#34;&#34;&#34;
+
+    tries = 0
+    while True:
+        tries += 1
+        try:
+            return fn()
+        except AssertionError as e:
+            if tries &gt;= max_tries:
+                raise e
+            time.sleep(delay)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.conftest.wait_for_balance"><code class="name flex">
+<span>def <span class="ident">wait_for_balance</span></span>(<span>account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, currency: str, amount: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wait for account balance of the given currency meets given <code>amount</code></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for_balance(account: AccountResource, currency: str, amount: int) -&gt; None:
+    &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`&#34;&#34;&#34;
+
+    def match_balance() -&gt; None:
+        assert account.balance(currency) == amount
+
+    wait_for(match_balance)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.conftest.wait_for_event"><code class="name flex">
+<span>def <span class="ident">wait_for_event</span></span>(<span>account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, event_type: str, start_index: int = 0, **kwargs: Any) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wait for a specific event happened.</p>
+<p>Internally calls to <code>AccountResource#find_event</code> to decided whether the event happened.
+See <code>AccountResource#find_event</code> for arguments document.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for_event(account: AccountResource, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
+    &#34;&#34;&#34;Wait for a specific event happened.
+
+    Internally calls to `AccountResource#find_event` to decided whether the event happened.
+    See `AccountResource#find_event` for arguments document.
+    &#34;&#34;&#34;
+
+    def match_event() -&gt; None:
+        event = account.find_event(event_type, start_index=start_index, **kwargs)
+        assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
+
+    wait_for(match_event)</code></pre>
+</details>
+</dd>
+<dt id="diem.testing.suites.conftest.wait_for_payment_transaction_complete"><code class="name flex">
+<span>def <span class="ident">wait_for_payment_transaction_complete</span></span>(<span>account: <a title="diem.testing.miniwallet.client.AccountResource" href="../miniwallet/client.html#diem.testing.miniwallet.client.AccountResource">AccountResource</a>, payment_id: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -&gt; None:
+    # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
+    # Payment id is same with Transaction id.
+    wait_for_event(account, &#34;updated_transaction&#34;, status=Transaction.Status.completed, id=payment_id)</code></pre>
 </details>
 </dd>
 </dl>
@@ -606,6 +746,10 @@ def travel_rule_threshold(diem_client: jsonrpc.Client) -&gt; int:
 <li><code><a title="diem.testing.suites.conftest.stub_wallet_pending_income_account" href="#diem.testing.suites.conftest.stub_wallet_pending_income_account">stub_wallet_pending_income_account</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.target_client" href="#diem.testing.suites.conftest.target_client">target_client</a></code></li>
 <li><code><a title="diem.testing.suites.conftest.travel_rule_threshold" href="#diem.testing.suites.conftest.travel_rule_threshold">travel_rule_threshold</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.wait_for" href="#diem.testing.suites.conftest.wait_for">wait_for</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.wait_for_balance" href="#diem.testing.suites.conftest.wait_for_balance">wait_for_balance</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.wait_for_event" href="#diem.testing.suites.conftest.wait_for_event">wait_for_event</a></code></li>
+<li><code><a title="diem.testing.suites.conftest.wait_for_payment_transaction_complete" href="#diem.testing.suites.conftest.wait_for_payment_transaction_complete">wait_for_payment_transaction_complete</a></code></li>
 </ul>
 </li>
 </ul>

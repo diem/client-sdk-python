@@ -32,11 +32,11 @@
 from dataclasses import dataclass, field, asdict
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-from typing import List, Optional, Any, Dict, Callable
+from typing import List, Optional, Any, Dict
 from .app import KycSample, Event
 from .app.store import _match
 from ... import offchain, jsonrpc
-import requests, logging, json, time, os
+import requests, logging, json, os
 
 
 @dataclass
@@ -54,6 +54,7 @@ class RestClient:
     server_url: str
     session: requests.Session = field(default_factory=requests.Session)
     logger: logging.Logger = field(init=False)
+    events_api_is_optional: bool = field(default=False)
 
     def __post_init__(self) -&gt; None:
         self.logger = logging.getLogger(self.name)
@@ -102,6 +103,9 @@ class RestClient:
             headers={k: v for k, v in headers.items() if v},
         )
         log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
+        if self.events_api_is_optional and path.endswith(&#34;/events&#34;):
+            log_level = logging.DEBUG
+
         self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
         self.logger.log(log_level, &#34;response body: \n%s&#34;, try_json(resp.text))
         resp.raise_for_status()
@@ -164,18 +168,6 @@ class AccountResource:
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
         return [Event(**obj) for obj in ret[start:]]
 
-    def wait_for_balance(self, currency: str, amount: int) -&gt; None:
-        &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`
-
-        Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
-        120 tries for every 0.1 second).
-        &#34;&#34;&#34;
-
-        def fn() -&gt; None:
-            assert self.balance(currency) == amount
-
-        self.wait_for(fn)
-
     def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
         &#34;&#34;&#34;Find a specific event by `type`, `start_index` and `data`
 
@@ -187,38 +179,6 @@ class AccountResource:
         for e in events:
             if _match(json.loads(e.data), **kwargs):
                 return e
-
-    def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
-        &#34;&#34;&#34;Wait for a specific event happened.
-
-        Internally calls to `find_event` to decided whether the event happened.
-        See `find_event` for arguments document.
-        &#34;&#34;&#34;
-
-        def fn() -&gt; None:
-            event = self.find_event(event_type, start_index=start_index, **kwargs)
-            assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
-
-        self.wait_for(fn)
-
-    def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -&gt; None:
-        &#34;&#34;&#34;Wait for a fucntion call success
-
-        The given `fn` argument should:
-
-            1. Raise `AssertionError` for the case condition not meet and continue to wait.
-            2. Return `None` for success (meet condition)
-        &#34;&#34;&#34;
-
-        tries = 0
-        while True:
-            tries += 1
-            try:
-                return fn()
-            except AssertionError as e:
-                if tries &gt;= max_tries:
-                    raise TimeoutError(&#34;account(%s) events: %s&#34; % (self.id, self.dump_events())) from e
-                time.sleep(delay)
 
     def log_events(self) -&gt; None:
         &#34;&#34;&#34;Log account events as INFO
@@ -360,18 +320,6 @@ class AccountResource:
         ret = self.client.send(&#34;GET&#34;, self._resources(&#34;event&#34;)).json()
         return [Event(**obj) for obj in ret[start:]]
 
-    def wait_for_balance(self, currency: str, amount: int) -&gt; None:
-        &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`
-
-        Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
-        120 tries for every 0.1 second).
-        &#34;&#34;&#34;
-
-        def fn() -&gt; None:
-            assert self.balance(currency) == amount
-
-        self.wait_for(fn)
-
     def find_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; Optional[Event]:
         &#34;&#34;&#34;Find a specific event by `type`, `start_index` and `data`
 
@@ -383,38 +331,6 @@ class AccountResource:
         for e in events:
             if _match(json.loads(e.data), **kwargs):
                 return e
-
-    def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
-        &#34;&#34;&#34;Wait for a specific event happened.
-
-        Internally calls to `find_event` to decided whether the event happened.
-        See `find_event` for arguments document.
-        &#34;&#34;&#34;
-
-        def fn() -&gt; None:
-            event = self.find_event(event_type, start_index=start_index, **kwargs)
-            assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
-
-        self.wait_for(fn)
-
-    def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -&gt; None:
-        &#34;&#34;&#34;Wait for a fucntion call success
-
-        The given `fn` argument should:
-
-            1. Raise `AssertionError` for the case condition not meet and continue to wait.
-            2. Return `None` for success (meet condition)
-        &#34;&#34;&#34;
-
-        tries = 0
-        while True:
-            tries += 1
-            try:
-                return fn()
-            except AssertionError as e:
-                if tries &gt;= max_tries:
-                    raise TimeoutError(&#34;account(%s) events: %s&#34; % (self.id, self.dump_events())) from e
-                time.sleep(delay)
 
     def log_events(self) -&gt; None:
         &#34;&#34;&#34;Log account events as INFO
@@ -698,88 +614,6 @@ returns the event if the <code>**kwargs</code> is subset of the dictionary decod
     return Payment(id=p[&#34;id&#34;], account_id=self.id, payee=payee, currency=currency, amount=amount)</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.wait_for"><code class="name flex">
-<span>def <span class="ident">wait_for</span></span>(<span>self, fn: Callable[[], NoneType], max_tries: int = 120, delay: float = 0.1) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Wait for a fucntion call success</p>
-<p>The given <code>fn</code> argument should:</p>
-<pre><code>1. Raise &lt;code&gt;AssertionError&lt;/code&gt; for the case condition not meet and continue to wait.
-2. Return &lt;code&gt;None&lt;/code&gt; for success (meet condition)
-</code></pre></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def wait_for(self, fn: Callable[[], None], max_tries: int = 120, delay: float = 0.1) -&gt; None:
-    &#34;&#34;&#34;Wait for a fucntion call success
-
-    The given `fn` argument should:
-
-        1. Raise `AssertionError` for the case condition not meet and continue to wait.
-        2. Return `None` for success (meet condition)
-    &#34;&#34;&#34;
-
-    tries = 0
-    while True:
-        tries += 1
-        try:
-            return fn()
-        except AssertionError as e:
-            if tries &gt;= max_tries:
-                raise TimeoutError(&#34;account(%s) events: %s&#34; % (self.id, self.dump_events())) from e
-            time.sleep(delay)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.wait_for_balance"><code class="name flex">
-<span>def <span class="ident">wait_for_balance</span></span>(<span>self, currency: str, amount: int) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Wait for account balance of the given currency meets given <code>amount</code></p>
-<p>Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
-120 tries for every 0.1 second).</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def wait_for_balance(self, currency: str, amount: int) -&gt; None:
-    &#34;&#34;&#34;Wait for account balance of the given currency meets given `amount`
-
-    Raises TimeoutError and AssertionError if waitted too long time (about 12 seconds,
-    120 tries for every 0.1 second).
-    &#34;&#34;&#34;
-
-    def fn() -&gt; None:
-        assert self.balance(currency) == amount
-
-    self.wait_for(fn)</code></pre>
-</details>
-</dd>
-<dt id="diem.testing.miniwallet.client.AccountResource.wait_for_event"><code class="name flex">
-<span>def <span class="ident">wait_for_event</span></span>(<span>self, event_type: str, start_index: int = 0, **kwargs: Any) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Wait for a specific event happened.</p>
-<p>Internally calls to <code>find_event</code> to decided whether the event happened.
-See <code>find_event</code> for arguments document.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def wait_for_event(self, event_type: str, start_index: int = 0, **kwargs: Any) -&gt; None:
-    &#34;&#34;&#34;Wait for a specific event happened.
-
-    Internally calls to `find_event` to decided whether the event happened.
-    See `find_event` for arguments document.
-    &#34;&#34;&#34;
-
-    def fn() -&gt; None:
-        event = self.find_event(event_type, start_index=start_index, **kwargs)
-        assert event, &#34;could not find %s event with %s&#34; % (event_type, (start_index, kwargs))
-
-    self.wait_for(fn)</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 <dt id="diem.testing.miniwallet.client.Payment"><code class="flex name class">
@@ -826,10 +660,10 @@ class Payment:
 </dd>
 <dt id="diem.testing.miniwallet.client.RestClient"><code class="flex name class">
 <span>class <span class="ident">RestClient</span></span>
-<span>(</span><span>name: str, server_url: str, session: requests.sessions.Session = &lt;factory&gt;)</span>
+<span>(</span><span>name: str, server_url: str, session: requests.sessions.Session = &lt;factory&gt;, events_api_is_optional: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>RestClient(name: str, server_url: str, session: requests.sessions.Session = <factory>)</p></div>
+<div class="desc"><p>RestClient(name: str, server_url: str, session: requests.sessions.Session = <factory>, events_api_is_optional: bool = False)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -840,6 +674,7 @@ class RestClient:
     server_url: str
     session: requests.Session = field(default_factory=requests.Session)
     logger: logging.Logger = field(init=False)
+    events_api_is_optional: bool = field(default=False)
 
     def __post_init__(self) -&gt; None:
         self.logger = logging.getLogger(self.name)
@@ -888,6 +723,9 @@ class RestClient:
             headers={k: v for k, v in headers.items() if v},
         )
         log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
+        if self.events_api_is_optional and path.endswith(&#34;/events&#34;):
+            log_level = logging.DEBUG
+
         self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
         self.logger.log(log_level, &#34;response body: \n%s&#34;, try_json(resp.text))
         resp.raise_for_status()
@@ -895,6 +733,10 @@ class RestClient:
 </details>
 <h3>Class variables</h3>
 <dl>
+<dt id="diem.testing.miniwallet.client.RestClient.events_api_is_optional"><code class="name">var <span class="ident">events_api_is_optional</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="diem.testing.miniwallet.client.RestClient.logger"><code class="name">var <span class="ident">logger</span> : logging.Logger</code></dt>
 <dd>
 <div class="desc"></div>
@@ -1003,6 +845,9 @@ class RestClient:
         headers={k: v for k, v in headers.items() if v},
     )
     log_level = logging.DEBUG if resp.status_code &lt; 300 else logging.ERROR
+    if self.events_api_is_optional and path.endswith(&#34;/events&#34;):
+        log_level = logging.DEBUG
+
     self.logger.log(log_level, &#34;%s %s: %s - %s&#34;, method, path, data, resp.status_code)
     self.logger.log(log_level, &#34;response body: \n%s&#34;, try_json(resp.text))
     resp.raise_for_status()
@@ -1062,9 +907,6 @@ class RestClient:
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.kyc_data" href="#diem.testing.miniwallet.client.AccountResource.kyc_data">kyc_data</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.log_events" href="#diem.testing.miniwallet.client.AccountResource.log_events">log_events</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.AccountResource.send_payment" href="#diem.testing.miniwallet.client.AccountResource.send_payment">send_payment</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for" href="#diem.testing.miniwallet.client.AccountResource.wait_for">wait_for</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for_balance" href="#diem.testing.miniwallet.client.AccountResource.wait_for_balance">wait_for_balance</a></code></li>
-<li><code><a title="diem.testing.miniwallet.client.AccountResource.wait_for_event" href="#diem.testing.miniwallet.client.AccountResource.wait_for_event">wait_for_event</a></code></li>
 </ul>
 </li>
 <li>
@@ -1079,9 +921,10 @@ class RestClient:
 </li>
 <li>
 <h4><code><a title="diem.testing.miniwallet.client.RestClient" href="#diem.testing.miniwallet.client.RestClient">RestClient</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="diem.testing.miniwallet.client.RestClient.create" href="#diem.testing.miniwallet.client.RestClient.create">create</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.create_account" href="#diem.testing.miniwallet.client.RestClient.create_account">create_account</a></code></li>
+<li><code><a title="diem.testing.miniwallet.client.RestClient.events_api_is_optional" href="#diem.testing.miniwallet.client.RestClient.events_api_is_optional">events_api_is_optional</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.get" href="#diem.testing.miniwallet.client.RestClient.get">get</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.get_kyc_sample" href="#diem.testing.miniwallet.client.RestClient.get_kyc_sample">get_kyc_sample</a></code></li>
 <li><code><a title="diem.testing.miniwallet.client.RestClient.logger" href="#diem.testing.miniwallet.client.RestClient.logger">logger</a></code></li>

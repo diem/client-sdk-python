@@ -81,21 +81,20 @@ class AppConfig:
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
-        if not client.get_account(self.account.account_address):
-            self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
-            faucet = testnet.Faucet(client)
-            faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
+        self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
+        faucet = testnet.Faucet(client)
+        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
 
-            self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
-            self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
-            self.account.rotate_dual_attestation_info(client, self.server_url)
+        self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
+        self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
+        self.account.rotate_dual_attestation_info(client, self.server_url)
 
-            self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
-            child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
-            for i in range(self.child_account_size):
-                child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
-                self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
-                self.child_account_configs.append(child.to_dict())
+        self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
+        child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+        for i in range(self.child_account_size):
+            child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+            self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
+            self.child_account_configs.append(child.to_dict())
 
     def serve(self, client: jsonrpc.Client, app: App) -&gt; threading.Thread:
         api: falcon.API = falcon_api(app, self.disable_events_api)
@@ -176,21 +175,20 @@ class AppConfig:
         return RestClient(server_url=self.server_url, name=&#34;%s-client&#34; % self.name).with_retry()
 
     def setup_account(self, client: jsonrpc.Client) -&gt; None:
-        if not client.get_account(self.account.account_address):
-            self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
-            faucet = testnet.Faucet(client)
-            faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
+        self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
+        faucet = testnet.Faucet(client)
+        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
 
-            self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
-            self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
-            self.account.rotate_dual_attestation_info(client, self.server_url)
+        self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
+        self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
+        self.account.rotate_dual_attestation_info(client, self.server_url)
 
-            self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
-            child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
-            for i in range(self.child_account_size):
-                child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
-                self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
-                self.child_account_configs.append(child.to_dict())
+        self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
+        child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+        for i in range(self.child_account_size):
+            child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+            self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
+            self.child_account_configs.append(child.to_dict())
 
     def serve(self, client: jsonrpc.Client, app: App) -&gt; threading.Thread:
         api: falcon.API = falcon_api(app, self.disable_events_api)
@@ -358,21 +356,20 @@ def server_url(self) -&gt; str:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def setup_account(self, client: jsonrpc.Client) -&gt; None:
-    if not client.get_account(self.account.account_address):
-        self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
-        faucet = testnet.Faucet(client)
-        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
+    self.logger.info(&#34;faucet: mint %s&#34;, self.account.account_address.to_hex())
+    faucet = testnet.Faucet(client)
+    faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
 
-        self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
-        self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
-        self.account.rotate_dual_attestation_info(client, self.server_url)
+    self.logger.info(&#34;rotate dual attestation info for %s&#34;, self.account.account_address.to_hex())
+    self.logger.info(&#34;set base url to: %s&#34;, self.server_url)
+    self.account.rotate_dual_attestation_info(client, self.server_url)
 
-        self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
-        child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
-        for i in range(self.child_account_size):
-            child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
-            self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
-            self.child_account_configs.append(child.to_dict())</code></pre>
+    self.logger.info(&#34;generate child VASP accounts: %s&#34;, self.child_account_size)
+    child_account_initial_amount = int(self.initial_amount / (self.child_account_size + 1))
+    for i in range(self.child_account_size):
+        child = self.account.gen_child_vasp(client, child_account_initial_amount, self.initial_currency)
+        self.logger.info(&#34;generate child VASP account(%s): %s&#34;, i, child.to_dict())
+        self.child_account_configs.append(child.to_dict())</code></pre>
 </details>
 </dd>
 <dt id="diem.testing.miniwallet.config.AppConfig.start"><code class="name flex">

@@ -49,7 +49,8 @@ class LoggerMiddleware:
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
         tc = req.get_header(&#34;X-Test-Case&#34;)
-        test_case = &#34;[%s] &#34; % tc if tc else &#34;&#34;
+        # test case format is &lt;file&gt;::&lt;test method name&gt;, only log the test method name
+        test_case = &#34;[%s] &#34; % tc.split(&#34;::&#34;)[-1] if tc else &#34;&#34;
         self.logger.info(&#34;%s%s %s - %s&#34;, test_case, req.method, req.relative_uri, resp.status)
 
 
@@ -478,7 +479,8 @@ class LoggerMiddleware:
 
     def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
         tc = req.get_header(&#34;X-Test-Case&#34;)
-        test_case = &#34;[%s] &#34; % tc if tc else &#34;&#34;
+        # test case format is &lt;file&gt;::&lt;test method name&gt;, only log the test method name
+        test_case = &#34;[%s] &#34; % tc.split(&#34;::&#34;)[-1] if tc else &#34;&#34;
         self.logger.info(&#34;%s%s %s - %s&#34;, test_case, req.method, req.relative_uri, resp.status)</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -514,7 +516,8 @@ class LoggerMiddleware:
 </summary>
 <pre><code class="python">def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
     tc = req.get_header(&#34;X-Test-Case&#34;)
-    test_case = &#34;[%s] &#34; % tc if tc else &#34;&#34;
+    # test case format is &lt;file&gt;::&lt;test method name&gt;, only log the test method name
+    test_case = &#34;[%s] &#34; % tc.split(&#34;::&#34;)[-1] if tc else &#34;&#34;
     self.logger.info(&#34;%s%s %s - %s&#34;, test_case, req.method, req.relative_uri, resp.status)</code></pre>
 </details>
 </dd>

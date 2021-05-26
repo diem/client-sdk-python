@@ -33,11 +33,12 @@
 &#34;&#34;&#34;This module provides command-line interface for starting mini-wallet application and running test suites.
 &#34;&#34;&#34;
 
-from diem import testnet
+from diem import testnet, utils
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO
+from urllib.parse import urlsplit
 import logging, click, functools, pytest, os, sys, json, shlex
 
 
@@ -177,7 +178,7 @@ def start_server(
     &#34;-i&#34;,
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_CONFIG, is_io=True),
-    help=&#34;Import the diem account config from a file for miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.&#34;,
+    help=&#34;Import the diem account config from a file for the miniwallet stub server. The config file content should be JSON generated from command `gen-diem-account-config`.&#34;,
     type=click.File(),
 )
 @click.option(  # pyre-ignore
@@ -186,6 +187,19 @@ def start_server(
     help=&#34;Set Diem account identifier hrp for the stub wallet application; if &#39;-i&#39; option is used, this option overwrites hrp configured by &#39;-i&#39; option.&#34;,
     type=str,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_HRP),
+)
+@click.option(
+    &#34;--wait-for-target-timeout&#34;,
+    default=20,
+    help=&#34;Before start test, the target wallet application host port should be ready for connection. This is wait timeout (seconds) for the port ready.&#34;,
+    type=int,
+)
+@click.option(
+    &#34;--include-offchain-v2&#34;,
+    type=bool,
+    is_flag=True,
+    default=False,
+    help=&#34;Include offchain v2 test suites&#34;,
 )
 @click.help_option(&#34;-h&#34;, &#34;--help&#34;)
 def test(
@@ -201,6 +215,8 @@ def test(
     verbose: bool,
     import_stub_diem_account_config_file: Optional[TextIO],
     stub_hrp: Optional[str],
+    wait_for_target_timeout: int,
+    include_offchain_v2: bool,
 ) -&gt; None:
     configure_testnet(jsonrpc, faucet)
 
@@ -208,8 +224,16 @@ def test(
     if stub_bind_host is not None and stub_bind_host != &#34;localhost&#34; and not stub_diem_account_base_url:
         raise click.ClickException(&#34;--stub-diem-account-base-url is required when passing in a custom --stub-bind-host&#34;)
 
-    args = shlex.split(pytest_args)
-    args = [&#34;--pyargs&#34;, &#34;diem.testing.suites&#34;] + args
+    url = urlsplit(target)
+    target_port = url.port or 80
+    print(&#34;Waiting for %s:%s ready&#34; % (url.hostname, target_port))
+    utils.wait_for_port(target_port, host=str(url.hostname), timeout=wait_for_target_timeout)
+    print(&#34;Target wallet at %s:%s is ready for connection&#34; % (url.hostname, target_port))
+
+    args = [&#34;--pyargs&#34;, &#34;diem.testing.suites.basic&#34;]
+    if include_offchain_v2:
+        args.append(&#34;diem.testing.suites.offchainv2&#34;)
+    args += shlex.split(pytest_args)
     if match_keywords:
         args.append(&#34;-k&#34;)
         args.append(match_keywords)

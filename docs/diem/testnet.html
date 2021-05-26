@@ -71,8 +71,8 @@ from . import diem_types, jsonrpc, utils, chain_ids, bcs, identifier
 from .testing import LocalAccount
 
 
-JSON_RPC_URL: str = &#34;http://testnet.diem.com/v1&#34;
-FAUCET_URL: str = &#34;http://testnet.diem.com/mint&#34;
+JSON_RPC_URL: str = &#34;https://testnet.diem.com/v1&#34;
+FAUCET_URL: str = &#34;https://testnet.diem.com/mint&#34;
 CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
 DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address(&#34;000000000000000000000000000000dd&#34;)
@@ -137,7 +137,7 @@ class Faucet:
 
     def _mint_without_retry(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -&gt; None:
         response = self._session.post(
-            FAUCET_URL,
+            self._url,
             params={
                 &#34;amount&#34;: amount,
                 &#34;auth_key&#34;: authkey,
@@ -272,7 +272,7 @@ class Faucet:
 
     def _mint_without_retry(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -&gt; None:
         response = self._session.post(
-            FAUCET_URL,
+            self._url,
             params={
                 &#34;amount&#34;: amount,
                 &#34;auth_key&#34;: authkey,

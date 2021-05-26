@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.2" />
-<title>diem.testing.suites.test_payment_command API documentation</title>
+<title>diem.testing.suites.offchainv2.test_payment_command API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>diem.testing.suites.test_payment_command</code></h1>
+<h1 class="title">Module <code>diem.testing.suites.offchainv2.test_payment_command</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -33,11 +33,12 @@ from dataclasses import replace
 from diem import jsonrpc, offchain, identifier
 from diem.testing.miniwallet import RestClient, AppConfig, App, Transaction, PaymentCommand
 from typing import Union, List
-from .conftest import (
+from ..conftest import (
     set_field,
     assert_response_error,
     payment_command_request_sample,
     send_request_json,
+    wait_for_event,
 )
 import json, pytest
 
@@ -361,7 +362,7 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        wait_for_event(sender_account, &#34;updated_payment_command&#34;)
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -422,7 +423,7 @@ def test_payment_command_sender_address_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        wait_for_event(sender_account, &#34;updated_payment_command&#34;)
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -493,7 +494,7 @@ def test_payment_command_action_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        wait_for_event(sender_account, &#34;updated_payment_command&#34;)
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -564,8 +565,8 @@ def assert_payment_command_field_error(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="diem.testing.suites.test_payment_command.assert_payment_command_field_error"><code class="name flex">
-<span>def <span class="ident">assert_payment_command_field_error</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str, field_value: Union[NoneType, str, int, List[int]], error_code: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.assert_payment_command_field_error"><code class="name flex">
+<span>def <span class="ident">assert_payment_command_field_error</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str, field_value: Union[NoneType, str, int, List[int]], error_code: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -610,8 +611,8 @@ def assert_payment_command_field_error(
     assert_response_error(resp, error_code, &#34;command_error&#34;, field=full_field_name)</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_action_can_only_be_written_once"><code class="name flex">
-<span>def <span class="ident">test_payment_command_action_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, hrp: str, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, field_name: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_action_can_only_be_written_once"><code class="name flex">
+<span>def <span class="ident">test_payment_command_action_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, hrp: str, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, field_name: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -678,7 +679,7 @@ def test_payment_command_action_can_only_be_written_once(
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        wait_for_event(sender_account, &#34;updated_payment_command&#34;)
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -705,8 +706,8 @@ def test_payment_command_action_can_only_be_written_once(
         sender_account.log_events()</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type"><code class="name flex">
-<span>def <span class="ident">test_payment_command_contains_invalid_actor_metadata_item_type</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type"><code class="name flex">
+<span>def <span class="ident">test_payment_command_contains_invalid_actor_metadata_item_type</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -756,8 +757,8 @@ and <code>invalid_field_value</code> error code.</li>
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value"><code class="name flex">
-<span>def <span class="ident">test_payment_command_contains_invalid_field_value</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_field_value"><code class="name flex">
+<span>def <span class="ident">test_payment_command_contains_invalid_field_value</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -821,8 +822,8 @@ def test_payment_command_contains_invalid_field_value(
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value_type"><code class="name flex">
-<span>def <span class="ident">test_payment_command_contains_invalid_field_value_type</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_field_value_type"><code class="name flex">
+<span>def <span class="ident">test_payment_command_contains_invalid_field_value_type</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -895,8 +896,8 @@ def test_payment_command_contains_invalid_field_value_type(
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_contains_missing_required_field"><code class="name flex">
-<span>def <span class="ident">test_payment_command_contains_missing_required_field</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_missing_required_field"><code class="name flex">
+<span>def <span class="ident">test_payment_command_contains_missing_required_field</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -968,8 +969,8 @@ def test_payment_command_contains_missing_required_field(
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_contains_unknown_field"><code class="name flex">
-<span>def <span class="ident">test_payment_command_contains_unknown_field</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_unknown_field"><code class="name flex">
+<span>def <span class="ident">test_payment_command_contains_unknown_field</span></span>(<span>stub_config: <a title="diem.testing.miniwallet.config.AppConfig" href="../../miniwallet/config.html#diem.testing.miniwallet.config.AppConfig">AppConfig</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, diem_client: <a title="diem.jsonrpc.client.Client" href="../../../jsonrpc/client.html#diem.jsonrpc.client.Client">Client</a>, currency: str, travel_rule_threshold: int, hrp: str, field_name: str) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1033,8 +1034,8 @@ def test_payment_command_contains_unknown_field(
     )</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_sender_address_can_only_be_written_once"><code class="name flex">
-<span>def <span class="ident">test_payment_command_sender_address_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, hrp: str, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_sender_address_can_only_be_written_once"><code class="name flex">
+<span>def <span class="ident">test_payment_command_sender_address_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, hrp: str, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1092,7 +1093,7 @@ and <code>invalid_overwrite</code> error code.</li>
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        wait_for_event(sender_account, &#34;updated_payment_command&#34;)
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -1116,8 +1117,8 @@ and <code>invalid_overwrite</code> error code.</li>
         sender_account.log_events()</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once"><code class="name flex">
-<span>def <span class="ident">test_payment_command_sender_kyc_data_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once"><code class="name flex">
+<span>def <span class="ident">test_payment_command_sender_kyc_data_can_only_be_written_once</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1174,7 +1175,7 @@ and <code>invalid_overwrite</code> error code.</li>
         initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        sender_account.wait_for_event(&#34;updated_payment_command&#34;)
+        wait_for_event(sender_account, &#34;updated_payment_command&#34;)
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -1197,8 +1198,8 @@ and <code>invalid_overwrite</code> error code.</li>
         sender_account.log_events()</code></pre>
 </details>
 </dd>
-<dt id="diem.testing.suites.test_payment_command.test_replay_the_same_payment_command"><code class="name flex">
-<span>def <span class="ident">test_replay_the_same_payment_command</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
+<dt id="diem.testing.suites.offchainv2.test_payment_command.test_replay_the_same_payment_command"><code class="name flex">
+<span>def <span class="ident">test_replay_the_same_payment_command</span></span>(<span>currency: str, travel_rule_threshold: int, stub_wallet_app: <a title="diem.testing.miniwallet.app.app.App" href="../../miniwallet/app/app.html#diem.testing.miniwallet.app.app.App">App</a>, stub_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>, target_client: <a title="diem.testing.miniwallet.client.RestClient" href="../../miniwallet/client.html#diem.testing.miniwallet.client.RestClient">RestClient</a>) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Test Plan:</p>
@@ -1267,21 +1268,21 @@ and <code>invalid_overwrite</code> error code.</li>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="diem.testing.suites" href="index.html">diem.testing.suites</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2" href="index.html">diem.testing.suites.offchainv2</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="diem.testing.suites.test_payment_command.assert_payment_command_field_error" href="#diem.testing.suites.test_payment_command.assert_payment_command_field_error">assert_payment_command_field_error</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_action_can_only_be_written_once" href="#diem.testing.suites.test_payment_command.test_payment_command_action_can_only_be_written_once">test_payment_command_action_can_only_be_written_once</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type">test_payment_command_contains_invalid_actor_metadata_item_type</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value">test_payment_command_contains_invalid_field_value</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value_type" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_invalid_field_value_type">test_payment_command_contains_invalid_field_value_type</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_missing_required_field" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_missing_required_field">test_payment_command_contains_missing_required_field</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_contains_unknown_field" href="#diem.testing.suites.test_payment_command.test_payment_command_contains_unknown_field">test_payment_command_contains_unknown_field</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_sender_address_can_only_be_written_once" href="#diem.testing.suites.test_payment_command.test_payment_command_sender_address_can_only_be_written_once">test_payment_command_sender_address_can_only_be_written_once</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once" href="#diem.testing.suites.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once">test_payment_command_sender_kyc_data_can_only_be_written_once</a></code></li>
-<li><code><a title="diem.testing.suites.test_payment_command.test_replay_the_same_payment_command" href="#diem.testing.suites.test_payment_command.test_replay_the_same_payment_command">test_replay_the_same_payment_command</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.assert_payment_command_field_error" href="#diem.testing.suites.offchainv2.test_payment_command.assert_payment_command_field_error">assert_payment_command_field_error</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_action_can_only_be_written_once" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_action_can_only_be_written_once">test_payment_command_action_can_only_be_written_once</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_actor_metadata_item_type">test_payment_command_contains_invalid_actor_metadata_item_type</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_field_value" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_field_value">test_payment_command_contains_invalid_field_value</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_field_value_type" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_invalid_field_value_type">test_payment_command_contains_invalid_field_value_type</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_missing_required_field" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_missing_required_field">test_payment_command_contains_missing_required_field</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_unknown_field" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_contains_unknown_field">test_payment_command_contains_unknown_field</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_sender_address_can_only_be_written_once" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_sender_address_can_only_be_written_once">test_payment_command_sender_address_can_only_be_written_once</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once" href="#diem.testing.suites.offchainv2.test_payment_command.test_payment_command_sender_kyc_data_can_only_be_written_once">test_payment_command_sender_kyc_data_can_only_be_written_once</a></code></li>
+<li><code><a title="diem.testing.suites.offchainv2.test_payment_command.test_replay_the_same_payment_command" href="#diem.testing.suites.offchainv2.test_payment_command.test_replay_the_same_payment_command">test_replay_the_same_payment_command</a></code></li>
 </ul>
 </li>
 </ul>

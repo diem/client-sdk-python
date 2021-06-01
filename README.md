@@ -64,7 +64,7 @@ make test t=<test file / test name match pattern> dt=1
 ```
 git submodule update --init diem
 cd diem
-git pull origin master
+git pull origin main
 cd ..
 make gen
 ```

@@ -124,6 +124,8 @@ class AccountRole(google___protobuf___message___Message):
     base_url_rotation_events_key: typing___Text = ...
     num_children: builtin___int = ...
     received_mint_events_key: typing___Text = ...
+    diem_id_domains: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
+    diem_id_domain_events_key: typing___Text = ...
     @property
     def preburn_balances(
         self,
@@ -147,6 +149,8 @@ class AccountRole(google___protobuf___message___Message):
         received_mint_events_key: typing___Optional[typing___Text] = None,
         preburn_balances: typing___Optional[typing___Iterable[type___Amount]] = None,
         preburn_queues: typing___Optional[typing___Iterable[type___PreburnQueue]] = None,
+        diem_id_domains: typing___Optional[typing___Iterable[typing___Text]] = None,
+        diem_id_domain_events_key: typing___Optional[typing___Text] = None,
     ) -> None: ...
     def ClearField(
         self,
@@ -159,6 +163,10 @@ class AccountRole(google___protobuf___message___Message):
             b"compliance_key",
             "compliance_key_rotation_events_key",
             b"compliance_key_rotation_events_key",
+            "diem_id_domain_events_key",
+            b"diem_id_domain_events_key",
+            "diem_id_domains",
+            b"diem_id_domains",
             "expiration_time",
             b"expiration_time",
             "human_name",
@@ -527,6 +535,12 @@ class TransactionData(google___protobuf___message___Message):
     expiration_timestamp_secs: builtin___int = ...
     script_hash: typing___Text = ...
     script_bytes: typing___Text = ...
+    secondary_signers: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
+    secondary_signature_schemes: google___protobuf___internal___containers___RepeatedScalarFieldContainer[
+        typing___Text
+    ] = ...
+    secondary_signatures: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
+    secondary_public_keys: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
     @property
     def script(self) -> type___Script: ...
     def __init__(
@@ -547,6 +561,10 @@ class TransactionData(google___protobuf___message___Message):
         script_hash: typing___Optional[typing___Text] = None,
         script_bytes: typing___Optional[typing___Text] = None,
         script: typing___Optional[type___Script] = None,
+        secondary_signers: typing___Optional[typing___Iterable[typing___Text]] = None,
+        secondary_signature_schemes: typing___Optional[typing___Iterable[typing___Text]] = None,
+        secondary_signatures: typing___Optional[typing___Iterable[typing___Text]] = None,
+        secondary_public_keys: typing___Optional[typing___Iterable[typing___Text]] = None,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions___Literal["script", b"script"]) -> builtin___bool: ...
     def ClearField(
@@ -570,6 +588,14 @@ class TransactionData(google___protobuf___message___Message):
             b"script_bytes",
             "script_hash",
             b"script_hash",
+            "secondary_public_keys",
+            b"secondary_public_keys",
+            "secondary_signature_schemes",
+            b"secondary_signature_schemes",
+            "secondary_signatures",
+            b"secondary_signatures",
+            "secondary_signers",
+            b"secondary_signers",
             "sender",
             b"sender",
             "sequence_number",

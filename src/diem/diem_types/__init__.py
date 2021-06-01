@@ -75,6 +75,40 @@ class AccountAddress:
         return AccountAddress.from_bytes(bytes.fromhex(addr))
 
 
+class AccountAuthenticator:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[AccountAuthenticator]]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, AccountAuthenticator)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "AccountAuthenticator":
+        v, buffer = bcs.deserialize(input, AccountAuthenticator)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
+class AccountAuthenticator__Ed25519(AccountAuthenticator):
+    INDEX = 0  # type: int
+    public_key: "Ed25519PublicKey"
+    signature: "Ed25519Signature"
+
+
+@dataclass(frozen=True)
+class AccountAuthenticator__MultiEd25519(AccountAuthenticator):
+    INDEX = 1  # type: int
+    public_key: "MultiEd25519PublicKey"
+    signature: "MultiEd25519Signature"
+
+
+AccountAuthenticator.VARIANTS = [
+    AccountAuthenticator__Ed25519,
+    AccountAuthenticator__MultiEd25519,
+]
+
+
 @dataclass(frozen=True)
 class BlockMetadata:
     id: "HashValue"
@@ -399,6 +433,12 @@ class Metadata__CoinTradeMetadata(Metadata):
     value: "CoinTradeMetadata"
 
 
+@dataclass(frozen=True)
+class Metadata__PaymentMetadata(Metadata):
+    INDEX = 6  # type: int
+    value: "PaymentMetadata"
+
+
 Metadata.VARIANTS = [
     Metadata__Undefined,
     Metadata__GeneralMetadata,
@@ -406,6 +446,7 @@ Metadata.VARIANTS = [
     Metadata__UnstructuredBytesMetadata,
     Metadata__RefundMetadata,
     Metadata__CoinTradeMetadata,
+    Metadata__PaymentMetadata,
 ]
 
 
@@ -465,6 +506,63 @@ class MultiEd25519Signature:
     @staticmethod
     def bcs_deserialize(input: bytes) -> "MultiEd25519Signature":
         v, buffer = bcs.deserialize(input, MultiEd25519Signature)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+class PaymentMetadata:
+    VARIANTS = []  # type: typing.Sequence[typing.Type[PaymentMetadata]]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, PaymentMetadata)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "PaymentMetadata":
+        v, buffer = bcs.deserialize(input, PaymentMetadata)
+        if buffer:
+            raise st.DeserializationError("Some input bytes were not read")
+        return v
+
+
+@dataclass(frozen=True)
+class PaymentMetadata__PaymentMetadataVersion0(PaymentMetadata):
+    INDEX = 0  # type: int
+    value: "PaymentMetadataV0"
+
+
+PaymentMetadata.VARIANTS = [
+    PaymentMetadata__PaymentMetadataVersion0,
+]
+
+
+@dataclass(frozen=True)
+class PaymentMetadataV0:
+    reference_id: typing.Tuple[
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+        st.uint8,
+    ]
+
+    def bcs_serialize(self) -> bytes:
+        return bcs.serialize(self, PaymentMetadataV0)
+
+    @staticmethod
+    def bcs_deserialize(input: bytes) -> "PaymentMetadataV0":
+        v, buffer = bcs.deserialize(input, PaymentMetadataV0)
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
@@ -571,11 +669,18 @@ class RefundReason__UserInitiatedFullRefund(RefundReason):
     pass
 
 
+@dataclass(frozen=True)
+class RefundReason__InvalidReferenceId(RefundReason):
+    INDEX = 4  # type: int
+    pass
+
+
 RefundReason.VARIANTS = [
     RefundReason__OtherReason,
     RefundReason__InvalidSubaddress,
     RefundReason__UserInitiatedPartialRefund,
     RefundReason__UserInitiatedFullRefund,
+    RefundReason__InvalidReferenceId,
 ]
 
 
@@ -785,9 +890,18 @@ class TransactionAuthenticator__MultiEd25519(TransactionAuthenticator):
     signature: "MultiEd25519Signature"
 
 
+@dataclass(frozen=True)
+class TransactionAuthenticator__MultiAgent(TransactionAuthenticator):
+    INDEX = 2  # type: int
+    sender: "AccountAuthenticator"
+    secondary_signer_addresses: typing.Sequence["AccountAddress"]
+    secondary_signers: typing.Sequence["AccountAuthenticator"]
+
+
 TransactionAuthenticator.VARIANTS = [
     TransactionAuthenticator__Ed25519,
     TransactionAuthenticator__MultiEd25519,
+    TransactionAuthenticator__MultiAgent,
 ]
 
 

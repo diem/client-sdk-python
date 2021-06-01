@@ -219,6 +219,8 @@ def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -
             stub_conf.port,
             "--stub-diem-account-base-url",
             stub_conf.base_url,
+            "--stub-diem-id-domain",
+            "stubdomain",
         ]
         + options,
     )
@@ -229,7 +231,7 @@ def start_target_server(runner: CliRunner, options: List[str] = []) -> ServerCon
     conf.base_url = "http://127.0.0.1:%s" % conf.port
 
     def start_server():
-        runner.invoke(
+        ret = runner.invoke(
             cli.start_server,
             [
                 "--jsonrpc",
@@ -242,9 +244,13 @@ def start_target_server(runner: CliRunner, options: List[str] = []) -> ServerCon
                 conf.port,
                 "--diem-account-base-url",
                 conf.base_url,
+                "--diem-id-domain",
+                "targetdomain",
             ]
             + options,
         )
+        # if ret.exit_code != 0:
+        #     raise Exception(ret)
 
     threading.Thread(target=start_server, daemon=True).start()
     utils.wait_for_port(conf.port)

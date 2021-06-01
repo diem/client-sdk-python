@@ -129,3 +129,9 @@ class PaymentCommand(Base):
             inbound=self.is_inbound,
             cid=self.cid,
         )
+
+
+@dataclass
+class DiemId(Base):
+    domain: str
+    account_onchain_address: str

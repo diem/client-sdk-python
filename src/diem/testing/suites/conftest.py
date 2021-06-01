@@ -12,6 +12,7 @@ from .envs import (
     dmw_stub_server,
     dmw_stub_diem_account_config,
     dmw_stub_diem_account_hrp,
+    dmw_stub_diem_id_domain,
 )
 from typing import Optional, Tuple, Dict, Any, Generator, Callable
 from dataclasses import asdict
@@ -21,7 +22,7 @@ import pytest, json, uuid, requests, time, warnings
 @pytest.fixture(scope="package")
 def target_client(diem_client: jsonrpc.Client) -> RestClient:
     if is_self_check():
-        conf = AppConfig(name="target-wallet")
+        conf = AppConfig(name="target-wallet", diem_id_domain="targetdomain")
         print("self-checking, launch target app with config %s" % conf)
         conf.start(diem_client)
         return conf.create_client()
@@ -48,7 +49,9 @@ def stub_wallet_app(start_stub_wallet: Tuple[AppConfig, App]) -> App:
 
 @pytest.fixture(scope="package")
 def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
-    conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()))
+    conf = AppConfig(
+        name="stubwallet", server_conf=ServerConfig(**dmw_stub_server()), diem_id_domain=dmw_stub_diem_id_domain()
+    )
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print("loads stub account config: %s" % account_conf)

@@ -37,6 +37,7 @@ EVENT_DATA_COMPLIANCE_KEY_ROTATION: str = "compliancekeyrotation"
 EVENT_DATA_BASE_URL_ROTATION: str = "baseurlrotation"
 EVENT_DATA_CREATE_ACCOUNT: str = "createaccount"
 EVENT_DATA_ADMIN_TRANSACTION: str = "admintransaction"
+EVENT_DATA_DIEM_ID_DOMAIN: str = "diemiddomain"
 
 
 # VMStatus#type field values

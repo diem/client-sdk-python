@@ -201,3 +201,23 @@ def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
         raise InvalidEventMetadataForRefundError(f"unknown metadata type: {metadata}")
     except ValueError as e:
         raise InvalidEventMetadataForRefundError(f"invalid event metadata for refund: {e}, event: {event}")
+
+
+def payment_metadata(
+    reference_id: str,
+) -> bytes:
+    """Create payment metadata for peer to peer transaction script
+
+    Use this function to create metadata with a reference ID for peer to peer transfer
+    under travel rule threshold.
+
+    """
+
+    metadata = diem_types.Metadata__PaymentMetadata(
+        value=diem_types.PaymentMetadata__PaymentMetadataVersion0(
+            value=diem_types.PaymentMetadataV0(  # pyre-ignore
+                reference_id=reference_id,
+            )
+        )
+    )
+    return metadata.bcs_serialize()

@@ -89,10 +89,30 @@ class Faucet:
         self.mint(account.auth_key.hex(), 100_000_000_000, currency_code, dd_account)
         return account
 
-    def mint(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
-        self._retry.execute(lambda: self._mint_without_retry(authkey, amount, currency_code, dd_account))
+    def mint(
+        self,
+        authkey: str,
+        amount: int,
+        currency_code: str,
+        dd_account: bool = False,
+        diem_id_domain: typing.Optional[str] = None,
+        is_remove_domain: typing.Optional[bool] = False,
+    ) -> None:
+        self._retry.execute(
+            lambda: self._mint_without_retry(
+                authkey, amount, currency_code, dd_account, diem_id_domain, is_remove_domain
+            )
+        )
 
-    def _mint_without_retry(self, authkey: str, amount: int, currency_code: str, dd_account: bool = False) -> None:
+    def _mint_without_retry(
+        self,
+        authkey: str,
+        amount: int,
+        currency_code: str,
+        dd_account: bool = False,
+        diem_id_domain: typing.Optional[str] = None,
+        is_remove_domain: typing.Optional[bool] = False,
+    ) -> None:
         response = self._session.post(
             self._url,
             params={
@@ -101,6 +121,8 @@ class Faucet:
                 "currency_code": currency_code,
                 "return_txns": "true",
                 "is_designated_dealer": "true" if dd_account else "false",
+                "diem_id_domain": diem_id_domain,
+                "is_remove_domain": "true" if is_remove_domain else "false",
             },
         )
         response.raise_for_status()

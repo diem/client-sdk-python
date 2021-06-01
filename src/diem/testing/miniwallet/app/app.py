@@ -17,12 +17,12 @@ import threading, logging, numpy, time
 
 class App:
     def __init__(
-        self,
-        account: LocalAccount,
-        child_accounts: List[LocalAccount],
-        client: jsonrpc.Client,
-        name: str,
-        logger: logging.Logger,
+            self,
+            account: LocalAccount,
+            child_accounts: List[LocalAccount],
+            client: jsonrpc.Client,
+            name: str,
+            logger: logging.Logger,
     ) -> None:
         self.logger = logger
         self.diem_account = DiemAccount(account, child_accounts, client)
@@ -178,13 +178,13 @@ class App:
             self.dual_attestation_txn_senders["v2"](txn)
 
     def _create_transaction(
-        self,
-        account_id: str,
-        status: str,
-        data: JsonInput,
-        type: Transaction.Type,
-        payee: Optional[str] = None,
-        subaddress_hex: Optional[str] = None,
+            self,
+            account_id: str,
+            status: str,
+            data: JsonInput,
+            type: Transaction.Type,
+            payee: Optional[str] = None,
+            subaddress_hex: Optional[str] = None,
     ) -> Transaction:
         return self.store.create(
             Transaction,

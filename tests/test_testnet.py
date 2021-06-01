@@ -67,7 +67,7 @@ def test_get_account_by_hex_encoded_account_address():
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
-    assert account.role.type == jsonrpc.ACCOUNT_ROLE_UNKNOWN
+    assert account.role.type == jsonrpc.ACCOUNT_ROLE_TREASURY_COMPLIANCE
 
 
 def test_get_account_by_invalid_hex_encoded_account_address():

@@ -18,6 +18,7 @@ ACCOUNT_ROLE_UNKNOWN: str = "unknown"
 ACCOUNT_ROLE_CHILD_VASP: str = "child_vasp"
 ACCOUNT_ROLE_PARENT_VASP: str = "parent_vasp"
 ACCOUNT_ROLE_DESIGNATED_DEALER: str = "designated_dealer"
+ACCOUNT_ROLE_TREASURY_COMPLIANCE: str = "treasury_compliance"
 
 
 # EventData#type field values

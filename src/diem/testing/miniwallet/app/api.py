@@ -1,9 +1,10 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Dict, List, Any, Tuple
 from .app import App
+from .offchain_api_v2 import OffChainAPIv2
 from .json_input import JsonInput
 from .... import offchain
 import falcon, json, traceback, logging, pathlib
@@ -50,6 +51,12 @@ def rest_handler(fn: Any):  # pyre-ignore
 @dataclass
 class Endpoints:
     app: App
+    offchain_api_v2: OffChainAPIv2 = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.offchain_api_v2 = OffChainAPIv2(self.app)
+        self.app.add_bg_task(self.offchain_api_v2._process_offchain_commands)
+        self.app.add_dual_attestation_txn_sender("v2", self.offchain_api_v2.send_dual_attestation_transaction)
 
     @rest_handler
     def on_post_accounts(self, input: JsonInput) -> Tuple[str, Dict[str, str]]:
@@ -75,16 +82,16 @@ class Endpoints:
     def on_get_kyc_sample(self, input: JsonInput) -> Tuple[str, Dict[str, str]]:
         return (falcon.HTTP_200, asdict(self.app.kyc_sample))
 
-    def on_post_offchain(self, req: falcon.Request, resp: falcon.Response) -> None:
+    def on_post_offchain_v2(self, req: falcon.Request, resp: falcon.Response) -> None:
         request_id = req.get_header(offchain.X_REQUEST_ID)
         resp.set_header(offchain.X_REQUEST_ID, request_id)
         request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
         input_data = req.stream.read()
 
-        resp_obj = self.app.offchain_api(request_id, request_sender_address, input_data)
+        resp_obj = self.offchain_api_v2.process(request_id, request_sender_address, input_data)
         if resp_obj.error is not None:
             resp.status = falcon.HTTP_400
-        resp.body = self.app.jws_serialize(resp_obj)
+        resp.body = self.offchain_api_v2.jws_serialize(resp_obj)
 
     def on_get_index(self, req: falcon.Request, resp: falcon.Response) -> None:
         raise falcon.HTTPMovedPermanently("/index.html")
@@ -101,6 +108,6 @@ def falcon_api(app: App, disable_events_api: bool = False) -> falcon.API:
             continue
         api.add_route("/accounts/{account_id}/%s" % res, endpoints, suffix=res)
     api.add_route("/kyc_sample", endpoints, suffix="kyc_sample")
-    api.add_route("/v2/command", endpoints, suffix="offchain")
+    api.add_route("/v2/command", endpoints, suffix="offchain_v2")
     app.start_bg_worker_thread()
     return api

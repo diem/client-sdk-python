@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass, field
-from typing import Dict, Callable, Any
+from typing import Dict, Any, Iterator
 from .store import InMemoryStore, NotFoundError
 from .pending_account import PENDING_INBOUND_ACCOUNT_ID
 from .models import Transaction, Subaddress, PaymentCommand, RefundReason, Account
@@ -18,23 +18,29 @@ class EventPuller:
     logger: logging.Logger
     state: Dict[str, int] = field(default_factory=dict)
 
-    def add(self, address: diem_types.AccountAddress) -> None:
+    def add_received_events_key(self, address: diem_types.AccountAddress) -> None:
         account = self.client.must_get_account(address)
         self.state[account.received_events_key] = 0
 
-    def fetch(self, process: Callable[[jsonrpc.Event], None], batch_size: int = 100) -> None:
-        for key, seq in self.state.items():
-            events = self.client.get_events(key, seq, batch_size)
-            if events:
-                for event in events:
-                    process(event)
-                    self.state[key] = event.sequence_number + 1
+    def process(self) -> None:
+        for event in self.pull_events():
+            if event.data.type == jsonrpc.EVENT_DATA_RECEIVED_PAYMENT:
+                self.save_payment_txn(event)
 
     def head(self) -> None:
         state = None
         while state != self.state:
             state = copy.copy(self.state)
-            self.fetch(lambda _: None)
+            for event in self.pull_events():
+                pass
+
+    def pull_events(self, batch_size: int = 100) -> Iterator[jsonrpc.Event]:
+        for key, seq in self.state.items():
+            events = self.client.get_events(key, seq, batch_size)
+            if events:
+                for event in events:
+                    yield (event)
+                    self.state[key] = event.sequence_number + 1
 
     def save_payment_txn(self, event: jsonrpc.Event) -> None:
         self.logger.info("processing Event:\n%s", event)

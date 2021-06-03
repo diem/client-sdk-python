@@ -4,6 +4,7 @@
 from dataclasses import replace
 from diem import jsonrpc, offchain, identifier
 from diem.testing.miniwallet import RestClient, AppConfig, App, Transaction, PaymentCommand
+from diem.testing.miniwallet.app.offchain_api_v2 import OffChainAPIv2
 from typing import Union, List
 from ..conftest import (
     set_field,
@@ -289,9 +290,10 @@ def test_replay_the_same_payment_command(
         payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        cmd = stub_wallet_app.send_initial_payment_command(txn)
-        stub_wallet_app.send_offchain_command_without_retries(cmd)
-        stub_wallet_app.send_offchain_command_without_retries(cmd)
+        api = OffChainAPIv2(stub_wallet_app)
+        cmd = api.send_initial_payment_command(txn)
+        api.send_offchain_command_without_retries(cmd)
+        api.send_offchain_command_without_retries(cmd)
     finally:
         receiver_account.log_events()
         sender_account.log_events()
@@ -331,7 +333,7 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
         payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        initial_cmd = OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
         wait_for_event(sender_account, "updated_payment_command")
@@ -349,7 +351,7 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
         new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
 
         with pytest.raises(offchain.CommandResponseError) as err:
-            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+            OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
 
         assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.sender.kyc_data")
     finally:
@@ -392,7 +394,7 @@ def test_payment_command_sender_address_can_only_be_written_once(
         payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        initial_cmd = OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
         wait_for_event(sender_account, "updated_payment_command")
@@ -411,7 +413,7 @@ def test_payment_command_sender_address_can_only_be_written_once(
         new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
         with pytest.raises(offchain.CommandResponseError) as err:
-            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+            OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
 
         assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.sender.address")
     finally:
@@ -463,7 +465,7 @@ def test_payment_command_action_can_only_be_written_once(
         payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        initial_cmd = stub_wallet_app.send_initial_payment_command(txn)
+        initial_cmd = OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
         wait_for_event(sender_account, "updated_payment_command")
@@ -485,7 +487,7 @@ def test_payment_command_action_can_only_be_written_once(
         new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
         with pytest.raises(offchain.CommandResponseError) as err:
-            stub_wallet_app.send_offchain_command_without_retries(new_cmd)
+            OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
 
         assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.action")
     finally:

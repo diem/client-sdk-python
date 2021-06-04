@@ -812,3 +812,17 @@ class AccountStateProof(google___protobuf___message___Message):
     ) -> None: ...
 
 type___AccountStateProof = AccountStateProof
+
+class AccumulatorConsistencyProof(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    ledger_consistency_proof: typing___Text = ...
+    def __init__(
+        self,
+        *,
+        ledger_consistency_proof: typing___Optional[typing___Text] = None,
+    ) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions___Literal["ledger_consistency_proof", b"ledger_consistency_proof"]
+    ) -> None: ...
+
+type___AccumulatorConsistencyProof = AccumulatorConsistencyProof

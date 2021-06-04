@@ -202,59 +202,34 @@ def test_wait_timeout_for_target_ready(runner: CliRunner) -> None:
     assert duration < 2
 
 
-# def test_cli_init_with_diem_id_domain(runner: CliRunner) -> None:
-#     app_config_file = "app.json"
-#     stub_config_file = "stub.json"
-#     with runner.isolated_filesystem():
-#         LocalAccount().write_to_file(app_config_file)
-#         LocalAccount().write_to_file(stub_config_file)
-#
-#         conf = start_target_server(runner, ["-i", app_config_file, "--diem-id-domain", "targetdomain"])
-#         result = start_test(
-#             runner,
-#             conf,
-#             [
-#                 "-i",
-#                 stub_config_file,
-#                 "-k",
-#                 "test_create_a_blank_account",
-#                 "--stub-diem-id-domain",
-#                 "stubdomain",
-#             ],
-#         )
-#
-#         assert result.exit_code == 0, result.output
+def test_cli_init_with_diem_id_domain(runner: CliRunner) -> None:
+    app_config_file = "app.json"
+    stub_config_file = "stub.json"
+    with runner.isolated_filesystem():
+        target_account = LocalAccount()
+        stub_account = LocalAccount()
+        target_account.write_to_file(app_config_file)
+        stub_account.write_to_file(stub_config_file)
 
+        conf = start_target_server(runner, ["-i", app_config_file, "--diem-id-domain", "targetdomain"])
+        result = start_test(
+            runner,
+            conf,
+            [
+                "-i",
+                stub_config_file,
+                "-k",
+                "test_create_a_blank_account",
+                "--stub-diem-id-domain",
+                "stubdomain",
+            ],
+        )
 
-# def test_vasp_has_domain(stub_client: RestClient, target_client: RestClient, hrp: str) -> None:
-#     """
-#     Test Plan:
-#
-#     1. Generate a valid account identifier from receiver account as payee.
-#     2. Send a payment to the account identifier.
-#     3. Wait for the transaction executed successfully.
-#     4. Assert receiver account received the fund.
-#
-#     """
-#
-#     sender_account = stub_client.create_account()
-#     receiver_account = target_client.create_account()
-#     account = target_client.create_account()
-#     account_identifier = account.generate_account_identifier()
-#     account_address, _ = identifier.decode_account(account_identifier, hrp)
-#     assert account_address
-#
-#     client = testnet.create_client()
-#     account = client.get_account(account_address)
+        client = testnet.create_client()
+        assert client.get_diem_id_domain_map().get("targetdomain") == target_account.account_address.to_hex()
+        assert client.get_diem_id_domain_map().get("stubdomain") == stub_account.account_address.to_hex()
 
-# try:
-#     payee = receiver_account.generate_account_identifier()
-#     pay = sender_account.send_payment(currency=currency, amount=amount, payee=payee)
-#     wait_for_payment_transaction_complete(sender_account, pay.id)
-#     wait_for_balance(receiver_account, currency, amount)
-# finally:
-#     receiver_account.log_events()
-#     sender_account.log_events()
+        assert result.exit_code == 0, result.output
 
 
 def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -> Result:

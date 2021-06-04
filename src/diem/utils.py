@@ -207,3 +207,7 @@ def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> N
             if time.perf_counter() - start_time >= timeout:
                 raise TimeoutError("waited %s for %s:%s accept connection." % (timeout, host, port)) from e
             time.sleep(0.01)
+
+
+def get_treasury_compliance_address() -> diem_types.AccountAddress:
+    return account_address(TREASURY_ADDRESS)

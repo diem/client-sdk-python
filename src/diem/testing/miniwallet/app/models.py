@@ -131,7 +131,7 @@ class PaymentCommand(Base):
         )
 
 
-@dataclass
-class DiemId(Base):
-    domain: str
-    account_address: str
+# @dataclass
+# class DiemId(Base):
+#     domain: str
+#     account_address: str

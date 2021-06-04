@@ -413,6 +413,28 @@ class Client:
         params = [address, version, ledger_version]
         return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof()))
 
+    def get_diem_id_domain_map(self) -> typing.Dict[str, str]:
+        domain_map = {}
+        event_index = 0
+        batch_size = 100
+        tc_account = self.get_account(utils.get_treasury_compliance_address())
+        event_stream_key = tc_account.role.diem_id_domain_events_key
+        while True:
+            events = self.get_events(event_stream_key, event_index, batch_size)
+            for event in events:
+                if event.data.removed:
+                    del domain_map[event.data.domain]
+                else:
+                    domain_map[event.data.domain] = event.data.address
+            if events.count() < batch_size:
+                break
+            event_index += batch_size
+        return domain_map
+
+    def get_vasp_address_with_domain(self, domain: str) -> typing.Optional[str]:
+        domain_map = self.get_diem_id_domain_map()
+        return domain_map.get(domain)
+
     def submit(
         self,
         txn: typing.Union[diem_types.SignedTransaction, str],
@@ -506,7 +528,6 @@ class Client:
         This means the executed transaction is from another process (which submitted transaction
         with same account address and sequence).
         """
-
         max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
         while time.time() < max_wait:
             txn = self.get_account_transaction(address, seq, True)

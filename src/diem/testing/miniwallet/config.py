@@ -56,12 +56,28 @@ class AppConfig:
     def setup_account(self, client: jsonrpc.Client) -> None:
         self.logger.info("faucet: mint %s", self.account.account_address.to_hex())
         faucet = testnet.Faucet(client)
-        faucet.mint(
-            self.account.auth_key.hex(),
-            self.initial_amount,
-            self.initial_currency,
-            diem_id_domain=self.diem_id_domain,
-        )
+
+        if client.get_account(self.account.account_address) is not None:
+            if self.diem_id_domain in client.get_account(self.account.account_address).role.diem_id_domains:
+                faucet.mint(
+                    self.account.auth_key.hex(),
+                    self.initial_amount,
+                    self.initial_currency,
+                )
+            else:
+                faucet.mint(
+                    self.account.auth_key.hex(),
+                    self.initial_amount,
+                    self.initial_currency,
+                    diem_id_domain=self.diem_id_domain,
+                )
+        else:
+            faucet.mint(
+                self.account.auth_key.hex(),
+                self.initial_amount,
+                self.initial_currency,
+                diem_id_domain=self.diem_id_domain,
+            )
 
         self.logger.info("rotate dual attestation info for %s", self.account.account_address.to_hex())
         self.logger.info("set base url to: %s", self.server_url)

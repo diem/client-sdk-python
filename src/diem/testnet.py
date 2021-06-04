@@ -98,6 +98,13 @@ class Faucet:
         diem_id_domain: typing.Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
+        # print("===========mint here", diem_id_domain, is_remove_domain)
+        # if self._client.get_vasp_address_with_domain(diem_id_domain) is not None:
+        #     print(
+        #         "domain already added============================",
+        #         self._client.get_vasp_address_with_domain(diem_id_domain),
+        #     )
+        #     diem_id_domain = None
         self._retry.execute(
             lambda: self._mint_without_retry(
                 authkey, amount, currency_code, dd_account, diem_id_domain, is_remove_domain

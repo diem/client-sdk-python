@@ -26,6 +26,8 @@ class EventPuller:
         for event in self.pull_events():
             if event.data.type == jsonrpc.EVENT_DATA_RECEIVED_PAYMENT:
                 self.save_payment_txn(event)
+            # elif event.data.type == jsonrpc.EVENT_DATA_DIEM_ID_DOMAIN:
+            #     self.update_diem_id_domains(event)
 
     def head(self) -> None:
         state = None
@@ -123,3 +125,22 @@ class EventPuller:
             type=Transaction.Type.received_payment,
             **kwargs,
         )
+
+    # def update_diem_id_domains(self, event: jsonrpc.Event) -> None:
+    #     self.logger.info("processing Event:\n%s", event)
+    #     domain = event.data.domain
+    #     removed = event.data.removed
+    #     address = event.data.address
+    #     if removed:
+    #         try:
+    #             diem_id_domain = self.store.find(DiemId, domain=domain)
+    #             if diem_id_domain.account_address == address:
+    #                 self.store.remove(diem_id_domain)
+    #         except NotFoundError:
+    #             self.logger.exception("Diem ID domain not found, could not remove domain from storage")
+    #     else:
+    #         try:
+    #             diem_id_domain = self.store.find(DiemId, domain=domain)
+    #             self.store.update(diem_id_domain, account_address=domain)
+    #         except NotFoundError:
+    #             self.store.create(DiemId, domain=domain, account_address=address)

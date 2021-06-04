@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Type, Any, Callable, TypeVar, Generator
-from .models import Base, Account, Event
+from .models import Base, Account, Event, DiemId
 from .... import utils
 import json, time, threading
 
@@ -61,10 +61,18 @@ class InMemoryStore:
             self._update(obj)
             self._record_event(obj, "updated", data)
 
+    def remove(self, obj: T, before_remove: Callable[[T], None] = lambda _: _, **data: Any) -> None:
+        with self.resources_lock:
+            before_remove(obj)
+            self._remove(obj)
+            self._record_event(obj, "removed", data)
+
     def _record_event(self, obj: T, action: str, data: Dict[str, Any]) -> None:
         if not isinstance(obj, Event):
             type = "%s_%s" % (action, utils.to_snake(obj))
-            account_id = obj.id if isinstance(obj, Account) else obj.account_id  # pyre-ignore
+            account_id = (
+                obj.id if isinstance(obj, Account) or isinstance(obj, DiemId) else obj.account_id
+            )  # pyre-ignore
             data["id"] = obj.id
             self._insert(Event, account_id=account_id, type=type, data=json.dumps(data), timestamp=_ts())
 
@@ -80,6 +88,13 @@ class InMemoryStore:
             res["id"] = str(self.next_id())
         self.resources.setdefault(typ, []).append(asdict(typ(**res)))
         return res
+
+    def _remove(self, obj: T) -> None:
+        records = self.resources.get(type(obj), [])
+        index = next(iter([i for i, res in enumerate(records) if res["id"] == obj.id]), None)
+        if index is None:
+            raise NotFoundError("could not find resource by id: %s" % obj.id)
+        del records[index]
 
     def _select(self, typ: Type[T], reverse: bool = False, **conds: Any) -> Generator[T, None, None]:
         items = reversed(self.resources.get(typ, [])) if reverse else self.resources.get(typ, [])

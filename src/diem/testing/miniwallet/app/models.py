@@ -134,4 +134,4 @@ class PaymentCommand(Base):
 @dataclass
 class DiemId(Base):
     domain: str
-    account_onchain_address: str
+    account_address: str

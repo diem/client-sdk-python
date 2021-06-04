@@ -96,7 +96,7 @@ class Faucet:
         currency_code: str,
         dd_account: bool = False,
         diem_id_domain: typing.Optional[str] = None,
-        is_remove_domain: typing.Optional[bool] = False,
+        is_remove_domain: bool = False,
     ) -> None:
         self._retry.execute(
             lambda: self._mint_without_retry(
@@ -111,7 +111,7 @@ class Faucet:
         currency_code: str,
         dd_account: bool = False,
         diem_id_domain: typing.Optional[str] = None,
-        is_remove_domain: typing.Optional[bool] = False,
+        is_remove_domain: bool = False,
     ) -> None:
         response = self._session.post(
             self._url,

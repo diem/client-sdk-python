@@ -47,7 +47,7 @@ def main() -> None:
     "--diem-id-domain",
     "-d",
     default=None,
-    help="Domain ID for the wallet",
+    help="Diem ID domain for the wallet parent VASP account",
 )
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
@@ -139,7 +139,7 @@ def start_server(
     "-d",
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ID_DOMAIN),
-    help="Domain ID for the wallet",
+    help="Diem ID domain for the wallet parent VASP accountstub_diem_id_domain",
 )
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option(
@@ -193,7 +193,7 @@ def test(
     stub_bind_host: Optional[str],
     stub_bind_port: Optional[int],
     stub_diem_account_base_url: Optional[str],
-    stub_diem_id_domain: str,
+    stub_diem_id_domain: Optional[str],
     jsonrpc: str,
     match_keywords: str,
     faucet: str,

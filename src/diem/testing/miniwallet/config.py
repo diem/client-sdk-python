@@ -61,7 +61,6 @@ class AppConfig:
             self.initial_amount,
             self.initial_currency,
             diem_id_domain=self.diem_id_domain,
-            is_remove_domain=False,
         )
 
         self.logger.info("rotate dual attestation info for %s", self.account.account_address.to_hex())

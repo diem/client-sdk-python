@@ -417,7 +417,7 @@ class Client:
         domain_map = {}
         event_index = 0
         batch_size = 100
-        tc_account = self.get_account(utils.get_treasury_compliance_address())
+        tc_account = self.must_get_account(utils.get_treasury_compliance_address())
         event_stream_key = tc_account.role.diem_id_domain_events_key
         while True:
             events = self.get_events(event_stream_key, event_index, batch_size)
@@ -426,7 +426,7 @@ class Client:
                     del domain_map[event.data.domain]
                 else:
                     domain_map[event.data.domain] = event.data.address
-            if events.count() < batch_size:
+            if len(events) < batch_size:
                 break
             event_index += batch_size
         return domain_map

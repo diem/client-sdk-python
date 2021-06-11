@@ -56,9 +56,9 @@ class AppConfig:
     def setup_account(self, client: jsonrpc.Client) -> None:
         self.logger.info("faucet: mint %s", self.account.account_address.to_hex())
         faucet = testnet.Faucet(client)
-
-        if client.get_account(self.account.account_address) is not None:
-            if self.diem_id_domain in client.get_account(self.account.account_address).role.diem_id_domains:
+        account = client.get_account(self.account.account_address)
+        if account is not None:
+            if self.diem_id_domain in account.role.diem_id_domains:
                 faucet.mint(
                     self.account.auth_key.hex(),
                     self.initial_amount,

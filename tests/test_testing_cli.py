@@ -224,11 +224,6 @@ def test_cli_init_with_diem_id_domain(runner: CliRunner) -> None:
                 "stubdomain",
             ],
         )
-
-        client = testnet.create_client()
-        assert client.get_diem_id_domain_map().get("targetdomain") == target_account.account_address.to_hex()
-        assert client.get_diem_id_domain_map().get("stubdomain") == stub_account.account_address.to_hex()
-
         assert result.exit_code == 0, result.output
 
 

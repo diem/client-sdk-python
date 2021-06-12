@@ -132,4 +132,11 @@ class Faucet:
 
         for i in range(length):
             txn = de.deserialize_any(diem_types.SignedTransaction)
-            self._client.wait_for_transaction(txn)
+            try:
+                self._client.wait_for_transaction(txn)
+            except jsonrpc.TransactionExecutionFailed as e:
+                if txn.vm_status.explanation.reason == "EDOMAIN_ALREADY_EXISTS":
+                    continue
+                raise e
+            except Exception as e:
+                raise e

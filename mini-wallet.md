@@ -186,7 +186,7 @@ Use the MiniWallet Test Suite to automate testing and checking if your wallet ap
 
 `diem.testing.suites` package includes a `conftest.py`, which will be loaded by pytest for setting up test fixtures.
 
-A package scope fixture in the `conftest.py` starts a MiniWallet application named `stubwallet` as a counterparty service for testing payment with the target server specified by the `--target` option here.
+A package scope fixture in the `conftest.py` starts a MiniWallet application named `stub-wallet` as a counterparty service for testing payment with the target server specified by the `--target` option here.
 
 ### Work with a local testnet
 

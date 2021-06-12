@@ -57,27 +57,8 @@ class AppConfig:
         self.logger.info("faucet: mint %s", self.account.account_address.to_hex())
         faucet = testnet.Faucet(client)
         account = client.get_account(self.account.account_address)
-        if account is not None:
-            if self.diem_id_domain in account.role.diem_id_domains:
-                faucet.mint(
-                    self.account.auth_key.hex(),
-                    self.initial_amount,
-                    self.initial_currency,
-                )
-            else:
-                faucet.mint(
-                    self.account.auth_key.hex(),
-                    self.initial_amount,
-                    self.initial_currency,
-                    diem_id_domain=self.diem_id_domain,
-                )
-        else:
-            faucet.mint(
-                self.account.auth_key.hex(),
-                self.initial_amount,
-                self.initial_currency,
-                diem_id_domain=self.diem_id_domain,
-            )
+        domain = None if account and self.diem_id_domain in account.role.diem_id_domains else self.diem_id_domain
+        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency, diem_id_domain=domain)
 
         self.logger.info("rotate dual attestation info for %s", self.account.account_address.to_hex())
         self.logger.info("set base url to: %s", self.server_url)

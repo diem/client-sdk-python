@@ -1,6 +1,6 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
-
+import secrets
 
 from diem import jsonrpc, testnet
 from diem.testing.miniwallet import RestClient, AppConfig
@@ -9,12 +9,12 @@ import pytest
 
 @pytest.fixture(scope="package")
 def target_client(diem_client: jsonrpc.Client) -> RestClient:
-    return start_app(diem_client, "targetwallet").create_client()
+    return start_app(diem_client, "target-wallet").create_client()
 
 
 @pytest.fixture(scope="package")
 def stub_client(diem_client: jsonrpc.Client) -> RestClient:
-    return start_app(diem_client, "stubwallet").create_client()
+    return start_app(diem_client, "stub-wallet").create_client()
 
 
 @pytest.fixture(scope="package")
@@ -38,7 +38,8 @@ def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
 
 
 def start_app(diem_client: jsonrpc.Client, app_name: str) -> AppConfig:
-    conf = AppConfig(name=app_name, diem_id_domain=app_name)
+    domain = "domain" + secrets.token_hex(8)
+    conf = AppConfig(name=app_name, diem_id_domain=domain)
     print("launch %s with config %s" % (app_name, conf))
     conf.start(diem_client)
     return conf

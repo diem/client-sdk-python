@@ -413,11 +413,10 @@ class Client:
         params = [address, version, ledger_version]
         return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof()))
 
-    def get_diem_id_domain_map(self) -> typing.Dict[str, str]:
+    def get_diem_id_domain_map(self, batch_size: int = 100) -> typing.Dict[str, str]:
         domain_map = {}
         event_index = 0
-        batch_size = 100
-        tc_account = self.must_get_account(utils.get_treasury_compliance_address())
+        tc_account = self.must_get_account(utils.account_address(utils.TREASURY_ADDRESS))
         event_stream_key = tc_account.role.diem_id_domain_events_key
         while True:
             events = self.get_events(event_stream_key, event_index, batch_size)
@@ -430,10 +429,6 @@ class Client:
                 break
             event_index += batch_size
         return domain_map
-
-    def get_vasp_address_with_domain(self, domain: str) -> typing.Optional[str]:
-        domain_map = self.get_diem_id_domain_map()
-        return domain_map.get(domain)
 
     def submit(
         self,

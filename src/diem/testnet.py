@@ -138,5 +138,3 @@ class Faucet:
                 if txn.vm_status.explanation.reason == "EDOMAIN_ALREADY_EXISTS":
                     continue
                 raise e
-            except Exception as e:
-                raise e

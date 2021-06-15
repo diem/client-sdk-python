@@ -202,31 +202,6 @@ def test_wait_timeout_for_target_ready(runner: CliRunner) -> None:
     assert duration < 2
 
 
-def test_cli_init_with_diem_id_domain(runner: CliRunner) -> None:
-    app_config_file = "app.json"
-    stub_config_file = "stub.json"
-    with runner.isolated_filesystem():
-        target_account = LocalAccount()
-        stub_account = LocalAccount()
-        target_account.write_to_file(app_config_file)
-        stub_account.write_to_file(stub_config_file)
-
-        conf = start_target_server(runner, ["-i", app_config_file, "--diem-id-domain", "targetdomain"])
-        result = start_test(
-            runner,
-            conf,
-            [
-                "-i",
-                stub_config_file,
-                "-k",
-                "test_create_a_blank_account",
-                "--stub-diem-id-domain",
-                "stubdomain",
-            ],
-        )
-        assert result.exit_code == 0, result.output
-
-
 def start_test(runner: CliRunner, conf: ServerConfig, options: List[str] = []) -> Result:
     stub_conf = ServerConfig()
     return runner.invoke(

@@ -43,12 +43,6 @@ def main() -> None:
     default=None,
     help="The address that will be used for offchain callbacks. Defaults to http://localhost:{port}",
 )
-@click.option(
-    "--diem-id-domain",
-    "-d",
-    default=None,
-    help="Diem ID domain for the wallet parent VASP account",
-)
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
 @click.option("--disable-events-api", "-o", default=False, help="Disable account events API.", type=bool, is_flag=True)
@@ -80,7 +74,6 @@ def start_server(
     import_diem_account_config_file: Optional[TextIO],
     logfile: Optional[str],
     hrp: str,
-    diem_id_domain: Optional[str],
 ) -> None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
     configure_testnet(jsonrpc, faucet)
@@ -89,7 +82,6 @@ def start_server(
         name=name,
         server_conf=ServerConfig(host=host, port=port, base_url=diem_account_base_url or ""),
         disable_events_api=disable_events_api,
-        diem_id_domain=diem_id_domain,
     )
     if import_diem_account_config_file:
         conf.account_config = json.load(import_diem_account_config_file)
@@ -133,13 +125,6 @@ def start_server(
     default=None,
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL),
     help="The address that will be used for offchain callbacks. Defaults to http://localhost:{port}",
-)
-@click.option(
-    "--stub-diem-id-domain",
-    "-d",
-    default=None,
-    callback=set_env(envs.DMW_STUB_DIEM_ID_DOMAIN),
-    help="Diem ID domain for the wallet parent VASP accountstub_diem_id_domain",
 )
 @click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
 @click.option(
@@ -193,7 +178,6 @@ def test(
     stub_bind_host: Optional[str],
     stub_bind_port: Optional[int],
     stub_diem_account_base_url: Optional[str],
-    stub_diem_id_domain: Optional[str],
     jsonrpc: str,
     match_keywords: str,
     faucet: str,

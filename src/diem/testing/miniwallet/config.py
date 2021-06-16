@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass, field, asdict
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from .client import RestClient
 from .app import App, falcon_api
 from .. import LocalAccount
@@ -31,6 +31,7 @@ class AppConfig:
     initial_amount: int = field(default=3_000_000_000_000)
     initial_currency: str = field(default=testnet.TEST_CURRENCY_CODE)
     child_account_size: int = field(default=2)
+    diem_id_domain: Optional[str] = field(default=None)
 
     @property
     def logger(self) -> logging.Logger:
@@ -55,7 +56,9 @@ class AppConfig:
     def setup_account(self, client: jsonrpc.Client) -> None:
         self.logger.info("faucet: mint %s", self.account.account_address.to_hex())
         faucet = testnet.Faucet(client)
-        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency)
+        account = client.get_account(self.account.account_address)
+        domain = None if account and self.diem_id_domain in account.role.diem_id_domains else self.diem_id_domain
+        faucet.mint(self.account.auth_key.hex(), self.initial_amount, self.initial_currency, diem_id_domain=domain)
 
         self.logger.info("rotate dual attestation info for %s", self.account.account_address.to_hex())
         self.logger.info("set base url to: %s", self.server_url)

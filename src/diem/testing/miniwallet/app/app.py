@@ -115,6 +115,8 @@ class App:
                 return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)  # pyre-ignore
             if txn.subaddress_hex:
                 return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
+            if txn.reference_id is not None:
+                return self.diem_account.payment_metadata(str(txn.reference_id))
         elif txn.reference_id:
             cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
             return self.diem_account.travel_metadata(cmd.to_offchain_command())

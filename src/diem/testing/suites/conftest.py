@@ -16,12 +16,13 @@ from .envs import (
 from typing import Optional, Tuple, Dict, Any, Generator, Callable
 from dataclasses import asdict
 import pytest, json, uuid, requests, time, warnings
+import secrets
 
 
 @pytest.fixture(scope="package")
 def target_client(diem_client: jsonrpc.Client) -> RestClient:
     if is_self_check():
-        conf = AppConfig(name="target-wallet")
+        conf = AppConfig(name="target-wallet", diem_id_domain=generate_diem_id_domain("target"))
         print("self-checking, launch target app with config %s" % conf)
         conf.start(diem_client)
         return conf.create_client()
@@ -48,7 +49,8 @@ def stub_wallet_app(start_stub_wallet: Tuple[AppConfig, App]) -> App:
 
 @pytest.fixture(scope="package")
 def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
-    conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()))
+    domain = generate_diem_id_domain("stub")
+    conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()), diem_id_domain=domain)
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print("loads stub account config: %s" % account_conf)
@@ -251,3 +253,7 @@ def wait_for_payment_transaction_complete(account: AccountResource, payment_id: 
     # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
     # Payment id is same with Transaction id.
     wait_for_event(account, "updated_transaction", status=Transaction.Status.completed, id=payment_id)
+
+
+def generate_diem_id_domain(prefix: str) -> str:
+    return prefix + secrets.token_hex(8)

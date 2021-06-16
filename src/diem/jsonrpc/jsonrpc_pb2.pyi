@@ -278,6 +278,9 @@ class EventData(google___protobuf___message___Message):
     role_id: builtin___int = ...
     committed_timestamp_secs: builtin___int = ...
     bytes: typing___Text = ...
+    removed: builtin___bool = ...
+    domain: typing___Text = ...
+    address: typing___Text = ...
     @property
     def amount(self) -> type___Amount: ...
     def __init__(
@@ -303,11 +306,16 @@ class EventData(google___protobuf___message___Message):
         role_id: typing___Optional[builtin___int] = None,
         committed_timestamp_secs: typing___Optional[builtin___int] = None,
         bytes: typing___Optional[typing___Text] = None,
+        removed: typing___Optional[builtin___bool] = None,
+        domain: typing___Optional[typing___Text] = None,
+        address: typing___Optional[typing___Text] = None,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions___Literal["amount", b"amount"]) -> builtin___bool: ...
     def ClearField(
         self,
         field_name: typing_extensions___Literal[
+            "address",
+            b"address",
             "amount",
             b"amount",
             "bytes",
@@ -320,6 +328,8 @@ class EventData(google___protobuf___message___Message):
             b"currency_code",
             "destination_address",
             b"destination_address",
+            "domain",
+            b"domain",
             "epoch",
             b"epoch",
             "metadata",
@@ -338,6 +348,8 @@ class EventData(google___protobuf___message___Message):
             b"proposer",
             "receiver",
             b"receiver",
+            "removed",
+            b"removed",
             "role_id",
             b"role_id",
             "round",
@@ -800,3 +812,17 @@ class AccountStateProof(google___protobuf___message___Message):
     ) -> None: ...
 
 type___AccountStateProof = AccountStateProof
+
+class AccumulatorConsistencyProof(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    ledger_consistency_proof: typing___Text = ...
+    def __init__(
+        self,
+        *,
+        ledger_consistency_proof: typing___Optional[typing___Text] = None,
+    ) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions___Literal["ledger_consistency_proof", b"ledger_consistency_proof"]
+    ) -> None: ...
+
+type___AccumulatorConsistencyProof = AccumulatorConsistencyProof

@@ -403,6 +403,32 @@ def test_init_faucet_with_url():
         faucet.gen_account()
 
 
+def test_get_diem_id_domain_map():
+    client = testnet.create_client()
+    faucet = testnet.Faucet(client)
+    parent_vasp1 = faucet.gen_account()
+    parent_vasp2 = faucet.gen_account()
+    domain1 = "domain1"
+    domain2 = "domain2"
+
+    faucet.mint(
+        parent_vasp1.auth_key.hex(), 1, testnet.TEST_CURRENCY_CODE, diem_id_domain=domain1, is_remove_domain=False
+    )
+    faucet.mint(
+        parent_vasp2.auth_key.hex(), 1, testnet.TEST_CURRENCY_CODE, diem_id_domain=domain2, is_remove_domain=False
+    )
+
+    domain_map = client.get_diem_id_domain_map()
+    assert domain_map.get(domain1) == parent_vasp1.account_address.to_hex()
+    assert domain_map.get(domain2) == parent_vasp2.account_address.to_hex()
+
+    faucet.mint(
+        parent_vasp1.auth_key.hex(), 1, testnet.TEST_CURRENCY_CODE, diem_id_domain=domain1, is_remove_domain=True
+    )
+    domain_map = client.get_diem_id_domain_map()
+    assert domain_map.get(domain1) is None
+
+
 def create_child_vasp_txn(
     parent_vasp: LocalAccount, child_vasp: LocalAccount, seq: int = 0
 ) -> diem_types.RawTransaction:

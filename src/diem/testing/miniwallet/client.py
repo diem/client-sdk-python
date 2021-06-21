@@ -203,3 +203,12 @@ class AccountResource:
 
     def _resources(self, resource: str) -> str:
         return "/accounts/%s/%ss" % (self.id, resource)
+
+    def diem_id(self) -> str:
+        """returns the full DiemID of a user, i.e. alice@avasp
+
+        Calls `GET /accounts/{account_id}/diem_id` to get an account's DiemID.
+        """
+
+        ret = self.client.get(self._resources("diem_id"))
+        return ret["diem_id"]

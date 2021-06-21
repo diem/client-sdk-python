@@ -13,7 +13,7 @@ from .envs import (
     dmw_stub_diem_account_config,
     dmw_stub_diem_account_hrp,
 )
-from typing import Optional, Tuple, Dict, Any, Generator, Callable
+from typing import Optional, Tuple, Dict, Any, Generator, Callable, List
 from dataclasses import asdict
 import pytest, json, uuid, requests, time, warnings
 import secrets
@@ -113,6 +113,18 @@ def log_stub_wallet_pending_income_account(
 ) -> Generator[None, None, None]:
     yield
     stub_wallet_pending_income_account.log_events()
+
+
+@pytest.fixture
+def stub_account_diem_id_domains(stub_config: AppConfig, diem_client: jsonrpc.Client) -> List[str]:
+    account = diem_client.get_account(stub_config.account.account_address)
+    return [] if account is None else list(account.role.diem_id_domains)
+
+
+@pytest.fixture
+def target_account_diem_id_domains(target_client: RestClient, diem_client: jsonrpc.Client, hrp: str) -> List[str]:
+    account_address, _ = identifier.decode_account(target_client.create_account().generate_account_identifier(), hrp)
+    return list(diem_client.get_parent_vasp_account(account_address).role.diem_id_domains)
 
 
 def send_request_json(

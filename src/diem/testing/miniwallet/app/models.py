@@ -4,7 +4,7 @@
 from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from .... import offchain, diem_types
+from .... import offchain, diem_types, identifier
 import json
 
 
@@ -18,6 +18,7 @@ class Account(Base):
     kyc_data: Optional[offchain.KycDataObject] = field(default=None)
     reject_additional_kyc_data_request: Optional[bool] = field(default=False)
     disable_background_tasks: Optional[bool] = field(default=False)
+    diem_id: Optional[str] = field(default=None)
 
     def kyc_data_object(self) -> offchain.KycDataObject:
         return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore
@@ -98,6 +99,7 @@ class Transaction(Base):
     diem_transaction_version: Optional[int] = field(default=None)
     refund_diem_txn_version: Optional[int] = field(default=None)
     refund_reason: Optional[RefundReason] = field(default=None)
+    payee_onchain_address: Optional[str] = field(default=None)
 
     def subaddress(self) -> bytes:
         return bytes.fromhex(str(self.subaddress_hex))
@@ -107,6 +109,9 @@ class Transaction(Base):
 
     def __str__(self) -> str:
         return "Transaction %s" % json.dumps(asdict(self), indent=2)
+
+    def get_payee_onchain_identifier(self, hrp: str) -> str:
+        return identifier.encode_account(str(self.payee_onchain_address), None, hrp)  # testnet HRP
 
 
 @dataclass
@@ -129,3 +134,9 @@ class PaymentCommand(Base):
             inbound=self.is_inbound,
             cid=self.cid,
         )
+
+
+@dataclass
+class ReferenceID(Base):
+    account_id: str
+    reference_id: str

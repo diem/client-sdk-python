@@ -156,6 +156,7 @@ def new_payment_object(
     currency: str,
     original_payment_reference_id: typing.Optional[str] = None,
     description: typing.Optional[str] = None,
+    reference_id: typing.Optional[str] = None,
 ) -> PaymentObject:
     """Initialize a payment request command
 
@@ -163,7 +164,7 @@ def new_payment_object(
     """
 
     return PaymentObject(
-        reference_id=str(uuid.uuid4()),
+        reference_id=reference_id or str(uuid.uuid4()),
         sender=PaymentActorObject(
             address=sender_account_id,
             kyc_data=sender_kyc_data,
@@ -242,11 +243,13 @@ def new_payment_request(
 def reply_request(
     cid: typing.Optional[str],
     err: typing.Optional[OffChainErrorObject] = None,
+    result: typing.Optional[typing.Dict[str, typing.Any]] = None,
 ) -> CommandResponseObject:
     return CommandResponseObject(
         status=CommandResponseStatus.failure if err else CommandResponseStatus.success,
         error=err,
         cid=cid,
+        result=result,
     )
 
 

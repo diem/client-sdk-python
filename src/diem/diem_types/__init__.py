@@ -379,7 +379,9 @@ class Metadata:
             raise st.DeserializationError("Some input bytes were not read")
         return v
 
-    def decode_structure(self) -> typing.Union[None, "GeneralMetadataV0", "TravelRuleMetadataV0", "RefundMetadataV0"]:
+    def decode_structure(
+        self,
+    ) -> typing.Union[None, "GeneralMetadataV0", "TravelRuleMetadataV0", "RefundMetadataV0", "PaymentMetadataV0"]:
         """decode metadata structure
 
         Returns None for a non-structure type or undefined
@@ -394,6 +396,8 @@ class Metadata:
             return typing.cast(RefundMetadataV0, self.value.value)
         elif type_index == 5:
             return typing.cast(CoinTradeMetadataV0, self.value.value)
+        elif type_index == 6:
+            return typing.cast(PaymentMetadataV0, self.value.value)
         return None
 
 
@@ -566,6 +570,10 @@ class PaymentMetadataV0:
         if buffer:
             raise st.DeserializationError("Some input bytes were not read")
         return v
+
+    def to_bytes(self) -> bytes:
+        """Convert reference_id to bytes."""
+        return bytes(typing.cast(typing.Iterable[int], self.reference_id))
 
 
 @dataclass(frozen=True)

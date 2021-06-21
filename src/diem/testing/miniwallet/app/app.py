@@ -2,16 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import List, Tuple, Dict, Optional, Any, Callable
+import uuid
 from json.decoder import JSONDecodeError
 from .store import InMemoryStore
 from .pending_account import PENDING_INBOUND_ACCOUNT_ID
 from .diem_account import DiemAccount
-from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentCommand
+from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentCommand, ReferenceID
 from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
-from .... import jsonrpc, offchain, utils
-from ....offchain import KycDataObject
+from .... import jsonrpc, offchain, utils, identifier
+from ....offchain import KycDataObject, ErrorCode
 import threading, logging, numpy, time
 
 
@@ -46,6 +47,7 @@ class App:
             # it is used for testing offchain api.
             disable_background_tasks=data.get_nullable("disable_outbound_request", bool),
         )
+        self.store.update(account, diem_id=account.id)
         balances = data.get_nullable("balances", dict)
         if balances:
             for c, a in balances.items():
@@ -59,8 +61,12 @@ class App:
 
     def create_account_payment(self, account_id: str, data: JsonInput) -> Dict[str, Any]:
         self.store.find(Account, id=account_id)
-        payee = data.get("payee", str, self._validate_account_identifier)
-        subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
+        subaddress_hex = None
+        payee = data.get("payee", str)
+        if not identifier.diem_id.is_diem_id(payee):
+            self._validate_account_identifier("payee", payee)
+            subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
+
         txn = self._create_transaction(
             account_id,
             Transaction.Status.pending,
@@ -79,6 +85,11 @@ class App:
     def get_account_balances(self, account_id: str) -> Dict[str, int]:
         self.store.find(Account, id=account_id)
         return self._balances(account_id)
+
+    def get_diem_id(self, account_id: str) -> str:
+        return identifier.diem_id.get_diem_id(
+            str(self.store.find(Account, id=account_id).diem_id), self.diem_account.diem_id_domains()[0]
+        )
 
     def get_account_events(self, account_id: str) -> List[Event]:
         return self.store.find_all(Event, account_id=account_id)
@@ -129,7 +140,13 @@ class App:
                 continue
             self.logger.info("processing %s", txn)
             try:
-                if self.offchain.is_my_account_id(str(txn.payee)):
+                if identifier.diem_id.is_diem_id(str(txn.payee)):
+                    vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
+                    if vasp_identifier in self.diem_account.diem_id_domains():
+                        self._send_internal_payment_txn(txn)
+                    else:
+                        self._send_external_payment_txn(txn)
+                elif self.offchain.is_my_account_id(str(txn.payee)):
                     self._send_internal_payment_txn(txn)
                 else:
                     self._send_external_payment_txn(txn)
@@ -142,6 +159,7 @@ class App:
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
 
     def _send_internal_payment_txn(self, txn: Transaction) -> None:
+        # TODO diem_id: handle DiemID case for internal
         _, payee_subaddress = self.diem_account.decode_account_identifier(str(txn.payee))
         subaddress = self.store.find(Subaddress, subaddress_hex=utils.hex(payee_subaddress))
         self.store.create(
@@ -172,6 +190,40 @@ class App:
             self._start_external_payment_txn(txn)
 
     def _start_external_payment_txn(self, txn: Transaction) -> None:
+        if identifier.diem_id.is_diem_id(str(txn.payee)):
+            reference_id = str(uuid.uuid4())
+            self.store.create(ReferenceID, account_id=txn.account_id, reference_id=reference_id)
+            sender_address, _ = self.diem_account.decode_account_identifier(self.diem_account.account_identifier())
+            try:
+                vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
+                domain_map = self.diem_client.get_diem_id_domain_map()
+                print("=====================DOMAIN MAP: ", domain_map)
+                print("=====================GET VASP IDENTIFIER: ", domain_map.get(vasp_identifier))
+                payee_onchain_address = domain_map.get(vasp_identifier)
+                if payee_onchain_address is None:
+                    raise ValueError(f"Diem ID domain {vasp_identifier} was not found")
+                self.store.update(txn, payee_onchain_address=payee_onchain_address)
+                self.store.update(txn, reference_id=reference_id)
+                sender_diem_id = identifier.diem_id.get_diem_id(
+                    str(self.store.find(Account, id=txn.account_id).diem_id), self.diem_account.diem_id_domains()[0]
+                )
+                self.offchain.ref_id_exchange_request(
+                    sender=sender_diem_id,
+                    sender_address=sender_address.to_hex(),
+                    receiver=str(txn.payee),
+                    reference_id=reference_id,
+                    counterparty_account_identifier=identifier.encode_account(
+                        payee_onchain_address, None, self.diem_account.hrp
+                    ),
+                    sign=self.diem_account.sign_by_compliance_key,
+                )
+            except offchain.Error as e:
+                if e.obj.code == ErrorCode.duplicate_reference_id:
+                    return
+                else:
+                    raise e
+            except Exception as e:
+                raise e
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self.txn_metadata(txn))

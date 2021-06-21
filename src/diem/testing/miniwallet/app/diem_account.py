@@ -42,6 +42,10 @@ class DiemAccount:
     def payment_metadata(self, reference_id: str) -> Tuple[bytes, bytes]:
         return (txnmetadata.payment_metadata(reference_id), b"")
 
+    def diem_id_domains(self) -> List[str]:
+        account = self._client.get_account(self._account.account_address)
+        return [] if account is None else account.role.diem_id_domains
+
     def submit_p2p(
         self,
         txn: Transaction,
@@ -50,8 +54,10 @@ class DiemAccount:
     ) -> str:
         from_account = self._get_payment_account(by_address)
         self._ensure_account_balance(from_account, txn)
-
-        to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
+        if identifier.diem_id.is_diem_id(str(txn.payee)):
+            to_account = utils.account_address(str(txn.payee_onchain_address))
+        else:
+            to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
         script = stdlib.encode_peer_to_peer_with_metadata_script(
             currency=utils.currency_code(txn.currency),
             amount=txn.amount,

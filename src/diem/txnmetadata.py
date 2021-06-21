@@ -11,7 +11,7 @@ See https://dip.diem.com/dip-4 for more details
 
 from dataclasses import dataclass
 import typing, warnings
-
+import uuid
 from . import diem_types, serde_types, bcs, jsonrpc, utils
 
 
@@ -53,7 +53,13 @@ def travel_rule(
 
 def decode_structure(
     bytes_or_str: typing.Union[bytes, str]
-) -> typing.Union[None, diem_types.GeneralMetadataV0, diem_types.TravelRuleMetadataV0, diem_types.RefundMetadataV0]:
+) -> typing.Union[
+    None,
+    diem_types.GeneralMetadataV0,
+    diem_types.TravelRuleMetadataV0,
+    diem_types.RefundMetadataV0,
+    diem_types.PaymentMetadataV0,
+]:
     """Decode given metadata bytes of string into structure types
 
     Returns None if:
@@ -216,7 +222,7 @@ def payment_metadata(
     metadata = diem_types.Metadata__PaymentMetadata(
         value=diem_types.PaymentMetadata__PaymentMetadataVersion0(
             value=diem_types.PaymentMetadataV0(  # pyre-ignore
-                reference_id=reference_id,
+                reference_id=uuid.UUID(reference_id).bytes,
             )
         )
     )

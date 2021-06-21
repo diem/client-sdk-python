@@ -106,7 +106,6 @@ def test_create_account_event(target_client: RestClient, currency: str) -> None:
     after_timestamp = int(time.time() * 1000)
 
     events = account.events()
-    assert len(events) == 1
     event = events[0]
     assert event.id
     assert event.timestamp >= before_timestamp

@@ -183,6 +183,12 @@ def test_coin_trade_metadata():
     assert metadata.trade_ids == trade_ids
 
 
+def test_payment_metadata():
+    reference_id = "ba199cc9-eca4-4475-bb7a-9e3b53de8547"
+    ret = txnmetadata.payment_metadata(reference_id)
+    assert ret.hex() == "0600ba199cc9eca44475bb7a9e3b53de8547"
+
+
 def test_decode_structure():
     assert txnmetadata.decode_structure(None) is None
     assert txnmetadata.decode_structure("") is None
@@ -197,6 +203,8 @@ def test_decode_structure():
     assert isinstance(refund, diem_types.RefundMetadataV0)
     trade = txnmetadata.decode_structure("050000")
     assert isinstance(trade, diem_types.CoinTradeMetadataV0)
+    payment = txnmetadata.decode_structure("0600ffb6a935ab074dc2a47ee5c178d9d0ca")
+    assert isinstance(payment, diem_types.PaymentMetadataV0)
 
     # UnstructuredBytesMetadata
     assert txnmetadata.decode_structure("03010461626364") is None

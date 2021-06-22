@@ -75,10 +75,6 @@ class Endpoints:
         return (falcon.HTTP_200, self.app.get_account_balances(account_id))
 
     @rest_handler
-    def on_get_diem_id(self, account_id: str, input: JsonInput) -> Tuple[str, str]:
-        return (falcon.HTTP_200, self.app.get_diem_id(account_id))
-
-    @rest_handler
     def on_get_events(self, account_id: str, input: JsonInput) -> Tuple[str, List[Dict[str, Any]]]:
         return (falcon.HTTP_200, [asdict(e) for e in self.app.get_account_events(account_id)])
 

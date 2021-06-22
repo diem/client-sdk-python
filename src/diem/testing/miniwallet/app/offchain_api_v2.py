@@ -125,19 +125,15 @@ class OffChainAPIv2:
                 f"unknown command_type: {request.command_type}",
                 field="command_type",
             )
-        # Check if reference ID is duplicate
-        print("================_handle_offchain_reference_i_d_command=====================")
-        print("request.command: ", request.command)
-        print("request: ", request)
         ref_id_command_object = from_dict(request.command, ReferenceIDCommandObject)
-        print("================_handle_offchain_reference_i_d_command after from dict=====================")
+
+        # Check if reference ID is duplicate
         try:
-            # txn = self.app.store.find(Transaction, reference_id=ref_id_command_object.reference_id)
             ref_id = self.app.store.find(ReferenceID, reference_id=ref_id_command_object.reference_id)
             msg = f"Reference ID {ref_id_command_object.reference_id} already exists for account {ref_id.account_id}"
             raise command_error(ErrorCode.duplicate_reference_id, msg)
         except NotFoundError:
-            print("================_handle_offchain_reference_i_d_command return result object=====================")
+            # Check if receiver has a diem ID in this wallet
             try:
                 account = self.app.store.find(
                     Account, diem_id=identifier.diem_id.get_user_identifier_from_diem_id(ref_id_command_object.receiver)
@@ -153,15 +149,7 @@ class OffChainAPIv2:
                 account_id=account.id,
                 reference_id=ref_id_command_object.reference_id,
             )
-            # self.app.store.create(
-            #     Transaction,
-            #     account_id=account.id,
-            #     currency="XUS",
-            #     amount=0,
-            #     status=Transaction.Status.pending,
-            #     type=Transaction.Type.received_payment,
-            #     reference_id=ref_id_command_object.reference_id,
-            # )
+
             return to_dict(
                 ReferenceIDCommandResultObject(
                     receiver_address=request_sender_address,

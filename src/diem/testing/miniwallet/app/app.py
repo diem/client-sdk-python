@@ -86,11 +86,6 @@ class App:
         self.store.find(Account, id=account_id)
         return self._balances(account_id)
 
-    def get_diem_id(self, account_id: str) -> str:
-        return identifier.diem_id.get_diem_id(
-            str(self.store.find(Account, id=account_id).diem_id), self.diem_account.diem_id_domains()[0]
-        )
-
     def get_account_events(self, account_id: str) -> List[Event]:
         return self.store.find_all(Event, account_id=account_id)
 
@@ -197,14 +192,12 @@ class App:
             try:
                 vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
                 domain_map = self.diem_client.get_diem_id_domain_map()
-                print("=====================DOMAIN MAP: ", domain_map)
-                print("=====================GET VASP IDENTIFIER: ", domain_map.get(vasp_identifier))
                 payee_onchain_address = domain_map.get(vasp_identifier)
                 if payee_onchain_address is None:
                     raise ValueError(f"Diem ID domain {vasp_identifier} was not found")
                 self.store.update(txn, payee_onchain_address=payee_onchain_address)
                 self.store.update(txn, reference_id=reference_id)
-                sender_diem_id = identifier.diem_id.get_diem_id(
+                sender_diem_id = identifier.diem_id.create_diem_id(
                     str(self.store.find(Account, id=txn.account_id).diem_id), self.diem_account.diem_id_domains()[0]
                 )
                 self.offchain.ref_id_exchange_request(
@@ -222,8 +215,6 @@ class App:
                     return
                 else:
                     raise e
-            except Exception as e:
-                raise e
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self.txn_metadata(txn))

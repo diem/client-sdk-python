@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-def get_diem_id(user_identifier: str, vasp_domain_identifier: str) -> str:
+def create_diem_id(user_identifier: str, vasp_domain_identifier: str) -> str:
     return user_identifier + "@" + vasp_domain_identifier
 
 

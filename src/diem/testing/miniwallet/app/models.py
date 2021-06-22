@@ -111,7 +111,7 @@ class Transaction(Base):
         return "Transaction %s" % json.dumps(asdict(self), indent=2)
 
     def get_payee_onchain_identifier(self, hrp: str) -> str:
-        return identifier.encode_account(str(self.payee_onchain_address), None, hrp)  # testnet HRP
+        return identifier.encode_account(str(self.payee_onchain_address), None, hrp)
 
 
 @dataclass

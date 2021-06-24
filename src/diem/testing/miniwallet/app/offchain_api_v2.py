@@ -129,32 +129,31 @@ class OffChainAPIv2:
 
         # Check if reference ID is duplicate
         try:
-            ref_id = self.app.store.find(ReferenceID, reference_id=ref_id_command_object.reference_id)
-            msg = f"Reference ID {ref_id_command_object.reference_id} already exists for account {ref_id.account_id}"
-            raise command_error(ErrorCode.duplicate_reference_id, msg)
-        except NotFoundError:
+            self.app.validate_unique_reference_id(ref_id_command_object.reference_id)
             # Check if receiver has a diem ID in this wallet
             try:
                 account = self.app.store.find(
                     Account, diem_id=identifier.diem_id.get_user_identifier_from_diem_id(ref_id_command_object.receiver)
                 )
             except NotFoundError:
-                raise protocol_error(
+                raise command_error(
                     ErrorCode.invalid_receiver,
-                    f"Receiver with Diem ID {ref_id_command_object.receiver} not found: {request.command_type}",
-                    field="command_type",
+                    f"Receiver with Diem ID {ref_id_command_object.receiver} not found",
+                    field="receiver",
                 )
             self.app.store.create(
                 ReferenceID,
                 account_id=account.id,
                 reference_id=ref_id_command_object.reference_id,
             )
-
             return to_dict(
                 ReferenceIDCommandResultObject(
-                    receiver_address=request_sender_address,
+                    receiver_address=self.app.diem_account.account_identifier(),
                 )
             )
+        except ValueError:
+            msg = f"Reference ID {ref_id_command_object.reference_id} already exists"
+            raise command_error(ErrorCode.duplicate_reference_id, msg)
 
     def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -> None:
         self.app.store.create(

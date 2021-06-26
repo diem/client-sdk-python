@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from ... import testnet, jsonrpc, identifier, offchain
+from ... import testnet, jsonrpc, identifier, offchain, jws
 from .. import LocalAccount
 from ..miniwallet import RestClient, AppConfig, AccountResource, ServerConfig, App, Transaction
 from ..miniwallet.app import PENDING_INBOUND_ACCOUNT_ID
@@ -134,7 +134,7 @@ def send_request_json(
     account_address, _ = identifier.decode_account(receiver_address, hrp)
     base_url, public_key = diem_client.get_base_url_and_compliance_key(account_address)
     if request_body is None:
-        request_body = offchain.jws.serialize_string(request_json, sender_account.compliance_key.sign)
+        request_body = jws.encode(request_json, sender_account.compliance_key.sign)
     resp = requests.Session().post(
         f"{base_url.rstrip('/')}/v2/command",
         data=request_body,

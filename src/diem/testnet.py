@@ -25,14 +25,14 @@ import requests
 import typing
 
 from . import diem_types, jsonrpc, utils, chain_ids, bcs, identifier
-from .testing import LocalAccount
+from .testing import LocalAccount, DD_ADDRESS
 
 
 JSON_RPC_URL: str = "https://testnet.diem.com/v1"
 FAUCET_URL: str = "https://testnet.diem.com/mint"
 CHAIN_ID: diem_types.ChainId = chain_ids.TESTNET
 
-DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address("000000000000000000000000000000dd")
+DESIGNATED_DEALER_ADDRESS: diem_types.AccountAddress = utils.account_address(DD_ADDRESS)
 TEST_CURRENCY_CODE: str = "XUS"
 HRP: str = identifier.TDM
 

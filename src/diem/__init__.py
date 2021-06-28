@@ -3,6 +3,15 @@
 
 """Python client SDK library for the [Diem](https://diem.com) blockchain network."""
 
+from .constants import (
+    ACCOUNT_ADDRESS_LEN,
+    SUB_ADDRESS_LEN,
+    DIEM_HASH_PREFIX,
+    ROOT_ADDRESS,
+    TREASURY_ADDRESS,
+    CORE_CODE_ADDRESS,
+)
+
 from .utils import InvalidAccountAddressError, InvalidSubAddressError
 from .auth_key import AuthKey
 

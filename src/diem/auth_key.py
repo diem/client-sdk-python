@@ -5,6 +5,7 @@
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from . import utils, diem_types
+from diem import ACCOUNT_ADDRESS_LEN
 
 
 class AuthKey:
@@ -24,10 +25,10 @@ class AuthKey:
         self.data = data
 
     def account_address(self) -> diem_types.AccountAddress:
-        return utils.account_address(self.data[-utils.ACCOUNT_ADDRESS_LEN :])
+        return utils.account_address(self.data[-ACCOUNT_ADDRESS_LEN:])
 
     def prefix(self) -> bytes:
-        return self.data[: -utils.ACCOUNT_ADDRESS_LEN]
+        return self.data[:-ACCOUNT_ADDRESS_LEN]
 
     def hex(self) -> str:
         return self.data.hex()

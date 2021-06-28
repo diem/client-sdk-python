@@ -9,14 +9,10 @@ import hashlib
 import typing, time, socket
 
 from . import diem_types, jsonrpc, stdlib
-
-
-ACCOUNT_ADDRESS_LEN: int = diem_types.AccountAddress.LENGTH
-SUB_ADDRESS_LEN: int = 8
-DIEM_HASH_PREFIX: bytes = b"DIEM::"
-ROOT_ADDRESS: str = "0000000000000000000000000a550c18"
-TREASURY_ADDRESS: str = "0000000000000000000000000b1e55ed"
-CORE_CODE_ADDRESS: str = "00000000000000000000000000000001"
+from .constants import (
+    SUB_ADDRESS_LEN,
+    DIEM_HASH_PREFIX,
+)
 
 
 class InvalidAccountAddressError(Exception):

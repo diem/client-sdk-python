@@ -9,6 +9,8 @@ from diem import (
     testnet,
     utils,
     InvalidAccountAddressError,
+    TREASURY_ADDRESS,
+    ROOT_ADDRESS,
 )
 from diem.testing import LocalAccount
 
@@ -63,7 +65,7 @@ def test_get_account():
 
 def test_get_account_by_hex_encoded_account_address():
     client = testnet.create_client()
-    account = client.get_account(utils.TREASURY_ADDRESS)
+    account = client.get_account(TREASURY_ADDRESS)
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
@@ -73,7 +75,7 @@ def test_get_account_by_hex_encoded_account_address():
 def test_get_account_by_invalid_hex_encoded_account_address():
     client = testnet.create_client()
     with pytest.raises(InvalidAccountAddressError):
-        client.get_account(utils.TREASURY_ADDRESS + "invalid")
+        client.get_account(TREASURY_ADDRESS + "invalid")
 
 
 def test_get_account_not_exist():
@@ -106,7 +108,7 @@ def test_get_account_transaction():
 
 def test_get_account_transaction_not_exist():
     client = testnet.create_client()
-    txn = client.get_account_transaction(utils.ROOT_ADDRESS, 9000000000000000)
+    txn = client.get_account_transaction(ROOT_ADDRESS, 9000000000000000)
     assert txn is None
 
 
@@ -145,7 +147,7 @@ def test_get_account_transactions():
 
 def test_get_account_transactions_not_exist():
     client = testnet.create_client()
-    txn = client.get_account_transactions(utils.ROOT_ADDRESS, 9000000000000000, 1)
+    txn = client.get_account_transactions(ROOT_ADDRESS, 9000000000000000, 1)
     assert txn == []
 
 
@@ -350,7 +352,7 @@ def test_get_parent_vasp_account_with_non_vasp_account_address():
     client = testnet.create_client()
 
     with pytest.raises(ValueError):
-        client.get_parent_vasp_account(utils.TREASURY_ADDRESS)
+        client.get_parent_vasp_account(TREASURY_ADDRESS)
 
 
 def test_gen_account():
@@ -386,7 +388,7 @@ def test_account_not_found_error_when_get_base_url_and_compliance_key_for_invali
 def test_value_error_when_get_base_url_and_compliance_key_for_account_has_no_base_url():
     client = testnet.create_client()
     with pytest.raises(ValueError):
-        client.get_base_url_and_compliance_key(utils.TREASURY_ADDRESS)
+        client.get_base_url_and_compliance_key(TREASURY_ADDRESS)
 
 
 def test_gen_dd_account():

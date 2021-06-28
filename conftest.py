@@ -10,6 +10,9 @@ def setup_testnet() -> None:
     if os.getenv("dt"):
         os.system("make docker")
         print("swap testnet default values to local testnet launched by docker-compose")
+        os.environ["DIEM_JSON_RPC_URL"] = "http://localhost:8080/v1"
+        os.environ["DIEM_FAUCET_URL"] = "http://localhost:8000/mint"
         testnet.JSON_RPC_URL = "http://localhost:8080/v1"
         testnet.FAUCET_URL = "http://localhost:8000/mint"
         testnet.CHAIN_ID = chain_ids.TESTING
+        chain_ids.TESTNET = chain_ids.TESTING

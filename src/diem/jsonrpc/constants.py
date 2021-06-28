@@ -13,6 +13,9 @@ See the following Diem JSON-RPC response type documents for more details:
 
 """
 
+from diem.__VERSION__ import VERSION
+
+
 # AccountRole#type field values
 ACCOUNT_ROLE_UNKNOWN: str = "unknown"
 ACCOUNT_ROLE_CHILD_VASP: str = "child_vasp"
@@ -58,3 +61,12 @@ TRANSACTION_DATA_UNKNOWN: str = "unknown"
 # Script#type field values, only set unknown type here,
 # other types, plese see https://github.com/diem/diem/blob/master/language/stdlib/transaction_scripts/doc/transaction_script_documentation.md for all available script names.
 SCRIPT_UNKNOWN: str = "unknown"
+
+
+DEFAULT_CONNECT_TIMEOUT_SECS: float = 5.0
+DEFAULT_TIMEOUT_SECS: float = 30.0
+DEFAULT_MAX_RETRIES: int = 15
+DEFAULT_RETRY_DELAY: float = 0.2
+DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS: float = 30.0
+DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS: float = 0.2
+USER_AGENT_HTTP_HEADER: str = "diem-client-sdk-python / %s" % VERSION

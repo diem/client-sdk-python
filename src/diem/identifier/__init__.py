@@ -12,7 +12,7 @@ import typing
 from urllib import parse
 from typing import List
 
-from . import bech32
+from . import bech32, diem_id
 from .. import diem_types, utils, chain_ids
 
 from .bech32 import bech32_address_encode, bech32_address_decode, Bech32Error, _DIEM_BECH32_SIZE

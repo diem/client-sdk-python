@@ -23,6 +23,8 @@ from .types import (
     ErrorCode,
     FieldError,
     from_dict,
+    to_dict,
+    ReferenceIDCommandObject,
 )
 from .error import command_error, protocol_error
 
@@ -118,6 +120,27 @@ class Client:
             cid=cid or str(uuid.uuid4()),
             command_type=CommandType.PingCommand,
             command={"_ObjectType": CommandType.PingCommand},
+        )
+        jws_msg = jws.serialize(request, sign)
+        return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
+
+    def ref_id_exchange_request(
+        self,
+        sender: str,
+        sender_address: str,
+        receiver: str,
+        reference_id: str,
+        counterparty_account_identifier: str,
+        sign: typing.Callable[[bytes], bytes],
+        cid: typing.Optional[str] = None,
+    ) -> CommandResponseObject:
+        reference_id_command_object = ReferenceIDCommandObject(
+            sender=sender, sender_address=sender_address, receiver=receiver, reference_id=reference_id
+        )
+        request = CommandRequestObject(
+            cid=cid or str(uuid.uuid4()),
+            command_type=CommandType.ReferenceIDCommand,
+            command=to_dict(reference_id_command_object),
         )
         jws_msg = jws.serialize(request, sign)
         return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)

@@ -2,12 +2,23 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import asdict
-from typing import Dict
+from typing import Dict, Any
 from .store import NotFoundError
-from .models import Account, Subaddress, PaymentCommand, Transaction
+from .models import Account, Subaddress, PaymentCommand, Transaction, ReferenceID
 from .app import App
 from .... import jsonrpc, offchain, utils
-from ....offchain import Status, AbortCode, CommandResponseObject, CommandRequestObject
+from ....offchain import (
+    Status,
+    AbortCode,
+    CommandResponseObject,
+    CommandRequestObject,
+    command_error,
+    ErrorCode,
+    ReferenceIDCommandObject,
+    ReferenceIDCommandResultObject,
+    from_dict,
+    to_dict,
+)
 
 
 class OffChainAPIv2:
@@ -66,6 +77,7 @@ class OffChainAPIv2:
             currency=txn.currency,
             amount=txn.amount,
             receiver_account_id=str(txn.payee),
+            reference_id=txn.reference_id,
         )
         self._create_payment_command(txn.account_id, command)
         self.app.store.update(txn, reference_id=command.reference_id())
@@ -81,8 +93,8 @@ class OffChainAPIv2:
                     "unknown command_type: %s" % request.command_type,
                     field="command_type",
                 )
-            getattr(self, handler)(sender_address, request)
-            return offchain.reply_request(cid=request.cid)
+            result = getattr(self, handler)(sender_address, request)
+            return offchain.reply_request(cid=request.cid, result=result)
         except offchain.Error as e:
             err_msg = "process offchain request failed, sender_address: %s, request: %s"
             self.app.logger.exception(err_msg, sender_address, request)
@@ -101,6 +113,37 @@ class OffChainAPIv2:
             subaddress = utils.hex(new_offchain_cmd.my_subaddress(self.app.diem_account.hrp))
             account_id = self.app.store.find(Subaddress, subaddress_hex=subaddress).account_id
             self._create_payment_command(account_id, new_offchain_cmd, validate=True)
+
+    def _handle_offchain_reference_i_d_command(
+        self, request_sender_address: str, request: offchain.CommandRequestObject
+    ) -> Dict[str, Any]:
+        ref_id_command_object = from_dict(request.command, ReferenceIDCommandObject)
+
+        # Check if reference ID is duplicate
+        try:
+            self.app.validate_unique_reference_id(ref_id_command_object.reference_id)
+        except ValueError:
+            msg = f"Reference ID {ref_id_command_object.reference_id} already exists"
+            raise command_error(ErrorCode.duplicate_reference_id, msg)
+        # Check if receiver has a diem ID in this wallet
+        try:
+            account = self.app.store.find(Account, diem_id=ref_id_command_object.receiver)
+        except NotFoundError:
+            raise command_error(
+                ErrorCode.invalid_receiver,
+                f"Receiver with Diem ID {ref_id_command_object.receiver} not found",
+                field="receiver",
+            )
+        self.app.store.create(
+            ReferenceID,
+            account_id=account.id,
+            reference_id=ref_id_command_object.reference_id,
+        )
+        return to_dict(
+            ReferenceIDCommandResultObject(
+                receiver_address=self.app.diem_account.account_identifier(),
+            )
+        )
 
     def _create_payment_command(self, account_id: str, cmd: offchain.PaymentCommand, validate: bool = False) -> None:
         self.app.store.create(

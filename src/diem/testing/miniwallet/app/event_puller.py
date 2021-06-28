@@ -5,9 +5,10 @@ from dataclasses import dataclass, field
 from typing import Dict, Any, Iterator
 from .store import InMemoryStore, NotFoundError
 from .pending_account import PENDING_INBOUND_ACCOUNT_ID
-from .models import Transaction, Subaddress, PaymentCommand, RefundReason, Account
+from .models import Transaction, Subaddress, PaymentCommand, RefundReason, Account, ReferenceID
 from .... import jsonrpc, diem_types, txnmetadata, identifier, utils
 import copy, logging
+import uuid
 
 
 @dataclass
@@ -50,7 +51,7 @@ class EventPuller:
             self.logger.exception("process event failed")
             self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
 
-    def _save_payment_txn(self, event: jsonrpc.Event) -> None:
+    def _save_payment_txn(self, event: jsonrpc.Event) -> None:  # noqa: C901
         metadata = txnmetadata.decode_structure(event.data.metadata)
         if isinstance(metadata, diem_types.GeneralMetadataV0):
             subaddress = utils.hex(metadata.to_subaddress)
@@ -72,6 +73,14 @@ class EventPuller:
             reason = RefundReason.from_diem_type(metadata.reason)
             account_id = self._find_refund_account_id(version)
             return self._create_txn(account_id, event, refund_diem_txn_version=version, refund_reason=reason)
+        elif isinstance(metadata, diem_types.PaymentMetadataV0):
+            reference_id = str(uuid.UUID(bytes=metadata.to_bytes()))
+            try:
+                ref_id = self.store.find(ReferenceID, reference_id=reference_id)
+            except NotFoundError:
+                self.logger.exception("Transaction with reference ID %r not found" % reference_id)
+                return self._refund(RefundReason.other, event)
+            return self._create_txn(ref_id.account_id, event, reference_id=reference_id)
         raise ValueError("unrecognized metadata: %r" % event.data.metadata)
 
     def _find_refund_account_id(self, version: int) -> str:

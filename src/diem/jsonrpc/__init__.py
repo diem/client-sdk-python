@@ -26,7 +26,8 @@ from .client import (
     Retry,
     RequestStrategy,
     RequestWithBackups,
-    # Exceptions
+)
+from .errors import (
     JsonRpcError,
     NetworkError,
     InvalidServerResponse,
@@ -37,6 +38,7 @@ from .client import (
     WaitForTransactionTimeout,
     AccountNotFoundError,
 )
+from .async_client import AsyncClient
 from .jsonrpc_pb2 import (
     Amount,
     Metadata,

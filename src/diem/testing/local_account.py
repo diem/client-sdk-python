@@ -7,7 +7,7 @@ LocalAccount provides operations we need for creating auth key, account address 
 raw transaction.
 """
 
-from .. import diem_types, jsonrpc, utils, stdlib, identifier
+from .. import diem_types, jsonrpc, utils, stdlib, identifier, chain_ids
 from ..serde_types import uint64
 
 from ..auth_key import AuthKey
@@ -15,6 +15,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey,
 from typing import Dict, Optional, Tuple, Union
 from dataclasses import dataclass, field, replace
 from copy import copy
+from diem.jsonrpc import AsyncClient
 import time, json
 
 
@@ -109,6 +110,17 @@ class LocalAccount:
         chain_id = client.get_last_known_state().chain_id
         if script:
             payload = diem_types.TransactionPayload__Script(value=script)
+        if not payload:
+            raise ValueError("must provide script or payload")
+        return self.create_signed_txn(sequence_number, payload, chain_id=chain_id)
+
+    def create_signed_txn(
+        self,
+        sequence_number: int,
+        payload: diem_types.TransactionPayload,
+        chain_id: Optional[int] = None,
+    ) -> diem_types.SignedTransaction:
+        _chain_id = diem_types.ChainId.from_int(chain_id) if chain_id else chain_ids.TESTNET
         return self.sign(
             diem_types.RawTransaction(  # pyre-ignore
                 sender=self.account_address,
@@ -118,7 +130,7 @@ class LocalAccount:
                 gas_unit_price=uint64(self.txn_gas_unit_price),
                 gas_currency_code=self.txn_gas_currency_code,
                 expiration_timestamp_secs=uint64(int(time.time()) + self.txn_expire_duration_secs),
-                chain_id=diem_types.ChainId.from_int(chain_id),
+                chain_id=_chain_id,
             )
         )
 
@@ -153,18 +165,45 @@ class LocalAccount:
         Raisees error with transaction execution failure if `self` is not a ParentVASP account.
         """
 
-        child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
-        self.submit_and_wait_for_txn(
-            client,
-            stdlib.encode_create_child_vasp_account_script(
-                coin_type=utils.currency_code(currency),
-                child_address=child_vasp.account_address,
-                auth_key_prefix=child_vasp.auth_key.prefix(),
-                add_all_currencies=False,
-                child_initial_balance=initial_balance,
-            ),
-        )
+        child_vasp, payload = self.new_child_vasp(initial_balance, currency)
+        txn = self.create_txn(client, payload=payload)
+        client.submit(txn)
+        client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
         return child_vasp
+
+    def new_child_vasp(
+        self, initial_balance: int, currency: str
+    ) -> Tuple["LocalAccount", diem_types.TransactionPayload]:
+        """Creates a new ChildVASP local account and script function"""
+
+        child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
+        payload = stdlib.encode_create_child_vasp_account_script_function(
+            coin_type=utils.currency_code(currency),
+            child_address=child_vasp.account_address,
+            auth_key_prefix=child_vasp.auth_key.prefix(),
+            add_all_currencies=False,
+            child_initial_balance=initial_balance,
+        )
+        return (child_vasp, payload)
+
+    async def reset_dual_attestation(self, client: AsyncClient, base_url: str) -> jsonrpc.Transaction:
+        payload = stdlib.encode_rotate_dual_attestation_info_script_function(
+            new_url=base_url.encode("utf-8"), new_key=self.compliance_public_key_bytes
+        )
+        return await self.apply_txn(client, payload)
+
+    async def apply_txn(self, client: AsyncClient, payload: diem_types.TransactionPayload) -> jsonrpc.Transaction:
+        """Apply transaction with the payload to the account
+
+        1. Create signed transaction for the given script function.
+        2. Submit signed transaction.
+        3. Wait for transaction execution finished.
+        """
+
+        seq = await client.get_account_sequence(self.account_address)
+        txn = self.create_signed_txn(seq, payload)
+        await client.submit(txn)
+        return await client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
 
     def to_dict(self) -> Dict[str, str]:
         """export to a string only dictionary for saving and importing as config

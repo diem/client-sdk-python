@@ -6,12 +6,13 @@ import time
 import copy
 import dataclasses
 import google.protobuf.json_format as parser
-import requests
-import threading
+import asyncio
 import typing
 import random
+import functools
 
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
+from aiohttp import ClientSession
+from asyncio import as_completed
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from logging import Logger, getLogger
 
@@ -21,8 +22,6 @@ from diem.jsonrpc.constants import (
     ACCOUNT_ROLE_PARENT_VASP,
     ACCOUNT_ROLE_CHILD_VASP,
     VM_STATUS_EXECUTED,
-    DEFAULT_CONNECT_TIMEOUT_SECS,
-    DEFAULT_TIMEOUT_SECS,
     DEFAULT_MAX_RETRIES,
     DEFAULT_RETRY_DELAY,
     DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS,
@@ -31,7 +30,6 @@ from diem.jsonrpc.constants import (
 )
 from diem.jsonrpc.errors import (
     JsonRpcError,
-    NetworkError,
     InvalidServerResponse,
     StaleResponseError,
     TransactionHashMismatchError,
@@ -49,16 +47,16 @@ class Retry:
     delay_secs: float
     exception: typing.Type[Exception]
 
-    def execute(self, fn: typing.Callable):  # pyre-ignore
+    async def execute(self, coro):  # pyre-ignore
         tries = 0
         while tries < self.max_retries:
             tries += 1
             try:
-                return fn()
+                return await coro()
             except self.exception as e:
                 if tries < self.max_retries:
                     # simplest backoff strategy: tries * delay
-                    time.sleep(self.delay_secs * tries)
+                    await asyncio.sleep(self.delay_secs * tries)
                 else:
                     raise e
 
@@ -69,10 +67,10 @@ class RequestStrategy:
     It implements the simplest strategy: direct send http request
     """
 
-    def send_request(
-        self, client: "Client", request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    async def send_request(
+        self, client: "AsyncClient", request: typing.Dict[str, typing.Any], ignore_stale_response: bool
     ) -> typing.Dict[str, typing.Any]:
-        return client._send_http_request(client._url, request, ignore_stale_response)
+        return await client._send_http_request(client._url, request, ignore_stale_response)
 
 
 class RequestWithBackups(RequestStrategy):
@@ -96,14 +94,11 @@ class RequestWithBackups(RequestStrategy):
     Initialize Client:
 
     ```python
-    from concurrent.futures import ThreadPoolExecutor
     from diem import jsonrpc
 
-    # This controls how many concurrent requests we can sent. It is shared for all jsonrpc.Client requests.
-    executor = ThreadPoolExecutor(5)
-    jsonrpc.Client(
+    jsonrpc.AsyncClient(
         <primary-json-rpc-server-url>
-        rs=jsonrpc.RequestWithBackups(backups=[<backup-json-rpc-server-url>...], executor=executor),
+        rs=jsonrpc.async_client.RequestWithBackups(backups=[<backup-json-rpc-server-url>...]),
     )
     ```
     """
@@ -111,42 +106,41 @@ class RequestWithBackups(RequestStrategy):
     def __init__(
         self,
         backups: typing.List[str],
-        executor: ThreadPoolExecutor,
         fallback: bool = False,
     ) -> None:
         self._backups = backups
-        self._executor = executor
         self._fallback = fallback
 
-    def send_request(
-        self, client: "Client", request: typing.Dict[str, typing.Any], ignore_stale_response: bool
+    async def send_request(
+        self, client: "AsyncClient", request: typing.Dict[str, typing.Any], ignore_stale_response: bool
     ) -> typing.Dict[str, typing.Any]:
-        primary = self._executor.submit(client._send_http_request, client._url, request, ignore_stale_response)
-        backup = self._executor.submit(
-            client._send_http_request, random.choice(self._backups), request, ignore_stale_response
+        primary = asyncio.create_task(client._send_http_request(client._url, request, ignore_stale_response))
+
+        backup = asyncio.create_task(
+            client._send_http_request(random.choice(self._backups), request, ignore_stale_response)
         )
 
         if self._fallback:
-            return self._fallback_to_backup(primary, backup)
-        return self._first_success(primary, backup)
+            return await self._fallback_to_backup(primary, backup)
+        return await self._first_success(primary, backup)
 
-    def _fallback_to_backup(self, primary: Future, backup: Future) -> typing.Dict[str, typing.Any]:
+    async def _fallback_to_backup(self, primary: asyncio.Task, backup: asyncio.Task) -> typing.Dict[str, typing.Any]:
         try:
-            return primary.result()
+            return await primary
         except Exception:
-            return backup.result()
+            return await backup
 
-    def _first_success(self, primary: Future, backup: Future) -> typing.Dict[str, typing.Any]:
+    async def _first_success(self, primary: asyncio.Task, backup: asyncio.Task) -> typing.Dict[str, typing.Any]:
         futures = as_completed({primary, backup})
         first = next(futures)
         try:
-            return first.result()
+            return await first
         except Exception:
-            return next(futures).result()
+            return await next(futures)
 
 
-class Client:
-    """Diem JSON-RPC API client
+class AsyncClient:
+    """Diem JSON-RPC API asyncio client
 
     [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
     """
@@ -154,25 +148,21 @@ class Client:
     def __init__(
         self,
         server_url: str,
-        session: typing.Optional[requests.Session] = None,
-        timeout: typing.Optional[typing.Tuple[float, float]] = None,
         retry: typing.Optional[Retry] = None,
         rs: typing.Optional[RequestStrategy] = None,
         logger: typing.Optional[Logger] = None,
+        session_factory: typing.Callable[[], ClientSession] = ClientSession,
     ) -> None:
         self._url: str = server_url
-        self._session: requests.Session = session or requests.Session()
-        self._session.headers.update({"User-Agent": USER_AGENT_HTTP_HEADER})
-        self._timeout: typing.Tuple[float, float] = timeout or (DEFAULT_CONNECT_TIMEOUT_SECS, DEFAULT_TIMEOUT_SECS)
+        self._session_factory = session_factory
         self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
-        self._lock = threading.Lock()
         self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
         self._logger: Logger = logger or getLogger(__name__)
 
     # high level functions
 
-    def get_parent_vasp_account(
+    async def get_parent_vasp_account(
         self, vasp_account_address: typing.Union[diem_types.AccountAddress, str]
     ) -> rpc.Account:
         """get parent_vasp account
@@ -185,17 +175,17 @@ class Client:
         could not find the account by the parent_vasp_address found in ChildVASP account.
         """
 
-        account = self.must_get_account(vasp_account_address)
+        account = await self.must_get_account(vasp_account_address)
 
         if account.role.type == ACCOUNT_ROLE_PARENT_VASP:
             return account
         if account.role.type == ACCOUNT_ROLE_CHILD_VASP:
-            return self.get_parent_vasp_account(account.role.parent_vasp_address)
+            return await self.get_parent_vasp_account(account.role.parent_vasp_address)
 
         hex = utils.account_address_hex(vasp_account_address)
         raise ValueError(f"given account address({hex}) is not a VASP account: {account}")
 
-    def get_base_url_and_compliance_key(
+    async def get_base_url_and_compliance_key(
         self, account_address: typing.Union[diem_types.AccountAddress, str]
     ) -> typing.Tuple[str, Ed25519PublicKey]:
         """get base_url and compliance key
@@ -203,33 +193,33 @@ class Client:
         ParentVASP or Designated Dealer account role has base_url and compliance key setup, which
         are used for offchain API communication.
         """
-        account = self.must_get_account(account_address)
+        account = await self.must_get_account(account_address)
 
         if account.role.compliance_key and account.role.base_url:
             key = Ed25519PublicKey.from_public_bytes(bytes.fromhex(account.role.compliance_key))
             return (account.role.base_url, key)
         if account.role.parent_vasp_address:
-            return self.get_base_url_and_compliance_key(account.role.parent_vasp_address)
+            return await self.get_base_url_and_compliance_key(account.role.parent_vasp_address)
 
         raise ValueError(f"could not find base_url and compliance_key from account: {account}")
 
-    def must_get_account(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> rpc.Account:
+    async def must_get_account(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> rpc.Account:
         """must_get_account raises AccountNotFoundError if account could not be found by given address"""
 
-        account = self.get_account(account_address)
+        account = await self.get_account(account_address)
         if account is None:
             hex = utils.account_address_hex(account_address)
             raise AccountNotFoundError(f"account not found by address: {hex}")
         return account
 
-    def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> int:
+    async def get_account_sequence(self, account_address: typing.Union[diem_types.AccountAddress, str]) -> int:
         """get on-chain account sequence number
 
         Calls get_account to find on-chain account information and return it's sequence.
         Raises AccountNotFoundError if get_account returns None
         """
 
-        account = self.get_account(account_address)
+        account = await self.get_account(account_address)
         if account is None:
             hex = utils.account_address_hex(account_address)
             raise AccountNotFoundError(f"account not found by address: {hex}")
@@ -248,8 +238,7 @@ class Client:
         server.
         """
 
-        with self._lock:
-            return copy.copy(self._last_known_server_state)
+        return copy.copy(self._last_known_server_state)
 
     def update_last_known_state(self, chain_id: int, version: int, timestamp_usecs: int) -> None:
         """update last known server state
@@ -259,22 +248,21 @@ class Client:
         Raises StaleResponseError if version or timestamp_usecs is less than previous values
         """
 
-        with self._lock:
-            curr = self._last_known_server_state
-            if curr.chain_id != -1 and curr.chain_id != chain_id:
-                raise InvalidServerResponse(f"last known chain id {curr.chain_id}, " f"but got {chain_id}")
-            if curr.version > version:
-                raise StaleResponseError(f"last known version {curr.version} > {version}")
-            if curr.timestamp_usecs > timestamp_usecs:
-                raise StaleResponseError(f"last known timestamp_usecs {curr.timestamp_usecs} > {timestamp_usecs}")
+        curr = self._last_known_server_state
+        if curr.chain_id != -1 and curr.chain_id != chain_id:
+            raise InvalidServerResponse(f"last known chain id {curr.chain_id}, " f"but got {chain_id}")
+        if curr.version > version:
+            raise StaleResponseError(f"last known version {curr.version} > {version}")
+        if curr.timestamp_usecs > timestamp_usecs:
+            raise StaleResponseError(f"last known timestamp_usecs {curr.timestamp_usecs} > {timestamp_usecs}")
 
-            self._last_known_server_state = State(
-                chain_id=chain_id,
-                version=version,
-                timestamp_usecs=timestamp_usecs,
-            )
+        self._last_known_server_state = State(
+            chain_id=chain_id,
+            version=version,
+            timestamp_usecs=timestamp_usecs,
+        )
 
-    def get_metadata(
+    async def get_metadata(
         self,
         version: typing.Optional[int] = None,
     ) -> rpc.Metadata:
@@ -284,17 +272,17 @@ class Client:
         """
 
         params = [int(version)] if version else []
-        return self.execute("get_metadata", params, _parse_obj(lambda: rpc.Metadata()))
+        return await self.execute("get_metadata", params, _parse_obj(lambda: rpc.Metadata()))
 
-    def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:
+    async def get_currencies(self) -> typing.List[rpc.CurrencyInfo]:
         """get currencies
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_currencies.md)
         """
 
-        return self.execute("get_currencies", [], _parse_list(lambda: rpc.CurrencyInfo()))
+        return await self.execute("get_currencies", [], _parse_list(lambda: rpc.CurrencyInfo()))
 
-    def get_account(
+    async def get_account(
         self, account_address: typing.Union[diem_types.AccountAddress, str]
     ) -> typing.Optional[rpc.Account]:
         """get on-chain account information
@@ -304,9 +292,9 @@ class Client:
         """
 
         address = utils.account_address_hex(account_address)
-        return self.execute("get_account", [address], _parse_obj(lambda: rpc.Account()))
+        return await self.execute("get_account", [address], _parse_obj(lambda: rpc.Account()))
 
-    def get_account_transaction(
+    async def get_account_transaction(
         self,
         account_address: typing.Union[diem_types.AccountAddress, str],
         sequence: int,
@@ -321,9 +309,9 @@ class Client:
 
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), bool(include_events)]
-        return self.execute("get_account_transaction", params, _parse_obj(lambda: rpc.Transaction()))
+        return await self.execute("get_account_transaction", params, _parse_obj(lambda: rpc.Transaction()))
 
-    def get_account_transactions(
+    async def get_account_transactions(
         self,
         account_address: typing.Union[diem_types.AccountAddress, str],
         sequence: int,
@@ -339,9 +327,9 @@ class Client:
 
         address = utils.account_address_hex(account_address)
         params = [address, int(sequence), int(limit), bool(include_events)]
-        return self.execute("get_account_transactions", params, _parse_list(lambda: rpc.Transaction()))
+        return await self.execute("get_account_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
-    def get_transactions(
+    async def get_transactions(
         self,
         start_version: int,
         limit: int,
@@ -355,9 +343,9 @@ class Client:
         """
 
         params = [int(start_version), int(limit), bool(include_events)]
-        return self.execute("get_transactions", params, _parse_list(lambda: rpc.Transaction()))
+        return await self.execute("get_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
-    def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[rpc.Event]:
+    async def get_events(self, event_stream_key: str, start: int, limit: int) -> typing.List[rpc.Event]:
         """get events
 
         Returns empty list if no events found
@@ -366,13 +354,13 @@ class Client:
         """
 
         params = [event_stream_key, int(start), int(limit)]
-        return self.execute("get_events", params, _parse_list(lambda: rpc.Event()))
+        return await self.execute("get_events", params, _parse_list(lambda: rpc.Event()))
 
-    def get_state_proof(self, version: int) -> rpc.StateProof:
+    async def get_state_proof(self, version: int) -> rpc.StateProof:
         params = [int(version)]
-        return self.execute("get_state_proof", params, _parse_obj(lambda: rpc.StateProof()))
+        return await self.execute("get_state_proof", params, _parse_obj(lambda: rpc.StateProof()))
 
-    def get_account_state_with_proof(
+    async def get_account_state_with_proof(
         self,
         account_address: diem_types.AccountAddress,
         version: typing.Optional[int] = None,
@@ -380,15 +368,17 @@ class Client:
     ) -> rpc.AccountStateWithProof:
         address = utils.account_address_hex(account_address)
         params = [address, version, ledger_version]
-        return self.execute("get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof()))
+        return await self.execute(
+            "get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof())
+        )
 
-    def get_diem_id_domain_map(self, batch_size: int = 100) -> typing.Dict[str, str]:
+    async def get_diem_id_domain_map(self, batch_size: int = 100) -> typing.Dict[str, str]:
         domain_map = {}
         event_index = 0
-        tc_account = self.must_get_account(utils.account_address(TREASURY_ADDRESS))
+        tc_account = await self.must_get_account(utils.account_address(TREASURY_ADDRESS))
         event_stream_key = tc_account.role.diem_id_domain_events_key
         while True:
-            events = self.get_events(event_stream_key, event_index, batch_size)
+            events = await self.get_events(event_stream_key, event_index, batch_size)
             for event in events:
                 if event.data.removed:
                     del domain_map[event.data.domain]
@@ -399,7 +389,7 @@ class Client:
             event_index += batch_size
         return domain_map
 
-    def submit(
+    async def submit(
         self,
         txn: typing.Union[diem_types.SignedTransaction, str],
     ) -> None:
@@ -433,11 +423,11 @@ class Client:
         """
 
         if isinstance(txn, diem_types.SignedTransaction):
-            return self.submit(txn.bcs_serialize().hex())
+            return await self.submit(txn.bcs_serialize().hex())
 
-        self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=True)
+        await self.execute_without_retry("submit", [txn], result_parser=None, ignore_stale_response=True)
 
-    def wait_for_transaction(
+    async def wait_for_transaction(
         self, txn: typing.Union[diem_types.SignedTransaction, str], timeout_secs: typing.Optional[float] = None
     ) -> rpc.Transaction:
         """wait for transaction executed
@@ -458,9 +448,9 @@ class Client:
 
         if isinstance(txn, str):
             txn_obj = diem_types.SignedTransaction.bcs_deserialize(bytes.fromhex(txn))
-            return self.wait_for_transaction(txn_obj, timeout_secs)
+            return await self.wait_for_transaction(txn_obj, timeout_secs)
 
-        return self.wait_for_transaction2(
+        return await self.wait_for_transaction2(
             txn.raw_txn.sender,
             txn.raw_txn.sequence_number,
             txn.raw_txn.expiration_timestamp_secs,
@@ -468,7 +458,7 @@ class Client:
             timeout_secs,
         )
 
-    def wait_for_transaction2(
+    async def wait_for_transaction2(
         self,
         address: diem_types.AccountAddress,
         seq: int,
@@ -494,7 +484,7 @@ class Client:
         """
         max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
         while time.time() < max_wait:
-            txn = self.get_account_transaction(address, seq, True)
+            txn = await self.get_account_transaction(address, seq, True)
             if txn is not None:
                 if txn.hash != txn_hash:
                     raise TransactionHashMismatchError(f"expected hash {txn_hash}, but got {txn.hash}")
@@ -507,12 +497,12 @@ class Client:
                     f"latest server ledger timestamp_usecs {state.timestamp_usecs}, "
                     f"transaction expires at {expiration_time_secs}"
                 )
-            time.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
+            await asyncio.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
 
         raise WaitForTransactionTimeout()
 
     # pyre-ignore
-    def execute(
+    async def execute(
         self,
         method: str,
         params: typing.List[typing.Any],  # pyre-ignore
@@ -525,12 +515,12 @@ class Client:
         Should only be called by get methods.
         """
 
-        return self._retry.execute(
-            lambda: self.execute_without_retry(method, params, result_parser, ignore_stale_response)
+        return await self._retry.execute(
+            functools.partial(self.execute_without_retry, method, params, result_parser, ignore_stale_response)
         )
 
     # pyre-ignore
-    def execute_without_retry(
+    async def execute_without_retry(
         self,
         method: str,
         params: typing.List[typing.Any],  # pyre-ignore
@@ -557,7 +547,7 @@ class Client:
             "params": params or [],
         }
         try:
-            json = self._rs.send_request(self, request, ignore_stale_response or False)
+            json = await self._rs.send_request(self, request, ignore_stale_response or False)
             if "error" in json:
                 err = json["error"]
                 raise JsonRpcError(f"{err}")
@@ -568,25 +558,25 @@ class Client:
                 return
 
             raise InvalidServerResponse(f"No error or result in response: {json}")
-        except requests.RequestException as e:
-            raise NetworkError(f"Error in connecting to server: {e}\nPlease retry...")
         except parser.ParseError as e:
             raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
 
-    def _send_http_request(
+    async def _send_http_request(
         self,
         url: str,
         request: typing.Dict[str, typing.Any],
         ignore_stale_response: bool,
     ) -> typing.Dict[str, typing.Any]:
         self._logger.debug("http request body: %s", request)
-        response = self._session.post(url, json=request, timeout=self._timeout)
-        self._logger.debug("http response body: %s", response.text)
-        response.raise_for_status()
-        try:
-            json = response.json()
-        except ValueError as e:
-            raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
+        headers = {"User-Agent": USER_AGENT_HTTP_HEADER}
+        async with self._session_factory() as session:
+            async with session.post(url, json=request, headers=headers) as response:
+                self._logger.debug("http response body: %s", response.text)
+                response.raise_for_status()
+                try:
+                    json = await response.json()
+                except ValueError as e:
+                    raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
 
         # check stable response before check jsonrpc error
         try:

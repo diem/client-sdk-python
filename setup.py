@@ -35,7 +35,7 @@ setup(
     package_dir={"": "src"},
     include_package_data=True,  # see MANIFEST.in
     zip_safe=True,
-    install_requires=["requests>=2.20.0", "cryptography>=2.8", "numpy>=1.18", "protobuf>=3.12.4"],
+    install_requires=["requests>=2.20.0", "cryptography>=2.8", "numpy>=1.18", "protobuf>=3.12.4", "aiohttp>=3.7.3"],
     extras_require={
         "all": ["falcon>=2.0.0", "waitress>=1.4.4", "pytest>=6.2.1", "click>=7.1"]
     },

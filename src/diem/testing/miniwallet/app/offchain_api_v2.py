@@ -5,7 +5,7 @@ from dataclasses import asdict
 from typing import Dict, Any
 from .store import NotFoundError
 from .models import Account, Subaddress, PaymentCommand, Transaction, ReferenceID
-from .app import App, identifier
+from .app import App
 from .... import jsonrpc, offchain, utils
 from ....offchain import (
     Status,
@@ -132,9 +132,7 @@ class OffChainAPIv2:
             self.app.validate_unique_reference_id(ref_id_command_object.reference_id)
             # Check if receiver has a diem ID in this wallet
             try:
-                account = self.app.store.find(
-                    Account, diem_id=identifier.diem_id.get_user_identifier_from_diem_id(ref_id_command_object.receiver)
-                )
+                account = self.app.store.find(Account, diem_id=ref_id_command_object.receiver)
             except NotFoundError:
                 raise command_error(
                     ErrorCode.invalid_receiver,

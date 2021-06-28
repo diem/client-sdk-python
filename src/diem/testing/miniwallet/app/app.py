@@ -47,7 +47,9 @@ class App:
             # it is used for testing offchain api.
             disable_background_tasks=data.get_nullable("disable_outbound_request", bool),
         )
-        self.store.update(account, diem_id=account.id)
+        if len(self.diem_account.diem_id_domains()) != 0:
+            diem_id = identifier.diem_id.create_diem_id(str(account.id), self.diem_account.diem_id_domains()[0])
+            self.store.update(account, diem_id=diem_id)
         balances = data.get_nullable("balances", dict)
         if balances:
             for c, a in balances.items():
@@ -63,7 +65,9 @@ class App:
         self.store.find(Account, id=account_id)
         subaddress_hex = None
         payee = data.get("payee", str)
-        if not identifier.diem_id.is_diem_id(payee):
+        if identifier.diem_id.is_diem_id(payee):
+            self._validate_diem_id(payee)
+        else:
             self._validate_account_identifier("payee", payee)
             subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
 
@@ -186,19 +190,7 @@ class App:
 
     def _start_external_payment_txn(self, txn: Transaction) -> None:  # noqa: C901
         if identifier.diem_id.is_diem_id(str(txn.payee)):
-            reference_id = str(uuid.uuid4())
-            while True:
-                try:
-                    self.store.create(
-                        ReferenceID,
-                        before_create=self._validate_unique_reference_id,
-                        account_id=txn.account_id,
-                        reference_id=reference_id,
-                    )
-                    break
-                except ValueError:
-                    reference_id = str(uuid.uuid4())
-                    continue
+            reference_id = self._create_reference_id(txn)
             try:
                 vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
                 domain_map = self.diem_client.get_diem_id_domain_map()
@@ -206,11 +198,8 @@ class App:
                 if payee_onchain_address is None:
                     raise ValueError(f"Diem ID domain {vasp_identifier} was not found")
                 self.store.update(txn, reference_id=reference_id)
-                sender_diem_id = identifier.diem_id.create_diem_id(
-                    str(self.store.find(Account, id=txn.account_id).diem_id), self.diem_account.diem_id_domains()[0]
-                )
                 response = self.offchain.ref_id_exchange_request(
-                    sender=sender_diem_id,
+                    sender=str(self.store.find(Account, id=txn.account_id).diem_id),
                     sender_address=self.diem_account.account_identifier(),
                     receiver=str(txn.payee),
                     reference_id=reference_id,
@@ -226,8 +215,6 @@ class App:
             except offchain.Error as e:
                 if e.obj.code == ErrorCode.duplicate_reference_id:
                     return
-                else:
-                    raise e
         if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
                 signed_txn = self.diem_account.submit_p2p(txn, self.txn_metadata(txn))
@@ -308,13 +295,27 @@ class App:
         except NotFoundError:
             return
 
-    def _validate_unique_reference_id(self, reference_id: Dict[str, Any]) -> None:
-        self.validate_unique_reference_id(reference_id["reference_id"])
+    # Check the payee diem ID can be found in the domain map
+    # Check if payee is in the same wallet, the receiver account exists
+    def _validate_diem_id(self, diem_id: str) -> None:
+        payee_vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(diem_id)
+        domain_map = self.diem_client.get_diem_id_domain_map()
+        payee_onchain_address = domain_map.get(payee_vasp_identifier)
+        if payee_onchain_address is None:
+            raise ValueError(f"Diem ID domain {payee_vasp_identifier} was not found")
+        if payee_vasp_identifier in self.diem_account.diem_id_domains():
+            self.store.find(Account, diem_id=diem_id)
 
-    def validate_diem_id(self, diem_id: str, account_id: str) -> None:
-        try:
-            account = self.store.find(Account, id=account_id)
-            if account.diem_id != identifier.diem_id.get_user_identifier_from_diem_id(diem_id):
-                raise ValueError(f"Diem ID {diem_id} does not belong to account {account}")
-        except NotFoundError as e:
-            raise e
+    def _create_reference_id(self, txn: Transaction) -> str:
+        while True:
+            reference_id = str(uuid.uuid4())
+            try:
+                self.store.create(
+                    ReferenceID,
+                    before_create=lambda data: self.validate_unique_reference_id(data["reference_id"]),
+                    account_id=txn.account_id,
+                    reference_id=reference_id,
+                )
+                return reference_id
+            except ValueError:
+                continue

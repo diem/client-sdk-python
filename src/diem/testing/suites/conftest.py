@@ -13,21 +13,29 @@ from .envs import (
     dmw_stub_diem_account_config,
     dmw_stub_diem_account_hrp,
 )
-from typing import Optional, Tuple, Dict, Any, Generator, Callable
+from aiohttp import ClientSession
+from typing import Optional, Tuple, Dict, Any, Generator, Callable, AsyncGenerator, Awaitable
 from dataclasses import asdict
-import pytest, json, uuid, requests, time, warnings
+import pytest, json, uuid, time, warnings, asyncio
 import secrets
 
 
 @pytest.fixture(scope="package")
-def target_client(diem_client: jsonrpc.Client) -> RestClient:
+def event_loop() -> Generator[asyncio.events.AbstractEventLoop, None, None]:
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="package")
+async def target_client(diem_client: jsonrpc.Client) -> RestClient:
     if is_self_check():
         conf = AppConfig(name="target-wallet", diem_id_domain=generate_diem_id_domain("target"))
         print("self-checking, launch target app with config %s" % conf)
-        conf.start(diem_client)
+        await conf.start(diem_client)
         return conf.create_client()
     print("target wallet server url: %s" % target_url())
-    return RestClient(name="target-wallet-client", server_url=target_url(), events_api_is_optional=True).with_retry()
+    return RestClient(name="target-wallet-client", server_url=target_url(), events_api_is_optional=True)
 
 
 @pytest.fixture(scope="package")
@@ -48,7 +56,7 @@ def stub_wallet_app(start_stub_wallet: Tuple[AppConfig, App]) -> App:
 
 
 @pytest.fixture(scope="package")
-def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
+async def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
     domain = generate_diem_id_domain("stub")
     conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()), diem_id_domain=domain)
     account_conf = dmw_stub_diem_account_config()
@@ -59,20 +67,20 @@ def start_stub_wallet(diem_client: jsonrpc.Client) -> Tuple[AppConfig, App]:
     if hrp:
         conf.account_config["hrp"] = hrp
     print("Start stub app with config %s" % conf)
-    app, _ = conf.start(diem_client)
+    app = await conf.start(diem_client)
     return (conf, app)
 
 
 @pytest.fixture(autouse=True)
-def log_stub_account_info(stub_config: AppConfig, diem_client: jsonrpc.Client) -> Generator[None, None, None]:
+async def log_stub_account_info(stub_config: AppConfig, diem_client: jsonrpc.Client) -> AsyncGenerator[None, None]:
     yield
     stub_config.logger.info("=== stub wallet ParentVASP account info ===")
-    data = diem_client.get_account(stub_config.account.account_address)
+    data = await diem_client.get_account(stub_config.account.account_address)
     stub_config.logger.info(data)
 
     stub_config.logger.info("=== stub wallet ChildVASP accounts info ===")
     for i, child in enumerate(stub_config.child_accounts):
-        data = diem_client.get_account(child.account_address)
+        data = await diem_client.get_account(child.account_address)
         stub_config.logger.info("--- ChildVASP account %s ---", i + 1)
         stub_config.logger.info(data)
 
@@ -93,9 +101,10 @@ def currency() -> str:
 
 
 @pytest.fixture
-def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
+async def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
     # todo: convert the limit base on currency
-    return diem_client.get_metadata().dual_attestation_limit
+    metadata = await diem_client.get_metadata()
+    return metadata.dual_attestation_limit
 
 
 @pytest.fixture
@@ -108,14 +117,14 @@ def stub_wallet_pending_income_account(stub_client: RestClient) -> AccountResour
 
 
 @pytest.fixture(autouse=True)
-def log_stub_wallet_pending_income_account(
+async def log_stub_wallet_pending_income_account(
     stub_wallet_pending_income_account: AccountResource,
-) -> Generator[None, None, None]:
+) -> AsyncGenerator[None, None]:
     yield
-    stub_wallet_pending_income_account.log_events()
+    await stub_wallet_pending_income_account.log_events()
 
 
-def send_request_json(
+async def send_request_json(
     diem_client: jsonrpc.Client,
     sender_account: LocalAccount,
     sender_address: Optional[str],
@@ -132,18 +141,16 @@ def send_request_json(
         headers[offchain.http_header.X_REQUEST_SENDER_ADDRESS] = sender_address
 
     account_address, _ = identifier.decode_account(receiver_address, hrp)
-    base_url, public_key = diem_client.get_base_url_and_compliance_key(account_address)
+    base_url, public_key = await diem_client.get_base_url_and_compliance_key(account_address)
     if request_body is None:
         request_body = offchain.jws.serialize_string(request_json, sender_account.compliance_key.sign)
-    resp = requests.Session().post(
-        f"{base_url.rstrip('/')}/v2/command",
-        data=request_body,
-        headers=headers,
-    )
-
-    cmd_resp_obj = offchain.jws.deserialize(resp.content, offchain.CommandResponseObject, public_key.verify)
-
-    return (resp.status_code, cmd_resp_obj)
+    async with ClientSession() as session:
+        url = f"{base_url.rstrip('/')}/v2/command"
+        async with session.post(url, data=request_body, headers=headers) as resp:
+            cmd_resp_obj = offchain.jws.deserialize(
+                await resp.read(), offchain.CommandResponseObject, public_key.verify
+            )
+            return (resp.status, cmd_resp_obj)
 
 
 def payment_command_request_sample(
@@ -206,7 +213,7 @@ def set_field(dic: Dict[str, Any], field: str, value: Any) -> None:  # pyre-igno
     dic[path[len(path) - 1]] = value
 
 
-def wait_for(fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) -> None:
+async def wait_for(fn: Callable[[], Awaitable[None]], max_tries: int = 60, delay: float = 0.1) -> None:
     """Wait for a function call success
 
     The given `fn` argument should:
@@ -219,40 +226,41 @@ def wait_for(fn: Callable[[], None], max_tries: int = 60, delay: float = 0.1) ->
     while True:
         tries += 1
         try:
-            return fn()
+            return await fn()
         except AssertionError as e:
             if tries >= max_tries:
                 raise e
-            time.sleep(delay)
+            await asyncio.sleep(delay)
 
 
-def wait_for_balance(account: AccountResource, currency: str, amount: int) -> None:
+async def wait_for_balance(account: AccountResource, currency: str, amount: int) -> None:
     """Wait for account balance of the given currency meets given `amount`"""
 
-    def match_balance() -> None:
-        assert account.balance(currency) == amount
+    async def match_balance() -> None:
+        balance = await account.balance(currency)
+        assert balance == amount
 
-    wait_for(match_balance)
+    await wait_for(match_balance)
 
 
-def wait_for_event(account: AccountResource, event_type: str, start_index: int = 0, **kwargs: Any) -> None:
+async def wait_for_event(account: AccountResource, event_type: str, start_index: int = 0, **kwargs: Any) -> None:
     """Wait for a specific event happened.
 
     Internally calls to `AccountResource#find_event` to decided whether the event happened.
     See `AccountResource#find_event` for arguments document.
     """
 
-    def match_event() -> None:
-        event = account.find_event(event_type, start_index=start_index, **kwargs)
+    async def match_event() -> None:
+        event = await account.find_event(event_type, start_index=start_index, **kwargs)
         assert event, "could not find %s event with %s" % (event_type, (start_index, kwargs))
 
-    wait_for(match_event)
+    await wait_for(match_event)
 
 
-def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -> None:
+async def wait_for_payment_transaction_complete(account: AccountResource, payment_id: str) -> None:
     # MiniWallet stub generates `updated_transaction` event when transaction is completed on-chain
     # Payment id is same with Transaction id.
-    wait_for_event(account, "updated_transaction", status=Transaction.Status.completed, id=payment_id)
+    await wait_for_event(account, "updated_transaction", status=Transaction.Status.completed, id=payment_id)
 
 
 def generate_diem_id_domain(prefix: str) -> str:

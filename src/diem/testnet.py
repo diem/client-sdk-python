@@ -21,9 +21,9 @@ account: LocalAccount = faucet.gen_account()
 
 """
 
-import requests
-import typing
+import typing, functools
 
+from aiohttp import ClientSession
 from . import diem_types, jsonrpc, utils, chain_ids, bcs, identifier
 from .testing import LocalAccount
 
@@ -47,24 +47,24 @@ def gen_vasp_account(client: jsonrpc.Client, base_url: str) -> LocalAccount:
     raise Exception("deprecated: use `gen_account` instead")
 
 
-def gen_account(
+async def gen_account(
     client: jsonrpc.Client, dd_account: bool = False, base_url: typing.Optional[str] = None
 ) -> LocalAccount:
     """generates a Testnet onchain account"""
 
-    account = Faucet(client).gen_account(dd_account=dd_account)
+    account = await Faucet(client).gen_account(dd_account=dd_account)
     if base_url:
-        account.rotate_dual_attestation_info(client, base_url)
+        await account.rotate_dual_attestation_info(client, base_url)
     return account
 
 
-def gen_child_vasp(
+async def gen_child_vasp(
     client: jsonrpc.Client,
     parent_vasp: LocalAccount,
     initial_balance: int = 10_000_000_000,
     currency: str = TEST_CURRENCY_CODE,
 ) -> LocalAccount:
-    return parent_vasp.gen_child_vasp(client, initial_balance, currency)
+    return await parent_vasp.gen_child_vasp(client, initial_balance, currency)
 
 
 class Faucet:
@@ -82,14 +82,13 @@ class Faucet:
         self._client: jsonrpc.Client = client
         self._url: str = url or FAUCET_URL
         self._retry: jsonrpc.Retry = retry or jsonrpc.Retry(5, 0.2, Exception)
-        self._session: requests.Session = requests.Session()
 
-    def gen_account(self, currency_code: str = TEST_CURRENCY_CODE, dd_account: bool = False) -> LocalAccount:
+    async def gen_account(self, currency_code: str = TEST_CURRENCY_CODE, dd_account: bool = False) -> LocalAccount:
         account = LocalAccount.generate()
-        self.mint(account.auth_key.hex(), 100_000_000_000, currency_code, dd_account)
+        await self.mint(account.auth_key.hex(), 100_000_000_000, currency_code, dd_account)
         return account
 
-    def mint(
+    async def mint(
         self,
         authkey: str,
         amount: int,
@@ -98,13 +97,19 @@ class Faucet:
         diem_id_domain: typing.Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
-        self._retry.execute(
-            lambda: self._mint_without_retry(
-                authkey, amount, currency_code, dd_account, diem_id_domain, is_remove_domain
+        await self._retry.execute(
+            functools.partial(
+                self._mint_without_retry,
+                authkey,
+                amount,
+                currency_code,
+                dd_account,
+                diem_id_domain,
+                is_remove_domain,
             )
         )
 
-    def _mint_without_retry(
+    async def _mint_without_retry(
         self,
         authkey: str,
         amount: int,
@@ -113,27 +118,24 @@ class Faucet:
         diem_id_domain: typing.Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
-        response = self._session.post(
-            self._url,
-            params={
-                "amount": amount,
-                "auth_key": authkey,
-                "currency_code": currency_code,
-                "return_txns": "true",
-                "is_designated_dealer": "true" if dd_account else "false",
-                "diem_id_domain": diem_id_domain,
-                "is_remove_domain": "true" if is_remove_domain else "false",
-            },
-        )
-        response.raise_for_status()
+        params = {
+            "amount": amount,
+            "auth_key": authkey,
+            "currency_code": currency_code,
+            "return_txns": "true",
+            "is_designated_dealer": "true" if dd_account else "false",
+            "is_remove_domain": "true" if is_remove_domain else "false",
+        }
+        if diem_id_domain:
+            params["diem_id_domain"] = diem_id_domain
+        async with ClientSession(raise_for_status=True) as session:
+            async with session.post(self._url, params=params) as response:
+                de = bcs.BcsDeserializer(bytes.fromhex(await response.text()))
 
-        de = bcs.BcsDeserializer(bytes.fromhex(response.text))
-        length = de.deserialize_len()
-
-        for i in range(length):
+        for i in range(de.deserialize_len()):
             txn = de.deserialize_any(diem_types.SignedTransaction)
             try:
-                self._client.wait_for_transaction(txn)
+                await self._client.wait_for_transaction(txn)
             except jsonrpc.TransactionExecutionFailed as e:
                 if txn.vm_status.explanation.reason == "EDOMAIN_ALREADY_EXISTS":
                     continue

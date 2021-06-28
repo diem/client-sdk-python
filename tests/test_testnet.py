@@ -16,9 +16,12 @@ import time
 import pytest
 
 
-def test_get_metadata():
+pytestmark = pytest.mark.asyncio  # pyre-ignore
+
+
+async def test_get_metadata():
     client = testnet.create_client()
-    metadata = client.get_metadata()
+    metadata = await client.get_metadata()
     assert metadata is not None
     assert isinstance(metadata, jsonrpc.Metadata)
     assert metadata.chain_id == testnet.CHAIN_ID.value
@@ -26,9 +29,9 @@ def test_get_metadata():
     assert metadata.timestamp is not None
 
 
-def test_get_metadata_by_version():
+async def test_get_metadata_by_version():
     client = testnet.create_client()
-    metadata = client.get_metadata(1)
+    metadata = await client.get_metadata(1)
     assert metadata is not None
     assert isinstance(metadata, jsonrpc.Metadata)
     assert metadata.chain_id == testnet.CHAIN_ID.value
@@ -37,12 +40,12 @@ def test_get_metadata_by_version():
 
     # this is unexpected, will be updated to return None later
     with pytest.raises(jsonrpc.JsonRpcError):
-        metadata = client.get_metadata(1999999999999)
+        metadata = await client.get_metadata(1999999999999)
 
 
-def test_get_currencies():
+async def test_get_currencies():
     client = testnet.create_client()
-    currencies = client.get_currencies()
+    currencies = await client.get_currencies()
     assert currencies is not None
     assert isinstance(currencies, list)
     assert len(currencies) > 0
@@ -52,51 +55,51 @@ def test_get_currencies():
     assert isinstance(lbr, jsonrpc.CurrencyInfo)
 
 
-def test_get_account():
+async def test_get_account():
     client = testnet.create_client()
-    account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
+    account = await client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
     assert account.role.type == jsonrpc.ACCOUNT_ROLE_DESIGNATED_DEALER
 
 
-def test_get_account_by_hex_encoded_account_address():
+async def test_get_account_by_hex_encoded_account_address():
     client = testnet.create_client()
-    account = client.get_account(utils.TREASURY_ADDRESS)
+    account = await client.get_account(utils.TREASURY_ADDRESS)
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
     assert account.role.type == jsonrpc.ACCOUNT_ROLE_TREASURY_COMPLIANCE
 
 
-def test_get_account_by_invalid_hex_encoded_account_address():
+async def test_get_account_by_invalid_hex_encoded_account_address():
     client = testnet.create_client()
     with pytest.raises(InvalidAccountAddressError):
-        client.get_account(utils.TREASURY_ADDRESS + "invalid")
+        await client.get_account(utils.TREASURY_ADDRESS + "invalid")
 
 
-def test_get_account_not_exist():
+async def test_get_account_not_exist():
     local_account = LocalAccount.generate()
     client = testnet.create_client()
-    account = client.get_account(local_account.account_address)
+    account = await client.get_account(local_account.account_address)
     assert account is None
 
 
-def test_get_account_sequence():
+async def test_get_account_sequence():
     client = testnet.create_client()
-    seq = client.get_account_sequence(testnet.DESIGNATED_DEALER_ADDRESS)
+    seq = await client.get_account_sequence(testnet.DESIGNATED_DEALER_ADDRESS)
     assert isinstance(seq, int)
     assert seq > 0
 
     local = LocalAccount.generate()
     with pytest.raises(jsonrpc.AccountNotFoundError):
-        client.get_account_sequence(local.account_address)
+        await client.get_account_sequence(local.account_address)
 
 
-def test_get_account_transaction():
+async def test_get_account_transaction():
     client = testnet.create_client()
-    txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS, 0)
+    txn = await client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS, 0)
     assert txn is not None
     assert isinstance(txn, jsonrpc.Transaction)
     assert txn.version > 0
@@ -104,15 +107,15 @@ def test_get_account_transaction():
     assert len(txn.events) == 0
 
 
-def test_get_account_transaction_not_exist():
+async def test_get_account_transaction_not_exist():
     client = testnet.create_client()
-    txn = client.get_account_transaction(utils.ROOT_ADDRESS, 9000000000000000)
+    txn = await client.get_account_transaction(utils.ROOT_ADDRESS, 9000000000000000)
     assert txn is None
 
 
-def test_get_account_transaction_by_hex_encoded_account_address():
+async def test_get_account_transaction_by_hex_encoded_account_address():
     client = testnet.create_client()
-    txn = client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS.to_hex(), 0)
+    txn = await client.get_account_transaction(testnet.DESIGNATED_DEALER_ADDRESS.to_hex(), 0)
     assert txn is not None
     assert isinstance(txn, jsonrpc.Transaction)
     assert txn.version > 0
@@ -120,19 +123,19 @@ def test_get_account_transaction_by_hex_encoded_account_address():
     assert len(txn.events) == 0
 
 
-def test_get_account_transaction_include_events():
+async def test_get_account_transaction_include_events():
     client = testnet.create_client()
-    account = testnet.gen_account(client, base_url="http://baseurl")
+    account = await testnet.gen_account(client, base_url="http://baseurl")
 
-    txn = client.get_account_transaction(account.account_address, 0, include_events=True)
+    txn = await client.get_account_transaction(account.account_address, 0, include_events=True)
     assert txn is not None
     assert isinstance(txn, jsonrpc.Transaction)
     assert len(txn.events) > 0
 
 
-def test_get_account_transactions():
+async def test_get_account_transactions():
     client = testnet.create_client()
-    txns = client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS, 0, 1)
+    txns = await client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS, 0, 1)
     assert txns is not None
     assert isinstance(txns, list)
 
@@ -143,15 +146,15 @@ def test_get_account_transactions():
     assert len(txn.events) == 0
 
 
-def test_get_account_transactions_not_exist():
+async def test_get_account_transactions_not_exist():
     client = testnet.create_client()
-    txn = client.get_account_transactions(utils.ROOT_ADDRESS, 9000000000000000, 1)
+    txn = await client.get_account_transactions(utils.ROOT_ADDRESS, 9000000000000000, 1)
     assert txn == []
 
 
-def test_get_account_transactions_by_hex_encoded_account_address():
+async def test_get_account_transactions_by_hex_encoded_account_address():
     client = testnet.create_client()
-    txns = client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS.to_hex(), 0, 1)
+    txns = await client.get_account_transactions(testnet.DESIGNATED_DEALER_ADDRESS.to_hex(), 0, 1)
     assert txns is not None
     assert isinstance(txns, list)
 
@@ -162,10 +165,10 @@ def test_get_account_transactions_by_hex_encoded_account_address():
     assert len(txn.events) == 0
 
 
-def test_get_account_transactions_with_events():
+async def test_get_account_transactions_with_events():
     client = testnet.create_client()
-    account = testnet.gen_account(client, base_url="url")
-    txns = client.get_account_transactions(account.account_address, 0, 1, include_events=True)
+    account = await testnet.gen_account(client, base_url="url")
+    txns = await client.get_account_transactions(account.account_address, 0, 1, include_events=True)
     assert txns is not None
     assert isinstance(txns, list)
 
@@ -178,9 +181,9 @@ def test_get_account_transactions_with_events():
     assert script_call.new_url == b"url"
 
 
-def test_get_transactions():
+async def test_get_transactions():
     client = testnet.create_client()
-    txns = client.get_transactions(1, 1)
+    txns = await client.get_transactions(1, 1)
     assert txns is not None
     assert isinstance(txns, list)
 
@@ -190,10 +193,10 @@ def test_get_transactions():
     assert txn.hash is not None
 
 
-def test_get_events():
+async def test_get_events():
     client = testnet.create_client()
-    account = client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
-    events = client.get_events(account.sent_events_key, 0, 1)
+    account = await client.get_account(testnet.DESIGNATED_DEALER_ADDRESS)
+    events = await client.get_events(account.sent_events_key, 0, 1)
     assert events is not None
     assert isinstance(events, list)
 
@@ -204,17 +207,17 @@ def test_get_events():
     assert event.data.type == jsonrpc.EVENT_DATA_SENT_PAYMENT
 
 
-def test_get_state_proof():
+async def test_get_state_proof():
     client = testnet.create_client()
-    state_proof = client.get_state_proof(1)
+    state_proof = await client.get_state_proof(1)
     assert state_proof is not None
     assert isinstance(state_proof, jsonrpc.StateProof)
     # todo: decode ledger_info and validate version
 
 
-def test_get_last_known_state():
+async def test_get_last_known_state():
     client = testnet.create_client()
-    metadata = client.get_metadata()
+    metadata = await client.get_metadata()
     assert metadata is not None
     state = client.get_last_known_state()
     assert state is not None
@@ -224,42 +227,42 @@ def test_get_last_known_state():
     assert metadata.timestamp == state.timestamp_usecs
 
 
-def test_get_account_state_with_proof():
+async def test_get_account_state_with_proof():
     client = testnet.create_client()
-    state_proof = client.get_account_state_with_proof(testnet.DESIGNATED_DEALER_ADDRESS)
+    state_proof = await client.get_account_state_with_proof(testnet.DESIGNATED_DEALER_ADDRESS)
     assert state_proof is not None
     assert isinstance(state_proof, jsonrpc.AccountStateWithProof)
     assert state_proof.version == client.get_last_known_state().version
 
 
-def test_handle_stale_response_error():
+async def test_handle_stale_response_error():
     client = testnet.create_client()
-    last = client.get_metadata().version
+    last = (await client.get_metadata()).version
     for i in range(0, 20):
-        metadata = client.get_metadata()
+        metadata = await client.get_metadata()
         assert metadata.version >= last
         assert client.get_last_known_state().version == metadata.version
         last = metadata.version
 
 
-def test_submit_create_child_vasp():
+async def test_submit_create_child_vasp():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = faucet.gen_account()
+    parent_vasp = await faucet.gen_account()
     child_vasp = LocalAccount.generate()
     signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
 
-    client.submit(signed_txn)
+    await client.submit(signed_txn)
 
-    executed_txn = client.wait_for_transaction(signed_txn)
+    executed_txn = await client.wait_for_transaction(signed_txn)
     assert executed_txn is not None
     assert isinstance(executed_txn, jsonrpc.Transaction)
     assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
 
     # wait for transaction by signed txn hex string
     signed_txn_hex = signed_txn.bcs_serialize().hex()
-    executed_txn = client.wait_for_transaction(signed_txn_hex)
+    executed_txn = await client.wait_for_transaction(signed_txn_hex)
     assert executed_txn is not None
     assert isinstance(executed_txn, jsonrpc.Transaction)
     assert executed_txn.vm_status.type == jsonrpc.VM_STATUS_EXECUTED
@@ -267,165 +270,170 @@ def test_submit_create_child_vasp():
     assert len(executed_txn.events) > 0
 
 
-def test_submit_failed():
+async def test_submit_failed():
     client = testnet.create_client()
 
     with pytest.raises(jsonrpc.JsonRpcError):
-        client.submit("invalid txn")
+        await client.submit("invalid txn")
 
 
-def test_submit_ignores_stale_resposne_error():
+async def test_submit_ignores_stale_resposne_error():
     client = testnet.create_client()
-    account = testnet.gen_account(client)
+    account = await testnet.gen_account(client)
     script = stdlib.encode_rotate_dual_attestation_info_script(
         new_url="http://localhost".encode("utf-8"), new_key=account.compliance_public_key_bytes
     )
-    txn = account.create_txn(client, script)
+    txn = await account.create_txn(client, script)
     state = client.get_last_known_state()
     client._last_known_server_state.version = state.version + 1_000_000_000
-    client.submit(txn)
+    await client.submit(txn)
     client._last_known_server_state = state
-    assert client.wait_for_transaction(txn)
+    ret = await client.wait_for_transaction(txn)
+    assert ret
 
 
-def test_wait_for_transaction_hash_mismatched_and_execution_failed():
+async def test_wait_for_transaction_hash_mismatched_and_execution_failed():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = faucet.gen_account()
+    parent_vasp = await faucet.gen_account()
     # parent vasp as child, invalid transaction
     signed_txn = create_child_vasp_txn(parent_vasp, parent_vasp)
-    client.submit(signed_txn)
+    await client.submit(signed_txn)
 
     txn = signed_txn.raw_txn
     with pytest.raises(jsonrpc.TransactionHashMismatchError):
-        client.wait_for_transaction2(txn.sender, txn.sequence_number, txn.expiration_timestamp_secs, "mismatched hash")
+        await client.wait_for_transaction2(
+            txn.sender, txn.sequence_number, txn.expiration_timestamp_secs, "mismatched hash"
+        )
 
     with pytest.raises(jsonrpc.TransactionExecutionFailed):
-        client.wait_for_transaction(signed_txn)
+        await client.wait_for_transaction(signed_txn)
 
 
-def test_wait_for_transaction_timeout_and_expire():
+async def test_wait_for_transaction_timeout_and_expire():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = faucet.gen_account()
+    parent_vasp = await faucet.gen_account()
 
     with pytest.raises(jsonrpc.TransactionExpired):
-        client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 0.2, "hash")
+        await client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 0.2, "hash")
 
     with pytest.raises(jsonrpc.WaitForTransactionTimeout):
-        client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 5, "hash", 0.1)
+        await client.wait_for_transaction2(parent_vasp.account_address, 1, time.time() + 5, "hash", 0.1)
 
 
-def test_get_parent_vasp_account():
+async def test_get_parent_vasp_account():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
-    parent_vasp = faucet.gen_account()
+    parent_vasp = await faucet.gen_account()
     child_vasp = LocalAccount.generate()
     signed_txn = create_child_vasp_txn(parent_vasp, child_vasp)
 
-    client.submit(signed_txn)
-    client.wait_for_transaction(signed_txn)
+    await client.submit(signed_txn)
+    await client.wait_for_transaction(signed_txn)
 
-    account = client.get_parent_vasp_account(child_vasp.account_address)
+    account = await client.get_parent_vasp_account(child_vasp.account_address)
 
     expected_address = utils.account_address_hex(parent_vasp.account_address)
     assert account.address == expected_address
 
-    account = client.get_parent_vasp_account(parent_vasp.account_address)
+    account = await client.get_parent_vasp_account(parent_vasp.account_address)
     assert account.address == expected_address
 
 
-def test_get_parent_vasp_account_not_found():
+async def test_get_parent_vasp_account_not_found():
     client = testnet.create_client()
     parent_vasp = LocalAccount.generate()
 
     with pytest.raises(jsonrpc.AccountNotFoundError):
-        client.get_parent_vasp_account(parent_vasp.account_address)
+        await client.get_parent_vasp_account(parent_vasp.account_address)
 
 
-def test_get_parent_vasp_account_with_non_vasp_account_address():
+async def test_get_parent_vasp_account_with_non_vasp_account_address():
     client = testnet.create_client()
 
     with pytest.raises(ValueError):
-        client.get_parent_vasp_account(utils.TREASURY_ADDRESS)
+        await client.get_parent_vasp_account(utils.TREASURY_ADDRESS)
 
 
-def test_gen_account():
+async def test_gen_account():
     client = testnet.create_client()
-    account = testnet.gen_account(client, base_url="http://hello.com")
-    child_vasp = testnet.gen_child_vasp(client, account)
+    account = await testnet.gen_account(client, base_url="http://hello.com")
+    child_vasp = await testnet.gen_child_vasp(client, account)
 
-    assert client.get_account(account.account_address).role.type == "parent_vasp"
-    assert client.get_account(child_vasp.account_address).role.type == "child_vasp"
+    account = await client.get_account(account.account_address)
+    assert account.role.type == "parent_vasp"
+    account = await client.get_account(child_vasp.account_address)
+    assert account.role.type == "child_vasp"
 
 
-def test_get_base_url_and_compliance_key():
+async def test_get_base_url_and_compliance_key():
     client = testnet.create_client()
 
-    parent_vasp = testnet.gen_account(client, base_url="http://hello.com")
-    child_vasp = testnet.gen_child_vasp(client, parent_vasp)
+    parent_vasp = await testnet.gen_account(client, base_url="http://hello.com")
+    child_vasp = await testnet.gen_child_vasp(client, parent_vasp)
 
-    base_url, key = client.get_base_url_and_compliance_key(child_vasp.account_address)
+    base_url, key = await client.get_base_url_and_compliance_key(child_vasp.account_address)
     assert base_url == "http://hello.com"
     assert utils.public_key_bytes(key) == parent_vasp.compliance_public_key_bytes
-    base_url, key = client.get_base_url_and_compliance_key(parent_vasp.account_address)
+    base_url, key = await client.get_base_url_and_compliance_key(parent_vasp.account_address)
     assert base_url == "http://hello.com"
     assert utils.public_key_bytes(key) == parent_vasp.compliance_public_key_bytes
 
 
-def test_account_not_found_error_when_get_base_url_and_compliance_key_for_invalid_account():
+async def test_account_not_found_error_when_get_base_url_and_compliance_key_for_invalid_account():
     client = testnet.create_client()
     account = LocalAccount.generate()
     with pytest.raises(jsonrpc.AccountNotFoundError):
-        client.get_base_url_and_compliance_key(account.account_address)
+        await client.get_base_url_and_compliance_key(account.account_address)
 
 
-def test_value_error_when_get_base_url_and_compliance_key_for_account_has_no_base_url():
+async def test_value_error_when_get_base_url_and_compliance_key_for_account_has_no_base_url():
     client = testnet.create_client()
     with pytest.raises(ValueError):
-        client.get_base_url_and_compliance_key(utils.TREASURY_ADDRESS)
+        await client.get_base_url_and_compliance_key(utils.TREASURY_ADDRESS)
 
 
-def test_gen_dd_account():
+async def test_gen_dd_account():
     client = testnet.create_client()
-    account = testnet.gen_account(client, dd_account=True)
-    onchain_account = client.get_account(account.account_address)
+    account = await testnet.gen_account(client, dd_account=True)
+    onchain_account = await client.get_account(account.account_address)
     assert onchain_account.role.type == "designated_dealer"
 
 
-def test_init_faucet_with_url():
+async def test_init_faucet_with_url():
     client = testnet.create_client()
     faucet = testnet.Faucet(client, "invalid-url")
     with pytest.raises(ValueError):
-        faucet.gen_account()
+        await faucet.gen_account()
 
 
-def test_get_diem_id_domain_map():
+async def test_get_diem_id_domain_map():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
-    parent_vasp1 = faucet.gen_account()
-    parent_vasp2 = faucet.gen_account()
+    parent_vasp1 = await faucet.gen_account()
+    parent_vasp2 = await faucet.gen_account()
     domain1 = "domain1"
     domain2 = "domain2"
 
-    faucet.mint(
+    await faucet.mint(
         parent_vasp1.auth_key.hex(), 1, testnet.TEST_CURRENCY_CODE, diem_id_domain=domain1, is_remove_domain=False
     )
-    faucet.mint(
+    await faucet.mint(
         parent_vasp2.auth_key.hex(), 1, testnet.TEST_CURRENCY_CODE, diem_id_domain=domain2, is_remove_domain=False
     )
 
-    domain_map = client.get_diem_id_domain_map()
+    domain_map = await client.get_diem_id_domain_map()
     assert domain_map.get(domain1) == parent_vasp1.account_address.to_hex()
     assert domain_map.get(domain2) == parent_vasp2.account_address.to_hex()
 
-    faucet.mint(
+    await faucet.mint(
         parent_vasp1.auth_key.hex(), 1, testnet.TEST_CURRENCY_CODE, diem_id_domain=domain1, is_remove_domain=True
     )
-    domain_map = client.get_diem_id_domain_map()
+    domain_map = await client.get_diem_id_domain_map()
     assert domain_map.get(domain1) is None
 
 

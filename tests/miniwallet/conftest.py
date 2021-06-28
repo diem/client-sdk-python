@@ -4,17 +4,28 @@
 
 from diem import jsonrpc, testnet
 from diem.testing.miniwallet import RestClient, AppConfig
-import pytest
+from typing import Generator
+import asyncio, pytest
 
 
 @pytest.fixture(scope="package")
-def target_client(diem_client: jsonrpc.Client) -> RestClient:
-    return start_app(diem_client, "target-wallet").create_client()
+def event_loop() -> Generator[asyncio.events.AbstractEventLoop, None, None]:
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope="package")
-def stub_client(diem_client: jsonrpc.Client) -> RestClient:
-    return start_app(diem_client, "stub-wallet").create_client()
+async def target_client(diem_client: jsonrpc.Client) -> RestClient:
+    app = await start_app(diem_client, "target-wallet")
+    print("start to create client")
+    return app.create_client()
+
+
+@pytest.fixture(scope="package")
+async def stub_client(diem_client: jsonrpc.Client) -> RestClient:
+    app = await start_app(diem_client, "stub-wallet")
+    return app.create_client()
 
 
 @pytest.fixture(scope="package")
@@ -33,12 +44,13 @@ def currency() -> str:
 
 
 @pytest.fixture
-def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
-    return diem_client.get_metadata().dual_attestation_limit
+async def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
+    metadata = await diem_client.get_metadata()
+    return metadata.dual_attestation_limit
 
 
-def start_app(diem_client: jsonrpc.Client, app_name: str) -> AppConfig:
+async def start_app(diem_client: jsonrpc.Client, app_name: str) -> AppConfig:
     conf = AppConfig(name=app_name)
     print("launch %s with config %s" % (app_name, conf))
-    conf.start(diem_client)
+    await conf.start(diem_client)
     return conf

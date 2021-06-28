@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import requests, typing, dataclasses, uuid, math, warnings
+import typing, dataclasses, uuid, math, warnings, aiohttp
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -96,19 +96,12 @@ class Client:
     jsonrpc_client: jsonrpc.Client
     hrp: str
     supported_currency_codes: typing.Optional[typing.List[str]] = dataclasses.field(default=None)
-    session: requests.Session = dataclasses.field(default_factory=lambda: requests.Session())
-    timeout: typing.Tuple[float, float] = dataclasses.field(
-        default_factory=lambda: (
-            DEFAULT_CONNECT_TIMEOUT_SECS,
-            DEFAULT_TIMEOUT_SECS,
-        )
-    )
     my_compliance_key_account_id: str = dataclasses.field(init=False)
 
     def __post_init__(self) -> None:
         self.my_compliance_key_account_id = self.account_id(self.my_compliance_key_account_address)
 
-    def ping(
+    async def ping(
         self,
         counterparty_account_identifier: str,
         sign: typing.Callable[[bytes], bytes],
@@ -120,37 +113,35 @@ class Client:
             command={"_ObjectType": CommandType.PingCommand},
         )
         jws_msg = jws.serialize(request, sign)
-        return self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
+        return await self.send_request(self.my_compliance_key_account_id, counterparty_account_identifier, jws_msg)
 
-    def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
-        return self.send_request(
+    async def send_command(self, command: Command, sign: typing.Callable[[bytes], bytes]) -> CommandResponseObject:
+        return await self.send_request(
             request_sender_address=command.my_address(),
             counterparty_account_id=command.counterparty_address(),
             request_bytes=jws.serialize(command.new_request(), sign),
         )
 
-    def send_request(
+    async def send_request(
         self, request_sender_address: str, counterparty_account_id: str, request_bytes: bytes
     ) -> CommandResponseObject:
-        base_url, public_key = self.get_base_url_and_compliance_key(counterparty_account_id)
-        response = self.session.post(
-            f"{base_url.rstrip('/')}/v2/command",
-            data=request_bytes,
-            headers={
-                http_header.X_REQUEST_ID: str(uuid.uuid4()),
-                http_header.X_REQUEST_SENDER_ADDRESS: request_sender_address,
-            },
-            timeout=self.timeout,
-        )
-        if response.status_code not in [200, 400]:
-            response.raise_for_status()
+        base_url, public_key = await self.get_base_url_and_compliance_key(counterparty_account_id)
+        headers = {
+            http_header.X_REQUEST_ID: str(uuid.uuid4()),
+            http_header.X_REQUEST_SENDER_ADDRESS: request_sender_address,
+        }
+        url = f"{base_url.rstrip('/')}/v2/command"
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=request_bytes, headers=headers) as response:
+                if response.status not in [200, 400]:
+                    response.raise_for_status()
 
-        cmd_resp = _deserialize_jws(response.content, CommandResponseObject, public_key)
-        if cmd_resp.status == CommandResponseStatus.failure:
-            raise CommandResponseError(cmd_resp)
-        return cmd_resp
+                cmd_resp = _deserialize_jws(await response.read(), CommandResponseObject, public_key)
+                if cmd_resp.status == CommandResponseStatus.failure:
+                    raise CommandResponseError(cmd_resp)
+                return cmd_resp
 
-    def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
+    async def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
         """Deprecated
 
         validate and decode the `request_bytes` into `diem.offchain.command.Command` object.
@@ -163,10 +154,12 @@ class Client:
             "`process_inbound_request` is deprecated, call `deserialize_inbound_request` instead, and then call `process_inbound_payment_command_request` if the inbound request is for `PaymentCommand`"
         )
 
-        request = self.deserialize_inbound_request(request_sender_address, request_bytes)
-        return self.process_inbound_payment_command_request(request_sender_address, request)
+        request = await self.deserialize_inbound_request(request_sender_address, request_bytes)
+        return await self.process_inbound_payment_command_request(request_sender_address, request)
 
-    def deserialize_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> CommandRequestObject:
+    async def deserialize_inbound_request(
+        self, request_sender_address: str, request_bytes: bytes
+    ) -> CommandRequestObject:
         """Validate and decode the `request_bytes` into `diem.offchain.command.CommandRequestObject` object.
 
         Raises `diem.offchain.error.Error` with `protocol_error` when:
@@ -181,10 +174,10 @@ class Client:
 
         if not request_sender_address:
             raise protocol_error(ErrorCode.missing_http_header, f"missing {http_header.X_REQUEST_SENDER_ADDRESS}")
-        public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+        public_key = await self.get_inbound_request_sender_public_key(request_sender_address)
         return _deserialize_jws(request_bytes, CommandRequestObject, public_key)
 
-    def process_inbound_payment_command_request(
+    async def process_inbound_payment_command_request(
         self, request_sender_address: str, request: CommandRequestObject
     ) -> PaymentCommand:
         """Validate the `PaymentCommand` and returns a command wrapper object for next processing step.
@@ -207,19 +200,19 @@ class Client:
 
         payment = deserialize_command(request.command, PaymentCommandObject).payment
         self.validate_addresses(payment, request_sender_address)
-        cmd = self.create_inbound_payment_command(request.cid, payment)
+        cmd = await self.create_inbound_payment_command(request.cid, payment)
         if cmd.is_initial():
-            self.validate_dual_attestation_limit_by_action(cmd.payment.action)
+            await self.validate_dual_attestation_limit_by_action(cmd.payment.action)
         elif cmd.is_rsend():
-            public_key = self.get_inbound_request_sender_public_key(request_sender_address)
+            public_key = await self.get_inbound_request_sender_public_key(request_sender_address)
             self.validate_recipient_signature(cmd, public_key)
         return cmd
 
-    def get_inbound_request_sender_public_key(self, request_sender_address: str) -> Ed25519PublicKey:
+    async def get_inbound_request_sender_public_key(self, request_sender_address: str) -> Ed25519PublicKey:
         """find the public key of the request sender address, raises protocol error if not found or public key is invalid"""
 
         try:
-            _, public_key = self.get_base_url_and_compliance_key(request_sender_address)
+            _, public_key = await self.get_base_url_and_compliance_key(request_sender_address)
         except ValueError as e:
             raise protocol_error(ErrorCode.invalid_http_header, str(e)) from e
         return public_key
@@ -236,21 +229,22 @@ class Client:
                 ErrorCode.invalid_recipient_signature, str(e), "command.payment.recipient_signature"
             ) from e
 
-    def validate_dual_attestation_limit_by_action(self, action: PaymentActionObject) -> None:
-        msg = self.is_under_dual_attestation_limit(action.currency, action.amount)
+    async def validate_dual_attestation_limit_by_action(self, action: PaymentActionObject) -> None:
+        msg = await self.is_under_dual_attestation_limit(action.currency, action.amount)
         if msg:
             raise command_error(ErrorCode.no_kyc_needed, msg, "command.payment.action.amount")
 
-    def is_under_dual_attestation_limit(self, currency: str, amount: int) -> typing.Optional[str]:
-        currencies = self.jsonrpc_client.get_currencies()
+    async def is_under_dual_attestation_limit(self, currency: str, amount: int) -> typing.Optional[str]:
+        currencies = await self.jsonrpc_client.get_currencies()
         try:
-            self.validate_currency_code(currency, currencies)
+            await self.validate_currency_code(currency, currencies)
         except InvalidCurrencyCodeError as e:
             raise command_error(ErrorCode.invalid_field_value, str(e), "command.payment.action.currency")
         except UnsupportedCurrencyCodeError as e:
             raise command_error(ErrorCode.unsupported_currency, str(e), "command.payment.action.currency")
 
-        limit = self.jsonrpc_client.get_metadata().dual_attestation_limit
+        metadata = await self.jsonrpc_client.get_metadata()
+        limit = metadata.dual_attestation_limit
         for info in currencies:
             if info.code == currency:
                 if _is_under_the_threshold(limit, info.to_xdx_exchange_rate, amount):
@@ -260,11 +254,11 @@ class Client:
                         limit,
                     )
 
-    def validate_currency_code(
+    async def validate_currency_code(
         self, currency: str, currencies: typing.Optional[typing.List[jsonrpc.CurrencyInfo]] = None
     ) -> None:
         if currencies is None:
-            currencies = self.jsonrpc_client.get_currencies()
+            currencies = await self.jsonrpc_client.get_currencies()
         currency_codes = list(map(lambda c: c.code, currencies))
         supported_codes = _filter_supported_currency_codes(self.supported_currency_codes, currency_codes)
         if currency not in currency_codes:
@@ -294,19 +288,19 @@ class Client:
                 f"address {request_sender_address} is not one of {addresses}",
             )
 
-    def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -> PaymentCommand:
-        if self.is_my_account_id(obj.sender.address):
+    async def create_inbound_payment_command(self, cid: str, obj: PaymentObject) -> PaymentCommand:
+        if await self.is_my_account_id(obj.sender.address):
             return PaymentCommand(cid=cid, my_actor_address=obj.sender.address, payment=obj, inbound=True)
-        if self.is_my_account_id(obj.receiver.address):
+        if await self.is_my_account_id(obj.receiver.address):
             return PaymentCommand(cid=cid, my_actor_address=obj.receiver.address, payment=obj, inbound=True)
 
         raise command_error(ErrorCode.unknown_address, "unknown actor addresses: {obj}")
 
-    def is_my_account_id(self, account_id: str) -> bool:
+    async def is_my_account_id(self, account_id: str) -> bool:
         account_address, _ = identifier.decode_account(account_id, self.hrp)
         if self.my_compliance_key_account_id == self.account_id(account_address):
             return True
-        account = self.jsonrpc_client.get_account(account_address)
+        account = await self.jsonrpc_client.get_account(account_address)
         if account and account.role.parent_vasp_address:
             return self.my_compliance_key_account_id == self.account_id(account.role.parent_vasp_address)
         return False
@@ -314,9 +308,9 @@ class Client:
     def account_id(self, address: typing.Union[diem_types.AccountAddress, bytes, str]) -> str:
         return identifier.encode_account(utils.account_address(address), None, self.hrp)
 
-    def get_base_url_and_compliance_key(self, account_id: str) -> typing.Tuple[str, Ed25519PublicKey]:
+    async def get_base_url_and_compliance_key(self, account_id: str) -> typing.Tuple[str, Ed25519PublicKey]:
         account_address, _ = identifier.decode_account(account_id, self.hrp)
-        return self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
+        return await self.jsonrpc_client.get_base_url_and_compliance_key(account_address)
 
 
 def _filter_supported_currency_codes(

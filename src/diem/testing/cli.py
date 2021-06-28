@@ -10,11 +10,19 @@ from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO
 from urllib.parse import urlsplit
-import logging, click, functools, pytest, os, sys, json, shlex
+import logging, click, functools, pytest, os, sys, json, shlex, asyncio
 
 
 log_format: str = "%(name)s [%(asctime)s] %(levelname)s: %(message)s"
 click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
+
+
+def coro(f):  # pyre-ignore
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):  # pyre-ignore
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
 
 
 def set_env(name: str, is_io: bool = False):  # pyre-ignore
@@ -63,7 +71,8 @@ def main() -> None:
     type=str,
 )
 @click.help_option("-h", "--help")
-def start_server(
+@coro
+async def start_server(
     name: str,
     host: str,
     port: int,
@@ -91,9 +100,10 @@ def start_server(
     print("Server Config: %s" % conf)
 
     client = testnet.create_client()
-    print("Diem chain id: %s" % client.get_metadata().chain_id)
+    metadata = await client.get_metadata()
+    print("Diem chain id: %s" % metadata.chain_id)
 
-    conf.start(client)[1].join()
+    await conf.start(client, blocking=True)
 
 
 @click.command()
@@ -198,7 +208,7 @@ def test(
     url = urlsplit(target)
     target_port = url.port or 80
     print("Waiting for %s:%s ready" % (url.hostname, target_port))
-    utils.wait_for_port(target_port, host=str(url.hostname), timeout=wait_for_target_timeout)
+    utils.blocking_wait_for_port(target_port, host=str(url.hostname), timeout=wait_for_target_timeout)
     print("Target wallet at %s:%s is ready for connection" % (url.hostname, target_port))
 
     args = ["--pyargs", "diem.testing.suites.basic"]

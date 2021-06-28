@@ -8,8 +8,9 @@ pylama
 black
 pyre-check
 pytest-cov
+pytest-asyncio
 mypy-protobuf
 pdoc3
-falcon==2.0.0
 waitress
 pygount
+aiohttp==3.7.0

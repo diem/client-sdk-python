@@ -2,48 +2,56 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from dataclasses import dataclass, asdict, field
-from typing import Dict, List, Any, Tuple
+from typing import Any, Callable, Awaitable
 from .app import App
 from .offchain_api_v2 import OffChainAPIv2
 from .json_input import JsonInput
 from .... import offchain
-import falcon, json, traceback, logging, pathlib
+import json, traceback, logging, pathlib
+from aiohttp import web
 
 
 base_path: str = str(pathlib.Path(__file__).resolve().parent.joinpath("static"))
 
 
-@dataclass
-class LoggerMiddleware:
-    logger: logging.Logger
+Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
+Middleware = Callable[[web.Request, Handler], Awaitable[web.StreamResponse]]
 
-    def process_request(self, req, resp):  # pyre-ignore
-        self.logger.debug("%s %s", req.method, req.relative_uri)
 
-    def process_response(self, req, resp, *args, **kwargs):  # pyre-ignore
-        tc = req.get_header("X-Test-Case")
+def request_logging(logger: logging.Logger) -> Middleware:
+    @web.middleware
+    async def middleware(req: web.Request, handler: Handler) -> web.StreamResponse:
+        logger.debug("%s %s", req.method, req.rel_url)
+
+        resp = await handler(req)
+
+        tc = req.headers.get("X-Test-Case")
         # test case format is <file>::<test method name>, only log the test method name
         test_case = "[%s] " % tc.split("::")[-1] if tc else ""
-        self.logger.info("%s%s %s - %s", test_case, req.method, req.relative_uri, resp.status)
+        logger.info("%s%s %s - %s", test_case, req.method, req.rel_url, resp.status)
+
+        return resp
+
+    return middleware
 
 
 def rest_handler(fn: Any):  # pyre-ignore
-    def wrapper(self, req, resp, **kwargs):  # pyre-ignore
+    async def wrapper(endpoints: "Endpoints", req: web.Request) -> web.Response:
         try:
             if req.content_length:
                 try:
-                    data = json.load(req.stream)
+                    data = json.loads(await req.text())
                 except json.decoder.JSONDecodeError:
                     raise ValueError("request body is invalid JSON")
-                self.app.logger.debug("request body: %s", data)
+                endpoints.app.logger.debug("request body: %s", data)
             else:
                 data = {}
-            status, body = fn(self, input=JsonInput(data), **kwargs)
-            resp.status = status
-            resp.body = json.dumps(body)
+            account_id = req.match_info.get("account_id")
+            kwargs = {"account_id": account_id} if account_id else {}
+            return await fn(endpoints, input=JsonInput(data), **kwargs)
         except ValueError as e:
-            resp.status = falcon.HTTP_400
-            resp.body = json.dumps({"error": str(e), "stacktrace": traceback.format_exc()})
+            body = {"error": str(e), "stacktrace": traceback.format_exc()}
+            return web.json_response(body, status=400)
 
     return wrapper
 
@@ -59,55 +67,63 @@ class Endpoints:
         self.app.add_dual_attestation_txn_sender("v2", self.offchain_api_v2.send_dual_attestation_transaction)
 
     @rest_handler
-    def on_post_accounts(self, input: JsonInput) -> Tuple[str, Dict[str, str]]:
-        return (falcon.HTTP_201, self.app.create_account(input))
+    async def accounts(self, input: JsonInput) -> web.Response:
+        return web.json_response(await self.app.create_account(input), status=201)
 
     @rest_handler
-    def on_post_payments(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_202, self.app.create_account_payment(account_id, input))
+    async def account_payments(self, input: JsonInput, account_id: str) -> web.Response:
+        ret = await self.app.create_account_payment(account_id, input)
+        return web.json_response(ret, status=202)
 
     @rest_handler
-    def on_post_account_identifiers(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, Any]]:
-        return (falcon.HTTP_200, self.app.create_account_identifier(account_id, input))
+    async def account_identifiers(self, input: JsonInput, account_id: str) -> web.Response:
+        return web.json_response(self.app.create_account_identifier(account_id, input))
 
     @rest_handler
-    def on_get_balances(self, account_id: str, input: JsonInput) -> Tuple[str, Dict[str, int]]:
-        return (falcon.HTTP_200, self.app.get_account_balances(account_id))
+    async def account_balances(self, account_id: str, input: JsonInput) -> web.Response:
+        return web.json_response(self.app.get_account_balances(account_id))
 
     @rest_handler
-    def on_get_events(self, account_id: str, input: JsonInput) -> Tuple[str, List[Dict[str, Any]]]:
-        return (falcon.HTTP_200, [asdict(e) for e in self.app.get_account_events(account_id)])
+    async def account_events(self, account_id: str, input: JsonInput) -> web.Response:
+        return web.json_response([asdict(e) for e in self.app.get_account_events(account_id)])
 
     @rest_handler
-    def on_get_kyc_sample(self, input: JsonInput) -> Tuple[str, Dict[str, str]]:
-        return (falcon.HTTP_200, asdict(self.app.kyc_sample))
+    async def kyc_sample(self, input: JsonInput) -> web.Response:
+        return web.json_response(asdict(self.app.kyc_sample))
 
-    def on_post_offchain_v2(self, req: falcon.Request, resp: falcon.Response) -> None:
-        request_id = req.get_header(offchain.X_REQUEST_ID)
-        resp.set_header(offchain.X_REQUEST_ID, request_id)
-        request_sender_address = req.get_header(offchain.X_REQUEST_SENDER_ADDRESS)
-        input_data = req.stream.read()
+    async def offchain_v2(self, req: web.Request) -> web.Response:
+        request_id = req.headers.get(offchain.X_REQUEST_ID, "")
+        request_sender_address = req.headers.get(offchain.X_REQUEST_SENDER_ADDRESS, "")
+        input_data = await req.read()
 
-        resp_obj = self.offchain_api_v2.process(request_id, request_sender_address, input_data)
-        if resp_obj.error is not None:
-            resp.status = falcon.HTTP_400
-        resp.body = self.offchain_api_v2.jws_serialize(resp_obj)
-
-    def on_get_index(self, req: falcon.Request, resp: falcon.Response) -> None:
-        raise falcon.HTTPMovedPermanently("/index.html")
+        resp_obj = await self.offchain_api_v2.process(request_id, request_sender_address, input_data)
+        body = self.offchain_api_v2.jws_serialize(resp_obj)
+        status = 400 if resp_obj.error is not None else 200
+        headers = {offchain.X_REQUEST_ID: request_id}
+        return web.Response(body=body, status=status, headers=headers)
 
 
-def falcon_api(app: App, disable_events_api: bool = False) -> falcon.API:
+async def root_handler(request: web.Request) -> web.Response:
+    return web.HTTPFound("/index.html")
+
+
+async def web_api(app: App, disable_events_api: bool = False) -> web.Application:
     endpoints = Endpoints(app=app)
-    api = falcon.API(middleware=[LoggerMiddleware(logger=app.logger)])
-    api.add_static_route("/", base_path)
-    api.add_route("/", endpoints, suffix="index")
-    api.add_route("/accounts", endpoints, suffix="accounts")
-    for res in ["balances", "payments", "account_identifiers", "events"]:
-        if res == "events" and disable_events_api:
-            continue
-        api.add_route("/accounts/{account_id}/%s" % res, endpoints, suffix=res)
-    api.add_route("/kyc_sample", endpoints, suffix="kyc_sample")
-    api.add_route("/v2/command", endpoints, suffix="offchain_v2")
-    app.start_bg_worker_thread()
+
+    api = web.Application(middlewares=[request_logging(app.logger)])
+    api.router.add_route("get", "/", root_handler)
+
+    api.router.add_route("post", "/accounts", endpoints.accounts)
+    api.router.add_route("get", "/accounts/{account_id}/balances", endpoints.account_balances)
+    api.router.add_route("post", "/accounts/{account_id}/account_identifiers", endpoints.account_identifiers)
+    api.router.add_route("post", "/accounts/{account_id}/payments", endpoints.account_payments)
+    api.router.add_route("get", "/kyc_sample", endpoints.kyc_sample)
+    api.router.add_route("post", "/v2/command", endpoints.offchain_v2)
+    if not disable_events_api:
+        api.router.add_route("get", "/accounts/{account_id}/events", endpoints.account_events)
+
+    api.router.add_static("/", base_path)
+
+    await app.start_worker()
+
     return api

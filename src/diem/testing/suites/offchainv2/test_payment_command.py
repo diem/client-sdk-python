@@ -16,6 +16,9 @@ from ..conftest import (
 import json, pytest
 
 
+pytestmark = pytest.mark.asyncio  # pyre-ignore
+
+
 @pytest.mark.parametrize(
     "field_name",
     [
@@ -37,7 +40,7 @@ import json, pytest
         "payment.action.timestamp",
     ],
 )
-def test_payment_command_contains_missing_required_field(
+async def test_payment_command_contains_missing_required_field(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
@@ -58,7 +61,7 @@ def test_payment_command_contains_missing_required_field(
        and `missing_field` error code.
     """
 
-    assert_payment_command_field_error(
+    await assert_payment_command_field_error(
         stub_config,
         stub_client,
         target_client,
@@ -85,7 +88,7 @@ def test_payment_command_contains_missing_required_field(
         "payment.action.unknown",
     ],
 )
-def test_payment_command_contains_unknown_field(
+async def test_payment_command_contains_unknown_field(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
@@ -106,7 +109,7 @@ def test_payment_command_contains_unknown_field(
        and `unknown_field` error code.
     """
 
-    assert_payment_command_field_error(
+    await assert_payment_command_field_error(
         stub_config,
         stub_client,
         target_client,
@@ -133,7 +136,7 @@ def test_payment_command_contains_unknown_field(
         "payment.action.action",
     ],
 )
-def test_payment_command_contains_invalid_field_value(
+async def test_payment_command_contains_invalid_field_value(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
@@ -154,7 +157,7 @@ def test_payment_command_contains_invalid_field_value(
        and `invalid_field_value` error code.
     """
 
-    assert_payment_command_field_error(
+    await assert_payment_command_field_error(
         stub_config,
         stub_client,
         target_client,
@@ -190,7 +193,7 @@ def test_payment_command_contains_invalid_field_value(
         "payment.action.action",
     ],
 )
-def test_payment_command_contains_invalid_field_value_type(
+async def test_payment_command_contains_invalid_field_value_type(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
@@ -211,7 +214,7 @@ def test_payment_command_contains_invalid_field_value_type(
        and `invalid_field_value` error code.
     """
 
-    assert_payment_command_field_error(
+    await assert_payment_command_field_error(
         stub_config,
         stub_client,
         target_client,
@@ -225,7 +228,7 @@ def test_payment_command_contains_invalid_field_value_type(
     )
 
 
-def test_payment_command_contains_invalid_actor_metadata_item_type(
+async def test_payment_command_contains_invalid_actor_metadata_item_type(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
@@ -245,7 +248,7 @@ def test_payment_command_contains_invalid_actor_metadata_item_type(
        and `invalid_field_value` error code.
     """
 
-    assert_payment_command_field_error(
+    await assert_payment_command_field_error(
         stub_config,
         stub_client,
         target_client,
@@ -259,7 +262,7 @@ def test_payment_command_contains_invalid_actor_metadata_item_type(
     )
 
 
-def test_replay_the_same_payment_command(
+async def test_replay_the_same_payment_command(
     currency: str,
     travel_rule_threshold: int,
     stub_wallet_app: App,
@@ -278,28 +281,30 @@ def test_replay_the_same_payment_command(
     7. Enable stub wallet application background tasks.
     """
 
-    sender_account = stub_client.create_account(
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    sender_account = await stub_client.create_account(
         balances={currency: travel_rule_threshold},
-        kyc_data=target_client.get_kyc_sample().minimum,
+        kyc_data=target_kyc.minimum,
         disable_background_tasks=True,
     )
-    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
-        payee = receiver_account.generate_account_identifier()
+        payee = await receiver_account.generate_account_identifier()
 
-        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        payment = await sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
         api = OffChainAPIv2(stub_wallet_app)
-        cmd = api.send_initial_payment_command(txn)
-        api.send_offchain_command_without_retries(cmd)
-        api.send_offchain_command_without_retries(cmd)
+        cmd = await api.send_initial_payment_command(txn)
+        await api.send_offchain_command_without_retries(cmd)
+        await api.send_offchain_command_without_retries(cmd)
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def test_payment_command_sender_kyc_data_can_only_be_written_once(
+async def test_payment_command_sender_kyc_data_can_only_be_written_once(
     currency: str,
     travel_rule_threshold: int,
     stub_wallet_app: App,
@@ -321,22 +326,24 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
        and `invalid_overwrite` error code.
     """
 
-    sender_account = stub_client.create_account(
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    sender_account = await stub_client.create_account(
         balances={currency: travel_rule_threshold},
-        kyc_data=target_client.get_kyc_sample().minimum,
+        kyc_data=target_kyc.minimum,
         disable_background_tasks=True,
     )
-    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
-        payee = receiver_account.generate_account_identifier()
+        payee = await receiver_account.generate_account_identifier()
 
-        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        payment = await sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        initial_cmd = OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
+        initial_cmd = await OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        wait_for_event(sender_account, "updated_payment_command")
+        await wait_for_event(sender_account, "updated_payment_command")
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -351,15 +358,15 @@ def test_payment_command_sender_kyc_data_can_only_be_written_once(
         new_cmd = offchain_cmd.new_command(status=offchain.Status.ready_for_settlement, kyc_data=kyc_data)
 
         with pytest.raises(offchain.CommandResponseError) as err:
-            OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
+            await OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
 
         assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.sender.kyc_data")
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def test_payment_command_sender_address_can_only_be_written_once(
+async def test_payment_command_sender_address_can_only_be_written_once(
     currency: str,
     travel_rule_threshold: int,
     stub_wallet_app: App,
@@ -382,22 +389,24 @@ def test_payment_command_sender_address_can_only_be_written_once(
        and `invalid_overwrite` error code.
     """
 
-    sender_account = stub_client.create_account(
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    sender_account = await stub_client.create_account(
         balances={currency: travel_rule_threshold},
-        kyc_data=target_client.get_kyc_sample().minimum,
+        kyc_data=target_kyc.minimum,
         disable_background_tasks=True,
     )
-    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
-        payee = receiver_account.generate_account_identifier()
+        payee = await receiver_account.generate_account_identifier()
 
-        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        payment = await sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        initial_cmd = OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
+        initial_cmd = await OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        wait_for_event(sender_account, "updated_payment_command")
+        await wait_for_event(sender_account, "updated_payment_command")
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -413,12 +422,12 @@ def test_payment_command_sender_address_can_only_be_written_once(
         new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
         with pytest.raises(offchain.CommandResponseError) as err:
-            OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
+            await OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
 
         assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.sender.address")
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
 @pytest.mark.parametrize(
@@ -429,7 +438,7 @@ def test_payment_command_sender_address_can_only_be_written_once(
         "timestamp",
     ],
 )
-def test_payment_command_action_can_only_be_written_once(
+async def test_payment_command_action_can_only_be_written_once(
     currency: str,
     travel_rule_threshold: int,
     stub_wallet_app: App,
@@ -453,22 +462,24 @@ def test_payment_command_action_can_only_be_written_once(
        and `invalid_overwrite` error code.
     """
 
-    sender_account = stub_client.create_account(
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    sender_account = await stub_client.create_account(
         balances={currency: travel_rule_threshold},
-        kyc_data=target_client.get_kyc_sample().minimum,
+        kyc_data=target_kyc.minimum,
         disable_background_tasks=True,
     )
-    receiver_account = target_client.create_account(kyc_data=stub_client.get_kyc_sample().minimum)
+    receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
-        payee = receiver_account.generate_account_identifier()
+        payee = await receiver_account.generate_account_identifier()
 
-        payment = sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
+        payment = await sender_account.send_payment(currency=currency, amount=travel_rule_threshold, payee=payee)
         txn = stub_wallet_app.store.find(Transaction, id=payment.id)
         # send initial payment command
-        initial_cmd = OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
+        initial_cmd = await OffChainAPIv2(stub_wallet_app).send_initial_payment_command(txn)
 
         # wait for receiver to update payment command
-        wait_for_event(sender_account, "updated_payment_command")
+        await wait_for_event(sender_account, "updated_payment_command")
         # find updated payment command
         updated_cmd = stub_wallet_app.store.find(PaymentCommand, reference_id=initial_cmd.reference_id())
         offchain_cmd = updated_cmd.to_offchain_command()
@@ -487,15 +498,15 @@ def test_payment_command_action_can_only_be_written_once(
         new_cmd = new_offchain_cmd.new_command(status=offchain.Status.ready_for_settlement)
 
         with pytest.raises(offchain.CommandResponseError) as err:
-            OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
+            await OffChainAPIv2(stub_wallet_app).send_offchain_command_without_retries(new_cmd)
 
         assert_response_error(err.value.resp, "invalid_overwrite", "command_error", field="payment.action")
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def assert_payment_command_field_error(
+async def assert_payment_command_field_error(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
@@ -507,11 +518,14 @@ def assert_payment_command_field_error(
     field_value: Union[None, str, int, List[int]],
     error_code: str,
 ) -> None:
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
+    receiver_account = await target_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_account = await stub_client.create_account()
+    sender_address = await sender_account.generate_account_identifier()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
@@ -519,7 +533,7 @@ def assert_payment_command_field_error(
     full_field_name = "command." + field_name
     set_field(request, full_field_name, field_value)
 
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,

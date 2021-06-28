@@ -14,10 +14,13 @@ from diem import offchain
 from diem.testing.miniwallet import RestClient, AccountResource
 from typing import List
 from ..conftest import wait_for, wait_for_balance
-import json
+import json, pytest
 
 
-def test_send_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted(
+pytestmark = pytest.mark.asyncio  # pyre-ignore
+
+
+async def test_send_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_accepted(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -33,18 +36,20 @@ def test_send_payment_meets_travel_rule_threshold_both_kyc_data_evaluations_are_
     5 . Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().minimum
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.minimum
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().minimum),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.minimum),
         payment_command_states=["S_INIT", "R_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected_by_the_receiver(
+async def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected_by_the_receiver(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -60,18 +65,18 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_rejected_by
     5 . Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().reject
-        ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().minimum),
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.reject),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.minimum),
         payment_command_states=["S_INIT", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_by_the_sender(
+async def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_by_the_sender(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -87,18 +92,20 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_rejected_
     5. Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().minimum
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.minimum
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().reject),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.reject),
         payment_command_states=["S_INIT", "R_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data(
+async def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -114,18 +121,20 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     4. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().soft_match
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.soft_match
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().minimum),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.minimum),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data(
+async def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_accepted_after_reviewing_additional_kyc_data(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -141,18 +150,20 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_matc
     5. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().minimum
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.minimum
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().soft_match),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.soft_match),
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data(
+async def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -168,18 +179,20 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     5. Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().soft_reject
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.soft_reject
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().minimum),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.minimum),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data(
+async def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_match_then_rejected_after_reviewing_additional_kyc_data(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -195,18 +208,20 @@ def test_send_payment_meets_travel_rule_threshold_receiver_kyc_data_is_soft_matc
     5. Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().minimum
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.minimum
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().soft_reject),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.soft_reject),
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_receiver_aborts_for_sending_additional_kyc_data(
+async def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_then_receiver_aborts_for_sending_additional_kyc_data(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -223,12 +238,14 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     6. Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().minimum
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.minimum
         ),
-        receiver=stub_client.create_account(
-            kyc_data=target_client.get_kyc_sample().soft_match, reject_additional_kyc_data_request=True
+        receiver=await stub_client.create_account(
+            kyc_data=target_kyc.soft_match, reject_additional_kyc_data_request=True
         ),
         payment_command_states=["S_INIT", "R_SEND", "S_SOFT", "R_ABORT"],
         currency=currency,
@@ -236,7 +253,7 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_are_soft_match_then_accepted_after_reviewing_additional_kyc_data(
+async def test_send_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_are_soft_match_then_accepted_after_reviewing_additional_kyc_data(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -252,18 +269,20 @@ def test_send_payment_meets_travel_rule_threshold_sender_and_receiver_kyc_data_a
     5. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().soft_match
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.soft_match
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().soft_match),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.soft_match),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "READY"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_rejected(
+async def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_rejected(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -279,18 +298,20 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     5. Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().soft_match
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.soft_match
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().reject),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.reject),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_soft_match_and_rejected(
+async def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_and_accepted_receiver_kyc_data_is_soft_match_and_rejected(
     currency: str,
     travel_rule_threshold: int,
     target_client: RestClient,
@@ -306,18 +327,20 @@ def test_send_payment_meets_travel_rule_threshold_sender_kyc_data_is_soft_match_
     5. Expect sender and receiver accounts' balances are not changed.
     """
 
-    send_payment_meets_travel_rule_threshold(
-        sender=target_client.create_account(
-            balances={currency: travel_rule_threshold}, kyc_data=stub_client.get_kyc_sample().soft_match
+    target_kyc = await target_client.get_kyc_sample()
+    stub_kyc = await stub_client.get_kyc_sample()
+    await send_payment_meets_travel_rule_threshold(
+        sender=await target_client.create_account(
+            balances={currency: travel_rule_threshold}, kyc_data=stub_kyc.soft_match
         ),
-        receiver=stub_client.create_account(kyc_data=target_client.get_kyc_sample().soft_reject),
+        receiver=await stub_client.create_account(kyc_data=target_kyc.soft_reject),
         payment_command_states=["S_INIT", "R_SOFT", "S_SOFT_SEND", "R_SEND", "S_SOFT", "R_SOFT_SEND", "S_ABORT"],
         currency=currency,
         amount=travel_rule_threshold,
     )
 
 
-def send_payment_meets_travel_rule_threshold(
+async def send_payment_meets_travel_rule_threshold(
     sender: AccountResource,
     receiver: AccountResource,
     payment_command_states: List[str],
@@ -325,26 +348,27 @@ def send_payment_meets_travel_rule_threshold(
     amount: int,
     receiver_reject_additional_kyc_data_request: bool = False,
 ) -> None:
-    sender_initial = sender.balance(currency)
-    receiver_initial = receiver.balance(currency)
+    sender_initial = await sender.balance(currency)
+    receiver_initial = await receiver.balance(currency)
 
-    payee = receiver.generate_account_identifier()
-    sender.send_payment(currency, amount, payee)
+    payee = await receiver.generate_account_identifier()
+    await sender.send_payment(currency, amount, payee)
 
-    def match_exchange_states() -> None:
+    async def match_exchange_states() -> None:
         states = []
-        for e in receiver.events():
+        events = await receiver.events()
+        for e in events:
             if e.type in ["created_payment_command", "updated_payment_command"]:
                 payment_object = json.loads(e.data)["payment_object"]
                 payment = offchain.from_dict(payment_object, offchain.PaymentObject)
                 states.append(offchain.payment_state.MACHINE.match_state(payment).id)
         assert states == payment_command_states
 
-    wait_for(match_exchange_states)
+    await wait_for(match_exchange_states)
 
     if payment_command_states[-1] == "READY":
-        wait_for_balance(sender, currency, sender_initial - amount)
-        wait_for_balance(receiver, currency, receiver_initial + amount)
+        await wait_for_balance(sender, currency, sender_initial - amount)
+        await wait_for_balance(receiver, currency, receiver_initial + amount)
     else:
-        wait_for_balance(sender, currency, sender_initial)
-        wait_for_balance(receiver, currency, receiver_initial)
+        await wait_for_balance(sender, currency, sender_initial)
+        await wait_for_balance(receiver, currency, receiver_initial)

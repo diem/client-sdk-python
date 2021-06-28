@@ -99,13 +99,13 @@ class LocalAccount:
         signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
         return utils.create_signed_transaction(txn, self.public_key_bytes, signature)
 
-    def create_txn(
+    async def create_txn(
         self,
         client: jsonrpc.Client,
         script: Optional[diem_types.Script] = None,
         payload: Optional[diem_types.TransactionPayload] = None,
     ) -> diem_types.SignedTransaction:
-        sequence_number = client.get_account_sequence(self.account_address)
+        sequence_number = await client.get_account_sequence(self.account_address)
         chain_id = client.get_last_known_state().chain_id
         if script:
             payload = diem_types.TransactionPayload__Script(value=script)
@@ -122,39 +122,39 @@ class LocalAccount:
             )
         )
 
-    def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> diem_types.SignedTransaction:
+    async def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> diem_types.SignedTransaction:
         """submit transaction with the given script
 
         This function creates transaction with current account sequence number (by json-rpc `get_account`
         method).
         """
 
-        txn = self.create_txn(client, script)
-        client.submit(txn)
+        txn = await self.create_txn(client, script)
+        await client.submit(txn)
         return txn
 
-    def submit_and_wait_for_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> jsonrpc.Transaction:
-        txn = self.submit_txn(client, script)
-        return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
+    async def submit_and_wait_for_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> jsonrpc.Transaction:
+        txn = await self.submit_txn(client, script)
+        return await client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
 
-    def rotate_dual_attestation_info(
+    async def rotate_dual_attestation_info(
         self, client: jsonrpc.Client, base_url: str, compliance_key: Optional[bytes] = None
     ) -> jsonrpc.Transaction:
         if not compliance_key:
             compliance_key = self.compliance_public_key_bytes
-        return self.submit_and_wait_for_txn(
+        return await self.submit_and_wait_for_txn(
             client,
             stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode("utf-8"), new_key=compliance_key),
         )
 
-    def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -> "LocalAccount":
+    async def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -> "LocalAccount":
         """Generates a new ChildVASP account if `self` is a ParentVASP account.
 
         Raisees error with transaction execution failure if `self` is not a ParentVASP account.
         """
 
         child_vasp = replace(self, private_key=Ed25519PrivateKey.generate())
-        self.submit_and_wait_for_txn(
+        await self.submit_and_wait_for_txn(
             client,
             stdlib.encode_create_child_vasp_account_script(
                 coin_type=utils.currency_code(currency),

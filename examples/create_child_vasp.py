@@ -13,12 +13,12 @@ from diem import (
 from diem.testing import LocalAccount
 
 
-def test_create_child_vasp():
+async def test_create_child_vasp():
     client = testnet.create_client()
     faucet = testnet.Faucet(client)
 
     parent_vasp = faucet.gen_account()
-    seq_num = client.get_account_sequence(parent_vasp.account_address)
+    seq_num = await client.get_account_sequence(parent_vasp.account_address)
 
     child_vasp = LocalAccount.generate()
     currency = testnet.TEST_CURRENCY_CODE
@@ -41,6 +41,6 @@ def test_create_child_vasp():
         chain_id=testnet.CHAIN_ID,
     )
     txn = parent_vasp.sign(raw_txn)
-    client.submit(txn)
-    executed_txn = client.wait_for_transaction(txn)
+    await client.submit(txn)
+    executed_txn = await client.wait_for_transaction(txn)
     assert executed_txn is not None

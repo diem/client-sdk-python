@@ -194,8 +194,8 @@ class App:
             try:
                 vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
                 domain_map = self.diem_client.get_diem_id_domain_map()
-                payee_onchain_address = domain_map.get(vasp_identifier)
-                if payee_onchain_address is None:
+                diem_id_address = domain_map.get(vasp_identifier)
+                if diem_id_address is None:
                     raise ValueError(f"Diem ID domain {vasp_identifier} was not found")
                 self.store.update(txn, reference_id=reference_id)
                 response = self.offchain.ref_id_exchange_request(
@@ -204,7 +204,7 @@ class App:
                     receiver=str(txn.payee),
                     reference_id=reference_id,
                     counterparty_account_identifier=identifier.encode_account(
-                        payee_onchain_address, None, self.diem_account.hrp
+                        diem_id_address, None, self.diem_account.hrp
                     ),
                     sign=self.diem_account.sign_by_compliance_key,
                 )

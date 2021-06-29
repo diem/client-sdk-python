@@ -10,7 +10,7 @@ See https://dip.diem.com/dip-4 for more details
 
 
 from dataclasses import dataclass
-import typing, warnings
+import typing
 import uuid
 from . import diem_types, serde_types, bcs, jsonrpc, utils
 
@@ -168,45 +168,6 @@ def find_refund_reference_event(
             return event
 
     return None
-
-
-def refund_metadata_from_event(event: jsonrpc.Event) -> typing.Optional[bytes]:
-    """create refund metadat for the event
-
-    The given event should be the reference event for the refund, it should have metadata describes
-    the payment details.
-    May call `find_refund_reference_event` function to find reference event from a peer to peer transfer
-    transaction.
-
-    Returns empty bytes array if given event metadata is None or empty string, this is for the case
-    the peer to peer transaction is a non-custodial to non-custodial account, which does not require
-    metadata, hence the refund transaction should not have metadata too.
-
-    Raises InvalidEventMetadataForRefundError if metadata can't be decoded as
-    diem_types.GeneralMetadata__GeneralMetadataVersion0 for creating the refund metadata
-    """
-
-    warnings.warn(
-        "`refund_metadata_from_event` is deprecated, prefer `refund_metadata` to create `diem_types.Metadata__RefundMetadata` BCS serialized bytes"
-    )
-
-    if not event.data.metadata:
-        return b""
-
-    try:
-        metadata_bytes = bytes.fromhex(event.data.metadata)
-        metadata = diem_types.Metadata.bcs_deserialize(metadata_bytes)
-
-        if isinstance(metadata, diem_types.Metadata__GeneralMetadata):
-            if isinstance(metadata.value, diem_types.GeneralMetadata__GeneralMetadataVersion0):
-                gmv0 = metadata.value.value
-                return general_metadata(gmv0.to_subaddress, gmv0.from_subaddress, event.sequence_number)
-
-            raise InvalidEventMetadataForRefundError("unknown metadata type: {metadata}")
-
-        raise InvalidEventMetadataForRefundError(f"unknown metadata type: {metadata}")
-    except ValueError as e:
-        raise InvalidEventMetadataForRefundError(f"invalid event metadata for refund: {e}, event: {event}")
 
 
 def payment_metadata(

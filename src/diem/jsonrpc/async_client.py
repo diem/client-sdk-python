@@ -140,7 +140,9 @@ class RequestWithBackups(RequestStrategy):
 
 
 class AsyncClient:
-    """Diem JSON-RPC API asyncio client
+    """Diem JSON-RPC API asyncio client.
+
+    Async client is not threadsafe, must be run inside one thread / event loop.
 
     [SPEC](https://github.com/diem/diem/blob/master/json-rpc/json-rpc-spec.md)
     """

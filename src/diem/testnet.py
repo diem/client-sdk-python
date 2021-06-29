@@ -24,7 +24,7 @@ account: LocalAccount = faucet.gen_account()
 import requests
 import typing
 
-from . import diem_types, jsonrpc, utils, chain_ids, bcs, identifier
+from . import diem_types, jsonrpc, utils, chain_ids, bcs, identifier, stdlib
 from .testing import LocalAccount, DD_ADDRESS
 
 
@@ -54,7 +54,10 @@ def gen_account(
 
     account = Faucet(client).gen_account(dd_account=dd_account)
     if base_url:
-        account.rotate_dual_attestation_info(client, base_url)
+        payload = stdlib.encode_rotate_dual_attestation_info_script_function(
+            new_url=base_url.encode("utf-8"), new_key=account.compliance_public_key_bytes
+        )
+        apply_txn(client, account, payload)
     return account
 
 
@@ -64,7 +67,18 @@ def gen_child_vasp(
     initial_balance: int = 10_000_000_000,
     currency: str = TEST_CURRENCY_CODE,
 ) -> LocalAccount:
-    return parent_vasp.gen_child_vasp(client, initial_balance, currency)
+    child, payload = parent_vasp.new_child_vasp(initial_balance, currency)
+    apply_txn(client, parent_vasp, payload)
+    return child
+
+
+def apply_txn(
+    client: jsonrpc.Client, vasp: LocalAccount, payload: diem_types.TransactionPayload
+) -> jsonrpc.Transaction:
+    seq = client.get_account_sequence(vasp.account_address)
+    txn = vasp.create_signed_txn(seq, payload)
+    client.submit(txn)
+    return client.wait_for_transaction(txn)
 
 
 class Faucet:

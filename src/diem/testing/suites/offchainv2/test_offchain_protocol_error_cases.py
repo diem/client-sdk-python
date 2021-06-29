@@ -1,18 +1,21 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import jsonrpc, testnet
-from diem.testing import LocalAccount
+from diem.jsonrpc import AsyncClient
+from diem.testing import LocalAccount, Faucet
 from diem.testing.miniwallet import RestClient, AppConfig
 from ..conftest import assert_response_error, payment_command_request_sample, send_request_json
 import json, pytest
 
 
-def test_invalid_x_request_id(
+pytestmark = pytest.mark.asyncio  # pyre-ignore
+
+
+async def test_invalid_x_request_id(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -28,16 +31,20 @@ def test_invalid_x_request_id(
        and `invalid_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -51,11 +58,11 @@ def test_invalid_x_request_id(
     assert_response_error(resp, "invalid_http_header", "protocol_error")
 
 
-def test_missing_x_request_id(
+async def test_missing_x_request_id(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -70,16 +77,19 @@ def test_missing_x_request_id(
        and `missing_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -101,11 +111,11 @@ def test_missing_x_request_id(
         "xdm1p7ujcndcl7nudzwt8fglhx6wxn08kgs5tm6mz4us2vfufk",
     ],
 )
-def test_invalid_x_request_sender_address(
+async def test_invalid_x_request_sender_address(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -121,16 +131,19 @@ def test_invalid_x_request_sender_address(
        and `invalid_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         invalid_sender_address,
@@ -143,11 +156,11 @@ def test_invalid_x_request_sender_address(
     assert_response_error(resp, "invalid_http_header", "protocol_error")
 
 
-def test_missing_x_request_sender_address(
+async def test_missing_x_request_sender_address(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -162,16 +175,19 @@ def test_missing_x_request_sender_address(
        and `missing_http_header` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         None,
@@ -184,9 +200,9 @@ def test_missing_x_request_sender_address(
     assert_response_error(resp, "missing_http_header", "protocol_error")
 
 
-def test_x_request_sender_is_valid_but_no_compliance_key(
+async def test_x_request_sender_is_valid_but_no_compliance_key(
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -202,17 +218,19 @@ def test_x_request_sender_is_valid_but_no_compliance_key(
        and `invalid_http_header` error code.
     """
 
-    new_stub_account = testnet.gen_account(diem_client)
-    receiver_address = target_client.create_account().generate_account_identifier()
+    new_stub_account = await Faucet(diem_client).gen_account()
+    receiver_account = await target_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
     sender_address = new_stub_account.account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         new_stub_account,
         sender_address,
@@ -225,11 +243,11 @@ def test_x_request_sender_is_valid_but_no_compliance_key(
     assert_response_error(resp, "invalid_http_header", "protocol_error")
 
 
-def test_invalid_jws_message_body_that_misses_parts(
+async def test_invalid_jws_message_body_that_misses_parts(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -245,16 +263,19 @@ def test_invalid_jws_message_body_that_misses_parts(
        and `invalid_jws` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -268,10 +289,10 @@ def test_invalid_jws_message_body_that_misses_parts(
     assert_response_error(resp, "invalid_jws", "protocol_error")
 
 
-def test_invalid_jws_message_signature(
+async def test_invalid_jws_message_signature(
     stub_config: AppConfig,
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -287,22 +308,24 @@ def test_invalid_jws_message_signature(
        and `invalid_jws_signature` error code.
     """
 
-    new_stub_account = testnet.gen_account(diem_client)
+    new_stub_account = await Faucet(diem_client).gen_account()
     new_stub_account.hrp = hrp
     new_compliance_key = LocalAccount().compliance_public_key_bytes
-    new_stub_account.rotate_dual_attestation_info(diem_client, stub_config.server_url, new_compliance_key)
+    await new_stub_account.rotate_dual_attestation_info(diem_client, stub_config.server_url, new_compliance_key)
 
-    receiver_address = target_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
     sender_address = new_stub_account.account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
 
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         new_stub_account,
         sender_address,
@@ -310,16 +333,17 @@ def test_invalid_jws_message_signature(
         json.dumps(request),
         hrp,
     )
+
     assert status_code == 400
     assert resp.status == "failure"
     assert_response_error(resp, "invalid_jws_signature", "protocol_error")
 
 
-def test_decoded_jws_message_body_is_not_json_encoded_string(
+async def test_decoded_jws_message_body_is_not_json_encoded_string(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     hrp: str,
 ) -> None:
@@ -332,9 +356,11 @@ def test_decoded_jws_message_body_is_not_json_encoded_string(
        and `invalid_json` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
-    status_code, resp = send_request_json(
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -348,11 +374,11 @@ def test_decoded_jws_message_body_is_not_json_encoded_string(
 
 
 @pytest.mark.parametrize("field_name", ["_ObjectType", "cid", "command_type"])
-def test_decoded_command_request_object_missing_required_field(
+async def test_decoded_command_request_object_missing_required_field(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -369,18 +395,21 @@ def test_decoded_command_request_object_missing_required_field(
        and `missing_field` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
     del request[field_name]
 
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -394,11 +423,11 @@ def test_decoded_command_request_object_missing_required_field(
 
 
 @pytest.mark.parametrize("field_name", ["_ObjectType", "cid"])
-def test_decoded_command_request_object_field_value_is_invalid(
+async def test_decoded_command_request_object_field_value_is_invalid(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -415,18 +444,21 @@ def test_decoded_command_request_object_field_value_is_invalid(
        and `invalid_field_value` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
     request[field_name] = "invalid value"
 
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -439,11 +471,11 @@ def test_decoded_command_request_object_field_value_is_invalid(
     assert_response_error(resp, "invalid_field_value", "protocol_error", field=field_name)
 
 
-def test_decoded_command_request_object_command_type_is_unknown(
+async def test_decoded_command_request_object_command_type_is_unknown(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -459,18 +491,21 @@ def test_decoded_command_request_object_command_type_is_unknown(
        and `unknown_command_type` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
     request["command_type"] = "AbcCommand"
 
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,
@@ -485,11 +520,11 @@ def test_decoded_command_request_object_command_type_is_unknown(
 
 
 @pytest.mark.parametrize("field_name", ["_ObjectType", "cid", "command_type"])
-def test_decoded_command_request_object_field_value_type_is_invalid(
+async def test_decoded_command_request_object_field_value_type_is_invalid(
     stub_config: AppConfig,
     stub_client: RestClient,
     target_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     currency: str,
     travel_rule_threshold: int,
     hrp: str,
@@ -506,18 +541,21 @@ def test_decoded_command_request_object_field_value_type_is_invalid(
        and `invalid_field_value` error code.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
-    sender_address = stub_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    sender_account = await stub_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
+    sender_address = await sender_account.generate_account_identifier()
+    target_kyc = await target_client.get_kyc_sample()
     request = payment_command_request_sample(
         sender_address=sender_address,
-        sender_kyc_data=target_client.get_kyc_sample().minimum,
+        sender_kyc_data=target_kyc.minimum,
         receiver_address=receiver_address,
         currency=currency,
         amount=travel_rule_threshold,
     )
     request[field_name] = True
 
-    status_code, resp = send_request_json(
+    status_code, resp = await send_request_json(
         diem_client,
         stub_config.account,
         sender_address,

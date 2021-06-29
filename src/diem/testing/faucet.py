@@ -57,9 +57,9 @@ class Faucet:
 
         parent = await self.gen_account(currency_code)
         if base_url:
-            await parent.reset_dual_attestation(self._client, base_url)
+            await parent.rotate_dual_attestation_info(self._client, base_url)
         child, payload = parent.new_child_vasp(0, XUS)
-        await parent.apply_txn(self._client, payload)
+        await parent.submit_and_wait_for_txn(self._client, payload)
 
         return (parent, child)
 

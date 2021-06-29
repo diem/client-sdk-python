@@ -1,8 +1,7 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Tuple, Dict, Optional, Any, Callable
-import uuid
+from typing import List, Tuple, Dict, Optional, Any, Callable, Awaitable
 from json.decoder import JSONDecodeError
 from .store import InMemoryStore, NotFoundError
 from .pending_account import PENDING_INBOUND_ACCOUNT_ID
@@ -11,9 +10,12 @@ from .models import Subaddress, Account, Transaction, Event, KycSample, PaymentC
 from .event_puller import EventPuller
 from .json_input import JsonInput
 from ... import LocalAccount
+
 from .... import jsonrpc, offchain, utils, identifier
 from ....offchain import KycDataObject, ErrorCode
-import threading, logging, numpy, time
+from diem.jsonrpc import AsyncClient
+
+import logging, numpy, asyncio, uuid
 
 
 class App:
@@ -21,7 +23,7 @@ class App:
         self,
         account: LocalAccount,
         child_accounts: List[LocalAccount],
-        client: jsonrpc.Client,
+        client: AsyncClient,
         name: str,
         logger: logging.Logger,
     ) -> None:
@@ -33,27 +35,29 @@ class App:
         self.offchain = offchain.Client(account.account_address, client, account.hrp)
         self.kyc_sample: KycSample = KycSample.gen(name)
         self.event_puller = EventPuller(client=client, store=self.store, hrp=account.hrp, logger=logger)
-        self.bg_tasks: List[Callable[[], None]] = []
-        self.dual_attestation_txn_senders: Dict[str, Callable[[Transaction], None]] = {}
+        self.bg_tasks: List[Callable[[], Awaitable[None]]] = []
+        self.dual_attestation_txn_senders: Dict[str, Callable[[Transaction], Awaitable[None]]] = {}
 
-    def create_account(self, data: JsonInput) -> Dict[str, str]:
+    async def create_account(self, data: JsonInput) -> Dict[str, str]:
         account = self.store.create(
             Account,
-            kyc_data=data.get_nullable("kyc_data", dict, self._validate_kyc_data),
+            kyc_data=await data.get_nullable("kyc_data", dict, self._validate_kyc_data),
             # reject_additional_kyc_data_request is used for setting up rejecting
             # additional_kyc_data request in offchain PaymentCommand processing.
-            reject_additional_kyc_data_request=data.get_nullable("reject_additional_kyc_data_request", bool),
+            reject_additional_kyc_data_request=await data.get_nullable("reject_additional_kyc_data_request", bool),
             # disable_background_tasks disables background task processing in the App for the account,
             # it is used for testing offchain api.
-            disable_background_tasks=data.get_nullable("disable_outbound_request", bool),
+            disable_background_tasks=await data.get_nullable("disable_outbound_request", bool),
         )
-        if len(self.diem_account.diem_id_domains()) != 0:
-            diem_id = identifier.diem_id.create_diem_id(str(account.id), self.diem_account.diem_id_domains()[0])
+
+        domains = await self.diem_account.diem_id_domains()
+        if domains:
+            diem_id = identifier.diem_id.create_diem_id(str(account.id), domains[0])
             self.store.update(account, diem_id=diem_id)
-        balances = data.get_nullable("balances", dict)
+        balances = await data.get_nullable("balances", dict)
         if balances:
             for c, a in balances.items():
-                self._create_transaction(
+                await self._create_transaction(
                     account.id,
                     Transaction.Status.completed,
                     JsonInput({"currency": c, "amount": a}),
@@ -61,17 +65,13 @@ class App:
                 )
         return {"id": account.id}
 
-    def create_account_payment(self, account_id: str, data: JsonInput) -> Dict[str, Any]:
+    async def create_account_payment(self, account_id: str, data: JsonInput) -> Dict[str, Any]:
         self.store.find(Account, id=account_id)
+        payee = await data.get("payee", str, self._validate_txn_payee)
         subaddress_hex = None
-        payee = data.get("payee", str)
-        if identifier.diem_id.is_diem_id(payee):
-            self._validate_diem_id(payee)
-        else:
-            self._validate_account_identifier("payee", payee)
-            subaddress_hex = None if self.offchain.is_my_account_id(payee) else self._gen_subaddress(account_id).hex()
-
-        txn = self._create_transaction(
+        if not identifier.diem_id.is_diem_id(payee) and not await self.offchain.is_my_account_id(payee):
+            subaddress_hex = self._gen_subaddress(account_id).hex()
+        txn = await self._create_transaction(
             account_id,
             Transaction.Status.pending,
             data,
@@ -93,34 +93,38 @@ class App:
     def get_account_events(self, account_id: str) -> List[Event]:
         return self.store.find_all(Event, account_id=account_id)
 
-    def add_dual_attestation_txn_sender(self, version: str, sender: Callable[[Transaction], None]) -> None:
+    def add_dual_attestation_txn_sender(self, version: str, sender: Callable[[Transaction], Awaitable[None]]) -> None:
         self.dual_attestation_txn_senders[version] = sender
 
-    def add_bg_task(self, task: Callable[[], None]) -> None:
+    def add_bg_task(self, task: Callable[[], Awaitable[None]]) -> None:
         self.bg_tasks.append(task)
 
-    def start_bg_worker_thread(self, delay: float = 0.1) -> None:
-        self.event_puller.add_received_events_key(self.diem_account._account.account_address)
+    async def start_worker(self, delay: float = 0.05) -> asyncio.Task:
+        await self.event_puller.add_received_events_key(self.diem_account._account.account_address)
         for child_account in self.diem_account._child_accounts:
-            self.event_puller.add_received_events_key(child_account.account_address)
-        self.event_puller.head()
+            await self.event_puller.add_received_events_key(child_account.account_address)
+        await self.event_puller.head()
         self.add_bg_task(self.event_puller.process)
         self.add_bg_task(self._send_pending_payments)
 
-        def worker() -> None:
+        async def worker() -> None:
             while True:
                 for t in self.bg_tasks:
                     try:
-                        t()
+                        await t()
+                        await asyncio.sleep(delay)
+                    except asyncio.CancelledError:
+                        return
                     except Exception as e:
+                        if "cannot schedule new futures" in str(e):
+                            # ignore unexpected shutdown RuntimeError
+                            return
                         self.logger.exception(e)
-                time.sleep(delay)
 
-        t = threading.Thread(target=worker, daemon=True)
-        t.start()
+        return asyncio.create_task(worker())
 
-    def txn_metadata(self, txn: Transaction) -> Tuple[bytes, bytes]:
-        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+    async def txn_metadata(self, txn: Transaction) -> Tuple[bytes, bytes]:
+        if await self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if txn.refund_diem_txn_version and txn.refund_reason:
                 return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)  # pyre-ignore
             if txn.subaddress_hex:
@@ -132,7 +136,7 @@ class App:
             return self.diem_account.travel_metadata(cmd.to_offchain_command())
         raise ValueError("could not create diem payment transacton metadata: %s" % txn)
 
-    def _send_pending_payments(self) -> None:
+    async def _send_pending_payments(self) -> None:
         for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
             if self.store.find(Account, id=txn.account_id).disable_background_tasks:
                 self.logger.debug("account bg tasks disabled, ignore %s", txn)
@@ -141,14 +145,14 @@ class App:
             try:
                 if identifier.diem_id.is_diem_id(str(txn.payee)):
                     vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
-                    if vasp_identifier in self.diem_account.diem_id_domains():
+                    if vasp_identifier in await self.diem_account.diem_id_domains():
                         self._send_internal_payment_txn(txn)
                     else:
-                        self._send_external_payment_txn(txn)
-                elif self.offchain.is_my_account_id(str(txn.payee)):
+                        await self._send_external_payment_txn(txn)
+                elif await self.offchain.is_my_account_id(str(txn.payee)):
                     self._send_internal_payment_txn(txn)
                 else:
-                    self._send_external_payment_txn(txn)
+                    await self._send_external_payment_txn(txn)
             except jsonrpc.JsonRpcError as e:
                 msg = "ignore error %s when sending transaction %s, retry later"
                 self.logger.info(msg % (e, txn), exc_info=True)
@@ -171,34 +175,35 @@ class App:
         )
         self.store.update(txn, status=Transaction.Status.completed)
 
-    def _send_external_payment_txn(self, txn: Transaction) -> None:
+    async def _send_external_payment_txn(self, txn: Transaction) -> None:
         if txn.signed_transaction:
             try:
-                diem_txn = self.diem_client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
+                diem_txn = await self.diem_client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
                 self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
             except jsonrpc.WaitForTransactionTimeout as e:
                 self.logger.debug("wait for txn(%s) timeout: %s", txn, e)
             except jsonrpc.TransactionHashMismatchError as e:
                 self.logger.warn("txn(%s) hash mismatched(%s), re-submit", txn, e)
-                self.store.update(txn, signed_transaction=self.diem_account.submit_p2p(txn, self.txn_metadata(txn)))
+                signed_txn = await self.diem_account.submit_p2p(txn, await self.txn_metadata(txn))
+                self.store.update(txn, signed_transaction=signed_txn)
             except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
                 self.logger.error("txn(%s) execution expired / failed(%s), canceled", txn, e)
                 reason = "something went wrong with transaction execution: %s" % e
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
         else:
-            self._start_external_payment_txn(txn)
+            await self._start_external_payment_txn(txn)
 
-    def _start_external_payment_txn(self, txn: Transaction) -> None:  # noqa: C901
+    async def _start_external_payment_txn(self, txn: Transaction) -> None:  # noqa: C901
         if identifier.diem_id.is_diem_id(str(txn.payee)):
             reference_id = self._create_reference_id(txn)
             try:
                 vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
-                domain_map = self.diem_client.get_diem_id_domain_map()
+                domain_map = await self.diem_client.get_diem_id_domain_map()
                 diem_id_address = domain_map.get(vasp_identifier)
                 if diem_id_address is None:
                     raise ValueError(f"Diem ID domain {vasp_identifier} was not found")
                 self.store.update(txn, reference_id=reference_id)
-                response = self.offchain.ref_id_exchange_request(
+                response = await self.offchain.ref_id_exchange_request(
                     sender=str(self.store.find(Account, id=txn.account_id).diem_id),
                     sender_address=self.diem_account.account_identifier(),
                     receiver=str(txn.payee),
@@ -215,14 +220,14 @@ class App:
             except offchain.Error as e:
                 if e.obj.code == ErrorCode.duplicate_reference_id:
                     return
-        if self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
+        if await self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if not txn.signed_transaction:
-                signed_txn = self.diem_account.submit_p2p(txn, self.txn_metadata(txn))
+                signed_txn = await self.diem_account.submit_p2p(txn, await self.txn_metadata(txn))
                 self.store.update(txn, signed_transaction=signed_txn)
         else:
-            self.dual_attestation_txn_senders["v2"](txn)
+            await self.dual_attestation_txn_senders["v2"](txn)
 
-    def _create_transaction(
+    async def _create_transaction(
         self,
         account_id: str,
         status: str,
@@ -234,8 +239,8 @@ class App:
         return self.store.create(
             Transaction,
             account_id=account_id,
-            currency=data.get("currency", str, self._validate_currency_code),
-            amount=data.get("amount", int, self._validate_amount),
+            currency=await data.get("currency", str, self._validate_currency_code),
+            amount=await data.get("amount", int, self._validate_amount),
             payee=payee,
             status=status,
             type=type,
@@ -243,26 +248,35 @@ class App:
             before_create=self._validate_account_balance,
         )
 
-    def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
+    async def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
         try:
             offchain.from_dict(val, KycDataObject)
         except (JSONDecodeError, offchain.types.FieldError) as e:
             raise ValueError("%r must be JSON-encoded KycDataObject: %s" % (name, e))
 
-    def _validate_currency_code(self, name: str, val: str) -> None:
+    async def _validate_currency_code(self, name: str, val: str) -> None:
         try:
-            self.offchain.validate_currency_code(val)
+            await self.offchain.validate_currency_code(val)
         except ValueError:
             raise ValueError("%r is invalid currency code: %s" % (name, val))
 
-    def _validate_account_identifier(self, name: str, val: str) -> None:
+    async def _validate_txn_payee(self, name: str, val: str) -> None:
+        if identifier.diem_id.is_diem_id(val):
+            try:
+                await self._validate_diem_id(val)
+            except ValueError as e:
+                raise ValueError("%r is invalid diem id: %s" % (name, e))
+        else:
+            await self._validate_account_identifier(name, val)
+
+    async def _validate_account_identifier(self, name: str, val: str) -> None:
         try:
             account_address, _ = self.diem_account.decode_account_identifier(val)
-            self.diem_client.must_get_account(account_address)
+            await self.diem_client.must_get_account(account_address)
         except ValueError as e:
             raise ValueError("%r is invalid account identifier: %s" % (name, e))
 
-    def _validate_amount(self, name: str, val: int) -> None:
+    async def _validate_amount(self, name: str, val: int) -> None:
         if val < 0:
             raise ValueError("%r value must be greater than or equal to zero" % name)
         try:
@@ -297,13 +311,13 @@ class App:
 
     # Check the payee diem ID can be found in the domain map
     # Check if payee is in the same wallet, the receiver account exists
-    def _validate_diem_id(self, diem_id: str) -> None:
+    async def _validate_diem_id(self, diem_id: str) -> None:
         payee_vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(diem_id)
-        domain_map = self.diem_client.get_diem_id_domain_map()
+        domain_map = await self.diem_client.get_diem_id_domain_map()
         payee_onchain_address = domain_map.get(payee_vasp_identifier)
         if payee_onchain_address is None:
             raise ValueError(f"Diem ID domain {payee_vasp_identifier} was not found")
-        if payee_vasp_identifier in self.diem_account.diem_id_domains():
+        if payee_vasp_identifier in await self.diem_account.diem_id_domains():
             self.store.find(Account, diem_id=diem_id)
 
     def _create_reference_id(self, txn: Transaction) -> str:

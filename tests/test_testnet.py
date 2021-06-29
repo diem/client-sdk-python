@@ -175,10 +175,6 @@ def test_get_account_transactions_with_events():
     assert isinstance(txn, jsonrpc.Transaction)
     assert len(txn.events) > 0
 
-    script_call = utils.decode_transaction_script(txn)
-    assert type(script_call).__name__ == "ScriptCall__RotateDualAttestationInfo"
-    assert script_call.new_url == b"url"
-
 
 def test_get_transactions():
     client = testnet.create_client()
@@ -279,10 +275,10 @@ def test_submit_failed():
 def test_submit_ignores_stale_resposne_error():
     client = testnet.create_client()
     account = testnet.gen_account(client)
-    script = stdlib.encode_rotate_dual_attestation_info_script(
+    payload = stdlib.encode_rotate_dual_attestation_info_script_function(
         new_url="http://localhost".encode("utf-8"), new_key=account.compliance_public_key_bytes
     )
-    txn = account.create_txn(client, script)
+    txn = account.create_signed_txn(0, payload)
     state = client.get_last_known_state()
     client._last_known_server_state.version = state.version + 1_000_000_000
     client.submit(txn)

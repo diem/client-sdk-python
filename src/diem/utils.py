@@ -5,8 +5,7 @@
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
-import hashlib
-import typing, time, socket
+import hashlib, typing, time, socket, asyncio
 
 from . import diem_types, jsonrpc, stdlib
 from .constants import (
@@ -184,7 +183,16 @@ def to_snake(o: typing.Any) -> str:  # pyre-ignore
     return to_snake(type(o))
 
 
-def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> None:
+def wait_for_port(*args, **kwargs):  # pyre-ignore
+    """Wait for a port ready for accepting TCP connections.
+
+    See function `async_wait_for_port` for details
+    """
+
+    asyncio.run(async_wait_for_port(*args, **kwargs))
+
+
+async def async_wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> None:
     """Wait for a port ready for accepting TCP connections.
     Args:
         port (int): port number.
@@ -202,4 +210,23 @@ def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> N
         except OSError as e:
             if time.perf_counter() - start_time >= timeout:
                 raise TimeoutError("waited %s for %s:%s accept connection." % (timeout, host, port)) from e
-            time.sleep(0.01)
+            await asyncio.sleep(0.01)
+
+
+def get_available_port() -> int:
+    """get_available_port returns an available port"""
+
+    with socket.socket() as s:
+        s.bind(("localhost", 0))
+        return s.getsockname()[1]
+
+
+def shutdown_event_loop(loop: asyncio.events.AbstractEventLoop) -> None:
+    try:
+        asyncio.runners._cancel_all_tasks(loop)  # pyre-ignore
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        if hasattr(loop, "shutdown_default_executor"):
+            loop.run_until_complete(getattr(loop, "shutdown_default_executor")())
+    finally:
+        asyncio.set_event_loop(None)
+        loop.close()

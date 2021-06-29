@@ -14,11 +14,14 @@ from diem import identifier
 from diem.testing import LocalAccount
 from diem.testing.miniwallet import RestClient
 from ..conftest import wait_for_balance
-import pytest, requests
+import pytest, aiohttp
+
+
+pytestmark = pytest.mark.asyncio  # pyre-ignore
 
 
 @pytest.mark.parametrize("invalid_currency", ["XU", "USD", "xus", "", '"XUS"', "X"])
-def test_send_payment_with_invalid_currency(
+async def test_send_payment_with_invalid_currency(
     stub_client: RestClient, target_client: RestClient, invalid_currency: str, currency: str
 ) -> None:
     """
@@ -30,21 +33,23 @@ def test_send_payment_with_invalid_currency(
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        initial_balances = sender_account.balances()
-        receiver_account_identifier = receiver_account.generate_account_identifier()
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(currency=invalid_currency, amount=amount, payee=receiver_account_identifier)
-        assert sender_account.balances() == initial_balances
+        initial_balances = await sender_account.balances()
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(
+                currency=invalid_currency, amount=amount, payee=receiver_account_identifier
+            )
+        assert await sender_account.balances() == initial_balances
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
 @pytest.mark.parametrize("invalid_amount", [-1, 0.1])
-def test_send_payment_with_invalid_amount(
+async def test_send_payment_with_invalid_amount(
     stub_client: RestClient, target_client: RestClient, invalid_amount: float, currency: str
 ) -> None:
     """
@@ -56,22 +61,22 @@ def test_send_payment_with_invalid_amount(
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        initial_balances = sender_account.balances()
-        receiver_account_identifier = receiver_account.generate_account_identifier()
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(
+        initial_balances = await sender_account.balances()
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(
                 currency=currency, amount=invalid_amount, payee=receiver_account_identifier  # pyre-ignore
             )
-        assert sender_account.balances() == initial_balances
+        assert await sender_account.balances() == initial_balances
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def test_send_payment_with_invalid_account_identifier_as_payee(target_client: RestClient, currency: str) -> None:
+async def test_send_payment_with_invalid_account_identifier_as_payee(target_client: RestClient, currency: str) -> None:
     """
     Test Plan:
 
@@ -80,16 +85,16 @@ def test_send_payment_with_invalid_account_identifier_as_payee(target_client: Re
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
+    sender_account = await target_client.create_account(balances={currency: amount})
     try:
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(currency=currency, amount=amount, payee="invalid account identifier")
-        assert sender_account.balance(currency) == amount
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(currency=currency, amount=amount, payee="invalid account identifier")
+        assert await sender_account.balance(currency) == amount
     finally:
-        sender_account.log_events()
+        await sender_account.log_events()
 
 
-def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
+async def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
     stub_client: RestClient, target_client: RestClient, currency: str
 ) -> None:
     """
@@ -102,20 +107,20 @@ def test_send_payment_with_invalid_account_identifier_checksum_as_payee(
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
         invalid_account_identifier = receiver_account_identifier[:-6] + "000000"
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
-        assert sender_account.balance(currency) == amount
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
+        assert await sender_account.balance(currency) == amount
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
+async def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
     stub_client: RestClient, target_client: RestClient, currency: str, hrp: str
 ) -> None:
     """
@@ -129,22 +134,22 @@ def test_send_payment_with_invalid_account_identifier_hrp_as_payee(
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
         account_address, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
         new_hrp = identifier.TDM if hrp != identifier.TDM else identifier.PDM
         new_account_identifier = identifier.encode_account(account_address, subaddress, new_hrp)
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(currency=currency, amount=amount, payee=new_account_identifier)
-        assert sender_account.balance(currency) == amount
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(currency=currency, amount=amount, payee=new_account_identifier)
+        assert await sender_account.balance(currency) == amount
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee(
+async def test_send_payment_with_invalid_account_identifier_onchain_account_address_as_payee(
     stub_client: RestClient, target_client: RestClient, currency: str, hrp: str
 ) -> None:
     """
@@ -158,22 +163,22 @@ def test_send_payment_with_invalid_account_identifier_onchain_account_address_as
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        receiver_account_identifier = receiver_account.generate_account_identifier()
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
         _, subaddress = identifier.decode_account(receiver_account_identifier, hrp)
         invalid_account_address = LocalAccount().account_address
         invalid_account_identifier = identifier.encode_account(invalid_account_address, subaddress, hrp)
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
-        assert sender_account.balance(currency) == amount
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(currency=currency, amount=amount, payee=invalid_account_identifier)
+        assert await sender_account.balance(currency) == amount
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
-def test_send_payment_with_an_amount_exceeding_account_balance(
+async def test_send_payment_with_an_amount_exceeding_account_balance(
     stub_client: RestClient, target_client: RestClient, currency: str
 ) -> None:
     """
@@ -186,20 +191,20 @@ def test_send_payment_with_an_amount_exceeding_account_balance(
     """
 
     amount = 1_000_000
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        receiver_account_identifier = receiver_account.generate_account_identifier()
-        with pytest.raises(requests.HTTPError, match="400 Client Error"):
-            sender_account.send_payment(currency=currency, amount=amount + 1, payee=receiver_account_identifier)
-        assert sender_account.balance(currency) == amount
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
+        with pytest.raises(aiohttp.ClientResponseError, match="400"):
+            await sender_account.send_payment(currency=currency, amount=amount + 1, payee=receiver_account_identifier)
+        assert await sender_account.balance(currency) == amount
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
 @pytest.mark.parametrize("amount", [10_000, 56_780_000, 120_000])
-def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
+async def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
     stub_client: RestClient,
     target_client: RestClient,
     amount: int,
@@ -213,17 +218,17 @@ def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
     3. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
     """
 
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = stub_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await stub_client.create_account()
     try:
-        receiver_account_identifier = receiver_account.generate_account_identifier()
-        sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
+        await sender_account.send_payment(currency=currency, amount=amount, payee=receiver_account_identifier)
 
-        wait_for_balance(receiver_account, currency, amount)
-        wait_for_balance(sender_account, currency, 0)
+        await wait_for_balance(receiver_account, currency, amount)
+        await wait_for_balance(sender_account, currency, 0)
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()
 
 
 @pytest.mark.parametrize(
@@ -235,7 +240,7 @@ def test_send_payment_with_valid_inputs_under_the_travel_rule_threshold(
         2_000_000_000,
     ],
 )
-def test_send_payment_to_the_other_account_in_the_same_wallet(
+async def test_send_payment_to_the_other_account_in_the_same_wallet(
     target_client: RestClient,
     currency: str,
     amount: int,
@@ -249,13 +254,13 @@ def test_send_payment_to_the_other_account_in_the_same_wallet(
     4. Expect send payment success; receiver account balance increased by the amount sent; sender account balance decreased by the amount sent.
     """
 
-    sender_account = target_client.create_account(balances={currency: amount})
-    receiver_account = target_client.create_account()
+    sender_account = await target_client.create_account(balances={currency: amount})
+    receiver_account = await target_client.create_account()
     try:
-        receiver_account_identifier = receiver_account.generate_account_identifier()
-        sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
-        wait_for_balance(sender_account, currency, 0)
-        wait_for_balance(receiver_account, currency, amount)
+        receiver_account_identifier = await receiver_account.generate_account_identifier()
+        await sender_account.send_payment(currency, amount, payee=receiver_account_identifier)
+        await wait_for_balance(sender_account, currency, 0)
+        await wait_for_balance(receiver_account, currency, amount)
     finally:
-        receiver_account.log_events()
-        sender_account.log_events()
+        await receiver_account.log_events()
+        await sender_account.log_events()

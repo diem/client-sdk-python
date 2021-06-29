@@ -4,16 +4,17 @@
 from dataclasses import dataclass
 from random import randrange
 from typing import Tuple, Optional, Union, List
+from diem import identifier, offchain, stdlib, utils, txnmetadata, diem_types
+from diem.jsonrpc import AsyncClient
+from diem.testing import LocalAccount, Faucet
 from .models import Transaction, RefundReason
-from ... import LocalAccount
-from .... import jsonrpc, identifier, offchain, stdlib, utils, txnmetadata, diem_types, testnet
 
 
 @dataclass
 class DiemAccount:
     _account: LocalAccount
     _child_accounts: List[LocalAccount]
-    _client: jsonrpc.Client
+    _client: AsyncClient
 
     @property
     def hrp(self) -> str:
@@ -42,30 +43,33 @@ class DiemAccount:
     def payment_metadata(self, reference_id: str) -> Tuple[bytes, bytes]:
         return (txnmetadata.payment_metadata(reference_id), b"")
 
-    def diem_id_domains(self) -> List[str]:
-        account = self._client.get_account(self._account.account_address)
+    async def diem_id_domains(self) -> List[str]:
+        account = await self._client.get_account(self._account.account_address)
         return [] if account is None else account.role.diem_id_domains
 
-    def submit_p2p(
+    async def submit_p2p(
         self,
         txn: Transaction,
         metadata: Tuple[bytes, bytes],
         by_address: Optional[diem_types.AccountAddress] = None,
     ) -> str:
         from_account = self._get_payment_account(by_address)
-        self._ensure_account_balance(from_account, txn)
+
+        await self._ensure_account_balance(from_account, txn)
         if identifier.diem_id.is_diem_id(str(txn.payee)):
             to_account = utils.account_address(str(txn.payee_onchain_address))
         else:
             to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
-        script = stdlib.encode_peer_to_peer_with_metadata_script(
+
+        payload = stdlib.encode_peer_to_peer_with_metadata_script_function(
             currency=utils.currency_code(txn.currency),
             amount=txn.amount,
             payee=to_account,
             metadata=metadata[0],
             metadata_signature=metadata[1],
         )
-        return from_account.submit_txn(self._client, script).bcs_serialize().hex()
+        signed_txn = await from_account.submit_txn(self._client, payload)
+        return signed_txn.bcs_serialize().hex()
 
     def _get_payment_account(self, address: Optional[diem_types.AccountAddress] = None) -> LocalAccount:
         if address is None:
@@ -80,10 +84,10 @@ class DiemAccount:
             % (address.to_hex(), list(map(lambda a: a.to_dict(), self._child_accounts)))
         )
 
-    def _ensure_account_balance(self, account: LocalAccount, txn: Transaction) -> None:
-        data = self._client.must_get_account(account.account_address)
+    async def _ensure_account_balance(self, account: LocalAccount, txn: Transaction) -> None:
+        data = await self._client.must_get_account(account.account_address)
         amount = max(txn.amount, 1_000_000_000_000)
         for balance in data.balances:
             if balance.currency == txn.currency and balance.amount < txn.amount:
-                testnet.Faucet(self._client).mint(account.auth_key.hex(), amount, txn.currency)
+                await Faucet(self._client).mint(account.auth_key.hex(), amount, txn.currency)
                 return

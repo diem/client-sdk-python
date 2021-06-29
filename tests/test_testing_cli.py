@@ -8,7 +8,7 @@ from diem.testing.miniwallet import ServerConfig, RestClient
 from diem.testing import LocalAccount
 from diem import identifier, testnet, utils
 from typing import List
-import json, threading, pytest, pkg_resources, time
+import json, threading, pytest, pkg_resources, time, asyncio
 
 
 @pytest.fixture(autouse=True)
@@ -140,10 +140,12 @@ def test_load_diem_account_config_file(runner: CliRunner) -> None:
         assert result.exit_code == 0, result.output
 
 
-def test_hrp_option(runner: CliRunner) -> None:
+def test_hrp_option(runner: CliRunner, event_loop: asyncio.events.AbstractEventLoop) -> None:
     conf = start_target_server(runner, ["--hrp", "xdm"])
-    c = RestClient(server_url=conf.base_url, name="test-hrp-option").with_retry()
-    assert c.create_account().generate_account_identifier()[:3] == "xdm"
+    c = RestClient(server_url=conf.base_url, name="test-hrp-option")
+    account = event_loop.run_until_complete(c.create_account())
+    account_identifier = event_loop.run_until_complete(account.generate_account_identifier())
+    assert account_identifier[:3] == "xdm"
 
     result = start_test(
         runner,
@@ -158,7 +160,9 @@ def test_hrp_option(runner: CliRunner) -> None:
     assert result.exit_code == 0, result.output
 
 
-def test_hrp_option_overwrites_hrp_from_diem_account_config_file(runner: CliRunner) -> None:
+def test_hrp_option_overwrites_hrp_from_diem_account_config_file(
+    runner: CliRunner, event_loop: asyncio.events.AbstractEventLoop
+) -> None:
     app_config_file = "app.json"
     stub_config_file = "stub.json"
     with runner.isolated_filesystem():
@@ -166,8 +170,10 @@ def test_hrp_option_overwrites_hrp_from_diem_account_config_file(runner: CliRunn
         LocalAccount(hrp=identifier.DM).write_to_file(stub_config_file)
 
         conf = start_target_server(runner, ["-i", app_config_file, "--hrp", "xdm"])
-        c = RestClient(server_url=conf.base_url, name="x").with_retry()
-        assert c.create_account().generate_account_identifier()[:3] == "xdm"
+        c = RestClient(server_url=conf.base_url, name="x")
+        account = event_loop.run_until_complete(c.create_account())
+        account_identifier = event_loop.run_until_complete(account.generate_account_identifier())
+        assert account_identifier[:3] == "xdm"
 
         result = start_test(
             runner,

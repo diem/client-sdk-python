@@ -3,15 +3,13 @@ cryptography==3.3.2
 numpy==1.18
 protobuf==3.12.4
 pytest==6.2.1
+pytest-asyncio==0.14.0
 click==7.1
+aiohttp==3.7.4.post0
 pylama
 black
 pyre-check
 pytest-cov
-pytest-asyncio==0.14.0
 mypy-protobuf
 pdoc3
-falcon==2.0.0
-waitress
 pygount
-aiohttp==3.7.4.post0

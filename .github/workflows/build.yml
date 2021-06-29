@@ -48,7 +48,7 @@ jobs:
         make docker
     - name: Test
       run: |
-        make test dt=1
+        make build dt=1
     - name: Test Dist
       run: |
         make dist
@@ -69,7 +69,7 @@ jobs:
         make docker
     - name: Test
       run: |
-        make test dt=1
+        make build dt=1
     - name: Test Dist
       run: |
         make dist

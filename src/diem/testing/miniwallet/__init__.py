@@ -10,7 +10,7 @@ from .app import (
     KycSample,
     RefundReason,
     Subaddress,
-    falcon_api,
+    web_api,
 )
 from .client import RestClient, AccountResource, Payment
 from .config import AppConfig, ServerConfig

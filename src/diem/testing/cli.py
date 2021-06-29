@@ -4,23 +4,34 @@
 """This module provides command-line interface for starting mini-wallet application and running test suites.
 """
 
-from diem import testnet, utils
-from diem.testing import LocalAccount
+from diem import utils
+from diem.testing import LocalAccount, create_client, JSON_RPC_URL, FAUCET_URL
 from diem.testing.miniwallet import AppConfig, ServerConfig
 from diem.testing.suites import envs
 from typing import Optional, TextIO
 from urllib.parse import urlsplit
-import logging, click, functools, pytest, os, sys, json, shlex
+import logging, click, functools, pytest, os, sys, json, shlex, asyncio
 
 
 log_format: str = "%(name)s [%(asctime)s] %(levelname)s: %(message)s"
 click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
 
 
+def coro(f):  # pyre-ignore
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):  # pyre-ignore
+        return asyncio.run(f(*args, **kwargs))
+
+    return wrapper
+
+
 def set_env(name: str, is_io: bool = False):  # pyre-ignore
     def callback(_c, _p, val):  # pyre-ignore
         if val:
-            os.environ[name] = val.read() if is_io else str(val)
+            val = val.read() if is_io else str(val)
+            os.environ[name] = val
+            print("%s: %s" % (name, val))
+
         return val
 
     return callback
@@ -43,8 +54,11 @@ def main() -> None:
     default=None,
     help="The address that will be used for offchain callbacks. Defaults to http://localhost:{port}",
 )
-@click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
-@click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
+@click.option(
+    "--jsonrpc", "-j", default=JSON_RPC_URL, callback=set_env("DIEM_JSON_RPC_URL"), help="Diem fullnode JSON-RPC URL."
+)
+# pyre-ignore
+@click.option("--faucet", "-f", default=FAUCET_URL, callback=set_env("DIEM_FAUCET_URL"), help="Testnet faucet URL.")
 @click.option("--disable-events-api", "-o", default=False, help="Disable account events API.", type=bool, is_flag=True)
 @click.option(
     "--logfile", "-l", default=None, type=click.Path(), help="Log to a file instead of printing into console."
@@ -63,7 +77,8 @@ def main() -> None:
     type=str,
 )
 @click.help_option("-h", "--help")
-def start_server(
+@coro
+async def start_server(
     name: str,
     host: str,
     port: int,
@@ -76,7 +91,6 @@ def start_server(
     hrp: str,
 ) -> None:
     logging.basicConfig(level=logging.INFO, format=log_format, filename=logfile)
-    configure_testnet(jsonrpc, faucet)
 
     conf = AppConfig(
         name=name,
@@ -90,10 +104,16 @@ def start_server(
 
     print("Server Config: %s" % conf)
 
-    client = testnet.create_client()
-    print("Diem chain id: %s" % client.get_metadata().chain_id)
+    client = create_client()
+    metadata = await client.get_metadata()
+    print("Diem chain id: %s" % metadata.chain_id)
 
-    conf.start(client)[1].join()
+    _, runner = await conf.start(client)
+    try:
+        while True:
+            await asyncio.sleep(3600)
+    finally:
+        await runner.cleanup()
 
 
 @click.command()
@@ -126,14 +146,16 @@ def start_server(
     callback=set_env(envs.DMW_STUB_DIEM_ACCOUNT_BASE_URL),
     help="The address that will be used for offchain callbacks. Defaults to http://localhost:{port}",
 )
-@click.option("--jsonrpc", "-j", default=testnet.JSON_RPC_URL, help="Diem fullnode JSON-RPC URL.")
+@click.option(
+    "--jsonrpc", "-j", default=JSON_RPC_URL, callback=set_env("DIEM_JSON_RPC_URL"), help="Diem fullnode JSON-RPC URL."
+)
 @click.option(
     "--match-keywords",
     "-k",
     default=None,
     help="Only run tests which match the given substring expression. Same with pytest `-k` option. Example: -k 'test_method or test_other' matches all test functions and classes whose name contains 'test_method' or 'test_other', while -k 'not test_method' matches those that don't contain 'test_method' in their names",
 )
-@click.option("--faucet", "-f", default=testnet.FAUCET_URL, help="Testnet faucet URL.")
+@click.option("--faucet", "-f", default=FAUCET_URL, callback=set_env("DIEM_FAUCET_URL"), help="Testnet faucet URL.")
 @click.option(
     "--pytest-args",
     default="",
@@ -189,8 +211,6 @@ def test(
     wait_for_target_timeout: int,
     include_offchain_v2: bool,
 ) -> None:
-    configure_testnet(jsonrpc, faucet)
-
     # If stub_bind_host is provided, then stub_diem_account_base_url must be as well or the test won't work
     if stub_bind_host is not None and stub_bind_host != "localhost" and not stub_diem_account_base_url:
         raise click.ClickException("--stub-diem-account-base-url is required when passing in a custom --stub-bind-host")
@@ -224,13 +244,6 @@ def test(
 @click.help_option("-h", "--help")
 def gen_diem_account_config() -> None:
     print(LocalAccount().to_json())
-
-
-def configure_testnet(jsonrpc: str, faucet: str) -> None:
-    testnet.JSON_RPC_URL = jsonrpc
-    testnet.FAUCET_URL = faucet
-    print("Diem JSON-RPC URL: %s" % testnet.JSON_RPC_URL)
-    print("Diem Testnet Faucet URL: %s" % testnet.FAUCET_URL)
 
 
 main.add_command(start_server)

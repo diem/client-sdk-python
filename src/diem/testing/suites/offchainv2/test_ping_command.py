@@ -1,16 +1,20 @@
 # Copyright (c) The Diem Core Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-from diem import offchain, jsonrpc
+from diem import offchain
+from diem.jsonrpc import AsyncClient
 from diem.testing.miniwallet import RestClient, AppConfig
-import uuid
+import uuid, pytest
 
 
-def test_send_ping_command(
+pytestmark = pytest.mark.asyncio  # pyre-ignore
+
+
+async def test_send_ping_command(
     stub_config: AppConfig,
     target_client: RestClient,
     stub_client: RestClient,
-    diem_client: jsonrpc.Client,
+    diem_client: AsyncClient,
     hrp: str,
 ) -> None:
     """
@@ -24,15 +28,16 @@ def test_send_ping_command(
     7. Expect cid is different for the 2 response status.
     """
 
-    receiver_address = target_client.create_account().generate_account_identifier()
+    receiver_account = await target_client.create_account()
+    receiver_address = await receiver_account.generate_account_identifier()
     offchain_client = offchain.Client(stub_config.account.account_address, diem_client, hrp)
     cid = str(uuid.uuid4())
-    resp = offchain_client.ping(receiver_address, stub_config.account.compliance_key.sign, cid=cid)
+    resp = await offchain_client.ping(receiver_address, stub_config.account.compliance_key.sign, cid=cid)
     assert resp.cid == cid
     assert resp.status == "success"
     assert resp.error is None
 
-    resp2 = offchain_client.ping(receiver_address, stub_config.account.compliance_key.sign)
+    resp2 = await offchain_client.ping(receiver_address, stub_config.account.compliance_key.sign)
     assert resp2.cid
     assert resp2.status == "success"
     assert resp2.error is None

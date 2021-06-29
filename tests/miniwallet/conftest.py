@@ -2,43 +2,66 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem import jsonrpc, testnet
-from diem.testing.miniwallet import RestClient, AppConfig
-import pytest
+from diem import identifier, utils
+from diem.jsonrpc import AsyncClient
+from diem.testing import create_client, XUS
+from diem.testing.miniwallet import RestClient, AppConfig, App
+from typing import Generator, Tuple
+import asyncio, pytest
 
 
 @pytest.fixture(scope="package")
-def target_client(diem_client: jsonrpc.Client) -> RestClient:
-    return start_app(diem_client, "target-wallet").create_client()
+def event_loop() -> Generator[asyncio.events.AbstractEventLoop, None, None]:
+    """Create a generator to yield an event_loop instance with graceful shutdown
+
+    The logic is same with `asyncio.run`, except `yield` an event loop instance
+    as pytest fixture.
+    """
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        yield loop
+    finally:
+        utils.shutdown_event_loop(loop)
 
 
 @pytest.fixture(scope="package")
-def stub_client(diem_client: jsonrpc.Client) -> RestClient:
-    return start_app(diem_client, "stub-wallet").create_client()
+async def target_client(diem_client: AsyncClient) -> RestClient:
+    conf, app = await start_app(diem_client, "target-wallet")
+    print("start to create client")
+    return conf.create_client()
 
 
 @pytest.fixture(scope="package")
-def diem_client() -> jsonrpc.Client:
-    return testnet.create_client()
+async def stub_client(diem_client: AsyncClient) -> RestClient:
+    conf, app = await start_app(diem_client, "stub-wallet")
+    return conf.create_client()
+
+
+@pytest.fixture(scope="package")
+def diem_client() -> AsyncClient:
+    return create_client()
 
 
 @pytest.fixture
 def hrp() -> str:
-    return testnet.HRP
+    return identifier.TDM
 
 
 @pytest.fixture
 def currency() -> str:
-    return testnet.TEST_CURRENCY_CODE
+    return XUS
 
 
 @pytest.fixture
-def travel_rule_threshold(diem_client: jsonrpc.Client) -> int:
-    return diem_client.get_metadata().dual_attestation_limit
+async def travel_rule_threshold(diem_client: AsyncClient) -> int:
+    metadata = await diem_client.get_metadata()
+    return metadata.dual_attestation_limit
 
 
-def start_app(diem_client: jsonrpc.Client, app_name: str) -> AppConfig:
+async def start_app(diem_client: AsyncClient, app_name: str) -> Tuple[AppConfig, App]:
     conf = AppConfig(name=app_name)
     print("launch %s with config %s" % (app_name, conf))
-    conf.start(diem_client)
-    return conf
+    app = await conf.start(diem_client)
+    return (conf, app)

@@ -57,6 +57,7 @@ class LocalAccount:
                 continue
             key = dic[name]
             dic[name] = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(key))
+        dic.pop("account_address", None)
         return LocalAccount(**dic)  # pyre-ignore
 
     private_key: Ed25519PrivateKey = field(default_factory=Ed25519PrivateKey.generate)
@@ -100,20 +101,6 @@ class LocalAccount:
         signature = self.private_key.sign(utils.raw_transaction_signing_msg(txn))
         return utils.create_signed_transaction(txn, self.public_key_bytes, signature)
 
-    def create_txn(
-        self,
-        client: jsonrpc.Client,
-        script: Optional[diem_types.Script] = None,
-        payload: Optional[diem_types.TransactionPayload] = None,
-    ) -> diem_types.SignedTransaction:
-        sequence_number = client.get_account_sequence(self.account_address)
-        chain_id = client.get_last_known_state().chain_id
-        if script:
-            payload = diem_types.TransactionPayload__Script(value=script)
-        if not payload:
-            raise ValueError("must provide script or payload")
-        return self.create_signed_txn(sequence_number, payload, chain_id=chain_id)
-
     def create_signed_txn(
         self,
         sequence_number: int,
@@ -134,41 +121,51 @@ class LocalAccount:
             )
         )
 
-    def submit_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> diem_types.SignedTransaction:
+    async def submit_txn(
+        self, client: AsyncClient, payload: diem_types.TransactionPayload
+    ) -> diem_types.SignedTransaction:
         """submit transaction with the given script
 
         This function creates transaction with current account sequence number (by json-rpc `get_account`
         method).
         """
 
-        txn = self.create_txn(client, script)
-        client.submit(txn)
+        seq = await client.get_account_sequence(self.account_address)
+        txn = self.create_signed_txn(seq, payload)
+        await client.submit(txn)
         return txn
 
-    def submit_and_wait_for_txn(self, client: jsonrpc.Client, script: diem_types.Script) -> jsonrpc.Transaction:
-        txn = self.submit_txn(client, script)
-        return client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
+    async def submit_and_wait_for_txn(
+        self, client: AsyncClient, payload: diem_types.TransactionPayload
+    ) -> jsonrpc.Transaction:
+        """Submit transaction with the payload by the account and wait for execution complete
 
-    def rotate_dual_attestation_info(
-        self, client: jsonrpc.Client, base_url: str, compliance_key: Optional[bytes] = None
+        1. Create signed transaction for the given script function.
+        2. Submit signed transaction.
+        3. Wait for transaction execution finished.
+        """
+
+        txn = await self.submit_txn(client, payload)
+        return await client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
+
+    async def rotate_dual_attestation_info(
+        self, client: AsyncClient, base_url: str, compliance_key: Optional[bytes] = None
     ) -> jsonrpc.Transaction:
         if not compliance_key:
             compliance_key = self.compliance_public_key_bytes
-        return self.submit_and_wait_for_txn(
-            client,
-            stdlib.encode_rotate_dual_attestation_info_script(new_url=base_url.encode("utf-8"), new_key=compliance_key),
+        payload = stdlib.encode_rotate_dual_attestation_info_script_function(
+            new_url=base_url.encode("utf-8"), new_key=compliance_key
         )
+        return await self.submit_and_wait_for_txn(client, payload=payload)
 
-    def gen_child_vasp(self, client: jsonrpc.Client, initial_balance: int, currency: str) -> "LocalAccount":
+    async def gen_child_vasp(self, client: AsyncClient, initial_balance: int, currency: str) -> "LocalAccount":
         """Generates a new ChildVASP account if `self` is a ParentVASP account.
 
         Raisees error with transaction execution failure if `self` is not a ParentVASP account.
         """
 
         child_vasp, payload = self.new_child_vasp(initial_balance, currency)
-        txn = self.create_txn(client, payload=payload)
-        client.submit(txn)
-        client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
+        await self.submit_and_wait_for_txn(client, payload=payload)
         return child_vasp
 
     def new_child_vasp(
@@ -186,25 +183,6 @@ class LocalAccount:
         )
         return (child_vasp, payload)
 
-    async def reset_dual_attestation(self, client: AsyncClient, base_url: str) -> jsonrpc.Transaction:
-        payload = stdlib.encode_rotate_dual_attestation_info_script_function(
-            new_url=base_url.encode("utf-8"), new_key=self.compliance_public_key_bytes
-        )
-        return await self.apply_txn(client, payload)
-
-    async def apply_txn(self, client: AsyncClient, payload: diem_types.TransactionPayload) -> jsonrpc.Transaction:
-        """Apply transaction with the payload to the account
-
-        1. Create signed transaction for the given script function.
-        2. Submit signed transaction.
-        3. Wait for transaction execution finished.
-        """
-
-        seq = await client.get_account_sequence(self.account_address)
-        txn = self.create_signed_txn(seq, payload)
-        await client.submit(txn)
-        return await client.wait_for_transaction(txn, timeout_secs=self.txn_expire_duration_secs)
-
     def to_dict(self) -> Dict[str, str]:
         """export to a string only dictionary for saving and importing as config
 
@@ -214,6 +192,7 @@ class LocalAccount:
         d = copy(self.__dict__)
         d["private_key"] = utils.private_key_bytes(self.private_key).hex()
         d["compliance_key"] = utils.private_key_bytes(self.compliance_key).hex()
+        d["account_address"] = self.account_address.to_hex()
         return d
 
     def to_json(self) -> str:
@@ -222,3 +201,6 @@ class LocalAccount:
     def write_to_file(self, path: str) -> None:
         with open(path, "w") as f:
             f.write(self.to_json())
+
+    def __str__(self) -> str:
+        return self.to_json()

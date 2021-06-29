@@ -20,13 +20,15 @@ from ....offchain import (
     to_dict,
 )
 
+import functools
+
 
 class OffChainAPIv2:
     def __init__(self, app: App) -> None:
         self.app = app
         self.cache: Dict[str, CommandResponseObject] = {}
 
-    def process(self, request_id: str, sender_address: str, request_bytes: bytes) -> CommandResponseObject:
+    async def process(self, request_id: str, sender_address: str, request_bytes: bytes) -> CommandResponseObject:
         try:
             if not request_id:
                 raise offchain.protocol_error(
@@ -36,7 +38,7 @@ class OffChainAPIv2:
                 raise offchain.protocol_error(
                     offchain.ErrorCode.invalid_http_header, "invalid %s" % offchain.X_REQUEST_ID
                 )
-            request = self.app.offchain.deserialize_inbound_request(sender_address, request_bytes)
+            request = await self.app.offchain.deserialize_inbound_request(sender_address, request_bytes)
         except offchain.Error as e:
             err_msg = "process offchain request id or bytes is invalid, request id: %s, bytes: %s"
             self.app.logger.exception(err_msg, request_id, request_bytes)
@@ -45,14 +47,14 @@ class OffChainAPIv2:
         cached = self.cache.get(request.cid)
         if cached:
             return cached
-        response = self._process_offchain_request(sender_address, request)
+        response = await self._process_offchain_request(sender_address, request)
         self.cache[request.cid] = response
         return response
 
     def jws_serialize(self, resp: CommandResponseObject) -> bytes:
         return offchain.jws.serialize(resp, self.app.diem_account.sign_by_compliance_key)
 
-    def send_dual_attestation_transaction(self, txn: Transaction) -> None:
+    async def send_dual_attestation_transaction(self, txn: Transaction) -> None:
         try:
             cmd = self.app.store.find(PaymentCommand, reference_id=txn.reference_id)
             if cmd.is_sender:
@@ -60,16 +62,16 @@ class OffChainAPIv2:
                     status = Transaction.Status.canceled
                     self.app.store.update(txn, status=status, cancel_reason="exchange kyc data abort")
                 elif cmd.is_ready:
-                    signed_txn = self.app.diem_account.submit_p2p(
+                    signed_txn = await self.app.diem_account.submit_p2p(
                         txn,
-                        self.app.txn_metadata(txn),
+                        await self.app.txn_metadata(txn),
                         by_address=cmd.to_offchain_command().sender_account_address(self.app.diem_account.hrp),
                     )
                     self.app.store.update(txn, signed_transaction=signed_txn)
         except NotFoundError:
-            self.send_initial_payment_command(txn)
+            await self.send_initial_payment_command(txn)
 
-    def send_initial_payment_command(self, txn: Transaction) -> offchain.PaymentCommand:
+    async def send_initial_payment_command(self, txn: Transaction) -> offchain.PaymentCommand:
         account = self.app.store.find(Account, id=txn.account_id)
         command = offchain.PaymentCommand.init(
             sender_account_id=self.app.diem_account.account_identifier(txn.subaddress()),
@@ -81,10 +83,12 @@ class OffChainAPIv2:
         )
         self._create_payment_command(txn.account_id, command)
         self.app.store.update(txn, reference_id=command.reference_id())
-        self._send_offchain_command(command)
+        await self._send_offchain_command(command)
         return command
 
-    def _process_offchain_request(self, sender_address: str, request: CommandRequestObject) -> CommandResponseObject:
+    async def _process_offchain_request(
+        self, sender_address: str, request: CommandRequestObject
+    ) -> CommandResponseObject:
         try:
             handler = "_handle_offchain_%s" % utils.to_snake(request.command_type)
             if not hasattr(self, handler):
@@ -93,18 +97,19 @@ class OffChainAPIv2:
                     "unknown command_type: %s" % request.command_type,
                     field="command_type",
                 )
-            result = getattr(self, handler)(sender_address, request)
+            fn = getattr(self, handler)
+            result = await fn(sender_address, request)
             return offchain.reply_request(cid=request.cid, result=result)
         except offchain.Error as e:
             err_msg = "process offchain request failed, sender_address: %s, request: %s"
             self.app.logger.exception(err_msg, sender_address, request)
             return offchain.reply_request(cid=request.cid, err=e.obj)
 
-    def _handle_offchain_ping_command(self, sender_address: str, request: CommandRequestObject) -> None:
+    async def _handle_offchain_ping_command(self, sender_address: str, request: CommandRequestObject) -> None:
         pass
 
-    def _handle_offchain_payment_command(self, sender_address: str, request: CommandRequestObject) -> None:
-        new_offchain_cmd = self.app.offchain.process_inbound_payment_command_request(sender_address, request)
+    async def _handle_offchain_payment_command(self, sender_address: str, request: CommandRequestObject) -> None:
+        new_offchain_cmd = await self.app.offchain.process_inbound_payment_command_request(sender_address, request)
         try:
             cmd = self.app.store.find(PaymentCommand, reference_id=new_offchain_cmd.reference_id())
             if new_offchain_cmd != cmd.to_offchain_command():
@@ -114,7 +119,7 @@ class OffChainAPIv2:
             account_id = self.app.store.find(Subaddress, subaddress_hex=subaddress).account_id
             self._create_payment_command(account_id, new_offchain_cmd, validate=True)
 
-    def _handle_offchain_reference_i_d_command(
+    async def _handle_offchain_reference_i_d_command(
         self, request_sender_address: str, request: offchain.CommandRequestObject
     ) -> Dict[str, Any]:
         ref_id_command_object = from_dict(request.command, ReferenceIDCommandObject)
@@ -171,7 +176,7 @@ class OffChainAPIv2:
             payment_object=asdict(offchain_cmd.payment),
         )
 
-    def _process_offchain_commands(self) -> None:
+    async def _process_offchain_commands(self) -> None:
         cmds = self.app.store.find_all(
             PaymentCommand, is_inbound=True, is_abort=False, is_ready=False, process_error=None
         )
@@ -186,12 +191,12 @@ class OffChainAPIv2:
                     fn = getattr(self, "_offchain_action_%s" % action.value)
                     new_offchain_cmd = fn(cmd.account_id, offchain_cmd)
                     self._update_payment_command(cmd, new_offchain_cmd)
-                    self._send_offchain_command(new_offchain_cmd)
+                    await self._send_offchain_command(new_offchain_cmd)
             except Exception as e:
                 self.app.logger.exception(e)
                 self.app.store.update(cmd, process_error=str(e))
 
-    def _send_offchain_command(self, command: offchain.Command) -> CommandResponseObject:
+    async def _send_offchain_command(self, command: offchain.Command) -> CommandResponseObject:
         """send offchain command with retries
 
         We only do limited in process retries, as we are expecting counterparty service
@@ -202,10 +207,10 @@ class OffChainAPIv2:
         """
 
         retry = jsonrpc.Retry(5, 0.2, Exception)
-        return retry.execute(lambda: self.send_offchain_command_without_retries(command))
+        return await retry.execute(functools.partial(self.send_offchain_command_without_retries, command))
 
-    def send_offchain_command_without_retries(self, command: offchain.Command) -> CommandResponseObject:
-        return self.app.offchain.send_command(command, self.app.diem_account.sign_by_compliance_key)
+    async def send_offchain_command_without_retries(self, command: offchain.Command) -> CommandResponseObject:
+        return await self.app.offchain.send_command(command, self.app.diem_account.sign_by_compliance_key)
 
     def _offchain_action_evaluate_kyc_data(self, account_id: str, cmd: offchain.PaymentCommand) -> offchain.Command:
         op_kyc_data = cmd.counterparty_actor_obj().kyc_data

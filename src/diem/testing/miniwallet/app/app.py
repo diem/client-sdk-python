@@ -48,13 +48,9 @@ class App:
             reject_additional_kyc_data_request=await data.get_nullable("reject_additional_kyc_data_request", bool),
             # disable_background_tasks disables background task processing in the App for the account,
             # it is used for testing offchain api.
-            disable_background_tasks=await data.get_nullable("disable_outbound_request", bool),
+            disable_background_tasks=await data.get_nullable("disable_background_tasks", bool),
+            diem_id_domain=next(iter(await self.diem_account.diem_id_domains()), None),
         )
-
-        domains = await self.diem_account.diem_id_domains()
-        if domains:
-            diem_id = identifier.diem_id.create_diem_id(str(account.id), domains[0])
-            self.store.update(account, diem_id=diem_id)
         balances = await data.get_nullable("balances", dict)
         if balances:
             for currency, amount in balances.items():

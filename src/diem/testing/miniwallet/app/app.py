@@ -12,8 +12,9 @@ from .json_input import JsonInput
 from ... import LocalAccount
 
 from .... import jsonrpc, offchain, utils, identifier
-from ....offchain import KycDataObject, ErrorCode
+from ....offchain import KycDataObject
 from diem.jsonrpc import AsyncClient
+from diem.diem_types import AccountAddress
 
 import logging, numpy, asyncio, uuid
 
@@ -56,28 +57,56 @@ class App:
             self.store.update(account, diem_id=diem_id)
         balances = await data.get_nullable("balances", dict)
         if balances:
-            for c, a in balances.items():
-                await self._create_transaction(
-                    account.id,
-                    Transaction.Status.completed,
-                    JsonInput({"currency": c, "amount": a}),
+            for currency, amount in balances.items():
+                data = JsonInput({"currency": currency, "amount": amount})
+                self.store.create(
+                    Transaction,
+                    account_id=account.id,
+                    currency=await data.get("currency", str, self._validate_currency_code),
+                    amount=await data.get("amount", int, self._validate_amount),
+                    status=Transaction.Status.completed,
                     type=Transaction.Type.deposit,
                 )
         return {"id": account.id}
 
     async def create_account_payment(self, account_id: str, data: JsonInput) -> Dict[str, Any]:
-        self.store.find(Account, id=account_id)
-        payee = await data.get("payee", str, self._validate_txn_payee)
-        subaddress_hex = None
-        if not identifier.diem_id.is_diem_id(payee) and not await self.offchain.is_my_account_id(payee):
-            subaddress_hex = self._gen_subaddress(account_id).hex()
-        txn = await self._create_transaction(
-            account_id,
-            Transaction.Status.pending,
-            data,
+        account = self.store.find(Account, id=account_id)
+        payee = await data.get("payee", str)
+        payee_account_id, subaddress_hex, reference_id, account_identifier = (None, None, None, None)
+        try:
+            if identifier.diem_id.is_diem_id(payee):
+                domain = identifier.diem_id.get_vasp_identifier_from_diem_id(payee)
+                if domain in await self.diem_account.diem_id_domains():
+                    diem_user_id = identifier.diem_id.get_user_identifier_from_diem_id(payee)
+                    payee_account_id = self.store.find(Account, id=diem_user_id).id
+                else:
+                    reference_id = self._create_reference_id(account.id)
+                    account_identifier = await self._exchange_diem_id(account, payee, reference_id)
+            else:
+                if await self.offchain.is_my_account_id(payee):
+                    _, subaddress = self.diem_account.decode_account_identifier(payee)
+                    sub = self.store.find(Subaddress, subaddress_hex=utils.hex(subaddress))
+                    payee_account_id = sub.account_id
+                else:
+                    subaddress_hex = self._gen_subaddress(account.id).hex()
+                    await self._validate_account_identifier(payee, "'payee' is invalid account identifier")
+                    account_identifier = payee
+        except ValueError as e:
+            raise ValueError("'payee' is invalid: %s" % e)
+
+        txn = self.store.create(
+            Transaction,
+            account_id=account.id,
+            currency=await data.get("currency", str, self._validate_currency_code),
+            amount=await data.get("amount", int, self._validate_amount),
+            status=Transaction.Status.pending,
             type=Transaction.Type.sent_payment,
             payee=payee,
             subaddress_hex=subaddress_hex,
+            reference_id=reference_id,
+            payee_account_identifier=account_identifier,
+            payee_account_id=payee_account_id,
+            before_create=self._validate_account_balance,
         )
         return {"id": txn.id}
 
@@ -129,7 +158,7 @@ class App:
                 return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)  # pyre-ignore
             if txn.subaddress_hex:
                 return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
-            if txn.reference_id is not None:
+            if txn.reference_id:
                 return self.diem_account.payment_metadata(str(txn.reference_id))
         elif txn.reference_id:
             cmd = self.store.find(PaymentCommand, reference_id=txn.reference_id)
@@ -143,31 +172,22 @@ class App:
                 continue
             self.logger.info("processing %s", txn)
             try:
-                if identifier.diem_id.is_diem_id(str(txn.payee)):
-                    vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
-                    if vasp_identifier in await self.diem_account.diem_id_domains():
-                        self._send_internal_payment_txn(txn)
-                    else:
-                        await self._send_external_payment_txn(txn)
-                elif await self.offchain.is_my_account_id(str(txn.payee)):
+                if txn.payee_account_id:
                     self._send_internal_payment_txn(txn)
                 else:
                     await self._send_external_payment_txn(txn)
             except jsonrpc.JsonRpcError as e:
                 msg = "ignore error %s when sending transaction %s, retry later"
-                self.logger.info(msg % (e, txn), exc_info=True)
+                self.logger.info(msg, e, txn, exc_info=True)
             except Exception as e:
                 msg = "send pending transaction failed with %s, cancel transaction %s."
-                self.logger.error(msg % (e, txn), exc_info=True)
+                self.logger.error(msg, e, txn, exc_info=True)
                 self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
 
     def _send_internal_payment_txn(self, txn: Transaction) -> None:
-        # TODO diem_id: handle DiemID case for internal
-        _, payee_subaddress = self.diem_account.decode_account_identifier(str(txn.payee))
-        subaddress = self.store.find(Subaddress, subaddress_hex=utils.hex(payee_subaddress))
         self.store.create(
             Transaction,
-            account_id=subaddress.account_id,
+            account_id=txn.payee_account_id,
             currency=txn.currency,
             amount=txn.amount,
             status=Transaction.Status.completed,
@@ -176,77 +196,48 @@ class App:
         self.store.update(txn, status=Transaction.Status.completed)
 
     async def _send_external_payment_txn(self, txn: Transaction) -> None:
-        if txn.signed_transaction:
-            try:
-                diem_txn = await self.diem_client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
-                self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
-            except jsonrpc.WaitForTransactionTimeout as e:
-                self.logger.debug("wait for txn(%s) timeout: %s", txn, e)
-            except jsonrpc.TransactionHashMismatchError as e:
-                self.logger.warn("txn(%s) hash mismatched(%s), re-submit", txn, e)
-                signed_txn = await self.diem_account.submit_p2p(txn, await self.txn_metadata(txn))
-                self.store.update(txn, signed_transaction=signed_txn)
-            except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
-                self.logger.error("txn(%s) execution expired / failed(%s), canceled", txn, e)
-                reason = "something went wrong with transaction execution: %s" % e
-                self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
-        else:
-            await self._start_external_payment_txn(txn)
-
-    async def _start_external_payment_txn(self, txn: Transaction) -> None:  # noqa: C901
-        if identifier.diem_id.is_diem_id(str(txn.payee)):
-            reference_id = self._create_reference_id(txn)
-            try:
-                vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(str(txn.payee))
-                domain_map = await self.diem_client.get_diem_id_domain_map()
-                diem_id_address = domain_map.get(vasp_identifier)
-                if diem_id_address is None:
-                    raise ValueError(f"Diem ID domain {vasp_identifier} was not found")
-                self.store.update(txn, reference_id=reference_id)
-                response = await self.offchain.ref_id_exchange_request(
-                    sender=str(self.store.find(Account, id=txn.account_id).diem_id),
-                    sender_address=self.diem_account.account_identifier(),
-                    receiver=str(txn.payee),
-                    reference_id=reference_id,
-                    counterparty_account_identifier=identifier.encode_account(
-                        diem_id_address, None, self.diem_account.hrp
-                    ),
-                    sign=self.diem_account.sign_by_compliance_key,
-                )
-                receiver_address, _ = self.diem_account.decode_account_identifier(
-                    response.result.get("receiver_address")  # pyre-ignore
-                )
-                self.store.update(txn, payee_onchain_address=receiver_address.to_hex())
-            except offchain.Error as e:
-                if e.obj.code == ErrorCode.duplicate_reference_id:
-                    return
         if await self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
-            if not txn.signed_transaction:
-                signed_txn = await self.diem_account.submit_p2p(txn, await self.txn_metadata(txn))
-                self.store.update(txn, signed_transaction=signed_txn)
+            await self.send_diem_p2p_transaction(txn)
         else:
             await self.dual_attestation_txn_senders["v2"](txn)
 
-    async def _create_transaction(
-        self,
-        account_id: str,
-        status: str,
-        data: JsonInput,
-        type: Transaction.Type,
-        payee: Optional[str] = None,
-        subaddress_hex: Optional[str] = None,
-    ) -> Transaction:
-        return self.store.create(
-            Transaction,
-            account_id=account_id,
-            currency=await data.get("currency", str, self._validate_currency_code),
-            amount=await data.get("amount", int, self._validate_amount),
-            payee=payee,
-            status=status,
-            type=type,
-            subaddress_hex=subaddress_hex,
-            before_create=self._validate_account_balance,
+    async def send_diem_p2p_transaction(self, txn: Transaction, address: Optional[AccountAddress] = None) -> None:
+        if not txn.signed_transaction:
+            signed_txn = await self.diem_account.submit_p2p(txn, await self.txn_metadata(txn), by_address=address)
+            self.store.update(txn, signed_transaction=signed_txn.bcs_serialize().hex())
+        await self._wait_for_diem_txn(txn)
+
+    async def _wait_for_diem_txn(self, txn: Transaction) -> None:
+        try:
+            diem_txn = await self.diem_client.wait_for_transaction(str(txn.signed_transaction), timeout_secs=0.1)
+            self.store.update(txn, status=Transaction.Status.completed, diem_transaction_version=diem_txn.version)
+        except jsonrpc.WaitForTransactionTimeout as e:
+            self.logger.info("wait for txn(%s) timeout: %s, re-check later", txn, e)
+        except jsonrpc.TransactionHashMismatchError as e:
+            self.logger.warn("txn(%s) hash mismatched(%s), re-send diem p2p txn", txn, e)
+            txn.signed_transaction = None
+            await self.send_diem_p2p_transaction(txn)
+        except (jsonrpc.TransactionExpired, jsonrpc.TransactionExecutionFailed) as e:
+            self.logger.error("txn(%s) execution expired / failed(%s), canceled", txn, e)
+            reason = "something went wrong with transaction execution: %s" % e
+            self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=reason)
+
+    async def _exchange_diem_id(self, payer: Account, diem_id: str, reference_id: str) -> str:
+        address = await self._find_diem_id_account_address(diem_id)
+        response = await self.offchain.ref_id_exchange_request(
+            sender=str(payer.diem_id),
+            sender_address=self.diem_account.account_identifier(),
+            receiver=diem_id,
+            reference_id=reference_id,
+            counterparty_account_identifier=identifier.encode_account(address, None, self.diem_account.hrp),
+            sign=self.diem_account.sign_by_compliance_key,
         )
+        err_msg = "invalid reference_id_exchange response: %s" % response
+        if response.result:
+            address = response.result.get("receiver_address")
+            await self._validate_account_identifier(address, err_msg)
+            return address
+        raise ValueError(err_msg)
 
     async def _validate_kyc_data(self, name: str, val: Dict[str, Any]) -> None:
         try:
@@ -260,21 +251,11 @@ class App:
         except ValueError:
             raise ValueError("%r is invalid currency code: %s" % (name, val))
 
-    async def _validate_txn_payee(self, name: str, val: str) -> None:
-        if identifier.diem_id.is_diem_id(val):
-            try:
-                await self._validate_diem_id(val)
-            except ValueError as e:
-                raise ValueError("%r is invalid diem id: %s" % (name, e))
-        else:
-            await self._validate_account_identifier(name, val)
-
-    async def _validate_account_identifier(self, name: str, val: str) -> None:
-        try:
-            account_address, _ = self.diem_account.decode_account_identifier(val)
-            await self.diem_client.must_get_account(account_address)
-        except ValueError as e:
-            raise ValueError("%r is invalid account identifier: %s" % (name, e))
+    async def _validate_account_identifier(self, val: str, err_msg: str) -> None:
+        account_address, _ = self.diem_account.decode_account_identifier(val)
+        account = await self.diem_client.get_account(account_address)
+        if account is None:
+            raise ValueError(err_msg + ", account address: %s" % account_address.to_hex())
 
     async def _validate_amount(self, name: str, val: int) -> None:
         if val < 0:
@@ -309,25 +290,22 @@ class App:
         except NotFoundError:
             return
 
-    # Check the payee diem ID can be found in the domain map
-    # Check if payee is in the same wallet, the receiver account exists
-    async def _validate_diem_id(self, diem_id: str) -> None:
-        payee_vasp_identifier = identifier.diem_id.get_vasp_identifier_from_diem_id(diem_id)
+    async def _find_diem_id_account_address(self, diem_id: str) -> str:
+        domain = identifier.diem_id.get_vasp_identifier_from_diem_id(diem_id)
         domain_map = await self.diem_client.get_diem_id_domain_map()
-        payee_onchain_address = domain_map.get(payee_vasp_identifier)
-        if payee_onchain_address is None:
-            raise ValueError(f"Diem ID domain {payee_vasp_identifier} was not found")
-        if payee_vasp_identifier in await self.diem_account.diem_id_domains():
-            self.store.find(Account, diem_id=diem_id)
+        account_address = domain_map.get(domain)
+        if account_address is None:
+            raise ValueError("could not find onchain account address by diem id: %s" % diem_id)
+        return account_address
 
-    def _create_reference_id(self, txn: Transaction) -> str:
+    def _create_reference_id(self, account_id: str) -> str:
         while True:
             reference_id = str(uuid.uuid4())
             try:
                 self.store.create(
                     ReferenceID,
                     before_create=lambda data: self.validate_unique_reference_id(data["reference_id"]),
-                    account_id=txn.account_id,
+                    account_id=account_id,
                     reference_id=reference_id,
                 )
                 return reference_id

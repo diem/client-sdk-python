@@ -3,11 +3,8 @@
 
 from dataclasses import asdict
 from typing import Dict, Any
-from .store import NotFoundError
-from .models import Account, Subaddress, PaymentCommand, Transaction, ReferenceID
-from .app import App
-from .... import jsonrpc, offchain, utils
-from ....offchain import (
+from diem import offchain, utils
+from diem.offchain import (
     Status,
     AbortCode,
     CommandResponseObject,
@@ -19,6 +16,10 @@ from ....offchain import (
     from_dict,
     to_dict,
 )
+from diem.jsonrpc.async_client import Retry
+from .store import NotFoundError
+from .models import Account, Subaddress, PaymentCommand, Transaction, ReferenceID
+from .app import App
 
 import functools
 
@@ -62,12 +63,8 @@ class OffChainAPIv2:
                     status = Transaction.Status.canceled
                     self.app.store.update(txn, status=status, cancel_reason="exchange kyc data abort")
                 elif cmd.is_ready:
-                    signed_txn = await self.app.diem_account.submit_p2p(
-                        txn,
-                        await self.app.txn_metadata(txn),
-                        by_address=cmd.to_offchain_command().sender_account_address(self.app.diem_account.hrp),
-                    )
-                    self.app.store.update(txn, signed_transaction=signed_txn)
+                    sender_address = cmd.to_offchain_command().sender_account_address(self.app.diem_account.hrp)
+                    await self.app.send_diem_p2p_transaction(txn, sender_address)
         except NotFoundError:
             await self.send_initial_payment_command(txn)
 
@@ -206,7 +203,7 @@ class OffChainAPIv2:
         counterparty service temporarily not available case.
         """
 
-        retry = jsonrpc.Retry(5, 0.2, Exception)
+        retry = Retry(5, 0.1, Exception)
         return await retry.execute(functools.partial(self.send_offchain_command_without_retries, command))
 
     async def send_offchain_command_without_retries(self, command: offchain.Command) -> CommandResponseObject:

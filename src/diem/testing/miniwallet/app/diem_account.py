@@ -52,15 +52,11 @@ class DiemAccount:
         txn: Transaction,
         metadata: Tuple[bytes, bytes],
         by_address: Optional[diem_types.AccountAddress] = None,
-    ) -> str:
+    ) -> diem_types.SignedTransaction:
         from_account = self._get_payment_account(by_address)
 
         await self._ensure_account_balance(from_account, txn)
-        if identifier.diem_id.is_diem_id(str(txn.payee)):
-            to_account = utils.account_address(str(txn.payee_onchain_address))
-        else:
-            to_account = identifier.decode_account_address(str(txn.payee), self.hrp)
-
+        to_account = identifier.decode_account_address(str(txn.payee_account_identifier), self.hrp)
         payload = stdlib.encode_peer_to_peer_with_metadata_script_function(
             currency=utils.currency_code(txn.currency),
             amount=txn.amount,
@@ -68,8 +64,7 @@ class DiemAccount:
             metadata=metadata[0],
             metadata_signature=metadata[1],
         )
-        signed_txn = await from_account.submit_txn(self._client, payload)
-        return signed_txn.bcs_serialize().hex()
+        return await from_account.submit_txn(self._client, payload)
 
     def _get_payment_account(self, address: Optional[diem_types.AccountAddress] = None) -> LocalAccount:
         if address is None:

@@ -4,7 +4,7 @@
 from dataclasses import dataclass, field, asdict, fields
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from .... import offchain, diem_types, identifier
+from .... import offchain, diem_types
 import json
 
 
@@ -99,7 +99,8 @@ class Transaction(Base):
     diem_transaction_version: Optional[int] = field(default=None)
     refund_diem_txn_version: Optional[int] = field(default=None)
     refund_reason: Optional[RefundReason] = field(default=None)
-    payee_onchain_address: Optional[str] = field(default=None)
+    payee_account_identifier: Optional[str] = field(default=None)
+    payee_account_id: Optional[str] = field(default=None)
 
     def subaddress(self) -> bytes:
         return bytes.fromhex(str(self.subaddress_hex))
@@ -109,9 +110,6 @@ class Transaction(Base):
 
     def __str__(self) -> str:
         return "Transaction %s" % json.dumps(asdict(self), indent=2)
-
-    def payee_account_identifier(self, hrp: str) -> str:
-        return identifier.encode_account(str(self.payee_onchain_address), None, hrp)
 
 
 @dataclass

@@ -112,6 +112,6 @@ class Faucet:
             try:
                 await self._client.wait_for_transaction(txn)
             except TransactionExecutionFailed as e:
-                if txn.vm_status.explanation.reason == "EDOMAIN_ALREADY_EXISTS":
+                if e.txn.vm_status.explanation.reason == "EDOMAIN_ALREADY_EXISTS":
                     continue
                 raise e

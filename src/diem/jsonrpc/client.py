@@ -492,24 +492,34 @@ class Client:
         This means the executed transaction is from another process (which submitted transaction
         with same account address and sequence).
         """
-        max_wait = time.time() + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
+        start_time = time.time()
+        max_wait = start_time + (timeout_secs or DEFAULT_WAIT_FOR_TRANSACTION_TIMEOUT_SECS)
         while time.time() < max_wait:
+            # Get last known state first before making `get_account_transaction` call,
+            # so that we know for sure there is no transaction we are waiting for before
+            # the state timestamp.
+            # If we get last known state after the `get_account_transaction` call,
+            # it is possible we raise unexpected `TransactionExpired` error when the following
+            # sequence happened:
+            #    1. `get_account_transaction` returns None, and current state version is X
+            #    2. another thread updates the state with new version (X+n) and timestamp
+            #    3. `get_last_known_state` returns new state with version (X+n)
+            #    4. when checking transaction expiration, we missed `n` transactions, and if
+            #       the transaction is included in the missed `n` transactions, we will raise
+            #       unexpected TransactionExpired error.
+            state = self.get_last_known_state()
             txn = self.get_account_transaction(address, seq, True)
             if txn is not None:
                 if txn.hash != txn_hash:
-                    raise TransactionHashMismatchError(f"expected hash {txn_hash}, but got {txn.hash}")
+                    raise TransactionHashMismatchError(txn, txn_hash)
                 if txn.vm_status.type != VM_STATUS_EXECUTED:
-                    raise TransactionExecutionFailed(f"VM status: {txn.vm_status}")
+                    raise TransactionExecutionFailed(txn)
                 return txn
-            state = self.get_last_known_state()
             if expiration_time_secs * 1_000_000 <= state.timestamp_usecs:
-                raise TransactionExpired(
-                    f"latest server ledger timestamp_usecs {state.timestamp_usecs}, "
-                    f"transaction expires at {expiration_time_secs}"
-                )
+                raise TransactionExpired(state, expiration_time_secs)
             time.sleep(wait_duration_secs or DEFAULT_WAIT_FOR_TRANSACTION_WAIT_DURATION_SECS)
 
-        raise WaitForTransactionTimeout()
+        raise WaitForTransactionTimeout(start_time, time.time())
 
     # pyre-ignore
     def execute(

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-from diem import diem_types
 from diem.testing import LocalAccount, create_client, Faucet, XUS
 from diem.testing.miniwallet.app import Transaction
 from diem.testing.miniwallet.app.diem_account import DiemAccount
@@ -21,8 +20,7 @@ async def test_no_child_accounts():
     assert da.account_identifier() == account.account_identifier()
 
     payee = await faucet.gen_account()
-    signed_txn_hex = await da.submit_p2p(gen_txn(payee=payee.account_identifier()), (b"", b""))
-    signed_txn = diem_types.SignedTransaction.bcs_deserialize(bytes.fromhex(signed_txn_hex))
+    signed_txn = await da.submit_p2p(gen_txn(payee=payee.account_identifier()), (b"", b""))
     assert signed_txn.raw_txn.sender == account.account_address
 
 
@@ -58,4 +56,5 @@ def gen_txn(payee: str, amount: int = 1) -> Transaction:
         status=Transaction.Status.pending,
         type=Transaction.Type.sent_payment,
         payee=payee,
+        payee_account_identifier=payee,
     )

@@ -60,14 +60,14 @@ class EventPuller:
                 res = self.store.find(Subaddress, subaddress_hex=subaddress)
             except NotFoundError:
                 self.logger.exception("invalid general metadata to_subaddress")
-                return self._refund(RefundReason.invalid_subaddress, event)
+                return await self._refund(RefundReason.invalid_subaddress, event)
             return self._create_txn(res.account_id, event, subaddress_hex=res.subaddress_hex)
         elif isinstance(metadata, diem_types.TravelRuleMetadataV0):
             try:
                 cmd = self.store.find(PaymentCommand, reference_id=metadata.off_chain_reference_id)
             except NotFoundError:
                 self.logger.exception("invalid travel rule metadata off-chain reference id")
-                return self._refund(RefundReason.other, event)
+                return await self._refund(RefundReason.other, event)
             return self._create_txn(cmd.account_id, event, reference_id=cmd.reference_id)
         elif isinstance(metadata, diem_types.RefundMetadataV0):
             version = int(metadata.transaction_version)
@@ -80,7 +80,7 @@ class EventPuller:
                 ref_id = self.store.find(ReferenceID, reference_id=reference_id)
             except NotFoundError:
                 self.logger.exception("Transaction with reference ID %r not found" % reference_id)
-                return self._refund(RefundReason.other, event)
+                return await self._refund(RefundReason.other, event)
             return self._create_txn(ref_id.account_id, event, reference_id=reference_id)
         else:
             raise ValueError("unrecognized metadata: %r" % event.data.metadata)
@@ -104,7 +104,7 @@ class EventPuller:
             self.logger.error("could not find diem txn by version: %s", version)
         return PENDING_INBOUND_ACCOUNT_ID
 
-    def _refund(self, reason: RefundReason, event: jsonrpc.Event) -> None:
+    async def _refund(self, reason: RefundReason, event: jsonrpc.Event) -> None:
         self._create_txn(PENDING_INBOUND_ACCOUNT_ID, event)
         payee = identifier.encode_account(event.data.sender, None, self.hrp)
         self.store.create(
@@ -115,6 +115,7 @@ class EventPuller:
             currency=event.data.amount.currency,
             amount=event.data.amount.amount,
             payee=payee,
+            payee_account_identifier=payee,
             refund_diem_txn_version=event.transaction_version,
             refund_reason=reason,
         )

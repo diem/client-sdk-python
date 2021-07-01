@@ -5,7 +5,7 @@ from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Type, Any, Callable, TypeVar, Generator
 from .models import Base, Account, Event
 from .... import utils
-import json, time, threading
+import json, time
 
 
 T = TypeVar("T", bound=Base)
@@ -20,21 +20,17 @@ class InMemoryStore:
     """InMemoryStore is a simple in-memory store for resources"""
 
     resources: Dict[Type[Base], List[Dict[str, Any]]] = field(default_factory=dict)
-    resources_lock: threading.RLock = field(default_factory=threading.RLock)
-    gen_id_lock: threading.Lock = field(default_factory=threading.Lock)
     gen_id: int = field(default=0)
 
     def next_id(self) -> int:
-        with self.gen_id_lock:
-            self.gen_id += 1
-            return self.gen_id
+        self.gen_id += 1
+        return self.gen_id
 
     def create_event(self, account_id: str, type: str, data: str) -> Event:
         return self.create(Event, account_id=account_id, type=type, data=data, timestamp=_ts())
 
     def find(self, typ: Type[T], **conds: Any) -> T:
-        with self.resources_lock:
-            list = self._select(typ, **conds)
+        list = self._select(typ, **conds)
         ret = next(list, None)
         if not ret:
             raise NotFoundError("%s not found by %s" % (typ.__name__, conds))
@@ -43,23 +39,20 @@ class InMemoryStore:
         return ret
 
     def find_all(self, typ: Type[T], **conds: Any) -> List[T]:
-        with self.resources_lock:
-            return list(self._select(typ, **conds))
+        return list(self._select(typ, **conds))
 
     def create(self, typ: Type[T], before_create: Callable[[Dict[str, Any]], None] = lambda _: _, **data: Any) -> T:
-        with self.resources_lock:
-            before_create(data)
-            obj = typ(**self._insert(typ, **data))
-            self._record_event(obj, "created", data)
-            return obj
+        before_create(data)
+        obj = typ(**self._insert(typ, **data))
+        self._record_event(obj, "created", data)
+        return obj
 
     def update(self, obj: T, before_update: Callable[[T], None] = lambda _: _, **data: Any) -> None:
         for k, v in data.items():
             setattr(obj, k, v)
-        with self.resources_lock:
-            before_update(obj)
-            self._update(obj)
-            self._record_event(obj, "updated", data)
+        before_update(obj)
+        self._update(obj)
+        self._record_event(obj, "updated", data)
 
     def _record_event(self, obj: T, action: str, data: Dict[str, Any]) -> None:
         if not isinstance(obj, Event):

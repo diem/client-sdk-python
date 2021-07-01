@@ -21,7 +21,7 @@ format:
 test: format runtest
 
 runtest:
-	DMW_SELF_CHECK=Y ./venv/bin/pytest src/diem/testing/suites tests examples -k "$(t)" $(args)
+	DMW_SELF_CHECK=Y ./venv/bin/pytest src/diem/testing/suites tests examples/* -k "$(t)" $(args)
 
 profile:
 	./venv/bin/python -m profile -m pytest tests examples -k "$(t)" $(args)

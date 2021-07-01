@@ -60,14 +60,19 @@ class Client:
 
     Initialization:
     ```
-    >>> from diem import offchain, testing
+    >>> from diem import offchain, testing, identifier
+    >>> import asyncio
     >>>
     >>> jsonrpc_client = testing.create_client()
     >>> faucet = testing.Faucet(jsonrpc_client)
-    >>> account = await faucet.gen_account()
-    >>> await account.rotate_dual_attestation_info(jsonrpc_client, base_url="http://vasp.com/offchain")
-    >>> compliance_key_account_address = account.account_address
-    >>> client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    >>> async def main():
+    ...     account = await faucet.gen_account()
+    ...     await account.rotate_dual_attestation_info(jsonrpc_client, base_url="http://vasp.com/offchain")
+    ...     compliance_key_account_address = account.account_address
+    ...     client = offchain.Client(compliance_key_account_address, jsonrpc_client, identifier.TDM)
+    ...     # use client to talk to couterparty VASP offchain service
+    ...
+    >>> asyncio.run(main())
     ```
 
     Send command:

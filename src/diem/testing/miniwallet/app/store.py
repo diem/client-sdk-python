@@ -29,21 +29,21 @@ class InMemoryStore:
     def create_event(self, account_id: str, type: str, data: str) -> Event:
         return self.create(Event, account_id=account_id, type=type, data=data, timestamp=_ts())
 
-    def find(self, typ: Type[T], **conds: Any) -> T:
-        list = self._select(typ, **conds)
+    def find(self, klass: Type[T], **conds: Any) -> T:
+        list = self._select(klass, **conds)
         ret = next(list, None)
         if not ret:
-            raise NotFoundError("%s not found by %s" % (typ.__name__, conds))
+            raise NotFoundError("%s not found by %s" % (klass.__name__, conds))
         if next(list, None):
             raise ValueError("found multiple resources data matches %s" % conds)
         return ret
 
-    def find_all(self, typ: Type[T], **conds: Any) -> List[T]:
-        return list(self._select(typ, **conds))
+    def find_all(self, klass: Type[T], **conds: Any) -> List[T]:
+        return list(self._select(klass, **conds))
 
-    def create(self, typ: Type[T], before_create: Callable[[Dict[str, Any]], None] = lambda _: _, **data: Any) -> T:
+    def create(self, klass: Type[T], before_create: Callable[[Dict[str, Any]], None] = lambda _: _, **data: Any) -> T:
         before_create(data)
-        obj = typ(**self._insert(typ, **data))
+        obj = klass(**self._insert(klass, **data))
         self._record_event(obj, "created", data)
         return obj
 
@@ -68,17 +68,17 @@ class InMemoryStore:
             raise NotFoundError("could not find resource by id: %s" % obj.id)
         records[index] = asdict(obj)
 
-    def _insert(self, typ: Type[T], **res: Any) -> Dict[str, Any]:
+    def _insert(self, klass: Type[T], **res: Any) -> Dict[str, Any]:
         if "id" not in res:
             res["id"] = str(self.next_id())
-        self.resources.setdefault(typ, []).append(asdict(typ(**res)))
+        self.resources.setdefault(klass, []).append(asdict(klass(**res)))
         return res
 
-    def _select(self, typ: Type[T], reverse: bool = False, **conds: Any) -> Generator[T, None, None]:
-        items = reversed(self.resources.get(typ, [])) if reverse else self.resources.get(typ, [])
+    def _select(self, klass: Type[T], reverse: bool = False, **conds: Any) -> Generator[T, None, None]:
+        items = reversed(self.resources.get(klass, [])) if reverse else self.resources.get(klass, [])
         for res in items:
             if _match(res, **conds):
-                yield typ(**res)
+                yield klass(**res)
 
 
 def _match(res: Dict[str, Any], **conds: Any) -> bool:

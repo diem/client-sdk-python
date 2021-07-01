@@ -7,12 +7,20 @@ Create a client connect to Diem Testnet and calls get_metadata API:
 
 ```python3
 
->>> from diem import jsonrpc, testnet
->>> client = jsonrpc.Client(testnet.JSON_RPC_URL)
->>> client.get_metadata()
+>>> from diem.jsonrpc import AsyncClient
+>>> from diem.testing import JSON_RPC_URL
+>>> import asyncio
+>>>
+>>> async def main():
+...     client = AsyncClient(JSON_RPC_URL)
+...     print(await client.get_metadata())
+...
+>>> asyncio.run(main())
+
 version: 3300304
 timestamp: 1601492912847973
 chain_id: 2
+......
 
 ```
 

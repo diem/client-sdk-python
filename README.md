@@ -14,22 +14,31 @@ https://pypi.org/project/diem/
 
 ```python3
 
->>> from diem import jsonrpc, testnet
->>> client = jsonrpc.Client(testnet.JSON_RPC_URL)
->>> client.get_metadata()
+>>> from diem.jsonrpc import AsyncClient
+>>> from diem.testing import JSON_RPC_URL
+>>> import asyncio
+>>>
+>>> async def main():
+...     client = AsyncClient(JSON_RPC_URL)
+...     print(await client.get_metadata())
+...
+>>> asyncio.run(main())
+
 version: 3300304
 timestamp: 1601492912847973
 chain_id: 2
+......
 
 ```
 
 You can find more examples under the [`examples`](./examples/) directory:
 
 * [Create Child VASP account](./examples/create_child_vasp.py)
-* [All Types Peer To Peer Transfer](./examples/p2p_transfer.py)
+* [Peer To Peer Transfer](./examples/p2p_transfer.py)
 * [Intent Identifier](./examples/intent_identifier.py)
 
-Note: `make test` runs all examples too, see the Makefile for details.
+For building a wallet application, see [MiniWallet Application](./src/diem/testing/miniwallet/app) for example.
+
 
 ### Off-chain service example
 

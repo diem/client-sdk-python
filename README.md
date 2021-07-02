@@ -19,8 +19,10 @@ https://pypi.org/project/diem/
 >>> import asyncio
 >>>
 >>> async def main():
-...     client = AsyncClient(JSON_RPC_URL)
-...     print(await client.get_metadata())
+...     # Use with statement to close client after usage
+...     # or call client.close() when initialized without with statement
+...     with AsyncClient(JSON_RPC_URL) as client:
+...         print(await client.get_metadata())
 ...
 >>> asyncio.run(main())
 

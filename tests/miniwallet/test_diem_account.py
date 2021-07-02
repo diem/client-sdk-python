@@ -5,6 +5,7 @@
 from diem.testing import LocalAccount, create_client, Faucet, XUS
 from diem.testing.miniwallet.app import Transaction
 from diem.testing.miniwallet.app.diem_account import DiemAccount
+from diem import utils
 import pytest
 
 
@@ -41,7 +42,7 @@ async def test_ensure_account_balance_is_always_enough():
     await faucet.mint(account.auth_key.hex(), 1, XUS)
     da = DiemAccount(account, [], client)
     account_data = await client.must_get_account(account.account_address)
-    amount = account_data.balances[0].amount + 1
+    amount = utils.balance(account_data, XUS) + 1
     payee = await faucet.gen_account()
     txn = await da.submit_p2p(gen_txn(payee=payee.account_identifier(), amount=amount), (b"", b""))
     await client.wait_for_transaction(txn)

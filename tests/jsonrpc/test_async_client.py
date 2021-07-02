@@ -14,6 +14,7 @@ from diem import (
 )
 from diem.jsonrpc import AsyncClient
 from diem.testing import LocalAccount, Faucet, create_client, XUS, DD_ADDRESS
+from typing import AsyncGenerator
 
 import time, aiohttp, asyncio
 import pytest
@@ -23,8 +24,9 @@ pytestmark = pytest.mark.asyncio  # pyre-ignore
 
 
 @pytest.fixture
-def client() -> AsyncClient:
-    return create_client()
+async def client() -> AsyncGenerator[AsyncClient, None]:
+    async with create_client() as client:
+        yield client
 
 
 async def test_get_metadata(client: AsyncClient):

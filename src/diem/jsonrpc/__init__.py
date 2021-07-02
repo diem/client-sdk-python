@@ -12,8 +12,8 @@ Create a client connect to Diem Testnet and calls get_metadata API:
 >>> import asyncio
 >>>
 >>> async def main():
-...     client = AsyncClient(JSON_RPC_URL)
-...     print(await client.get_metadata())
+...     with AsyncClient(JSON_RPC_URL) as client:
+...         print(await client.get_metadata())
 ...
 >>> asyncio.run(main())
 

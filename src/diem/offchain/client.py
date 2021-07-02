@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
-import typing, dataclasses, uuid, math, warnings, aiohttp
+import typing, dataclasses, uuid, math, warnings
 
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -144,15 +144,14 @@ class Client:
             http_header.X_REQUEST_SENDER_ADDRESS: request_sender_address,
         }
         url = f"{base_url.rstrip('/')}/v2/command"
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=request_bytes, headers=headers) as response:
-                if response.status not in [200, 400]:
-                    response.raise_for_status()
+        async with self.jsonrpc_client._session.post(url, data=request_bytes, headers=headers) as response:
+            if response.status not in [200, 400]:
+                response.raise_for_status()
 
-                cmd_resp = _deserialize_jws(await response.read(), CommandResponseObject, public_key)
-                if cmd_resp.status == CommandResponseStatus.failure:
-                    raise CommandResponseError(cmd_resp)
-                return cmd_resp
+            cmd_resp = _deserialize_jws(await response.read(), CommandResponseObject, public_key)
+            if cmd_resp.status == CommandResponseStatus.failure:
+                raise CommandResponseError(cmd_resp)
+            return cmd_resp
 
     async def process_inbound_request(self, request_sender_address: str, request_bytes: bytes) -> Command:
         """Deprecated

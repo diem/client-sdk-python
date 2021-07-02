@@ -6,7 +6,7 @@ import time
 import copy
 import dataclasses
 import google.protobuf.json_format as parser
-import asyncio
+import asyncio, aiohttp
 import typing
 import random
 import functools
@@ -146,11 +146,20 @@ class AsyncClient:
         session_factory: typing.Callable[[], ClientSession] = ClientSession,
     ) -> None:
         self._url: str = server_url
-        self._session_factory = session_factory
         self._last_known_server_state: State = State(chain_id=-1, version=-1, timestamp_usecs=-1)
         self._retry: Retry = retry or Retry(DEFAULT_MAX_RETRIES, DEFAULT_RETRY_DELAY, StaleResponseError)
         self._rs: RequestStrategy = rs or RequestStrategy()
         self._logger: Logger = logger or getLogger(__name__)
+        self._session: aiohttp.ClientSession = session_factory()
+
+    async def close(self) -> None:
+        await self._session.close()
+
+    async def __aenter__(self) -> "AsyncClient":
+        return self
+
+    async def __aexit__(self, *args, **kwargs) -> None:  # pyre-ignore
+        await self.close()
 
     # high level functions
 
@@ -571,14 +580,13 @@ class AsyncClient:
     ) -> typing.Dict[str, typing.Any]:
         self._logger.debug("http request body: %s", request)
         headers = {"User-Agent": USER_AGENT_HTTP_HEADER}
-        async with self._session_factory() as session:
-            async with session.post(url, json=request, headers=headers) as response:
-                self._logger.debug("http response body: %s", response.text)
-                response.raise_for_status()
-                try:
-                    json = await response.json()
-                except ValueError as e:
-                    raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
+        async with self._session.post(url, json=request, headers=headers) as response:
+            self._logger.debug("http response body: %s", response.text)
+            response.raise_for_status()
+            try:
+                json = await response.json()
+            except ValueError as e:
+                raise InvalidServerResponse(f"Parse response as json failed: {e}, response: {response.text}")
 
         # check stable response before check jsonrpc error
         try:

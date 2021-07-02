@@ -14,7 +14,6 @@ from .envs import (
     dmw_stub_diem_account_config,
     dmw_stub_diem_account_hrp,
 )
-from aiohttp import ClientSession
 from typing import Optional, Tuple, Dict, List, Any, Generator, Callable, AsyncGenerator, Awaitable
 from dataclasses import asdict
 import pytest, json, uuid, time, warnings, asyncio
@@ -53,10 +52,10 @@ async def target_client(diem_client: AsyncClient) -> AsyncGenerator[RestClient, 
 
 
 @pytest.fixture(scope="package")
-def diem_client() -> AsyncClient:
-    client = create_client()
-    print("Diem JSON-RPC URL: %s" % client._url)
-    return client
+async def diem_client() -> AsyncGenerator[AsyncClient, None]:
+    async with create_client() as client:
+        print("Diem JSON-RPC URL: %s" % client._url)
+        yield client
 
 
 @pytest.fixture(scope="package")
@@ -175,13 +174,11 @@ async def send_request_json(
     base_url, public_key = await diem_client.get_base_url_and_compliance_key(account_address)
     if request_body is None:
         request_body = jws.encode(request_json, sender_account.compliance_key.sign)
-    async with ClientSession() as session:
-        url = f"{base_url.rstrip('/')}/v2/command"
-        async with session.post(url, data=request_body, headers=headers) as resp:
-            cmd_resp_obj = offchain.jws.deserialize(
-                await resp.read(), offchain.CommandResponseObject, public_key.verify
-            )
-            return (resp.status, cmd_resp_obj)
+
+    url = f"{base_url.rstrip('/')}/v2/command"
+    async with diem_client._session.post(url, data=request_body, headers=headers) as resp:
+        cmd_resp_obj = offchain.jws.deserialize(await resp.read(), offchain.CommandResponseObject, public_key.verify)
+        return (resp.status, cmd_resp_obj)
 
 
 def payment_command_request_sample(

@@ -23,7 +23,6 @@ account: LocalAccount = faucet.gen_account()
 
 import functools, os
 
-from aiohttp import ClientSession
 from diem import diem_types, bcs
 from diem.jsonrpc.async_client import AsyncClient, Retry, TransactionExecutionFailed
 from diem.testing.local_account import LocalAccount
@@ -103,9 +102,10 @@ class Faucet:
         }
         if diem_id_domain:
             params["diem_id_domain"] = diem_id_domain
-        async with ClientSession(raise_for_status=True) as session:
-            async with session.post(self._url, params=params) as response:
-                de = bcs.BcsDeserializer(bytes.fromhex(await response.text()))
+
+        async with self._client._session.post(self._url, params=params) as response:
+            response.raise_for_status()
+            de = bcs.BcsDeserializer(bytes.fromhex(await response.text()))
 
         for i in range(de.deserialize_len()):
             txn = de.deserialize_any(diem_types.SignedTransaction)

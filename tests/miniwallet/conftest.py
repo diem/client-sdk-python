@@ -6,7 +6,7 @@ from diem import identifier, utils
 from diem.jsonrpc import AsyncClient
 from diem.testing import create_client, XUS
 from diem.testing.miniwallet import RestClient, AppConfig, App
-from typing import Generator, Tuple
+from typing import Generator, Tuple, AsyncGenerator
 import asyncio, pytest
 
 
@@ -40,8 +40,9 @@ async def stub_client(diem_client: AsyncClient) -> RestClient:
 
 
 @pytest.fixture(scope="package")
-def diem_client() -> AsyncClient:
-    return create_client()
+async def diem_client() -> AsyncGenerator[AsyncClient, None]:
+    async with create_client() as client:
+        yield client
 
 
 @pytest.fixture

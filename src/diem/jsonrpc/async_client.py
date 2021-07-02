@@ -48,17 +48,7 @@ class Retry:
     exception: typing.Type[Exception]
 
     async def execute(self, coro):  # pyre-ignore
-        tries = 0
-        while tries < self.max_retries:
-            tries += 1
-            try:
-                return await coro()
-            except self.exception as e:
-                if tries < self.max_retries:
-                    # simplest backoff strategy: tries * delay
-                    await asyncio.sleep(self.delay_secs * tries)
-                else:
-                    raise e
+        return await utils.with_retry(coro, self.max_retries, self.delay_secs, self.exception)
 
 
 class RequestStrategy:

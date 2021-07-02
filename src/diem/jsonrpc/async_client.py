@@ -376,7 +376,7 @@ class AsyncClient:
     async def get_diem_id_domain_map(self, batch_size: int = 100) -> typing.Dict[str, str]:
         domain_map = {}
         event_index = 0
-        tc_account = await self.must_get_account(utils.account_address(TREASURY_ADDRESS))
+        tc_account = await self.must_get_account(TREASURY_ADDRESS)
         event_stream_key = tc_account.role.diem_id_domain_events_key
         while True:
             events = await self.get_events(event_stream_key, event_index, batch_size)
@@ -385,10 +385,14 @@ class AsyncClient:
                     del domain_map[event.data.domain]
                 else:
                     domain_map[event.data.domain] = event.data.address
-            if len(events) < batch_size:
+            if len(events) == 0 or len(events) < batch_size:
                 break
             event_index += batch_size
         return domain_map
+
+    async def support_diem_id(self) -> bool:
+        tc_account = await self.must_get_account(TREASURY_ADDRESS)
+        return True if tc_account.role.diem_id_domain_events_key else False
 
     async def submit(
         self,

@@ -322,6 +322,8 @@ async def test_init_faucet_with_url(client: AsyncClient):
 
 
 async def test_get_diem_id_domain_map(client: AsyncClient):
+    if not await client.support_diem_id():
+        pytest.skip("Diem ID is not supported")
     faucet = Faucet(client)
     parent_vasp1 = await faucet.gen_account()
     parent_vasp2 = await faucet.gen_account()
@@ -373,64 +375,62 @@ async def test_update_last_known_state(client: AsyncClient):
 
 
 async def test_invalid_server_url():
-    client = AsyncClient("url")
-    with pytest.raises(aiohttp.InvalidURL):
-        await client.get_currencies()
+    async with AsyncClient("url") as client:
+        with pytest.raises(aiohttp.InvalidURL):
+            await client.get_currencies()
 
 
 async def test_first_success_strategy_returns_first_completed_success_response():
     rs = jsonrpc.async_client.RequestWithBackups(backups=["backup"])
-    client = AsyncClient("primary", rs=rs)
+    async with AsyncClient("primary", rs=rs) as client:
+        client._send_http_request = gen_metadata_response(client, snap="primary")
+        metadata = await client.get_metadata()
+        assert metadata.script_hash_allow_list == ["backup"]
 
-    client._send_http_request = gen_metadata_response(client, snap="primary")
-    metadata = await client.get_metadata()
-    assert metadata.script_hash_allow_list == ["backup"]
-
-    client._send_http_request = gen_metadata_response(client, snap="backup")
-    metadata = await client.get_metadata()
-    assert metadata.script_hash_allow_list == ["primary"]
-
-
-async def test_fallback_to_second_if_first_failed():
-    rs = jsonrpc.async_client.RequestWithBackups(backups=["backup"])
-    client = AsyncClient("primary", rs=rs)
-
-    # primary will fail immediately, backup is slow but success
-    client._send_http_request = gen_metadata_response(client, fail="primary", snap="backup")
-    metadata = await client.get_metadata()
-    assert metadata.script_hash_allow_list == ["backup"]
-
-
-async def test_fallback_strategy_always_returns_primary_response_if_it_successes():
-    client = AsyncClient(
-        "primary",
-        rs=jsonrpc.async_client.RequestWithBackups(backups=["backup"], fallback=True),
-    )
-    client._send_http_request = gen_metadata_response(client)
-    for _ in range(10):
+        client._send_http_request = gen_metadata_response(client, snap="backup")
         metadata = await client.get_metadata()
         assert metadata.script_hash_allow_list == ["primary"]
 
 
-async def test_fallback_to_backups_when_primary_failed():
-    client = AsyncClient(
-        "primary",
-        rs=jsonrpc.async_client.RequestWithBackups(backups=["backup"], fallback=True),
-    )
-    client._send_http_request = gen_metadata_response(client, fail="primary")
-    for _ in range(10):
+async def test_fallback_to_second_if_first_failed():
+    rs = jsonrpc.async_client.RequestWithBackups(backups=["backup"])
+    async with AsyncClient("primary", rs=rs) as client:
+        # primary will fail immediately, backup is slow but success
+        client._send_http_request = gen_metadata_response(client, fail="primary", snap="backup")
         metadata = await client.get_metadata()
         assert metadata.script_hash_allow_list == ["backup"]
 
 
-async def test_raises_error_if_primary_and_backup_both_failed():
-    client = AsyncClient("url", rs=jsonrpc.async_client.RequestWithBackups(backups=["url"]))
-    with pytest.raises(aiohttp.InvalidURL):
-        assert await client.get_currencies()
+async def test_fallback_strategy_always_returns_primary_response_if_it_successes():
+    async with AsyncClient(
+        "primary",
+        rs=jsonrpc.async_client.RequestWithBackups(backups=["backup"], fallback=True),
+    ) as client:
+        client._send_http_request = gen_metadata_response(client)
+        for _ in range(10):
+            metadata = await client.get_metadata()
+            assert metadata.script_hash_allow_list == ["primary"]
 
-    client = AsyncClient("url", rs=jsonrpc.async_client.RequestWithBackups(backups=["url"], fallback=True))
-    with pytest.raises(aiohttp.InvalidURL):
-        assert await client.get_currencies()
+
+async def test_fallback_to_backups_when_primary_failed():
+    async with AsyncClient(
+        "primary",
+        rs=jsonrpc.async_client.RequestWithBackups(backups=["backup"], fallback=True),
+    ) as client:
+        client._send_http_request = gen_metadata_response(client, fail="primary")
+        for _ in range(10):
+            metadata = await client.get_metadata()
+            assert metadata.script_hash_allow_list == ["backup"]
+
+
+async def test_raises_error_if_primary_and_backup_both_failed():
+    async with AsyncClient("url", rs=jsonrpc.async_client.RequestWithBackups(backups=["url"])) as client:
+        with pytest.raises(aiohttp.InvalidURL):
+            assert await client.get_currencies()
+
+    async with AsyncClient("url", rs=jsonrpc.async_client.RequestWithBackups(backups=["url"], fallback=True)) as client:
+        with pytest.raises(aiohttp.InvalidURL):
+            assert await client.get_currencies()
 
 
 def gen_metadata_response(client, fail=None, snap=None):

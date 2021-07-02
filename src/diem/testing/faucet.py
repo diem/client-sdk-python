@@ -21,7 +21,7 @@ account: LocalAccount = faucet.gen_account()
 
 """
 
-import functools, os
+import functools, os, warnings
 
 from diem import diem_types, bcs
 from diem.jsonrpc.async_client import AsyncClient, Retry, TransactionExecutionFailed
@@ -98,10 +98,13 @@ class Faucet:
             "currency_code": currency_code,
             "return_txns": "true",
             "is_designated_dealer": "true" if dd_account else "false",
-            "is_remove_domain": "true" if is_remove_domain else "false",
         }
         if diem_id_domain:
-            params["diem_id_domain"] = diem_id_domain
+            if await self._client.support_diem_id():
+                params["diem_id_domain"] = diem_id_domain
+                params["is_remove_domain"] = "true" if is_remove_domain else "false"
+            else:
+                warnings.warn("Diem ID is not supported by network connected, ignore diem_id_domain parameter")
 
         async with self._client._session.post(self._url, params=params) as response:
             response.raise_for_status()

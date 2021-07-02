@@ -16,7 +16,7 @@ from ....offchain import KycDataObject
 from diem.jsonrpc import AsyncClient
 from diem.diem_types import AccountAddress
 
-import logging, numpy, asyncio, uuid
+import logging, numpy, asyncio, uuid, functools
 
 
 class App:
@@ -131,20 +131,19 @@ class App:
         await self.event_puller.head()
         self.add_bg_task(self.event_puller.process)
         self.add_bg_task(self._send_pending_payments)
+        self.add_bg_task(functools.partial(asyncio.sleep, delay))
 
         async def worker() -> None:
             while True:
-                for t in self.bg_tasks:
-                    try:
-                        await t()
-                        await asyncio.sleep(delay)
-                    except asyncio.CancelledError:
+                try:
+                    await asyncio.gather(*[t() for t in self.bg_tasks])
+                except asyncio.CancelledError:
+                    return
+                except Exception as e:
+                    if "cannot schedule new futures" in str(e):
+                        # ignore unexpected shutdown RuntimeError
                         return
-                    except Exception as e:
-                        if "cannot schedule new futures" in str(e):
-                            # ignore unexpected shutdown RuntimeError
-                            return
-                        self.logger.exception(e)
+                    self.logger.exception(e)
 
         return asyncio.create_task(worker())
 
@@ -162,23 +161,26 @@ class App:
         raise ValueError("could not create diem payment transacton metadata: %s" % txn)
 
     async def _send_pending_payments(self) -> None:
-        for txn in self.store.find_all(Transaction, status=Transaction.Status.pending):
-            if self.store.find(Account, id=txn.account_id).disable_background_tasks:
-                self.logger.debug("account bg tasks disabled, ignore %s", txn)
-                continue
-            self.logger.info("processing %s", txn)
-            try:
-                if txn.payee_account_id:
-                    self._send_internal_payment_txn(txn)
-                else:
-                    await self._send_external_payment_txn(txn)
-            except jsonrpc.JsonRpcError as e:
-                msg = "ignore error %s when sending transaction %s, retry later"
-                self.logger.info(msg, e, txn, exc_info=True)
-            except Exception as e:
-                msg = "send pending transaction failed with %s, cancel transaction %s."
-                self.logger.error(msg, e, txn, exc_info=True)
-                self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
+        txns = self.store.find_all(Transaction, status=Transaction.Status.pending)
+        await asyncio.gather(*[self._send_pending_payment(txn) for txn in txns])
+
+    async def _send_pending_payment(self, txn: Transaction) -> None:
+        if self.store.find(Account, id=txn.account_id).disable_background_tasks:
+            self.logger.debug("account bg tasks disabled, ignore %s", txn)
+            return
+        self.logger.info("send pending payment %s", txn)
+        try:
+            if txn.payee_account_id:
+                self._send_internal_payment_txn(txn)
+            else:
+                await self._send_external_payment_txn(txn)
+        except jsonrpc.JsonRpcError as e:
+            msg = "ignore error %s when sending transaction %s, retry later"
+            self.logger.info(msg, e, txn, exc_info=True)
+        except Exception as e:
+            msg = "send pending transaction failed with %s, cancel transaction %s."
+            self.logger.error(msg, e, txn, exc_info=True)
+            self.store.update(txn, status=Transaction.Status.canceled, cancel_reason=str(e))
 
     def _send_internal_payment_txn(self, txn: Transaction) -> None:
         self.store.create(

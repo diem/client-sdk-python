@@ -69,7 +69,6 @@ def test_get_account_by_hex_encoded_account_address():
     assert account is not None
     assert isinstance(account, jsonrpc.Account)
     assert account.role is not None
-    assert account.role.type == jsonrpc.ACCOUNT_ROLE_TREASURY_COMPLIANCE
 
 
 def test_get_account_by_invalid_hex_encoded_account_address():
@@ -403,6 +402,8 @@ def test_init_faucet_with_url():
 
 def test_get_diem_id_domain_map():
     client = testnet.create_client()
+    if not client.support_diem_id():
+        pytest.skip("diem id not supported")
     faucet = testnet.Faucet(client)
     parent_vasp1 = faucet.gen_account()
     parent_vasp2 = faucet.gen_account()

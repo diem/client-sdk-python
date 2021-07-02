@@ -230,3 +230,17 @@ def shutdown_event_loop(loop: asyncio.events.AbstractEventLoop) -> None:
     finally:
         asyncio.set_event_loop(None)
         loop.close()
+
+
+async def with_retry(coroutine, max_retries=5, delay_secs=0.1, exception=Exception) -> None:  # pyre-ignore
+    tries = 0
+    while tries < max_retries:
+        tries += 1
+        try:
+            return await coroutine()
+        except exception as e:  # pyre-ignore
+            if tries < max_retries:
+                # simplest backoff strategy: tries * delay
+                await asyncio.sleep(delay_secs * tries)
+            else:
+                raise e

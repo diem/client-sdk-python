@@ -253,15 +253,7 @@ async def wait_for(fn: Callable[[], Awaitable[None]], max_tries: int = 60, delay
         2. Return `None` for success (meet condition)
     """
 
-    tries = 0
-    while True:
-        tries += 1
-        try:
-            return await fn()
-        except AssertionError as e:
-            if tries >= max_tries:
-                raise e
-            await asyncio.sleep(delay)
+    await utils.with_retry(fn, max_tries, delay, AssertionError)
 
 
 async def wait_for_balance(account: AccountResource, currency: str, amount: int) -> None:

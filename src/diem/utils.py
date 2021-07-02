@@ -192,7 +192,7 @@ def wait_for_port(*args, **kwargs):  # pyre-ignore
     asyncio.run(async_wait_for_port(*args, **kwargs))
 
 
-async def async_wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> None:
+async def async_wait_for_port(port: int, host: str = "localhost", timeout: float = 15.0) -> None:
     """Wait for a port ready for accepting TCP connections.
     Args:
         port (int): port number.

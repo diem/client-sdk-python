@@ -140,9 +140,6 @@ class App:
                 except asyncio.CancelledError:
                     return
                 except Exception as e:
-                    if "cannot schedule new futures" in str(e):
-                        # ignore unexpected shutdown RuntimeError
-                        return
                     self.logger.exception(e)
 
         return asyncio.create_task(worker())

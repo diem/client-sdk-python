@@ -1641,40 +1641,6 @@ class ScriptFunctionCall__AddCurrencyToAccount(ScriptFunctionCall):
 
 
 @dataclass(frozen=True)
-class ScriptFunctionCall__AddDiemIdDomain(ScriptFunctionCall):
-    """# Summary
-    Add a DiemID domain to parent VASP account.
-
-    The transaction can only be sent by
-    the Treasury Compliance account.
-
-    # Technical Description
-    Adds a `DiemId::DiemIdDomain` to the `domains` field of the `DiemId::DiemIdDomains` resource published under
-    the account at `address`.
-
-    # Parameters
-    | Name         | Type         | Description                                                                                     |
-    | ------       | ------       | -------------                                                                                   |
-    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
-    | `address`    | `address`    | The `address` of the parent VASP account that will have have `domain` added to its domains.     |
-    | `domain`     | `vector<u8>` | The domain to be added.                                                                         |
-
-    # Common Abort Conditions
-    | Error Category             | Error Reason                             | Description                                                                                                                            |
-    | ----------------           | --------------                           | -------------                                                                                                                          |
-    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
-    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAIN_MANAGER`        | The `DiemId::DiemIdDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAINS_NOT_PUBLISHED` | `address` does not have a `DiemId::DiemIdDomains` resource published under it.                                                         |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EDOMAIN_ALREADY_EXISTS`         | The `domain` already exists in the list of `DiemId::DiemIdDomain`s  in the `DiemId::DiemIdDomains` resource published under `address`. |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EINVALID_DIEM_ID_DOMAIN`        | The `domain` is greater in length than `DiemId::DOMAIN_LENGTH`.                                                                        |
-    """
-
-    address: diem_types.AccountAddress
-    domain: bytes
-
-
-@dataclass(frozen=True)
 class ScriptFunctionCall__AddRecoveryRotationCapability(ScriptFunctionCall):
     """# Summary
     Stores the sending accounts ability to rotate its authentication key with a designated recovery
@@ -1778,6 +1744,40 @@ class ScriptFunctionCall__AddValidatorAndReconfigure(ScriptFunctionCall):
     sliding_nonce: st.uint64
     validator_name: bytes
     validator_address: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__AddVaspDomain(ScriptFunctionCall):
+    """# Summary
+    Add a VASP domain to parent VASP account.
+
+    The transaction can only be sent by
+    the Treasury Compliance account.
+
+    # Technical Description
+    Adds a `VASPDomain::VASPDomain` to the `domains` field of the `VASPDomain::VASPDomains` resource published under
+    the account at `address`.
+
+    # Parameters
+    | Name         | Type         | Description                                                                                     |
+    | ------       | ------       | -------------                                                                                   |
+    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `address`    | `address`    | The `address` of the parent VASP account that will have have `domain` added to its domains.     |
+    | `domain`     | `vector<u8>` | The domain to be added.                                                                         |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                             | Description                                                                                                                            |
+    | ----------------           | --------------                           | -------------                                                                                                                          |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAIN_MANAGER`        | The `VASPDomain::VASPDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAINS_NOT_PUBLISHED` | `address` does not have a `VASPDomain::VASPDomains` resource published under it.                                                         |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EDOMAIN_ALREADY_EXISTS`         | The `domain` already exists in the list of `VASPDomain::VASPDomain`s  in the `VASPDomain::VASPDomains` resource published under `address`. |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EINVALID_VASP_DOMAIN`        | The `domain` is greater in length than `VASPDomain::DOMAIN_LENGTH`.                                                                        |
+    """
+
+    address: diem_types.AccountAddress
+    domain: bytes
 
 
 @dataclass(frozen=True)
@@ -2083,33 +2083,6 @@ class ScriptFunctionCall__CreateDesignatedDealer(ScriptFunctionCall):
 
 
 @dataclass(frozen=True)
-class ScriptFunctionCall__CreateDiemIdDomains(ScriptFunctionCall):
-    """# Summary
-    Publishes a `DiemId::DiemIdDomains` resource under a parent VASP account.
-
-    The sending account must be a parent VASP account.
-
-    # Technical Description
-    Publishes a `DiemId::DiemIdDomains` resource under `account`.
-    The The `DiemId::DiemIdDomains` resource's `domains` field is a vector
-    of DiemIdDomain, and will be empty on at the end of processing this transaction.
-
-    # Parameters
-    | Name      | Type     | Description                                           |
-    | ------    | ------   | -------------                                         |
-    | `account` | `signer` | The signer of the sending account of the transaction. |
-
-    # Common Abort Conditions
-    | Error Category              | Error Reason              | Description                                                                    |
-    | ----------------            | --------------            | -------------                                                                  |
-    | `Errors::ALREADY_PUBLISHED` | `DiemId::EDIEM_ID_DOMAIN` | A `DiemId::DiemIdDomains` resource has already been published under `account`. |
-    | `Errors::REQUIRES_ROLE`     | `Roles::EPARENT_VASP`     | The sending `account` was not a parent VASP account.                           |
-    """
-
-    pass
-
-
-@dataclass(frozen=True)
 class ScriptFunctionCall__CreateParentVaspAccount(ScriptFunctionCall):
     """# Summary
     Creates a Parent VASP account with the specified human name.
@@ -2329,6 +2302,33 @@ class ScriptFunctionCall__CreateValidatorOperatorAccount(ScriptFunctionCall):
 
 
 @dataclass(frozen=True)
+class ScriptFunctionCall__CreateVaspDomains(ScriptFunctionCall):
+    """# Summary
+    Publishes a `VASPDomain::VASPDomains` resource under a parent VASP account.
+
+    The sending account must be a parent VASP account.
+
+    # Technical Description
+    Publishes a `VASPDomain::VASPDomains` resource under `account`.
+    The The `VASPDomain::VASPDomains` resource's `domains` field is a vector
+    of VASPDomain, and will be empty on at the end of processing this transaction.
+
+    # Parameters
+    | Name      | Type     | Description                                           |
+    | ------    | ------   | -------------                                         |
+    | `account` | `signer` | The signer of the sending account of the transaction. |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason              | Description                                                                    |
+    | ----------------            | --------------            | -------------                                                                  |
+    | `Errors::ALREADY_PUBLISHED` | `VASPDomain::EVASP_DOMAINS` | A `VASPDomain::VASPDomains` resource has already been published under `account`. |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EPARENT_VASP`     | The sending `account` was not a parent VASP account.                           |
+    """
+
+    pass
+
+
+@dataclass(frozen=True)
 class ScriptFunctionCall__FreezeAccount(ScriptFunctionCall):
     """# Summary
     Freezes the account at `address`.
@@ -2413,6 +2413,61 @@ class ScriptFunctionCall__InitializeDiemConsensusConfig(ScriptFunctionCall):
 
 
 @dataclass(frozen=True)
+class ScriptFunctionCall__PeerToPeerBySigners(ScriptFunctionCall):
+    """# Summary
+    Transfers a given number of coins in a specified currency from one account to another by multi-agent transaction.
+
+    Transfers over a specified amount defined on-chain that are between two different VASPs, or
+    other accounts that have opted-in will be subject to on-chain checks to ensure the receiver has
+    agreed to receive the coins.  This transaction can be sent by any account that can hold a
+    balance, and to any account that can hold a balance. Both accounts must hold balances in the
+    currency being transacted.
+
+    # Technical Description
+
+    Transfers `amount` coins of type `Currency` from `payer` to `payee` with (optional) associated
+    `metadata`.
+    Dual attestation is not applied to this script as payee is also a signer of the transaction.
+    Standardized `metadata` BCS format can be found in `diem_types::transaction::metadata::Metadata`.
+
+    # Events
+    Successful execution of this script emits two events:
+    * A `DiemAccount::SentPaymentEvent` on `payer`'s `DiemAccount::DiemAccount` `sent_events` handle; and
+    * A `DiemAccount::ReceivedPaymentEvent` on `payee`'s `DiemAccount::DiemAccount` `received_events` handle.
+
+    # Parameters
+    | Name                 | Type         | Description                                                                                                                  |
+    | ------               | ------       | -------------                                                                                                                |
+    | `Currency`           | Type         | The Move type for the `Currency` being sent in this transaction. `Currency` must be an already-registered currency on-chain. |
+    | `payer`              | `signer`     | The signer of the sending account that coins are being transferred from.                                                     |
+    | `payee`              | `signer`     | The signer of the receiving account that the coins are being transferred to.                                                 |
+    | `metadata`           | `vector<u8>` | Optional metadata about this payment.                                                                                        |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                     | Description                                                                                                                         |
+    | ----------------           | --------------                                   | -------------                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`       | `payer` doesn't hold a balance in `Currency`.                                                                                       |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EINSUFFICIENT_BALANCE`             | `amount` is greater than `payer`'s balance in `Currency`.                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::ECOIN_DEPOSIT_IS_ZERO`             | `amount` is zero.                                                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYEE_DOES_NOT_EXIST`             | No account exists at the `payee` address.                                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE`  | An account exists at `payee`, but it does not accept payments in `Currency`.                                                        |
+    | `Errors::INVALID_STATE`    | `AccountFreezing::EACCOUNT_FROZEN`               | The `payee` account is frozen.                                                                                                      |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EWITHDRAWAL_EXCEEDS_LIMITS`        | `payer` has exceeded its daily withdrawal limits for the backing coins of XDX.                                                      |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`           | `payee` has exceeded its daily deposit limits for XDX.                                                                              |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    """
+
+    currency: diem_types.TypeTag
+    amount: st.uint64
+    metadata: bytes
+
+
+@dataclass(frozen=True)
 class ScriptFunctionCall__PeerToPeerWithMetadata(ScriptFunctionCall):
     """# Summary
     Transfers a given number of coins in a specified currency from one account to another.
@@ -2469,6 +2524,7 @@ class ScriptFunctionCall__PeerToPeerWithMetadata(ScriptFunctionCall):
     * `AccountCreationScripts::create_child_vasp_account`
     * `AccountCreationScripts::create_parent_vasp_account`
     * `AccountAdministrationScripts::add_currency_to_account`
+    * `PaymentScripts::peer_to_peer_by_signers`
     """
 
     currency: diem_types.TypeTag
@@ -2615,40 +2671,6 @@ class ScriptFunctionCall__RegisterValidatorConfig(ScriptFunctionCall):
 
 
 @dataclass(frozen=True)
-class ScriptFunctionCall__RemoveDiemIdDomain(ScriptFunctionCall):
-    """# Summary
-    Remove a DiemID domain from parent VASP account.
-
-    The transaction can only be sent by
-    the Treasury Compliance account.
-
-    # Technical Description
-    Removes a `DiemId::DiemIdDomain` from the `domains` field of the `DiemId::DiemIdDomains` resource published under
-    account with `address`.
-
-    # Parameters
-    | Name         | Type         | Description                                                                                     |
-    | ------       | ------       | -------------                                                                                   |
-    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
-    | `address`    | `address`    | The `address` of parent VASP account that will update its domains.                              |
-    | `domain`     | `vector<u8>` | The domain name.                                                                                |
-
-    # Common Abort Conditions
-    | Error Category             | Error Reason                             | Description                                                                                                                            |
-    | ----------------           | --------------                           | -------------                                                                                                                          |
-    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
-    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAIN_MANAGER`        | The `DiemId::DiemIdDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAINS_NOT_PUBLISHED` | `address` does not have a `DiemId::DiemIdDomains` resource published under it.                                                         |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EINVALID_DIEM_ID_DOMAIN`        | The `domain` is greater in length than `DiemId::DOMAIN_LENGTH`.                                                                        |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EDOMAIN_NOT_FOUND`              | The `domain` does not exist in the list of `DiemId::DiemIdDomain`s  in the `DiemId::DiemIdDomains` resource published under `address`. |
-    """
-
-    address: diem_types.AccountAddress
-    domain: bytes
-
-
-@dataclass(frozen=True)
 class ScriptFunctionCall__RemoveValidatorAndReconfigure(ScriptFunctionCall):
     """# Summary
     This script removes a validator account from the validator set, and triggers a reconfiguration
@@ -2699,6 +2721,40 @@ class ScriptFunctionCall__RemoveValidatorAndReconfigure(ScriptFunctionCall):
     sliding_nonce: st.uint64
     validator_name: bytes
     validator_address: diem_types.AccountAddress
+
+
+@dataclass(frozen=True)
+class ScriptFunctionCall__RemoveVaspDomain(ScriptFunctionCall):
+    """# Summary
+    Remove a VASP domain from parent VASP account.
+
+    The transaction can only be sent by
+    the Treasury Compliance account.
+
+    # Technical Description
+    Removes a `VASPDomain::VASPDomain` from the `domains` field of the `VASPDomain::VASPDomains` resource published under
+    account with `address`.
+
+    # Parameters
+    | Name         | Type         | Description                                                                                     |
+    | ------       | ------       | -------------                                                                                   |
+    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `address`    | `address`    | The `address` of parent VASP account that will update its domains.                              |
+    | `domain`     | `vector<u8>` | The domain name.                                                                                |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                             | Description                                                                                                                            |
+    | ----------------           | --------------                           | -------------                                                                                                                          |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAIN_MANAGER`        | The `VASPDomain::VASPDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAINS_NOT_PUBLISHED` | `address` does not have a `VASPDomain::VASPDomains` resource published under it.                                                         |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EINVALID_VASP_DOMAIN`        | The `domain` is greater in length than `VASPDomain::DOMAIN_LENGTH`.                                                                        |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EVASP_DOMAIN_NOT_FOUND`              | The `domain` does not exist in the list of `VASPDomain::VASPDomain`s  in the `VASPDomain::VASPDomains` resource published under `address`. |
+    """
+
+    address: diem_types.AccountAddress
+    domain: bytes
 
 
 @dataclass(frozen=True)
@@ -3587,47 +3643,6 @@ def encode_add_currency_to_account_script_function(currency: TypeTag) -> Transac
     )
 
 
-def encode_add_diem_id_domain_script_function(address: AccountAddress, domain: bytes) -> TransactionPayload:
-    """# Summary
-    Add a DiemID domain to parent VASP account.
-
-    The transaction can only be sent by
-    the Treasury Compliance account.
-
-    # Technical Description
-    Adds a `DiemId::DiemIdDomain` to the `domains` field of the `DiemId::DiemIdDomains` resource published under
-    the account at `address`.
-
-    # Parameters
-    | Name         | Type         | Description                                                                                     |
-    | ------       | ------       | -------------                                                                                   |
-    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
-    | `address`    | `address`    | The `address` of the parent VASP account that will have have `domain` added to its domains.     |
-    | `domain`     | `vector<u8>` | The domain to be added.                                                                         |
-
-    # Common Abort Conditions
-    | Error Category             | Error Reason                             | Description                                                                                                                            |
-    | ----------------           | --------------                           | -------------                                                                                                                          |
-    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
-    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAIN_MANAGER`        | The `DiemId::DiemIdDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAINS_NOT_PUBLISHED` | `address` does not have a `DiemId::DiemIdDomains` resource published under it.                                                         |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EDOMAIN_ALREADY_EXISTS`         | The `domain` already exists in the list of `DiemId::DiemIdDomain`s  in the `DiemId::DiemIdDomains` resource published under `address`. |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EINVALID_DIEM_ID_DOMAIN`        | The `domain` is greater in length than `DiemId::DOMAIN_LENGTH`.                                                                        |
-    """
-    return TransactionPayload__ScriptFunction(
-        value=ScriptFunction(
-            module=ModuleId(
-                address=AccountAddress.from_hex("00000000000000000000000000000001"),
-                name=Identifier("TreasuryComplianceScripts"),
-            ),
-            function=Identifier("add_diem_id_domain"),
-            ty_args=[],
-            args=[encode_address_argument(address), encode_u8vector_argument(domain)],
-        )
-    )
-
-
 def encode_add_recovery_rotation_capability_script(recovery_address: AccountAddress) -> Script:
     """# Summary
     Stores the sending accounts ability to rotate its authentication key with a designated recovery
@@ -3863,6 +3878,47 @@ def encode_add_validator_and_reconfigure_script_function(
                 encode_u8vector_argument(validator_name),
                 encode_address_argument(validator_address),
             ],
+        )
+    )
+
+
+def encode_add_vasp_domain_script_function(address: AccountAddress, domain: bytes) -> TransactionPayload:
+    """# Summary
+    Add a VASP domain to parent VASP account.
+
+    The transaction can only be sent by
+    the Treasury Compliance account.
+
+    # Technical Description
+    Adds a `VASPDomain::VASPDomain` to the `domains` field of the `VASPDomain::VASPDomains` resource published under
+    the account at `address`.
+
+    # Parameters
+    | Name         | Type         | Description                                                                                     |
+    | ------       | ------       | -------------                                                                                   |
+    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `address`    | `address`    | The `address` of the parent VASP account that will have have `domain` added to its domains.     |
+    | `domain`     | `vector<u8>` | The domain to be added.                                                                         |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                             | Description                                                                                                                            |
+    | ----------------           | --------------                           | -------------                                                                                                                          |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAIN_MANAGER`        | The `VASPDomain::VASPDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAINS_NOT_PUBLISHED` | `address` does not have a `VASPDomain::VASPDomains` resource published under it.                                                         |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EDOMAIN_ALREADY_EXISTS`         | The `domain` already exists in the list of `VASPDomain::VASPDomain`s  in the `VASPDomain::VASPDomains` resource published under `address`. |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EINVALID_VASP_DOMAIN`        | The `domain` is greater in length than `VASPDomain::DOMAIN_LENGTH`.                                                                        |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("add_vasp_domain"),
+            ty_args=[],
+            args=[encode_address_argument(address), encode_u8vector_argument(domain)],
         )
     )
 
@@ -4531,41 +4587,6 @@ def encode_create_designated_dealer_script_function(
     )
 
 
-def encode_create_diem_id_domains_script_function() -> TransactionPayload:
-    """# Summary
-    Publishes a `DiemId::DiemIdDomains` resource under a parent VASP account.
-
-    The sending account must be a parent VASP account.
-
-    # Technical Description
-    Publishes a `DiemId::DiemIdDomains` resource under `account`.
-    The The `DiemId::DiemIdDomains` resource's `domains` field is a vector
-    of DiemIdDomain, and will be empty on at the end of processing this transaction.
-
-    # Parameters
-    | Name      | Type     | Description                                           |
-    | ------    | ------   | -------------                                         |
-    | `account` | `signer` | The signer of the sending account of the transaction. |
-
-    # Common Abort Conditions
-    | Error Category              | Error Reason              | Description                                                                    |
-    | ----------------            | --------------            | -------------                                                                  |
-    | `Errors::ALREADY_PUBLISHED` | `DiemId::EDIEM_ID_DOMAIN` | A `DiemId::DiemIdDomains` resource has already been published under `account`. |
-    | `Errors::REQUIRES_ROLE`     | `Roles::EPARENT_VASP`     | The sending `account` was not a parent VASP account.                           |
-    """
-    return TransactionPayload__ScriptFunction(
-        value=ScriptFunction(
-            module=ModuleId(
-                address=AccountAddress.from_hex("00000000000000000000000000000001"),
-                name=Identifier("AccountAdministrationScripts"),
-            ),
-            function=Identifier("create_diem_id_domains"),
-            ty_args=[],
-            args=[],
-        )
-    )
-
-
 def encode_create_parent_vasp_account_script(
     coin_type: TypeTag,
     sliding_nonce: st.uint64,
@@ -5052,6 +5073,41 @@ def encode_create_validator_operator_account_script_function(
     )
 
 
+def encode_create_vasp_domains_script_function() -> TransactionPayload:
+    """# Summary
+    Publishes a `VASPDomain::VASPDomains` resource under a parent VASP account.
+
+    The sending account must be a parent VASP account.
+
+    # Technical Description
+    Publishes a `VASPDomain::VASPDomains` resource under `account`.
+    The The `VASPDomain::VASPDomains` resource's `domains` field is a vector
+    of VASPDomain, and will be empty on at the end of processing this transaction.
+
+    # Parameters
+    | Name      | Type     | Description                                           |
+    | ------    | ------   | -------------                                         |
+    | `account` | `signer` | The signer of the sending account of the transaction. |
+
+    # Common Abort Conditions
+    | Error Category              | Error Reason              | Description                                                                    |
+    | ----------------            | --------------            | -------------                                                                  |
+    | `Errors::ALREADY_PUBLISHED` | `VASPDomain::EVASP_DOMAINS` | A `VASPDomain::VASPDomains` resource has already been published under `account`. |
+    | `Errors::REQUIRES_ROLE`     | `Roles::EPARENT_VASP`     | The sending `account` was not a parent VASP account.                           |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("AccountAdministrationScripts"),
+            ),
+            function=Identifier("create_vasp_domains"),
+            ty_args=[],
+            args=[],
+        )
+    )
+
+
 def encode_freeze_account_script(sliding_nonce: st.uint64, to_freeze_account: AccountAddress) -> Script:
     """# Summary
     Freezes the account at `address`.
@@ -5207,6 +5263,68 @@ def encode_initialize_diem_consensus_config_script_function(sliding_nonce: st.ui
     )
 
 
+def encode_peer_to_peer_by_signers_script_function(
+    currency: TypeTag, amount: st.uint64, metadata: bytes
+) -> TransactionPayload:
+    """# Summary
+    Transfers a given number of coins in a specified currency from one account to another by multi-agent transaction.
+
+    Transfers over a specified amount defined on-chain that are between two different VASPs, or
+    other accounts that have opted-in will be subject to on-chain checks to ensure the receiver has
+    agreed to receive the coins.  This transaction can be sent by any account that can hold a
+    balance, and to any account that can hold a balance. Both accounts must hold balances in the
+    currency being transacted.
+
+    # Technical Description
+
+    Transfers `amount` coins of type `Currency` from `payer` to `payee` with (optional) associated
+    `metadata`.
+    Dual attestation is not applied to this script as payee is also a signer of the transaction.
+    Standardized `metadata` BCS format can be found in `diem_types::transaction::metadata::Metadata`.
+
+    # Events
+    Successful execution of this script emits two events:
+    * A `DiemAccount::SentPaymentEvent` on `payer`'s `DiemAccount::DiemAccount` `sent_events` handle; and
+    * A `DiemAccount::ReceivedPaymentEvent` on `payee`'s `DiemAccount::DiemAccount` `received_events` handle.
+
+    # Parameters
+    | Name                 | Type         | Description                                                                                                                  |
+    | ------               | ------       | -------------                                                                                                                |
+    | `Currency`           | Type         | The Move type for the `Currency` being sent in this transaction. `Currency` must be an already-registered currency on-chain. |
+    | `payer`              | `signer`     | The signer of the sending account that coins are being transferred from.                                                     |
+    | `payee`              | `signer`     | The signer of the receiving account that the coins are being transferred to.                                                 |
+    | `metadata`           | `vector<u8>` | Optional metadata about this payment.                                                                                        |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                                     | Description                                                                                                                         |
+    | ----------------           | --------------                                   | -------------                                                                                                                       |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYER_DOESNT_HOLD_CURRENCY`       | `payer` doesn't hold a balance in `Currency`.                                                                                       |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EINSUFFICIENT_BALANCE`             | `amount` is greater than `payer`'s balance in `Currency`.                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::ECOIN_DEPOSIT_IS_ZERO`             | `amount` is zero.                                                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `DiemAccount::EPAYEE_DOES_NOT_EXIST`             | No account exists at the `payee` address.                                                                                           |
+    | `Errors::INVALID_ARGUMENT` | `DiemAccount::EPAYEE_CANT_ACCEPT_CURRENCY_TYPE`  | An account exists at `payee`, but it does not accept payments in `Currency`.                                                        |
+    | `Errors::INVALID_STATE`    | `AccountFreezing::EACCOUNT_FROZEN`               | The `payee` account is frozen.                                                                                                      |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EWITHDRAWAL_EXCEEDS_LIMITS`        | `payer` has exceeded its daily withdrawal limits for the backing coins of XDX.                                                      |
+    | `Errors::LIMIT_EXCEEDED`   | `DiemAccount::EDEPOSIT_EXCEEDS_LIMITS`           | `payee` has exceeded its daily deposit limits for XDX.                                                                              |
+
+    # Related Scripts
+    * `AccountCreationScripts::create_child_vasp_account`
+    * `AccountCreationScripts::create_parent_vasp_account`
+    * `AccountAdministrationScripts::add_currency_to_account`
+    * `PaymentScripts::peer_to_peer_with_metadata`
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"), name=Identifier("PaymentScripts")
+            ),
+            function=Identifier("peer_to_peer_by_signers"),
+            ty_args=[currency],
+            args=[encode_u64_argument(amount), encode_u8vector_argument(metadata)],
+        )
+    )
+
+
 def encode_peer_to_peer_with_metadata_script(
     currency: TypeTag, payee: AccountAddress, amount: st.uint64, metadata: bytes, metadata_signature: bytes
 ) -> Script:
@@ -5333,6 +5451,7 @@ def encode_peer_to_peer_with_metadata_script_function(
     * `AccountCreationScripts::create_child_vasp_account`
     * `AccountCreationScripts::create_parent_vasp_account`
     * `AccountAdministrationScripts::add_currency_to_account`
+    * `PaymentScripts::peer_to_peer_by_signers`
     """
     return TransactionPayload__ScriptFunction(
         value=ScriptFunction(
@@ -5665,47 +5784,6 @@ def encode_register_validator_config_script_function(
     )
 
 
-def encode_remove_diem_id_domain_script_function(address: AccountAddress, domain: bytes) -> TransactionPayload:
-    """# Summary
-    Remove a DiemID domain from parent VASP account.
-
-    The transaction can only be sent by
-    the Treasury Compliance account.
-
-    # Technical Description
-    Removes a `DiemId::DiemIdDomain` from the `domains` field of the `DiemId::DiemIdDomains` resource published under
-    account with `address`.
-
-    # Parameters
-    | Name         | Type         | Description                                                                                     |
-    | ------       | ------       | -------------                                                                                   |
-    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
-    | `address`    | `address`    | The `address` of parent VASP account that will update its domains.                              |
-    | `domain`     | `vector<u8>` | The domain name.                                                                                |
-
-    # Common Abort Conditions
-    | Error Category             | Error Reason                             | Description                                                                                                                            |
-    | ----------------           | --------------                           | -------------                                                                                                                          |
-    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
-    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAIN_MANAGER`        | The `DiemId::DiemIdDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
-    | `Errors::NOT_PUBLISHED`    | `DiemId::EDIEM_ID_DOMAINS_NOT_PUBLISHED` | `address` does not have a `DiemId::DiemIdDomains` resource published under it.                                                         |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EINVALID_DIEM_ID_DOMAIN`        | The `domain` is greater in length than `DiemId::DOMAIN_LENGTH`.                                                                        |
-    | `Errors::INVALID_ARGUMENT` | `DiemId::EDOMAIN_NOT_FOUND`              | The `domain` does not exist in the list of `DiemId::DiemIdDomain`s  in the `DiemId::DiemIdDomains` resource published under `address`. |
-    """
-    return TransactionPayload__ScriptFunction(
-        value=ScriptFunction(
-            module=ModuleId(
-                address=AccountAddress.from_hex("00000000000000000000000000000001"),
-                name=Identifier("TreasuryComplianceScripts"),
-            ),
-            function=Identifier("remove_diem_id_domain"),
-            ty_args=[],
-            args=[encode_address_argument(address), encode_u8vector_argument(domain)],
-        )
-    )
-
-
 def encode_remove_validator_and_reconfigure_script(
     sliding_nonce: st.uint64, validator_name: bytes, validator_address: AccountAddress
 ) -> Script:
@@ -5826,6 +5904,47 @@ def encode_remove_validator_and_reconfigure_script_function(
                 encode_u8vector_argument(validator_name),
                 encode_address_argument(validator_address),
             ],
+        )
+    )
+
+
+def encode_remove_vasp_domain_script_function(address: AccountAddress, domain: bytes) -> TransactionPayload:
+    """# Summary
+    Remove a VASP domain from parent VASP account.
+
+    The transaction can only be sent by
+    the Treasury Compliance account.
+
+    # Technical Description
+    Removes a `VASPDomain::VASPDomain` from the `domains` field of the `VASPDomain::VASPDomains` resource published under
+    account with `address`.
+
+    # Parameters
+    | Name         | Type         | Description                                                                                     |
+    | ------       | ------       | -------------                                                                                   |
+    | `tc_account` | `signer`     | The signer of the sending account of this transaction. Must be the Treasury Compliance account. |
+    | `address`    | `address`    | The `address` of parent VASP account that will update its domains.                              |
+    | `domain`     | `vector<u8>` | The domain name.                                                                                |
+
+    # Common Abort Conditions
+    | Error Category             | Error Reason                             | Description                                                                                                                            |
+    | ----------------           | --------------                           | -------------                                                                                                                          |
+    | `Errors::REQUIRES_ROLE`    | `Roles::ETREASURY_COMPLIANCE`            | The sending account is not the Treasury Compliance account.                                                                            |
+    | `Errors::REQUIRES_ADDRESS` | `CoreAddresses::ETREASURY_COMPLIANCE`    | `tc_account` is not the Treasury Compliance account.                                                                                   |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAIN_MANAGER`        | The `VASPDomain::VASPDomainManager` resource is not yet published under the Treasury Compliance account.                                 |
+    | `Errors::NOT_PUBLISHED`    | `VASPDomain::EVASP_DOMAINS_NOT_PUBLISHED` | `address` does not have a `VASPDomain::VASPDomains` resource published under it.                                                         |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EINVALID_VASP_DOMAIN`        | The `domain` is greater in length than `VASPDomain::DOMAIN_LENGTH`.                                                                        |
+    | `Errors::INVALID_ARGUMENT` | `VASPDomain::EVASP_DOMAIN_NOT_FOUND`              | The `domain` does not exist in the list of `VASPDomain::VASPDomain`s  in the `VASPDomain::VASPDomains` resource published under `address`. |
+    """
+    return TransactionPayload__ScriptFunction(
+        value=ScriptFunction(
+            module=ModuleId(
+                address=AccountAddress.from_hex("00000000000000000000000000000001"),
+                name=Identifier("TreasuryComplianceScripts"),
+            ),
+            function=Identifier("remove_vasp_domain"),
+            ty_args=[],
+            args=[encode_address_argument(address), encode_u8vector_argument(domain)],
         )
     )
 
@@ -7483,15 +7602,6 @@ def decode_add_currency_to_account_script_function(script: TransactionPayload) -
     )
 
 
-def decode_add_diem_id_domain_script_function(script: TransactionPayload) -> ScriptFunctionCall:
-    if not isinstance(script, ScriptFunction):
-        raise ValueError("Unexpected transaction payload")
-    return ScriptFunctionCall__AddDiemIdDomain(
-        address=bcs_deserialize(script.args[0], AccountAddress)[0],
-        domain=bcs_deserialize(script.args[1], bytes)[0],
-    )
-
-
 def decode_add_recovery_rotation_capability_script(script: Script) -> ScriptCall:
     return ScriptCall__AddRecoveryRotationCapability(
         recovery_address=decode_address_argument(script.args[0]),
@@ -7521,6 +7631,15 @@ def decode_add_validator_and_reconfigure_script_function(script: TransactionPayl
         sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
         validator_name=bcs_deserialize(script.args[1], bytes)[0],
         validator_address=bcs_deserialize(script.args[2], AccountAddress)[0],
+    )
+
+
+def decode_add_vasp_domain_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__AddVaspDomain(
+        address=bcs_deserialize(script.args[0], AccountAddress)[0],
+        domain=bcs_deserialize(script.args[1], bytes)[0],
     )
 
 
@@ -7620,12 +7739,6 @@ def decode_create_designated_dealer_script_function(script: TransactionPayload) 
     )
 
 
-def decode_create_diem_id_domains_script_function(script: TransactionPayload) -> ScriptFunctionCall:
-    if not isinstance(script, ScriptFunction):
-        raise ValueError("Unexpected transaction payload")
-    return ScriptFunctionCall__CreateDiemIdDomains()
-
-
 def decode_create_parent_vasp_account_script(script: Script) -> ScriptCall:
     return ScriptCall__CreateParentVaspAccount(
         coin_type=script.ty_args[0],
@@ -7700,6 +7813,12 @@ def decode_create_validator_operator_account_script_function(script: Transaction
     )
 
 
+def decode_create_vasp_domains_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__CreateVaspDomains()
+
+
 def decode_freeze_account_script(script: Script) -> ScriptCall:
     return ScriptCall__FreezeAccount(
         sliding_nonce=decode_u64_argument(script.args[0]),
@@ -7721,6 +7840,16 @@ def decode_initialize_diem_consensus_config_script_function(script: TransactionP
         raise ValueError("Unexpected transaction payload")
     return ScriptFunctionCall__InitializeDiemConsensusConfig(
         sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
+    )
+
+
+def decode_peer_to_peer_by_signers_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__PeerToPeerBySigners(
+        currency=script.ty_args[0],
+        amount=bcs_deserialize(script.args[0], st.uint64)[0],
+        metadata=bcs_deserialize(script.args[1], bytes)[0],
     )
 
 
@@ -7796,15 +7925,6 @@ def decode_register_validator_config_script_function(script: TransactionPayload)
     )
 
 
-def decode_remove_diem_id_domain_script_function(script: TransactionPayload) -> ScriptFunctionCall:
-    if not isinstance(script, ScriptFunction):
-        raise ValueError("Unexpected transaction payload")
-    return ScriptFunctionCall__RemoveDiemIdDomain(
-        address=bcs_deserialize(script.args[0], AccountAddress)[0],
-        domain=bcs_deserialize(script.args[1], bytes)[0],
-    )
-
-
 def decode_remove_validator_and_reconfigure_script(script: Script) -> ScriptCall:
     return ScriptCall__RemoveValidatorAndReconfigure(
         sliding_nonce=decode_u64_argument(script.args[0]),
@@ -7820,6 +7940,15 @@ def decode_remove_validator_and_reconfigure_script_function(script: TransactionP
         sliding_nonce=bcs_deserialize(script.args[0], st.uint64)[0],
         validator_name=bcs_deserialize(script.args[1], bytes)[0],
         validator_address=bcs_deserialize(script.args[2], AccountAddress)[0],
+    )
+
+
+def decode_remove_vasp_domain_script_function(script: TransactionPayload) -> ScriptFunctionCall:
+    if not isinstance(script, ScriptFunction):
+        raise ValueError("Unexpected transaction payload")
+    return ScriptFunctionCall__RemoveVaspDomain(
+        address=bcs_deserialize(script.args[0], AccountAddress)[0],
+        domain=bcs_deserialize(script.args[1], bytes)[0],
     )
 
 
@@ -8216,27 +8345,28 @@ SCRIPT_FUNCTION_ENCODER_MAP: typing.Dict[
     typing.Type[ScriptFunctionCall], typing.Callable[[ScriptFunctionCall], TransactionPayload]
 ] = {
     ScriptFunctionCall__AddCurrencyToAccount: encode_add_currency_to_account_script_function,
-    ScriptFunctionCall__AddDiemIdDomain: encode_add_diem_id_domain_script_function,
     ScriptFunctionCall__AddRecoveryRotationCapability: encode_add_recovery_rotation_capability_script_function,
     ScriptFunctionCall__AddValidatorAndReconfigure: encode_add_validator_and_reconfigure_script_function,
+    ScriptFunctionCall__AddVaspDomain: encode_add_vasp_domain_script_function,
     ScriptFunctionCall__BurnTxnFees: encode_burn_txn_fees_script_function,
     ScriptFunctionCall__BurnWithAmount: encode_burn_with_amount_script_function,
     ScriptFunctionCall__CancelBurnWithAmount: encode_cancel_burn_with_amount_script_function,
     ScriptFunctionCall__CreateChildVaspAccount: encode_create_child_vasp_account_script_function,
     ScriptFunctionCall__CreateDesignatedDealer: encode_create_designated_dealer_script_function,
-    ScriptFunctionCall__CreateDiemIdDomains: encode_create_diem_id_domains_script_function,
     ScriptFunctionCall__CreateParentVaspAccount: encode_create_parent_vasp_account_script_function,
     ScriptFunctionCall__CreateRecoveryAddress: encode_create_recovery_address_script_function,
     ScriptFunctionCall__CreateValidatorAccount: encode_create_validator_account_script_function,
     ScriptFunctionCall__CreateValidatorOperatorAccount: encode_create_validator_operator_account_script_function,
+    ScriptFunctionCall__CreateVaspDomains: encode_create_vasp_domains_script_function,
     ScriptFunctionCall__FreezeAccount: encode_freeze_account_script_function,
     ScriptFunctionCall__InitializeDiemConsensusConfig: encode_initialize_diem_consensus_config_script_function,
+    ScriptFunctionCall__PeerToPeerBySigners: encode_peer_to_peer_by_signers_script_function,
     ScriptFunctionCall__PeerToPeerWithMetadata: encode_peer_to_peer_with_metadata_script_function,
     ScriptFunctionCall__Preburn: encode_preburn_script_function,
     ScriptFunctionCall__PublishSharedEd25519PublicKey: encode_publish_shared_ed25519_public_key_script_function,
     ScriptFunctionCall__RegisterValidatorConfig: encode_register_validator_config_script_function,
-    ScriptFunctionCall__RemoveDiemIdDomain: encode_remove_diem_id_domain_script_function,
     ScriptFunctionCall__RemoveValidatorAndReconfigure: encode_remove_validator_and_reconfigure_script_function,
+    ScriptFunctionCall__RemoveVaspDomain: encode_remove_vasp_domain_script_function,
     ScriptFunctionCall__RotateAuthenticationKey: encode_rotate_authentication_key_script_function,
     ScriptFunctionCall__RotateAuthenticationKeyWithNonce: encode_rotate_authentication_key_with_nonce_script_function,
     ScriptFunctionCall__RotateAuthenticationKeyWithNonceAdmin: encode_rotate_authentication_key_with_nonce_admin_script_function,
@@ -8296,27 +8426,28 @@ TRANSACTION_SCRIPT_DECODER_MAP: typing.Dict[bytes, typing.Callable[[Script], Scr
 
 SCRIPT_FUNCTION_DECODER_MAP: typing.Dict[str, typing.Callable[[TransactionPayload], ScriptFunctionCall]] = {
     "AccountAdministrationScriptsadd_currency_to_account": decode_add_currency_to_account_script_function,
-    "TreasuryComplianceScriptsadd_diem_id_domain": decode_add_diem_id_domain_script_function,
     "AccountAdministrationScriptsadd_recovery_rotation_capability": decode_add_recovery_rotation_capability_script_function,
     "ValidatorAdministrationScriptsadd_validator_and_reconfigure": decode_add_validator_and_reconfigure_script_function,
+    "TreasuryComplianceScriptsadd_vasp_domain": decode_add_vasp_domain_script_function,
     "TreasuryComplianceScriptsburn_txn_fees": decode_burn_txn_fees_script_function,
     "TreasuryComplianceScriptsburn_with_amount": decode_burn_with_amount_script_function,
     "TreasuryComplianceScriptscancel_burn_with_amount": decode_cancel_burn_with_amount_script_function,
     "AccountCreationScriptscreate_child_vasp_account": decode_create_child_vasp_account_script_function,
     "AccountCreationScriptscreate_designated_dealer": decode_create_designated_dealer_script_function,
-    "AccountAdministrationScriptscreate_diem_id_domains": decode_create_diem_id_domains_script_function,
     "AccountCreationScriptscreate_parent_vasp_account": decode_create_parent_vasp_account_script_function,
     "AccountAdministrationScriptscreate_recovery_address": decode_create_recovery_address_script_function,
     "AccountCreationScriptscreate_validator_account": decode_create_validator_account_script_function,
     "AccountCreationScriptscreate_validator_operator_account": decode_create_validator_operator_account_script_function,
+    "AccountAdministrationScriptscreate_vasp_domains": decode_create_vasp_domains_script_function,
     "TreasuryComplianceScriptsfreeze_account": decode_freeze_account_script_function,
     "SystemAdministrationScriptsinitialize_diem_consensus_config": decode_initialize_diem_consensus_config_script_function,
+    "PaymentScriptspeer_to_peer_by_signers": decode_peer_to_peer_by_signers_script_function,
     "PaymentScriptspeer_to_peer_with_metadata": decode_peer_to_peer_with_metadata_script_function,
     "TreasuryComplianceScriptspreburn": decode_preburn_script_function,
     "AccountAdministrationScriptspublish_shared_ed25519_public_key": decode_publish_shared_ed25519_public_key_script_function,
     "ValidatorAdministrationScriptsregister_validator_config": decode_register_validator_config_script_function,
-    "TreasuryComplianceScriptsremove_diem_id_domain": decode_remove_diem_id_domain_script_function,
     "ValidatorAdministrationScriptsremove_validator_and_reconfigure": decode_remove_validator_and_reconfigure_script_function,
+    "TreasuryComplianceScriptsremove_vasp_domain": decode_remove_vasp_domain_script_function,
     "AccountAdministrationScriptsrotate_authentication_key": decode_rotate_authentication_key_script_function,
     "AccountAdministrationScriptsrotate_authentication_key_with_nonce": decode_rotate_authentication_key_with_nonce_script_function,
     "AccountAdministrationScriptsrotate_authentication_key_with_nonce_admin": decode_rotate_authentication_key_with_nonce_admin_script_function,

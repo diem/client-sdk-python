@@ -39,7 +39,7 @@ def event_loop() -> Generator[asyncio.events.AbstractEventLoop, None, None]:
 @pytest.fixture(scope="package")
 async def target_client(diem_client: AsyncClient) -> AsyncGenerator[RestClient, None]:
     if is_self_check():
-        conf = AppConfig(name="target-wallet", diem_id_domain=generate_diem_id_domain("target"))
+        conf = AppConfig(name="target-wallet", vasp_domain=generate_vasp_domain("target"))
         print("self-checking, launch target app with config %s" % conf)
         _, runner = await conf.start(diem_client)
         try:
@@ -70,8 +70,8 @@ def stub_wallet_app(start_stub_wallet: Tuple[AppConfig, App]) -> App:
 
 @pytest.fixture(scope="package")
 async def start_stub_wallet(diem_client: AsyncClient) -> AsyncGenerator[Tuple[AppConfig, App], None]:
-    domain = generate_diem_id_domain("stub")
-    conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()), diem_id_domain=domain)
+    domain = generate_vasp_domain("stub")
+    conf = AppConfig(name="stub-wallet", server_conf=ServerConfig(**dmw_stub_server()), vasp_domain=domain)
     account_conf = dmw_stub_diem_account_config()
     if account_conf:
         print("loads stub account config: %s" % account_conf)
@@ -141,17 +141,17 @@ async def log_stub_wallet_pending_income_account(
 
 
 @pytest.fixture
-async def stub_account_diem_id_domains(stub_config: AppConfig, diem_client: AsyncClient) -> List[str]:
+async def stub_account_vasp_domains(stub_config: AppConfig, diem_client: AsyncClient) -> List[str]:
     account = await diem_client.get_account(stub_config.account.account_address)
-    return [] if account is None else list(account.role.diem_id_domains)
+    return [] if account is None else list(account.role.vasp_domains)
 
 
 @pytest.fixture
-async def target_account_diem_id_domains(target_client: RestClient, diem_client: AsyncClient, hrp: str) -> List[str]:
+async def target_account_vasp_domains(target_client: RestClient, diem_client: AsyncClient, hrp: str) -> List[str]:
     account_identifier = await target_client.random_account_identifier()
     account_address, _ = identifier.decode_account(account_identifier, hrp)
     account = await diem_client.get_parent_vasp_account(account_address)
-    return list(account.role.diem_id_domains)
+    return list(account.role.vasp_domains)
 
 
 async def send_request_json(
@@ -283,5 +283,5 @@ async def wait_for_payment_transaction_complete(account: AccountResource, paymen
     await wait_for_event(account, "updated_transaction", status=Transaction.Status.completed, id=payment_id)
 
 
-def generate_diem_id_domain(prefix: str) -> str:
+def generate_vasp_domain(prefix: str) -> str:
     return prefix + secrets.token_hex(8)

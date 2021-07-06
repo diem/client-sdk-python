@@ -43,9 +43,9 @@ class DiemAccount:
     def payment_metadata(self, reference_id: str) -> Tuple[bytes, bytes]:
         return (txnmetadata.payment_metadata(reference_id), b"")
 
-    async def diem_id_domains(self) -> List[str]:
+    async def vasp_domains(self) -> List[str]:
         account = await self._client.get_account(self._account.account_address)
-        return [] if account is None else account.role.diem_id_domains
+        return [] if account is None else account.role.vasp_domains
 
     async def submit_p2p(
         self,

@@ -49,7 +49,7 @@ class App:
             # disable_background_tasks disables background task processing in the App for the account,
             # it is used for testing offchain api.
             disable_background_tasks=await data.get_nullable("disable_background_tasks", bool),
-            diem_id_domain=next(iter(await self.diem_account.diem_id_domains()), None),
+            vasp_domain=next(iter(await self.diem_account.vasp_domains()), None),
         )
         balances = await data.get_nullable("balances", dict)
         if balances:
@@ -72,7 +72,7 @@ class App:
         try:
             if identifier.diem_id.is_diem_id(payee):
                 domain = identifier.diem_id.get_vasp_identifier_from_diem_id(payee)
-                if domain in await self.diem_account.diem_id_domains():
+                if domain in await self.diem_account.vasp_domains():
                     diem_user_id = identifier.diem_id.get_user_identifier_from_diem_id(payee)
                     payee_account_id = self.store.find(Account, id=diem_user_id).id
                 else:
@@ -289,7 +289,7 @@ class App:
 
     async def _find_diem_id_account_address(self, diem_id: str) -> str:
         domain = identifier.diem_id.get_vasp_identifier_from_diem_id(diem_id)
-        domain_map = await self.diem_client.get_diem_id_domain_map()
+        domain_map = await self.diem_client.get_vasp_domain_map()
         account_address = domain_map.get(domain)
         if account_address is None:
             raise ValueError("could not find onchain account address by diem id: %s" % diem_id)

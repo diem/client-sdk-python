@@ -68,7 +68,7 @@ class Faucet:
         amount: int,
         currency_code: str,
         dd_account: bool = False,
-        diem_id_domain: Optional[str] = None,
+        vasp_domain: Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
         await self._retry.execute(
@@ -78,7 +78,7 @@ class Faucet:
                 amount,
                 currency_code,
                 dd_account,
-                diem_id_domain,
+                vasp_domain,
                 is_remove_domain,
             )
         )
@@ -89,7 +89,7 @@ class Faucet:
         amount: int,
         currency_code: str,
         dd_account: bool = False,
-        diem_id_domain: Optional[str] = None,
+        vasp_domain: Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
         params = {
@@ -99,9 +99,9 @@ class Faucet:
             "return_txns": "true",
             "is_designated_dealer": "true" if dd_account else "false",
         }
-        if diem_id_domain:
+        if vasp_domain:
             if await self._client.support_diem_id():
-                params["diem_id_domain"] = diem_id_domain
+                params["vasp_domain"] = vasp_domain
                 params["is_remove_domain"] = "true" if is_remove_domain else "false"
             else:
                 warnings.warn("Diem ID is not supported by network connected, ignore diem_id_domain parameter")

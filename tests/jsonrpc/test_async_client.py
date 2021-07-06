@@ -321,7 +321,7 @@ async def test_init_faucet_with_url(client: AsyncClient):
         await faucet.gen_account()
 
 
-async def test_get_diem_id_domain_map(client: AsyncClient):
+async def test_get_vasp_domain_map(client: AsyncClient):
     if not await client.support_diem_id():
         pytest.skip("Diem ID is not supported")
     faucet = Faucet(client)
@@ -330,15 +330,15 @@ async def test_get_diem_id_domain_map(client: AsyncClient):
     domain1 = "domain1"
     domain2 = "domain2"
 
-    await faucet.mint(parent_vasp1.auth_key.hex(), 1, XUS, diem_id_domain=domain1, is_remove_domain=False)
-    await faucet.mint(parent_vasp2.auth_key.hex(), 1, XUS, diem_id_domain=domain2, is_remove_domain=False)
+    await faucet.mint(parent_vasp1.auth_key.hex(), 1, XUS, vasp_domain=domain1, is_remove_domain=False)
+    await faucet.mint(parent_vasp2.auth_key.hex(), 1, XUS, vasp_domain=domain2, is_remove_domain=False)
 
-    domain_map = await client.get_diem_id_domain_map()
+    domain_map = await client.get_vasp_domain_map()
     assert domain_map.get(domain1) == parent_vasp1.account_address.to_hex()
     assert domain_map.get(domain2) == parent_vasp2.account_address.to_hex()
 
-    await faucet.mint(parent_vasp1.auth_key.hex(), 1, XUS, diem_id_domain=domain1, is_remove_domain=True)
-    domain_map = await client.get_diem_id_domain_map()
+    await faucet.mint(parent_vasp1.auth_key.hex(), 1, XUS, vasp_domain=domain1, is_remove_domain=True)
+    domain_map = await client.get_vasp_domain_map()
     assert domain_map.get(domain1) is None
 
 

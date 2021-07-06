@@ -376,11 +376,11 @@ class AsyncClient:
             "get_account_state_with_proof", params, _parse_obj(lambda: rpc.AccountStateWithProof())
         )
 
-    async def get_diem_id_domain_map(self, batch_size: int = 100) -> typing.Dict[str, str]:
+    async def get_vasp_domain_map(self, batch_size: int = 100) -> typing.Dict[str, str]:
         domain_map = {}
         event_index = 0
         tc_account = await self.must_get_account(TREASURY_ADDRESS)
-        event_stream_key = tc_account.role.diem_id_domain_events_key
+        event_stream_key = tc_account.role.vasp_domain_events_key
         while True:
             events = await self.get_events(event_stream_key, event_index, batch_size)
             for event in events:
@@ -395,7 +395,7 @@ class AsyncClient:
 
     async def support_diem_id(self) -> bool:
         tc_account = await self.must_get_account(TREASURY_ADDRESS)
-        return bool(tc_account.role.diem_id_domain_events_key)
+        return bool(tc_account.role.vasp_domain_events_key)
 
     async def submit(
         self,

@@ -19,11 +19,11 @@ class Account(Base):
     kyc_data: Optional[offchain.KycDataObject] = field(default=None)
     reject_additional_kyc_data_request: Optional[bool] = field(default=False)
     disable_background_tasks: Optional[bool] = field(default=False)
-    diem_id_domain: Optional[str] = field(default=None)
+    vasp_domain: Optional[str] = field(default=None)
     diem_id: Optional[str] = field(default=None)
 
     def __post_init__(self) -> None:
-        self.diem_id = create_diem_id(self.id, str(self.diem_id_domain)) if self.diem_id_domain else None
+        self.diem_id = create_diem_id(self.id, str(self.vasp_domain)) if self.vasp_domain else None
 
     def kyc_data_object(self) -> offchain.KycDataObject:
         return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore

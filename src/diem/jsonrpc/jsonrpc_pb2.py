@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\020org.diem.jsonrpcB\007JsonRpcZ\027github.com/diem/jsonrpc',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rjsonrpc.proto\x12\x07jsonrpc\"*\n\x06\x41mount\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x02 \x01(\t\"\xf4\x03\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12!\n\x08\x62\x61lances\x18\x02 \x03(\x0b\x32\x0f.jsonrpc.Amount\x12(\n\x0fsequence_number\x18\x03 \x01(\x04R\x0fsequence_number\x12.\n\x12\x61uthentication_key\x18\x04 \x01(\tR\x12\x61uthentication_key\x12(\n\x0fsent_events_key\x18\x05 \x01(\tR\x0fsent_events_key\x12\x30\n\x13received_events_key\x18\x06 \x01(\tR\x13received_events_key\x12L\n!delegated_key_rotation_capability\x18\x07 \x01(\x08R!delegated_key_rotation_capability\x12H\n\x1f\x64\x65legated_withdrawal_capability\x18\x08 \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\x32\n\tis_frozen\x18\t \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\"\n\x04role\x18\n \x01(\x0b\x32\x14.jsonrpc.AccountRole\x12\x0f\n\x07version\x18\x0b \x01(\x04\"\xb3\x05\n\x0b\x41\x63\x63ountRole\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x30\n\x13parent_vasp_address\x18\x02 \x01(\tR\x13parent_vasp_address\x12\x1e\n\nhuman_name\x18\x03 \x01(\tR\nhuman_name\x12\x1a\n\x08\x62\x61se_url\x18\x04 \x01(\tR\x08\x62\x61se_url\x12(\n\x0f\x65xpiration_time\x18\x05 \x01(\x04R\x0f\x65xpiration_time\x12&\n\x0e\x63ompliance_key\x18\x06 \x01(\tR\x0e\x63ompliance_key\x12N\n\"compliance_key_rotation_events_key\x18\x07 \x01(\tR\"compliance_key_rotation_events_key\x12\x42\n\x1c\x62\x61se_url_rotation_events_key\x18\x08 \x01(\tR\x1c\x62\x61se_url_rotation_events_key\x12\"\n\x0cnum_children\x18\t \x01(\x04R\x0cnum_children\x12:\n\x18received_mint_events_key\x18\n \x01(\tR\x18received_mint_events_key\x12;\n\x10preburn_balances\x18\x0b \x03(\x0b\x32\x0f.jsonrpc.AmountR\x10preburn_balances\x12=\n\x0epreburn_queues\x18\x0c \x03(\x0b\x32\x15.jsonrpc.PreburnQueueR\x0epreburn_queues\x12(\n\x0f\x64iem_id_domains\x18\r \x03(\tR\x0f\x64iem_id_domains\x12<\n\x19\x64iem_id_domain_events_key\x18\x0e \x01(\tR\x19\x64iem_id_domain_events_key\"d\n\x0cPreburnQueue\x12\x1a\n\x08\x63urrency\x18\x01 \x01(\tR\x08\x63urrency\x12\x38\n\x08preburns\x18\x02 \x03(\x0b\x32\x1c.jsonrpc.PreburnWithMetadataR\x08preburns\"\\\n\x13PreburnWithMetadata\x12)\n\x07preburn\x18\x01 \x01(\x0b\x32\x0f.jsonrpc.AmountR\x07preburn\x12\x1a\n\x08metadata\x18\x02 \x01(\tR\x08metadata\"\x92\x01\n\x05\x45vent\x12\x0b\n\x03key\x18\x01 \x01(\t\x12(\n\x0fsequence_number\x18\x02 \x01(\x04R\x0fsequence_number\x12\x30\n\x13transaction_version\x18\x03 \x01(\x04R\x13transaction_version\x12 \n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x12.jsonrpc.EventData\"\xf3\x05\n\tEventData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x1f\n\x06\x61mount\x18\x02 \x01(\x0b\x32\x0f.jsonrpc.Amount\x12(\n\x0fpreburn_address\x18\x03 \x01(\tR\x0fpreburn_address\x12$\n\rcurrency_code\x18\x04 \x01(\tR\rcurrency_code\x12:\n\x18new_to_xdx_exchange_rate\x18\x05 \x01(\x02R\x18new_to_xdx_exchange_rate\x12\x0e\n\x06sender\x18\x06 \x01(\t\x12\x10\n\x08receiver\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12\r\n\x05\x65poch\x18\n \x01(\x04\x12\r\n\x05round\x18\x0b \x01(\x04\x12\x10\n\x08proposer\x18\x0c \x01(\t\x12$\n\rproposed_time\x18\r \x01(\x04R\rproposed_time\x12\x30\n\x13\x64\x65stination_address\x18\x0e \x01(\tR\x13\x64\x65stination_address\x12<\n\x19new_compliance_public_key\x18\x0f \x01(\tR\x19new_compliance_public_key\x12\"\n\x0cnew_base_url\x18\x10 \x01(\tR\x0cnew_base_url\x12\x32\n\x14time_rotated_seconds\x18\x11 \x01(\x04R\x14time_rotated_seconds\x12(\n\x0f\x63reated_address\x18\x12 \x01(\tR\x0f\x63reated_address\x12\x18\n\x07role_id\x18\x13 \x01(\x04R\x07role_id\x12:\n\x18\x63ommitted_timestamp_secs\x18\x14 \x01(\x04R\x18\x63ommitted_timestamp_secs\x12\r\n\x05\x62ytes\x18\x15 \x01(\t\x12\x18\n\x07removed\x18\x16 \x01(\x08R\x07removed\x12\x16\n\x06\x64omain\x18\x17 \x01(\tR\x06\x64omain\x12\x18\n\x07\x61\x64\x64ress\x18\x18 \x01(\tR\x07\x61\x64\x64ress\"\xd2\x02\n\x08Metadata\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12\x1a\n\x08\x63hain_id\x18\x03 \x01(\rR\x08\x63hain_id\x12\x36\n\x16script_hash_allow_list\x18\x04 \x03(\tR\x16script_hash_allow_list\x12<\n\x19module_publishing_allowed\x18\x05 \x01(\x08R\x19module_publishing_allowed\x12\"\n\x0c\x64iem_version\x18\x06 \x01(\x04R\x0c\x64iem_version\x12\x34\n\x15\x61\x63\x63umulator_root_hash\x18\x07 \x01(\tR\x15\x61\x63\x63umulator_root_hash\x12\x36\n\x16\x64ual_attestation_limit\x18\x08 \x01(\x04R\x16\x64ual_attestation_limit\"\xd7\x01\n\x0bTransaction\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12-\n\x0btransaction\x18\x02 \x01(\x0b\x32\x18.jsonrpc.TransactionData\x12\x0c\n\x04hash\x18\x03 \x01(\t\x12\r\n\x05\x62ytes\x18\x04 \x01(\t\x12\x1e\n\x06\x65vents\x18\x05 \x03(\x0b\x32\x0e.jsonrpc.Event\x12/\n\tvm_status\x18\x06 \x01(\x0b\x32\x11.jsonrpc.VMStatusR\tvm_status\x12\x1a\n\x08gas_used\x18\x07 \x01(\x04R\x08gas_used\"\x9d\x01\n\x15MoveAbortExplaination\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x32\n\x14\x63\x61tegory_description\x18\x02 \x01(\tR\x14\x63\x61tegory_description\x12\x0e\n\x06reason\x18\x03 \x01(\t\x12.\n\x12reason_description\x18\x04 \x01(\tR\x12reason_description\"\xc9\x01\n\x08VMStatus\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08location\x18\x02 \x01(\t\x12\x1e\n\nabort_code\x18\x03 \x01(\x04R\nabort_code\x12&\n\x0e\x66unction_index\x18\x04 \x01(\rR\x0e\x66unction_index\x12 \n\x0b\x63ode_offset\x18\x05 \x01(\rR\x0b\x63ode_offset\x12\x33\n\x0b\x65xplanation\x18\x06 \x01(\x0b\x32\x1e.jsonrpc.MoveAbortExplaination\"\xf1\x05\n\x0fTransactionData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12(\n\x0ftimestamp_usecs\x18\x02 \x01(\x04R\x0ftimestamp_usecs\x12\x0e\n\x06sender\x18\x03 \x01(\t\x12*\n\x10signature_scheme\x18\x04 \x01(\tR\x10signature_scheme\x12\x11\n\tsignature\x18\x05 \x01(\t\x12\x1e\n\npublic_key\x18\x06 \x01(\tR\npublic_key\x12(\n\x0fsequence_number\x18\x07 \x01(\x04R\x0fsequence_number\x12\x1a\n\x08\x63hain_id\x18\x08 \x01(\rR\x08\x63hain_id\x12&\n\x0emax_gas_amount\x18\t \x01(\x04R\x0emax_gas_amount\x12&\n\x0egas_unit_price\x18\n \x01(\x04R\x0egas_unit_price\x12\"\n\x0cgas_currency\x18\x0b \x01(\tR\x0cgas_currency\x12<\n\x19\x65xpiration_timestamp_secs\x18\x0c \x01(\x04R\x19\x65xpiration_timestamp_secs\x12 \n\x0bscript_hash\x18\r \x01(\tR\x0bscript_hash\x12\"\n\x0cscript_bytes\x18\x0e \x01(\tR\x0cscript_bytes\x12\x1f\n\x06script\x18\x0f \x01(\x0b\x32\x0f.jsonrpc.Script\x12,\n\x11secondary_signers\x18\x10 \x03(\tR\x11secondary_signers\x12@\n\x1bsecondary_signature_schemes\x18\x11 \x03(\tR\x1bsecondary_signature_schemes\x12\x32\n\x14secondary_signatures\x18\x12 \x03(\tR\x14secondary_signatures\x12\x34\n\x15secondary_public_keys\x18\x13 \x03(\tR\x15secondary_public_keys\"\xbf\x02\n\x06Script\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x03(\t\x12&\n\x0etype_arguments\x18\x04 \x03(\tR\x0etype_arguments\x12\x10\n\x08receiver\x18\x05 \x01(\t\x12\x0e\n\x06\x61mount\x18\x06 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12.\n\x12metadata_signature\x18\t \x01(\tR\x12metadata_signature\x12\x16\n\x0emodule_address\x18\n \x01(\t\x12\x13\n\x0bmodule_name\x18\x0b \x01(\t\x12\x15\n\rfunction_name\x18\x0c \x01(\t\x12$\n\rarguments_bcs\x18\r \x03(\tR\rarguments_bcs\"\xa8\x03\n\x0c\x43urrencyInfo\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\x12&\n\x0escaling_factor\x18\x02 \x01(\x04R\x0escaling_factor\x12(\n\x0f\x66ractional_part\x18\x03 \x01(\x04R\x0f\x66ractional_part\x12\x32\n\x14to_xdx_exchange_rate\x18\x04 \x01(\x02R\x14to_xdx_exchange_rate\x12(\n\x0fmint_events_key\x18\x05 \x01(\tR\x0fmint_events_key\x12(\n\x0f\x62urn_events_key\x18\x06 \x01(\tR\x0f\x62urn_events_key\x12.\n\x12preburn_events_key\x18\x07 \x01(\tR\x12preburn_events_key\x12\x36\n\x16\x63\x61ncel_burn_events_key\x18\x08 \x01(\tR\x16\x63\x61ncel_burn_events_key\x12H\n\x1f\x65xchange_rate_update_events_key\x18\t \x01(\tR\x1f\x65xchange_rate_update_events_key\"\xba\x01\n\nStateProof\x12@\n\x1bledger_info_with_signatures\x18\x01 \x01(\tR\x1bledger_info_with_signatures\x12.\n\x12\x65poch_change_proof\x18\x02 \x01(\tR\x12\x65poch_change_proof\x12:\n\x18ledger_consistency_proof\x18\x03 \x01(\tR\x18ledger_consistency_proof\"a\n\x15\x41\x63\x63ountStateWithProof\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x0c\n\x04\x62lob\x18\x02 \x01(\t\x12)\n\x05proof\x18\x03 \x01(\x0b\x32\x1a.jsonrpc.AccountStateProof\"\xe3\x01\n\x11\x41\x63\x63ountStateProof\x12T\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\tR%ledger_info_to_transaction_info_proof\x12*\n\x10transaction_info\x18\x02 \x01(\tR\x10transaction_info\x12L\n!transaction_info_to_account_proof\x18\x03 \x01(\tR!transaction_info_to_account_proof\"Y\n\x1b\x41\x63\x63umulatorConsistencyProof\x12:\n\x18ledger_consistency_proof\x18\x01 \x01(\tR\x18ledger_consistency_proofB4\n\x10org.diem.jsonrpcB\x07JsonRpcZ\x17github.com/diem/jsonrpcb\x06proto3'
+  serialized_pb=b'\n\rjsonrpc.proto\x12\x07jsonrpc\"*\n\x06\x41mount\x12\x0e\n\x06\x61mount\x18\x01 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x02 \x01(\t\"\xf4\x03\n\x07\x41\x63\x63ount\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x01(\t\x12!\n\x08\x62\x61lances\x18\x02 \x03(\x0b\x32\x0f.jsonrpc.Amount\x12(\n\x0fsequence_number\x18\x03 \x01(\x04R\x0fsequence_number\x12.\n\x12\x61uthentication_key\x18\x04 \x01(\tR\x12\x61uthentication_key\x12(\n\x0fsent_events_key\x18\x05 \x01(\tR\x0fsent_events_key\x12\x30\n\x13received_events_key\x18\x06 \x01(\tR\x13received_events_key\x12L\n!delegated_key_rotation_capability\x18\x07 \x01(\x08R!delegated_key_rotation_capability\x12H\n\x1f\x64\x65legated_withdrawal_capability\x18\x08 \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\x32\n\tis_frozen\x18\t \x01(\x08R\x1f\x64\x65legated_withdrawal_capability\x12\"\n\x04role\x18\n \x01(\x0b\x32\x14.jsonrpc.AccountRole\x12\x0f\n\x07version\x18\x0b \x01(\x04\"\xa7\x05\n\x0b\x41\x63\x63ountRole\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x30\n\x13parent_vasp_address\x18\x02 \x01(\tR\x13parent_vasp_address\x12\x1e\n\nhuman_name\x18\x03 \x01(\tR\nhuman_name\x12\x1a\n\x08\x62\x61se_url\x18\x04 \x01(\tR\x08\x62\x61se_url\x12(\n\x0f\x65xpiration_time\x18\x05 \x01(\x04R\x0f\x65xpiration_time\x12&\n\x0e\x63ompliance_key\x18\x06 \x01(\tR\x0e\x63ompliance_key\x12N\n\"compliance_key_rotation_events_key\x18\x07 \x01(\tR\"compliance_key_rotation_events_key\x12\x42\n\x1c\x62\x61se_url_rotation_events_key\x18\x08 \x01(\tR\x1c\x62\x61se_url_rotation_events_key\x12\"\n\x0cnum_children\x18\t \x01(\x04R\x0cnum_children\x12:\n\x18received_mint_events_key\x18\n \x01(\tR\x18received_mint_events_key\x12;\n\x10preburn_balances\x18\x0b \x03(\x0b\x32\x0f.jsonrpc.AmountR\x10preburn_balances\x12=\n\x0epreburn_queues\x18\x0c \x03(\x0b\x32\x15.jsonrpc.PreburnQueueR\x0epreburn_queues\x12\"\n\x0cvasp_domains\x18\r \x03(\tR\x0cvasp_domains\x12\x36\n\x16vasp_domain_events_key\x18\x0e \x01(\tR\x16vasp_domain_events_key\"d\n\x0cPreburnQueue\x12\x1a\n\x08\x63urrency\x18\x01 \x01(\tR\x08\x63urrency\x12\x38\n\x08preburns\x18\x02 \x03(\x0b\x32\x1c.jsonrpc.PreburnWithMetadataR\x08preburns\"\\\n\x13PreburnWithMetadata\x12)\n\x07preburn\x18\x01 \x01(\x0b\x32\x0f.jsonrpc.AmountR\x07preburn\x12\x1a\n\x08metadata\x18\x02 \x01(\tR\x08metadata\"\x92\x01\n\x05\x45vent\x12\x0b\n\x03key\x18\x01 \x01(\t\x12(\n\x0fsequence_number\x18\x02 \x01(\x04R\x0fsequence_number\x12\x30\n\x13transaction_version\x18\x03 \x01(\x04R\x13transaction_version\x12 \n\x04\x64\x61ta\x18\x04 \x01(\x0b\x32\x12.jsonrpc.EventData\"\xf3\x05\n\tEventData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x1f\n\x06\x61mount\x18\x02 \x01(\x0b\x32\x0f.jsonrpc.Amount\x12(\n\x0fpreburn_address\x18\x03 \x01(\tR\x0fpreburn_address\x12$\n\rcurrency_code\x18\x04 \x01(\tR\rcurrency_code\x12:\n\x18new_to_xdx_exchange_rate\x18\x05 \x01(\x02R\x18new_to_xdx_exchange_rate\x12\x0e\n\x06sender\x18\x06 \x01(\t\x12\x10\n\x08receiver\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12\r\n\x05\x65poch\x18\n \x01(\x04\x12\r\n\x05round\x18\x0b \x01(\x04\x12\x10\n\x08proposer\x18\x0c \x01(\t\x12$\n\rproposed_time\x18\r \x01(\x04R\rproposed_time\x12\x30\n\x13\x64\x65stination_address\x18\x0e \x01(\tR\x13\x64\x65stination_address\x12<\n\x19new_compliance_public_key\x18\x0f \x01(\tR\x19new_compliance_public_key\x12\"\n\x0cnew_base_url\x18\x10 \x01(\tR\x0cnew_base_url\x12\x32\n\x14time_rotated_seconds\x18\x11 \x01(\x04R\x14time_rotated_seconds\x12(\n\x0f\x63reated_address\x18\x12 \x01(\tR\x0f\x63reated_address\x12\x18\n\x07role_id\x18\x13 \x01(\x04R\x07role_id\x12:\n\x18\x63ommitted_timestamp_secs\x18\x14 \x01(\x04R\x18\x63ommitted_timestamp_secs\x12\r\n\x05\x62ytes\x18\x15 \x01(\t\x12\x18\n\x07removed\x18\x16 \x01(\x08R\x07removed\x12\x16\n\x06\x64omain\x18\x17 \x01(\tR\x06\x64omain\x12\x18\n\x07\x61\x64\x64ress\x18\x18 \x01(\tR\x07\x61\x64\x64ress\"\xd2\x02\n\x08Metadata\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x11\n\ttimestamp\x18\x02 \x01(\x04\x12\x1a\n\x08\x63hain_id\x18\x03 \x01(\rR\x08\x63hain_id\x12\x36\n\x16script_hash_allow_list\x18\x04 \x03(\tR\x16script_hash_allow_list\x12<\n\x19module_publishing_allowed\x18\x05 \x01(\x08R\x19module_publishing_allowed\x12\"\n\x0c\x64iem_version\x18\x06 \x01(\x04R\x0c\x64iem_version\x12\x34\n\x15\x61\x63\x63umulator_root_hash\x18\x07 \x01(\tR\x15\x61\x63\x63umulator_root_hash\x12\x36\n\x16\x64ual_attestation_limit\x18\x08 \x01(\x04R\x16\x64ual_attestation_limit\"\xd7\x01\n\x0bTransaction\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12-\n\x0btransaction\x18\x02 \x01(\x0b\x32\x18.jsonrpc.TransactionData\x12\x0c\n\x04hash\x18\x03 \x01(\t\x12\r\n\x05\x62ytes\x18\x04 \x01(\t\x12\x1e\n\x06\x65vents\x18\x05 \x03(\x0b\x32\x0e.jsonrpc.Event\x12/\n\tvm_status\x18\x06 \x01(\x0b\x32\x11.jsonrpc.VMStatusR\tvm_status\x12\x1a\n\x08gas_used\x18\x07 \x01(\x04R\x08gas_used\"\x9d\x01\n\x15MoveAbortExplaination\x12\x10\n\x08\x63\x61tegory\x18\x01 \x01(\t\x12\x32\n\x14\x63\x61tegory_description\x18\x02 \x01(\tR\x14\x63\x61tegory_description\x12\x0e\n\x06reason\x18\x03 \x01(\t\x12.\n\x12reason_description\x18\x04 \x01(\tR\x12reason_description\"\xc9\x01\n\x08VMStatus\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08location\x18\x02 \x01(\t\x12\x1e\n\nabort_code\x18\x03 \x01(\x04R\nabort_code\x12&\n\x0e\x66unction_index\x18\x04 \x01(\rR\x0e\x66unction_index\x12 \n\x0b\x63ode_offset\x18\x05 \x01(\rR\x0b\x63ode_offset\x12\x33\n\x0b\x65xplanation\x18\x06 \x01(\x0b\x32\x1e.jsonrpc.MoveAbortExplaination\"\xf1\x05\n\x0fTransactionData\x12\x0c\n\x04type\x18\x01 \x01(\t\x12(\n\x0ftimestamp_usecs\x18\x02 \x01(\x04R\x0ftimestamp_usecs\x12\x0e\n\x06sender\x18\x03 \x01(\t\x12*\n\x10signature_scheme\x18\x04 \x01(\tR\x10signature_scheme\x12\x11\n\tsignature\x18\x05 \x01(\t\x12\x1e\n\npublic_key\x18\x06 \x01(\tR\npublic_key\x12(\n\x0fsequence_number\x18\x07 \x01(\x04R\x0fsequence_number\x12\x1a\n\x08\x63hain_id\x18\x08 \x01(\rR\x08\x63hain_id\x12&\n\x0emax_gas_amount\x18\t \x01(\x04R\x0emax_gas_amount\x12&\n\x0egas_unit_price\x18\n \x01(\x04R\x0egas_unit_price\x12\"\n\x0cgas_currency\x18\x0b \x01(\tR\x0cgas_currency\x12<\n\x19\x65xpiration_timestamp_secs\x18\x0c \x01(\x04R\x19\x65xpiration_timestamp_secs\x12 \n\x0bscript_hash\x18\r \x01(\tR\x0bscript_hash\x12\"\n\x0cscript_bytes\x18\x0e \x01(\tR\x0cscript_bytes\x12\x1f\n\x06script\x18\x0f \x01(\x0b\x32\x0f.jsonrpc.Script\x12,\n\x11secondary_signers\x18\x10 \x03(\tR\x11secondary_signers\x12@\n\x1bsecondary_signature_schemes\x18\x11 \x03(\tR\x1bsecondary_signature_schemes\x12\x32\n\x14secondary_signatures\x18\x12 \x03(\tR\x14secondary_signatures\x12\x34\n\x15secondary_public_keys\x18\x13 \x03(\tR\x15secondary_public_keys\"\xbf\x02\n\x06Script\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x0c\n\x04\x63ode\x18\x02 \x01(\t\x12\x11\n\targuments\x18\x03 \x03(\t\x12&\n\x0etype_arguments\x18\x04 \x03(\tR\x0etype_arguments\x12\x10\n\x08receiver\x18\x05 \x01(\t\x12\x0e\n\x06\x61mount\x18\x06 \x01(\x04\x12\x10\n\x08\x63urrency\x18\x07 \x01(\t\x12\x10\n\x08metadata\x18\x08 \x01(\t\x12.\n\x12metadata_signature\x18\t \x01(\tR\x12metadata_signature\x12\x16\n\x0emodule_address\x18\n \x01(\t\x12\x13\n\x0bmodule_name\x18\x0b \x01(\t\x12\x15\n\rfunction_name\x18\x0c \x01(\t\x12$\n\rarguments_bcs\x18\r \x03(\tR\rarguments_bcs\"\xa8\x03\n\x0c\x43urrencyInfo\x12\x0c\n\x04\x63ode\x18\x01 \x01(\t\x12&\n\x0escaling_factor\x18\x02 \x01(\x04R\x0escaling_factor\x12(\n\x0f\x66ractional_part\x18\x03 \x01(\x04R\x0f\x66ractional_part\x12\x32\n\x14to_xdx_exchange_rate\x18\x04 \x01(\x02R\x14to_xdx_exchange_rate\x12(\n\x0fmint_events_key\x18\x05 \x01(\tR\x0fmint_events_key\x12(\n\x0f\x62urn_events_key\x18\x06 \x01(\tR\x0f\x62urn_events_key\x12.\n\x12preburn_events_key\x18\x07 \x01(\tR\x12preburn_events_key\x12\x36\n\x16\x63\x61ncel_burn_events_key\x18\x08 \x01(\tR\x16\x63\x61ncel_burn_events_key\x12H\n\x1f\x65xchange_rate_update_events_key\x18\t \x01(\tR\x1f\x65xchange_rate_update_events_key\"\xba\x01\n\nStateProof\x12@\n\x1bledger_info_with_signatures\x18\x01 \x01(\tR\x1bledger_info_with_signatures\x12.\n\x12\x65poch_change_proof\x18\x02 \x01(\tR\x12\x65poch_change_proof\x12:\n\x18ledger_consistency_proof\x18\x03 \x01(\tR\x18ledger_consistency_proof\"a\n\x15\x41\x63\x63ountStateWithProof\x12\x0f\n\x07version\x18\x01 \x01(\x04\x12\x0c\n\x04\x62lob\x18\x02 \x01(\t\x12)\n\x05proof\x18\x03 \x01(\x0b\x32\x1a.jsonrpc.AccountStateProof\"\xe3\x01\n\x11\x41\x63\x63ountStateProof\x12T\n%ledger_info_to_transaction_info_proof\x18\x01 \x01(\tR%ledger_info_to_transaction_info_proof\x12*\n\x10transaction_info\x18\x02 \x01(\tR\x10transaction_info\x12L\n!transaction_info_to_account_proof\x18\x03 \x01(\tR!transaction_info_to_account_proof\"Y\n\x1b\x41\x63\x63umulatorConsistencyProof\x12:\n\x18ledger_consistency_proof\x18\x01 \x01(\tR\x18ledger_consistency_proof\"`\n\x1c\x41\x63\x63ountTransactionsWithProof\x12@\n\x1bserialized_txns_with_proofs\x18\x01 \x03(\tR\x1bserialized_txns_with_proofs\"<\n\x0e\x45ventWithProof\x12*\n\x10\x65vent_with_proof\x18\x01 \x01(\tR\x10\x65vent_with_proof\"\xa3\x01\n\x17\x45ventByVersionWithProof\x12\x43\n\x10lower_bound_incl\x18\x01 \x01(\x0b\x32\x17.jsonrpc.EventWithProofR\x10lower_bound_incl\x12\x43\n\x10upper_bound_excl\x18\x02 \x01(\x0b\x32\x17.jsonrpc.EventWithProofR\x10upper_bound_exclB4\n\x10org.diem.jsonrpcB\x07JsonRpcZ\x17github.com/diem/jsonrpcb\x06proto3'
 )
 
 
@@ -259,19 +259,19 @@ _ACCOUNTROLE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, json_name='preburn_queues', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='diem_id_domains', full_name='jsonrpc.AccountRole.diem_id_domains', index=12,
+      name='vasp_domains', full_name='jsonrpc.AccountRole.vasp_domains', index=12,
       number=13, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, json_name='diem_id_domains', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=None, json_name='vasp_domains', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='diem_id_domain_events_key', full_name='jsonrpc.AccountRole.diem_id_domain_events_key', index=13,
+      name='vasp_domain_events_key', full_name='jsonrpc.AccountRole.vasp_domain_events_key', index=13,
       number=14, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      serialized_options=None, json_name='diem_id_domain_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+      serialized_options=None, json_name='vasp_domain_events_key', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -285,7 +285,7 @@ _ACCOUNTROLE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=574,
-  serialized_end=1265,
+  serialized_end=1253,
 )
 
 
@@ -323,8 +323,8 @@ _PREBURNQUEUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1267,
-  serialized_end=1367,
+  serialized_start=1255,
+  serialized_end=1355,
 )
 
 
@@ -362,8 +362,8 @@ _PREBURNWITHMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1369,
-  serialized_end=1461,
+  serialized_start=1357,
+  serialized_end=1449,
 )
 
 
@@ -415,8 +415,8 @@ _EVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1464,
-  serialized_end=1610,
+  serialized_start=1452,
+  serialized_end=1598,
 )
 
 
@@ -601,8 +601,8 @@ _EVENTDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1613,
-  serialized_end=2368,
+  serialized_start=1601,
+  serialized_end=2356,
 )
 
 
@@ -682,8 +682,8 @@ _METADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2371,
-  serialized_end=2709,
+  serialized_start=2359,
+  serialized_end=2697,
 )
 
 
@@ -756,8 +756,8 @@ _TRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2712,
-  serialized_end=2927,
+  serialized_start=2700,
+  serialized_end=2915,
 )
 
 
@@ -809,8 +809,8 @@ _MOVEABORTEXPLAINATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=2930,
-  serialized_end=3087,
+  serialized_start=2918,
+  serialized_end=3075,
 )
 
 
@@ -876,8 +876,8 @@ _VMSTATUS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3090,
-  serialized_end=3291,
+  serialized_start=3078,
+  serialized_end=3279,
 )
 
 
@@ -1034,8 +1034,8 @@ _TRANSACTIONDATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=3294,
-  serialized_end=4047,
+  serialized_start=3282,
+  serialized_end=4035,
 )
 
 
@@ -1150,8 +1150,8 @@ _SCRIPT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4050,
-  serialized_end=4369,
+  serialized_start=4038,
+  serialized_end=4357,
 )
 
 
@@ -1238,8 +1238,8 @@ _CURRENCYINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4372,
-  serialized_end=4796,
+  serialized_start=4360,
+  serialized_end=4784,
 )
 
 
@@ -1284,8 +1284,8 @@ _STATEPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4799,
-  serialized_end=4985,
+  serialized_start=4787,
+  serialized_end=4973,
 )
 
 
@@ -1330,8 +1330,8 @@ _ACCOUNTSTATEWITHPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=4987,
-  serialized_end=5084,
+  serialized_start=4975,
+  serialized_end=5072,
 )
 
 
@@ -1376,8 +1376,8 @@ _ACCOUNTSTATEPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5087,
-  serialized_end=5314,
+  serialized_start=5075,
+  serialized_end=5302,
 )
 
 
@@ -1408,8 +1408,111 @@ _ACCUMULATORCONSISTENCYPROOF = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=5316,
-  serialized_end=5405,
+  serialized_start=5304,
+  serialized_end=5393,
+)
+
+
+_ACCOUNTTRANSACTIONSWITHPROOF = _descriptor.Descriptor(
+  name='AccountTransactionsWithProof',
+  full_name='jsonrpc.AccountTransactionsWithProof',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='serialized_txns_with_proofs', full_name='jsonrpc.AccountTransactionsWithProof.serialized_txns_with_proofs', index=0,
+      number=1, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='serialized_txns_with_proofs', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5395,
+  serialized_end=5491,
+)
+
+
+_EVENTWITHPROOF = _descriptor.Descriptor(
+  name='EventWithProof',
+  full_name='jsonrpc.EventWithProof',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='event_with_proof', full_name='jsonrpc.EventWithProof.event_with_proof', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='event_with_proof', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5493,
+  serialized_end=5553,
+)
+
+
+_EVENTBYVERSIONWITHPROOF = _descriptor.Descriptor(
+  name='EventByVersionWithProof',
+  full_name='jsonrpc.EventByVersionWithProof',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='lower_bound_incl', full_name='jsonrpc.EventByVersionWithProof.lower_bound_incl', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='lower_bound_incl', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='upper_bound_excl', full_name='jsonrpc.EventByVersionWithProof.upper_bound_excl', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, json_name='upper_bound_excl', file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=5556,
+  serialized_end=5719,
 )
 
 _ACCOUNT.fields_by_name['balances'].message_type = _AMOUNT
@@ -1426,6 +1529,8 @@ _TRANSACTION.fields_by_name['vm_status'].message_type = _VMSTATUS
 _VMSTATUS.fields_by_name['explanation'].message_type = _MOVEABORTEXPLAINATION
 _TRANSACTIONDATA.fields_by_name['script'].message_type = _SCRIPT
 _ACCOUNTSTATEWITHPROOF.fields_by_name['proof'].message_type = _ACCOUNTSTATEPROOF
+_EVENTBYVERSIONWITHPROOF.fields_by_name['lower_bound_incl'].message_type = _EVENTWITHPROOF
+_EVENTBYVERSIONWITHPROOF.fields_by_name['upper_bound_excl'].message_type = _EVENTWITHPROOF
 DESCRIPTOR.message_types_by_name['Amount'] = _AMOUNT
 DESCRIPTOR.message_types_by_name['Account'] = _ACCOUNT
 DESCRIPTOR.message_types_by_name['AccountRole'] = _ACCOUNTROLE
@@ -1444,6 +1549,9 @@ DESCRIPTOR.message_types_by_name['StateProof'] = _STATEPROOF
 DESCRIPTOR.message_types_by_name['AccountStateWithProof'] = _ACCOUNTSTATEWITHPROOF
 DESCRIPTOR.message_types_by_name['AccountStateProof'] = _ACCOUNTSTATEPROOF
 DESCRIPTOR.message_types_by_name['AccumulatorConsistencyProof'] = _ACCUMULATORCONSISTENCYPROOF
+DESCRIPTOR.message_types_by_name['AccountTransactionsWithProof'] = _ACCOUNTTRANSACTIONSWITHPROOF
+DESCRIPTOR.message_types_by_name['EventWithProof'] = _EVENTWITHPROOF
+DESCRIPTOR.message_types_by_name['EventByVersionWithProof'] = _EVENTBYVERSIONWITHPROOF
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Amount = _reflection.GeneratedProtocolMessageType('Amount', (_message.Message,), {
@@ -1571,6 +1679,27 @@ AccumulatorConsistencyProof = _reflection.GeneratedProtocolMessageType('Accumula
   # @@protoc_insertion_point(class_scope:jsonrpc.AccumulatorConsistencyProof)
   })
 _sym_db.RegisterMessage(AccumulatorConsistencyProof)
+
+AccountTransactionsWithProof = _reflection.GeneratedProtocolMessageType('AccountTransactionsWithProof', (_message.Message,), {
+  'DESCRIPTOR' : _ACCOUNTTRANSACTIONSWITHPROOF,
+  '__module__' : 'jsonrpc_pb2'
+  # @@protoc_insertion_point(class_scope:jsonrpc.AccountTransactionsWithProof)
+  })
+_sym_db.RegisterMessage(AccountTransactionsWithProof)
+
+EventWithProof = _reflection.GeneratedProtocolMessageType('EventWithProof', (_message.Message,), {
+  'DESCRIPTOR' : _EVENTWITHPROOF,
+  '__module__' : 'jsonrpc_pb2'
+  # @@protoc_insertion_point(class_scope:jsonrpc.EventWithProof)
+  })
+_sym_db.RegisterMessage(EventWithProof)
+
+EventByVersionWithProof = _reflection.GeneratedProtocolMessageType('EventByVersionWithProof', (_message.Message,), {
+  'DESCRIPTOR' : _EVENTBYVERSIONWITHPROOF,
+  '__module__' : 'jsonrpc_pb2'
+  # @@protoc_insertion_point(class_scope:jsonrpc.EventByVersionWithProof)
+  })
+_sym_db.RegisterMessage(EventByVersionWithProof)
 
 
 DESCRIPTOR._options = None

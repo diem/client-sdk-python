@@ -124,8 +124,8 @@ class AccountRole(google___protobuf___message___Message):
     base_url_rotation_events_key: typing___Text = ...
     num_children: builtin___int = ...
     received_mint_events_key: typing___Text = ...
-    diem_id_domains: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
-    diem_id_domain_events_key: typing___Text = ...
+    vasp_domains: google___protobuf___internal___containers___RepeatedScalarFieldContainer[typing___Text] = ...
+    vasp_domain_events_key: typing___Text = ...
     @property
     def preburn_balances(
         self,
@@ -149,8 +149,8 @@ class AccountRole(google___protobuf___message___Message):
         received_mint_events_key: typing___Optional[typing___Text] = None,
         preburn_balances: typing___Optional[typing___Iterable[type___Amount]] = None,
         preburn_queues: typing___Optional[typing___Iterable[type___PreburnQueue]] = None,
-        diem_id_domains: typing___Optional[typing___Iterable[typing___Text]] = None,
-        diem_id_domain_events_key: typing___Optional[typing___Text] = None,
+        vasp_domains: typing___Optional[typing___Iterable[typing___Text]] = None,
+        vasp_domain_events_key: typing___Optional[typing___Text] = None,
     ) -> None: ...
     def ClearField(
         self,
@@ -163,10 +163,6 @@ class AccountRole(google___protobuf___message___Message):
             b"compliance_key",
             "compliance_key_rotation_events_key",
             b"compliance_key_rotation_events_key",
-            "diem_id_domain_events_key",
-            b"diem_id_domain_events_key",
-            "diem_id_domains",
-            b"diem_id_domains",
             "expiration_time",
             b"expiration_time",
             "human_name",
@@ -183,6 +179,10 @@ class AccountRole(google___protobuf___message___Message):
             b"received_mint_events_key",
             "type",
             b"type",
+            "vasp_domain_events_key",
+            b"vasp_domain_events_key",
+            "vasp_domains",
+            b"vasp_domains",
         ],
     ) -> None: ...
 
@@ -826,3 +826,58 @@ class AccumulatorConsistencyProof(google___protobuf___message___Message):
     ) -> None: ...
 
 type___AccumulatorConsistencyProof = AccumulatorConsistencyProof
+
+class AccountTransactionsWithProof(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    serialized_txns_with_proofs: google___protobuf___internal___containers___RepeatedScalarFieldContainer[
+        typing___Text
+    ] = ...
+    def __init__(
+        self,
+        *,
+        serialized_txns_with_proofs: typing___Optional[typing___Iterable[typing___Text]] = None,
+    ) -> None: ...
+    def ClearField(
+        self, field_name: typing_extensions___Literal["serialized_txns_with_proofs", b"serialized_txns_with_proofs"]
+    ) -> None: ...
+
+type___AccountTransactionsWithProof = AccountTransactionsWithProof
+
+class EventWithProof(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    event_with_proof: typing___Text = ...
+    def __init__(
+        self,
+        *,
+        event_with_proof: typing___Optional[typing___Text] = None,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions___Literal["event_with_proof", b"event_with_proof"]) -> None: ...
+
+type___EventWithProof = EventWithProof
+
+class EventByVersionWithProof(google___protobuf___message___Message):
+    DESCRIPTOR: google___protobuf___descriptor___Descriptor = ...
+    @property
+    def lower_bound_incl(self) -> type___EventWithProof: ...
+    @property
+    def upper_bound_excl(self) -> type___EventWithProof: ...
+    def __init__(
+        self,
+        *,
+        lower_bound_incl: typing___Optional[type___EventWithProof] = None,
+        upper_bound_excl: typing___Optional[type___EventWithProof] = None,
+    ) -> None: ...
+    def HasField(
+        self,
+        field_name: typing_extensions___Literal[
+            "lower_bound_incl", b"lower_bound_incl", "upper_bound_excl", b"upper_bound_excl"
+        ],
+    ) -> builtin___bool: ...
+    def ClearField(
+        self,
+        field_name: typing_extensions___Literal[
+            "lower_bound_incl", b"lower_bound_incl", "upper_bound_excl", b"upper_bound_excl"
+        ],
+    ) -> None: ...
+
+type___EventByVersionWithProof = EventByVersionWithProof

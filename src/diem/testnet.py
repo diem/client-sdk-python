@@ -109,13 +109,11 @@ class Faucet:
         amount: int,
         currency_code: str,
         dd_account: bool = False,
-        diem_id_domain: typing.Optional[str] = None,
+        vasp_domain: typing.Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
         self._retry.execute(
-            lambda: self._mint_without_retry(
-                authkey, amount, currency_code, dd_account, diem_id_domain, is_remove_domain
-            )
+            lambda: self._mint_without_retry(authkey, amount, currency_code, dd_account, vasp_domain, is_remove_domain)
         )
 
     def _mint_without_retry(
@@ -124,7 +122,7 @@ class Faucet:
         amount: int,
         currency_code: str,
         dd_account: bool = False,
-        diem_id_domain: typing.Optional[str] = None,
+        vasp_domain: typing.Optional[str] = None,
         is_remove_domain: bool = False,
     ) -> None:
         response = self._session.post(
@@ -135,7 +133,7 @@ class Faucet:
                 "currency_code": currency_code,
                 "return_txns": "true",
                 "is_designated_dealer": "true" if dd_account else "false",
-                "diem_id_domain": diem_id_domain,
+                "vasp_domain": vasp_domain,
                 "is_remove_domain": "true" if is_remove_domain else "false",
             },
         )

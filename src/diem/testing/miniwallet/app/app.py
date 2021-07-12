@@ -138,6 +138,8 @@ class App:
                 try:
                     await asyncio.gather(*[t() for t in self.bg_tasks])
                 except asyncio.CancelledError:
+                    # when application is shutting down, tasks maybe cancelled.
+                    # ignore the error and shutdown the worker.
                     return
                 except Exception as e:
                     self.logger.exception(e)

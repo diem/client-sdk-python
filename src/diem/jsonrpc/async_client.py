@@ -159,6 +159,9 @@ class AsyncClient:
         return self
 
     async def __aexit__(self, *args, **kwargs) -> None:  # pyre-ignore
+        """use async with to ensure close the client session after used"""
+
+        # we don't use `__del__` because close session requires `await`.
         await self.close()
 
     # high level functions

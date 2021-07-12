@@ -392,7 +392,7 @@ class AsyncClient:
 
     async def support_diem_id(self) -> bool:
         tc_account = await self.must_get_account(TREASURY_ADDRESS)
-        return True if tc_account.role.diem_id_domain_events_key else False
+        return bool(tc_account.role.diem_id_domain_events_key)
 
     async def submit(
         self,

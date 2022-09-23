@@ -1,7 +1,7 @@
 requests==2.20.0
 cryptography==3.3.2
 numpy==1.18
-protobuf==3.12.4
+protobuf==3.18.3
 pytest==6.2.1
 pytest-asyncio==0.14.0
 click==7.1

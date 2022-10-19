@@ -9,7 +9,7 @@ import typing
 
 
 class Command(ABC):
-    """Command defines common interface for all commands """
+    """Command defines common interface for all commands"""
 
     @abstractmethod
     def id(self) -> str:

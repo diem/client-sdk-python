@@ -44,7 +44,7 @@ jobs:
         make init
     - name: submodule for docker compose
       run: |
-        git submodule update --init diem
+        git submodule update --init --remote --merge diem
         make docker
     - name: Test
       run: |
@@ -65,7 +65,7 @@ jobs:
         make init
     - name: submodule for docker compose
       run: |
-        git submodule update --init diem
+        git submodule update --init --remote --merge diem
         make docker
     - name: Test
       run: |

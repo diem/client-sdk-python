@@ -23,7 +23,7 @@ jobs:
         make init
     - name: submodule for docker compose
       run: |
-        git submodule update --init diem
+        git submodule update --init --recursive diem
         make docker
     - name: Test
       run: |

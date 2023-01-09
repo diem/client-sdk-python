@@ -124,7 +124,7 @@ def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path
     full_name = _join_field_path(field_path, field.name)
     field_type = field.type
     args = field.type.__args__ if hasattr(field.type, "__args__") else []
-    is_optional = len(args) == 2 and isinstance(None, args[1])  # pyre-ignore
+    is_optional = len(args) == 2 and isinstance(None, args[1])  
     if is_optional:
         field_type = args[0]
     val = obj.get(field.name)

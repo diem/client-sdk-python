@@ -577,7 +577,7 @@ class AsyncClient:
 
             raise InvalidServerResponse(f"No error or result in response: {json}")
         except parser.ParseError as e:
-            raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
+            raise InvalidServerResponse(f"Parse result failed: {e}, response: ")
 
     async def _send_http_request(
         self,

@@ -124,7 +124,7 @@ def _field_value_from_dict(field: dataclasses.Field, obj: typing.Any, field_path
     full_name = _join_field_path(field_path, field.name)
     field_type = field.type
     args = field.type.__args__ if hasattr(field.type, "__args__") else []
-    is_optional = len(args) == 2 and isinstance(None, args[1])  
+    is_optional = len(args) == 2 and isinstance(None, args[1])
     if is_optional:
         field_type = args[0]
     val = obj.get(field.name)
@@ -166,14 +166,9 @@ def new_payment_object(
     return PaymentObject(
         reference_id=reference_id or str(uuid.uuid4()),
         sender=PaymentActorObject(
-            address=sender_account_id,
-            kyc_data=sender_kyc_data,
-            status=StatusObject(status=Status.needs_kyc_data),
+            address=sender_account_id, kyc_data=sender_kyc_data, status=StatusObject(status=Status.needs_kyc_data)
         ),
-        receiver=PaymentActorObject(
-            address=receiver_account_id,
-            status=StatusObject(status=Status.none),
-        ),
+        receiver=PaymentActorObject(address=receiver_account_id, status=StatusObject(status=Status.none)),
         action=PaymentActionObject(amount=amount, currency=currency),
         description=description,
         original_payment_reference_id=original_payment_reference_id,
@@ -196,10 +191,7 @@ def replace_payment_actor(
         changes["additional_kyc_data"] = additional_kyc_data
     if status or abort_code or abort_message:
         changes["status"] = replace_payment_status(
-            actor.status,
-            status=status,
-            abort_code=abort_code,
-            abort_message=abort_message,
+            actor.status, status=status, abort_code=abort_code, abort_message=abort_message
         )
     if metadata:
         if not isinstance(metadata, list):
@@ -224,19 +216,11 @@ def replace_payment_status(
     return dataclasses.replace(status_obj, **changes)
 
 
-def new_payment_request(
-    payment: PaymentObject,
-    cid: typing.Optional[str] = None,
-) -> CommandRequestObject:
+def new_payment_request(payment: PaymentObject, cid: typing.Optional[str] = None) -> CommandRequestObject:
     return CommandRequestObject(
         cid=cid or str(uuid.uuid4()),
         command_type=CommandType.PaymentCommand,
-        command=to_dict(
-            PaymentCommandObject(
-                _ObjectType=CommandType.PaymentCommand,
-                payment=payment,
-            )
-        ),
+        command=to_dict(PaymentCommandObject(_ObjectType=CommandType.PaymentCommand, payment=payment)),
     )
 
 
@@ -254,17 +238,11 @@ def reply_request(
 
 
 def individual_kyc_data(**kwargs) -> KycDataObject:  # pyre-ignore
-    return KycDataObject(
-        type=KycDataObjectType.individual,
-        **kwargs,
-    )
+    return KycDataObject(type=KycDataObjectType.individual, **kwargs)
 
 
 def entity_kyc_data(**kwargs) -> KycDataObject:  # pyre-ignore
-    return KycDataObject(
-        type=KycDataObjectType.entity,
-        **kwargs,
-    )
+    return KycDataObject(type=KycDataObjectType.entity, **kwargs)
 
 
 def validate_write_once_fields(path: str, new: typing.Any, prior: typing.Any) -> None:  # pyre-ignore

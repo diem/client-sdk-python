@@ -26,7 +26,7 @@ class Account(Base):
         self.diem_id = create_diem_id(self.id, str(self.vasp_domain)) if self.vasp_domain else None
 
     def kyc_data_object(self) -> offchain.KycDataObject:
-        return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()  # pyre-ignore
+        return self.kyc_data if self.kyc_data else offchain.individual_kyc_data()
 
 
 @dataclass

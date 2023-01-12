@@ -585,7 +585,7 @@ class Client:
         except requests.RequestException as e:
             raise NetworkError(f"Error in connecting to server: {e}\nPlease retry...")
         except parser.ParseError as e:
-            raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
+            raise InvalidServerResponse(f"Parse result failed: {e}, response: ")
 
     def _send_http_request(
         self,

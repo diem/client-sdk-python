@@ -564,6 +564,7 @@ class AsyncClient:
             "method": method,
             "params": params or [],
         }
+        json = {}
         try:
             json = await self._rs.send_request(self, request, ignore_stale_response or False)
             if "error" in json:
@@ -577,7 +578,7 @@ class AsyncClient:
 
             raise InvalidServerResponse(f"No error or result in response: {json}")
         except parser.ParseError as e:
-            raise InvalidServerResponse(f"Parse result failed: {e}, response: ")
+            raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
 
     async def _send_http_request(
         self,

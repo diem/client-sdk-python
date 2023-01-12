@@ -26,13 +26,7 @@ async def test_create_an_account_with_initial_deposit_balances(
     assert await account.balance(currency) == amount
 
 
-@pytest.mark.parametrize(  # pyre-ignore
-    "kyc_data",
-    [
-        offchain.individual_kyc_data(),
-        offchain.entity_kyc_data(),
-    ],
-)
+@pytest.mark.parametrize("kyc_data", [offchain.individual_kyc_data(), offchain.entity_kyc_data()])
 async def test_create_an_account_with_minimum_valid_kyc_data(
     target_client: RestClient, kyc_data: offchain.KycDataObject
 ) -> None:

@@ -149,7 +149,7 @@ class App:
     async def txn_metadata(self, txn: Transaction) -> Tuple[bytes, bytes]:
         if await self.offchain.is_under_dual_attestation_limit(txn.currency, txn.amount):
             if txn.refund_diem_txn_version and txn.refund_reason:
-                return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)  # pyre-ignore
+                return self.diem_account.refund_metadata(txn.refund_diem_txn_version, txn.refund_reason)
             if txn.subaddress_hex:
                 return self.diem_account.general_metadata(txn.subaddress(), str(txn.payee))
             if txn.reference_id:

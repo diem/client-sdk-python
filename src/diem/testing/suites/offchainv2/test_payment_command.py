@@ -264,11 +264,7 @@ async def test_payment_command_contains_invalid_actor_metadata_item_type(
 
 
 async def test_replay_the_same_payment_command(
-    currency: str,
-    travel_rule_threshold: int,
-    stub_wallet_app: App,
-    stub_client: RestClient,
-    target_client: RestClient,
+    currency: str, travel_rule_threshold: int, stub_wallet_app: App, stub_client: RestClient, target_client: RestClient
 ) -> None:
     """
     Test Plan:
@@ -285,9 +281,7 @@ async def test_replay_the_same_payment_command(
     target_kyc = await target_client.get_kyc_sample()
     stub_kyc = await stub_client.get_kyc_sample()
     sender_account = await stub_client.create_account(
-        balances={currency: travel_rule_threshold},
-        kyc_data=target_kyc.minimum,
-        disable_background_tasks=True,
+        balances={currency: travel_rule_threshold}, kyc_data=target_kyc.minimum, disable_background_tasks=True
     )
     receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
@@ -306,11 +300,7 @@ async def test_replay_the_same_payment_command(
 
 
 async def test_payment_command_sender_kyc_data_can_only_be_written_once(
-    currency: str,
-    travel_rule_threshold: int,
-    stub_wallet_app: App,
-    stub_client: RestClient,
-    target_client: RestClient,
+    currency: str, travel_rule_threshold: int, stub_wallet_app: App, stub_client: RestClient, target_client: RestClient
 ) -> None:
     """
     Test Plan:
@@ -330,9 +320,7 @@ async def test_payment_command_sender_kyc_data_can_only_be_written_once(
     target_kyc = await target_client.get_kyc_sample()
     stub_kyc = await stub_client.get_kyc_sample()
     sender_account = await stub_client.create_account(
-        balances={currency: travel_rule_threshold},
-        kyc_data=target_kyc.minimum,
-        disable_background_tasks=True,
+        balances={currency: travel_rule_threshold}, kyc_data=target_kyc.minimum, disable_background_tasks=True
     )
     receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
@@ -393,9 +381,7 @@ async def test_payment_command_sender_address_can_only_be_written_once(
     target_kyc = await target_client.get_kyc_sample()
     stub_kyc = await stub_client.get_kyc_sample()
     sender_account = await stub_client.create_account(
-        balances={currency: travel_rule_threshold},
-        kyc_data=target_kyc.minimum,
-        disable_background_tasks=True,
+        balances={currency: travel_rule_threshold}, kyc_data=target_kyc.minimum, disable_background_tasks=True
     )
     receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
@@ -431,14 +417,7 @@ async def test_payment_command_sender_address_can_only_be_written_once(
         await sender_account.log_events()
 
 
-@pytest.mark.parametrize(
-    "field_name",
-    [
-        "currency",
-        "amount",
-        "timestamp",
-    ],
-)
+@pytest.mark.parametrize("field_name", ["currency", "amount", "timestamp"])
 async def test_payment_command_action_can_only_be_written_once(
     currency: str,
     travel_rule_threshold: int,
@@ -466,9 +445,7 @@ async def test_payment_command_action_can_only_be_written_once(
     target_kyc = await target_client.get_kyc_sample()
     stub_kyc = await stub_client.get_kyc_sample()
     sender_account = await stub_client.create_account(
-        balances={currency: travel_rule_threshold},
-        kyc_data=target_kyc.minimum,
-        disable_background_tasks=True,
+        balances={currency: travel_rule_threshold}, kyc_data=target_kyc.minimum, disable_background_tasks=True
     )
     receiver_account = await target_client.create_account(kyc_data=stub_kyc.minimum)
     try:
@@ -486,6 +463,7 @@ async def test_payment_command_action_can_only_be_written_once(
         offchain_cmd = updated_cmd.to_offchain_command()
 
         # update action field value
+        field_value = ""
         if field_name == "currency":
             field_value = "XDX" if offchain_cmd.payment.action.currency == "XUS" else "XUS"
         elif field_name == "amount":
@@ -535,12 +513,7 @@ async def assert_payment_command_field_error(
     set_field(request, full_field_name, field_value)
 
     status_code, resp = await send_request_json(
-        diem_client,
-        stub_config.account,
-        sender_address,
-        receiver_address,
-        json.dumps(request),
-        hrp,
+        diem_client, stub_config.account, sender_address, receiver_address, json.dumps(request), hrp
     )
     assert status_code == 400
     assert resp.status == "failure"

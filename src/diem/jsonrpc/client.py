@@ -570,6 +570,7 @@ class Client:
             "method": method,
             "params": params or [],
         }
+        json = {}
         try:
             json = self._rs.send_request(self, request, ignore_stale_response or False)
             if "error" in json:
@@ -585,7 +586,7 @@ class Client:
         except requests.RequestException as e:
             raise NetworkError(f"Error in connecting to server: {e}\nPlease retry...")
         except parser.ParseError as e:
-            raise InvalidServerResponse(f"Parse result failed: {e}, response: ")
+            raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
 
     def _send_http_request(
         self,

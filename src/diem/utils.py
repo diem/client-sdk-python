@@ -223,7 +223,7 @@ def shutdown_event_loop(loop: asyncio.events.AbstractEventLoop) -> None:
         asyncio.runners._cancel_all_tasks(loop)  # pyre-ignore
         loop.run_until_complete(loop.shutdown_asyncgens())
         if hasattr(loop, "shutdown_default_executor"):
-            loop.run_until_complete(loop.__getattribute__("shutdown_default_executor"))
+            loop.run_until_complete(getattr(loop, "shutdown_default_executor")())
     finally:
         asyncio.set_event_loop(None)
         loop.close()

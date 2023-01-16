@@ -570,6 +570,7 @@ class Client:
             "method": method,
             "params": params or [],
         }
+        
         json = {}
         try:
             json = self._rs.send_request(self, request, ignore_stale_response or False)

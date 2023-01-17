@@ -108,12 +108,7 @@ class RequestWithBackups(RequestStrategy):
     ```
     """
 
-    def __init__(
-        self,
-        backups: typing.List[str],
-        executor: ThreadPoolExecutor,
-        fallback: bool = False,
-    ) -> None:
+    def __init__(self, backups: typing.List[str], executor: ThreadPoolExecutor, fallback: bool = False) -> None:
         self._backups = backups
         self._executor = executor
         self._fallback = fallback
@@ -268,16 +263,9 @@ class Client:
             if curr.timestamp_usecs > timestamp_usecs:
                 raise StaleResponseError(f"last known timestamp_usecs {curr.timestamp_usecs} > {timestamp_usecs}")
 
-            self._last_known_server_state = State(
-                chain_id=chain_id,
-                version=version,
-                timestamp_usecs=timestamp_usecs,
-            )
+            self._last_known_server_state = State(chain_id=chain_id, version=version, timestamp_usecs=timestamp_usecs)
 
-    def get_metadata(
-        self,
-        version: typing.Optional[int] = None,
-    ) -> rpc.Metadata:
+    def get_metadata(self, version: typing.Optional[int] = None) -> rpc.Metadata:
         """get block metadata
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_get_metadata.md)
@@ -342,10 +330,7 @@ class Client:
         return self.execute("get_account_transactions", params, _parse_list(lambda: rpc.Transaction()))
 
     def get_transactions(
-        self,
-        start_version: int,
-        limit: int,
-        include_events: typing.Optional[bool] = None,
+        self, start_version: int, limit: int, include_events: typing.Optional[bool] = None
     ) -> typing.List[rpc.Transaction]:
         """get transactions
 
@@ -403,10 +388,7 @@ class Client:
         tc_account = self.must_get_account(TREASURY_ADDRESS)
         return bool(tc_account.role.vasp_domain_events_key)
 
-    def submit(
-        self,
-        txn: typing.Union[diem_types.SignedTransaction, str],
-    ) -> None:
+    def submit(self, txn: typing.Union[diem_types.SignedTransaction, str]) -> None:
         """submit signed transaction
 
         See [JSON-RPC API Doc](https://github.com/diem/diem/blob/master/json-rpc/docs/method_submit.md)
@@ -564,13 +546,8 @@ class Client:
         Raises NetworkError if send http request failed, or received server response status is not 200.
         """
 
-        request = {
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": method,
-            "params": params or [],
-        }
-        
+        request = {"jsonrpc": "2.0", "id": 1, "method": method, "params": params or []}
+
         json = {}
         try:
             json = self._rs.send_request(self, request, ignore_stale_response or False)
@@ -590,10 +567,7 @@ class Client:
             raise InvalidServerResponse(f"Parse result failed: {e}, response: {json}")
 
     def _send_http_request(
-        self,
-        url: str,
-        request: typing.Dict[str, typing.Any],
-        ignore_stale_response: bool,
+        self, url: str, request: typing.Dict[str, typing.Any], ignore_stale_response: bool
     ) -> typing.Dict[str, typing.Any]:
         self._logger.debug("http request body: %s", request)
         response = self._session.post(url, json=request, timeout=self._timeout)
@@ -607,9 +581,7 @@ class Client:
         # check stable response before check jsonrpc error
         try:
             self.update_last_known_state(
-                json.get("diem_chain_id"),
-                json.get("diem_ledger_version"),
-                json.get("diem_ledger_timestampusec"),
+                json.get("diem_chain_id"), json.get("diem_ledger_version"), json.get("diem_ledger_timestampusec")
             )
         except StaleResponseError as e:
             if not ignore_stale_response:

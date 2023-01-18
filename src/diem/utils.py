@@ -3,6 +3,7 @@
 
 """Utilities for data type converting, construction and hashing."""
 
+import sys
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
 import hashlib, typing, time, socket, asyncio
@@ -222,8 +223,9 @@ def shutdown_event_loop(loop: asyncio.events.AbstractEventLoop) -> None:
     try:
         asyncio.runners._cancel_all_tasks(loop)  # pyre-ignore
         loop.run_until_complete(loop.shutdown_asyncgens())
-        if hasattr(loop, "shutdown_default_executor"):
-            loop.run_until_complete(getattr(loop, "shutdown_default_executor")())
+        if sys.version_info >= (3, 9):
+            if hasattr(loop, "shutdown_default_executor"):
+                loop.run_until_complete(getattr(loop, "shutdown_default_executor")())
     finally:
         asyncio.set_event_loop(None)
         loop.close()

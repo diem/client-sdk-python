@@ -29,7 +29,7 @@ setup(
         [console_scripts]
         dmw=diem.testing.cli:main
     ''',
-    python_requires=">=3.7", # requires dataclasses
+    python_requires=">=3.8", # requires dataclasses
     packages=["diem"],
     # package_data={"": ["src/diem/jsonrpc/*.pyi"]},
     package_dir={"": "src"},

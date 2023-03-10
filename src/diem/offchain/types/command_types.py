@@ -98,7 +98,7 @@ class OffChainErrorType:
 
 
 class OffChainCommandResponseResultType:
-    """ Type of result in a CommandResponseObject"""
+    """Type of result in a CommandResponseObject"""
 
     ReferenceIDCommandResponse = "ReferenceIDCommandResponse"
 

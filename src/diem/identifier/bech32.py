@@ -23,7 +23,7 @@ _DIEM_BECH32_SIZE = [50, 49]  # in characters
 
 
 class Bech32Error(Exception):
-    """ Represents an error when creating a Diem address. """
+    """Represents an error when creating a Diem address."""
 
     pass
 

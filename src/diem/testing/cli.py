@@ -14,7 +14,7 @@ import logging, click, functools, pytest, os, sys, json, shlex, asyncio
 
 
 log_format: str = "%(name)s [%(asctime)s] %(levelname)s: %(message)s"
-click.option = functools.partial(click.option, show_default=True)  # pyre-ignore
+click.option = functools.partial(click.option, show_default=True)
 
 
 def coro(f):  # pyre-ignore
@@ -187,13 +187,7 @@ async def start_server(
     help="Before start test, the target wallet application host port should be ready for connection. This is wait timeout (seconds) for the port ready.",
     type=int,
 )
-@click.option(
-    "--include-offchain-v2",
-    type=bool,
-    is_flag=True,
-    default=False,
-    help="Include offchain v2 test suites",
-)
+@click.option("--include-offchain-v2", type=bool, is_flag=True, default=False, help="Include offchain v2 test suites")
 @click.help_option("-h", "--help")
 def test(
     target: str,

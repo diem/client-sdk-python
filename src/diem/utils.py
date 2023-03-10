@@ -3,15 +3,13 @@
 
 """Utilities for data type converting, construction and hashing."""
 
+import sys
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey, Ed25519PrivateKey
 import hashlib, typing, time, socket, asyncio
 
 from . import diem_types, jsonrpc, stdlib
-from .constants import (
-    SUB_ADDRESS_LEN,
-    DIEM_HASH_PREFIX,
-)
+from .constants import SUB_ADDRESS_LEN, DIEM_HASH_PREFIX
 
 
 class InvalidAccountAddressError(Exception):
@@ -225,8 +223,9 @@ def shutdown_event_loop(loop: asyncio.events.AbstractEventLoop) -> None:
     try:
         asyncio.runners._cancel_all_tasks(loop)  # pyre-ignore
         loop.run_until_complete(loop.shutdown_asyncgens())
-        if hasattr(loop, "shutdown_default_executor"):
-            loop.run_until_complete(getattr(loop, "shutdown_default_executor")())
+        if sys.version_info >= (3, 9):
+            if hasattr(loop, "shutdown_default_executor"):
+                loop.run_until_complete(getattr(loop, "shutdown_default_executor")())
     finally:
         asyncio.set_event_loop(None)
         loop.close()
@@ -238,7 +237,7 @@ async def with_retry(coroutine, max_retries=5, delay_secs=0.1, exception=Excepti
         tries += 1
         try:
             return await coroutine()
-        except exception as e:  # pyre-ignore
+        except exception as e:
             if tries < max_retries:
                 # simplest backoff strategy: tries * delay
                 await asyncio.sleep(delay_secs * tries)

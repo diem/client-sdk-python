@@ -564,6 +564,7 @@ class AsyncClient:
             "method": method,
             "params": params or [],
         }
+        json = {}
         try:
             json = await self._rs.send_request(self, request, ignore_stale_response or False)
             if "error" in json:

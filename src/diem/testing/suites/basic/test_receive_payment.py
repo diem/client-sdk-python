@@ -74,10 +74,7 @@ async def test_receive_payment_with_invalid_metadata(
 
 @pytest.mark.parametrize("amount", [10_000, 1200_000, 125550_000])
 async def test_receive_payment_with_general_metadata_and_valid_from_and_to_subaddresses(
-    stub_client: RestClient,
-    target_client: RestClient,
-    currency: str,
-    amount: int,
+    stub_client: RestClient, target_client: RestClient, currency: str, amount: int
 ) -> None:
     """
     Test Plan:
@@ -101,7 +98,7 @@ async def test_receive_payment_with_general_metadata_and_valid_from_and_to_subad
         await sender_account.log_events()
 
 
-@pytest.mark.parametrize(  # pyre-ignore
+@pytest.mark.parametrize(
     "invalid_to_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
 async def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
@@ -163,7 +160,7 @@ async def test_receive_payment_with_general_metadata_and_invalid_to_subaddress(
         await sender_account.log_events()
 
 
-@pytest.mark.parametrize(  # pyre-ignore
+@pytest.mark.parametrize(
     "invalid_from_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
 async def test_receive_payment_with_general_metadata_and_invalid_from_subaddress(
@@ -216,7 +213,7 @@ async def test_receive_payment_with_general_metadata_and_invalid_from_subaddress
 @pytest.mark.parametrize(
     "invalid_from_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
-@pytest.mark.parametrize(  # pyre-ignore
+@pytest.mark.parametrize(
     "invalid_to_subaddress", [None, b"", b"bb4a3ba109a3175f", b"subaddress_more_than_8_bytes", b"too_short"]
 )
 async def test_receive_payment_with_general_metadata_and_invalid_subaddresses(

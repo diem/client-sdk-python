@@ -1,3 +1,3 @@
-[submodule "diem"]
+[submodule "diem_testnet_tag"]
 	path = diem
 	url = https://github.com/diem/diem.git

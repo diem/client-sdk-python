@@ -1,5 +1,5 @@
 requests==2.20.0
-cryptography==39.0.1
+cryptography==41.0.3
 numpy==1.19.0
 protobuf==3.18.3
 pytest==6.2.1
